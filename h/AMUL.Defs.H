@@ -1,7 +1,7 @@
 /*
               ****    AMUL.DEFS.H.....Adventure Compiler    ****
               ****                #defines!                 ****
-									   */
+*/
 
 #define	MAXU	14				/* Max users at 1 time		*/
 #define	MAXNODE	(MAXU+2)			/* + 1 mobiles+1 daemons	*/

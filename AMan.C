@@ -11,7 +11,7 @@
   Copyright (C) Oliver Smith, 1990/1. Copyright (C) Kingfisher s/w 1990/1
   Program Designed, Developed and Written By: Oliver Smith & Richard Pike
 
-									   */
+*/
 
 #define MAXD	150
 #define	XR	16668

@@ -7,7 +7,7 @@
   SPECIAL NOTICE!
 
   Anything you alter here REALLY ought to be added/altered in AMUL2.C
-									    */
+*/
 
 #include "h/AMUL.Defs.H"		/* Defines in one nice file	*/
 #include "h/AMUL.Incs.H"		/* Include files tidily stored.	*/
@@ -39,19 +39,11 @@ extern struct RastPort *rpG;
 extern struct MsgPort *ReadRep,*WriteRep,*repbk,*FindPort(),*CreatePort();
 extern struct IOStdReq ReadIo, WriteIo;
 
-/* get the powerwindows file */
-#ifdef	AMUL1
-#include "ADV:H/AMUL.Scrn.h"		/* ParFilEd Window b4 U ask!	 */
-
-void	end(),sendmessage(),parget();
-#endif
-
 /* Frame specific variables */
 extern char	serop,MyFlag;		/* SerPort open? What am I? */
 extern char	*input;			/* 400 bytes, 5 lines */
 extern char	str[],spc[],mxx[],mxy[];/* Output string */
 extern char	wtil[];			/* Window title */
-extern char	iosup;			/* What kind of IO support */
 extern char	inc,forced,failed,died,addcr,fol;/* For parsers use */
 extern char	actor,last_him,last_her;	/* People we know of */
 extern char	autoexits,needcr;		/* Autoexits on/off? */
@@ -126,13 +118,3 @@ extern	struct	IOExtSer *serio,*wserio;
 extern	struct MsgPort *ReadRep,*WriteRep,*repbk;
 extern	struct IOStdReq ReadIo, WriteIo;
 extern  struct MsgPort *MyPort,*replyport;	/* For paragon */
-
-#ifdef	AMUL1
-#include <ADV:Frame/GetID.C>
-#include <ADV:Frame/IOBits.C>
-#include <ADV:Frame/Reset.C>
-#include <ADV:Frame/ScrnIO.C>		/* Screen driver bits		 */
-#include <ADV:Frame/Proc.C>		/* Parser processing routines	 */
-#include <ADV:Frame/Cond.C>		/* Parser & VT processor	 */
-#endif
-

@@ -78,11 +78,6 @@ main(int argc,char *argv[])			/*=* Main Program *=*/
 	if(Ad==-'R') { tx("\n...Reset In Progress...\n"); Delay(40); quit(); }
 	reset();		/* Read in data files */
 	if(Af<0)     { sys(NOSLOTS); pressret(); quit(); }
-	if(iosup == CUSSCREEN)
-	{
-		sprintf(wtil,"%s   Line: %2d  ",vername,Af);
-		strcat(wtil,"Logging in!"); SetWindowTitles(wG,wtil,wtil);
-	}
 	me2->unum=Af; me2->sup=iosup; me2->buf=ob; *ob=0;
 	me2->IOlock=-1; *ob=0; SendIt(MFREE,NULL,NULL); iocheck();
 
@@ -102,12 +97,6 @@ main(int argc,char *argv[])			/*=* Main Program *=*/
 
 	getid();	/*  GET USERS INFO */
 
-	if(iosup == CUSSCREEN)
-	{
-		sprintf(wtil,"%s   Line: %2d  ",vername,Af);
-		strcat(wtil,"Player: "); strcat(wtil,me->name);
-		SetWindowTitles(wG,wtil,wtil);
-	}
 
 	last_him=last_her=it=-1;
 
@@ -139,7 +128,6 @@ quitgame:		/* Quite the game, tidily. */
 	if(me->plays==1) sys(BYEPASSWD);
 	if(dmove[0]!=0) dropall(isroom(dmove)); else dropall(me2->room);
 	LoseFollower();		/* Lose who ever is following us. */
-	if(iosup==CUSSCREEN) pressret();
 	quit();
 }
 

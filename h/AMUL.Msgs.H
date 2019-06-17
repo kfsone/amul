@@ -1,7 +1,7 @@
 /*
               ****    AMUL.MSGS.H.....Adventure Compiler    ****
               ****         system message #defines!         ****
-									   */
+*/
 
 #define		NSMSGS		75	/* No. of system messages */
 

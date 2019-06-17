@@ -44,7 +44,6 @@ char	serop,MyFlag;			/* SerPort open? What am I? */
 char	*input;				/* 400 bytes, 5 lines */
 char	str[800],spc[200],mxx[40],mxy[60];	/* Output string */
 char	wtil[80];			/* Window title */
-char	iosup;				/* What kind of IO support */
 char	inc,forced,failed,died,addcr,fol; /* For parsers use */
 char	actor,last_him,last_her;	/* People we talked about */
 char	autoexits,needcr;		/* General flags */

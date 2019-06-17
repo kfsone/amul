@@ -43,7 +43,6 @@ unsigned short int rec;				/* My record no.	 */
 	char	state;				/* State of line	 */
 	char	IOlock;				/* Device in use?	 */
 	char	following;			/* Who I am following	 */
-	char	sup;				/* User's io type	 */
 	char	light;				/* If player has a light */
 	char	hadlight;			/* If I had a light	 */
 	char	helping;			/* Player I am helping	 */
