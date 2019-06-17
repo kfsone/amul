@@ -9,7 +9,6 @@
 							*/
 
 #define	AMAN 1			/* Get AMan includes */
-#define	FRAME 1			/* Avoids various includes */
 
 #include <stdio.h>
 #include <exec/types.h>

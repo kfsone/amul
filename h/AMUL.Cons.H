@@ -399,7 +399,7 @@ char	rooms2fn[]="RDs.CMP";			/* Descriptions	*/
 char	mannam[]  ="AMUL Manager Port";		/* MU driver port */
 char	plyrfn[]  ="Players Data";		/* User Details	*/
 #endif
-#ifndef FRAME
+
 char	rooms1fn[]="Rms.CMP";			/* Room blocks	*/
 char	ranksfn[] ="Rks.CMP";			/* Rank details	*/
 char	ttfn[]    ="TT.CMP";			/* T.T. Entries	*/
@@ -420,4 +420,3 @@ char	umsgifn[] ="UMI.CMP";			/* UMsgs Index	*/
 char	umsgfn[]  ="UMT.CMP";			/* Umsg text	*/
 char	mobfn[]   ="Mbs.CMP";			/* Mobile data	*/
 char	mobcmdfn[]="Mcm.CMP";			/* Mob cmds	*/
-#endif

@@ -9,11 +9,6 @@
   Anything you alter here REALLY ought to be added/altered in AMUL2.C
 									    */
 
-#ifndef FRAME
-#define	FRAME	1
-#define	PORTS	1
-#endif
-
 #include "h/AMUL.Defs.H"		/* Defines in one nice file	*/
 #include "h/AMUL.Incs.H"		/* Include files tidily stored.	*/
 #include "h/AMUL.Lnks.H"		/* (external) Linkage symbols	*/

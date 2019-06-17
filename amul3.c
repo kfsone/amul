@@ -17,11 +17,8 @@
 
                Variables and structures used in AMUL & AMUL2
                            and assorted routines
-									    */
+*/
 
-
-#define	FRAME 1
-#define	PORTS 1
 
 #include "h/AMUL.Defs.H"
 #include "h/AMUL.Incs.H"

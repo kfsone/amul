@@ -17,8 +17,6 @@
 #define	XR	16668
 
 #define	AMAN  1
-#define	PORTS 1
-#define AMAN  1
 #define TRQ timerequest
 
 #define	UINFO	((sizeof(*usr)+sizeof(*lstat))*MAXNODE)+(rooms*sizeof(short))+(sizeof(mob)*mobs)
