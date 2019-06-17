@@ -155,7 +155,7 @@ readport:	while((am=(struct Aport *)GetMsg(reply))!=NULL) { FreeMem((char *)am, 
 					if(i==0) break;
 					setam();
 					am->data=num[i]; am->p1=val[i][0]; am->p2=val[i][1]; am->p3=typ[i][0]; am->p4=typ[i][1];
-					am->type=MDAEMON; PutMsg((lstat+own[i])->rep,am);
+					am->type=MSG_DAEMON; PutMsg((lstat+own[i])->rep,am);
 					pack(i); i--;
 				}
 			}
@@ -181,22 +181,22 @@ readport:	while((am=(struct Aport *)GetMsg(reply))!=NULL) { FreeMem((char *)am, 
 		if((amul=(struct Aport*) GetMsg((struct MsgPort *) port))==NULL) continue;
 		switch(At)
 		{
-			case MKILL:	kill(); break;
-			case MCNCT:	cnct(); break;
-			case MDISCNCT:	discnct(); break;
-			case MDATAREQ:	data();	break;
-			case MLOGGED:	login(); break;
-			case MRESET:	rest(); break;
-			case MLOCK:	lock(); break;
-			case MBUSY:	busy[Af]=1; break;
-			case MFREE:	busy[Af]=0; break;
-			case MDSTART:	pstart(); break;	/* Priv. daemon */
-			case MDCANCEL:	dkill(Ad); break;
-			case MCHECKD:	check(Ad); break;
-			case MMADEWIZ:	logwiz(Af); break;
-			case MLOG:	logit(Ap); break;
-			case MEXTEND:	extend(Ad); forcereset=0; break;
-			case MGDSTART:	gstart(); break;	/* Global daemon */
+			case MSG_KILL:	kill(); break;
+			case MSG_CONNECT:	cnct(); break;
+			case MSG_DISCONNECT:	discnct(); break;
+			case MSG_DATA_REQUEST:	data();	break;
+			case MSG_LOGGED_IN:	login(); break;
+			case MSG_RESET:	rest(); break;
+			case MSG_LOCK:	lock(); break;
+			case MSG_BUSY:	busy[Af]=1; break;
+			case MSG_FREE:	busy[Af]=0; break;
+			case MSG_DAEMON_START:	pstart(); break;	/* Priv. daemon */
+			case MSG_DAEMON_CANCEL:	dkill(Ad); break;
+			case MSG_DAEMON_STATUS:	check(Ad); break;
+			case MSG_MADE_ADMIN:	logwiz(Af); break;
+			case MSG_LOG:	logit(Ap); break;
+			case MSG_EXTENDED:	extend(Ad); forcereset=0; break;
+			case MSG_GDAEMON_START:	gstart(); break;	/* Global daemon */
 			default:
 				At=-1; sprintf(block,"$$ (X) %s: *INVALID Message Type, %ld!*\n",now(),At); log(block); break; 
 		}
@@ -241,20 +241,20 @@ cnct()				/* User connection! */
 	{
 		if(Af==MAXU+1) printf("** Mobile processor connected.\n");
 		if((lstat+Af)->state!=0) Af = -1;
-		else (lstat+Af)->state = PLAYING;
+		else (lstat+Af)->state = US_CONNECTED;
 		return;
 	}
 	Af=-1;
 	for(i=0;i<MAXU;i++)	/* Allow for daemons & mobiles */
 	{
 		if((lstat+i)->state!=0) continue;
-		Af=i; (lstat+i)->state=LOGGING; online++; calls++; break;
+		Af=i; (lstat+i)->state=US_LOGGING_IN; online++; calls++; break;
 	}
 }
 
 discnct()			/* User disconnection */
 {
-	if(Af < MAXU && (lstat+Af)->state==PLAYING)
+	if(Af < MAXU && (lstat+Af)->state==US_CONNECTED)
 	{
 		sprintf(block,"<- (%d) %s: user disconnected.\n",Af,now()); log(block);
 	}
@@ -265,7 +265,7 @@ discnct()			/* User disconnection */
 
 data()				/* Sends pointers to database */
 {
-	At=MDATAREQ;
+	At=MSG_DATA_REQUEST;
 	switch(Ad)
 	{
 		case -1: Ad=online; Ap=(char *)usr; Ap1=calls; Ap2=(long) vername; Ap3=(long) adname; Ap4=(long) lstat; break;
@@ -295,17 +295,17 @@ data()				/* Sends pointers to database */
 login()				/* Receive & log a player login */
 {
 	sprintf(block,"-> (%d) %s: \"%s\" logged in.\n",Af,now(),(usr+Af)->name);
-	(lstat+Af)->state=PLAYING; log(block);
+	(lstat+Af)->state=US_CONNECTED; log(block);
 }
 
 shutreq(register int x)
 {
-	asend( (x==0) ? MKILL : MRESET, count[0] );
+	asend( (x==0) ? MSG_KILL : MSG_RESET, count[0] );
 }
 
 sendext(register int t)
 {
-	asend( MEXTEND, t );
+	asend( MSG_EXTENDED, t );
 }
 
 asend(int type, int data)		/* Shutdown request */
@@ -381,7 +381,7 @@ reset_users()		/* Force users to log-out & kill extra lines */
 	for(i=0; i<MAXNODE; i++)
 	{
 		if((lstat+i)->state<=0) continue; online++;
-		setam(); am->type=MCLOSEING; am->msg.mn_ReplyPort = port;
+		setam(); am->type=MSG_CLOSEING; am->msg.mn_ReplyPort = port;
 		PutMsg((lstat+i)->rep,am);
 	}
 	while(online>0)
@@ -664,11 +664,11 @@ warn(register char *s)
 {	register int i;
 
 	for(i=0; i<MAXU; i++)
-		if((lstat+i)->state != OFFLINE)
+		if((lstat+i)->state != US_OFFLINE)
 		{
 			setam();
 			am->ptr=s;
-			am->type=MRWARN;
+			am->type=MSG_RESET_WARNING;
 			PutMsg((lstat+i)->rep,am);
 		}
 }

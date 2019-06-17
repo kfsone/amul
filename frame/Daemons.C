@@ -3,12 +3,12 @@
 
 dpstart(register int d,register int c)	/* Begin PRIVATE daemon! */
 {
-	dstart(d,c,MDSTART);
+	dstart(d,c,MSG_DAEMON_START);
 }
 
 dgstart(register int d,register int c)	/* Begin GLOBAL daemon! */
 {
-	dstart(d,c,MGDSTART);
+	dstart(d,c,MSG_GDAEMON_START);
 }
 
 dstart(register int d,register int c,register int t)
@@ -34,7 +34,7 @@ dbegin(register int d)			/* Force daemon to happen */
 
 dshow(register int d)
 {
-	SendIt(MCHECKD,d,NULL);
+	SendIt(MSG_DAEMON_STATUS,d,NULL);
 	if(Ad==-1) { tx("eventually"); return; }
 	timeto(block,Ap1); tx(block);
 }

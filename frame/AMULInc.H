@@ -83,7 +83,7 @@ extern	char	useful;				/* FLAG: Anything yet??? */
 extern	char	dir[];				/* spc for work dir path */
 extern	char	block[];			/* 1k block of spare txt */
 extern	char	temp[];				/* temp store		 */
-extern	char	dmove[];			/* Where to DMOVE to     */
+extern	char	dmove[];			/* Where to RF_CEMETERY to     */
 extern	char	adname[];			/* Adventure name	 */
 extern	char	vername[];			/* Version name		 */
 

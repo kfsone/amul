@@ -254,7 +254,7 @@ struct MsgPort	*rep;				/* Notify me here	*/
 struct	_LS			/* IO Driver Line Status Info */
 {
 	USHORT	rec,unum;
-	char	line,iosup;			/* Which line am I?	*/
+	char	line;				/* Which line am I?	*/
 	char	IOlock;				/* Device in use?	*/
 	char	pre[80];			/* Pre-rank description	*/
 	char	post[80];			/* Post-rank description*/

@@ -61,7 +61,7 @@ quit()
 {
 	txs("\n%s exiting.\n\n",vername);
 	scrend();					/* custom screen */
-	if(link>0 && amul->from>-1) SendIt(MDISCNCT,0,me->name);
+	if(link>0 && amul->from>-1) SendIt(MSG_DISCONNECT,0,me->name);
 	if(ifp!=NULL)	fclose(ifp);
 	if(afp!=NULL)	fclose(afp);
 	close_ofps(); givebackmemory();

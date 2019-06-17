@@ -77,17 +77,17 @@ stuffloop:	do { s2=s1; s1=sgetl(s1,block); *(s1-1)=0; } while(*s1!=0 && block[0]
 		}
 
 		/* Syntax line loop */
-synloop:	setslots(WNONE); verb.ents++; p=skiplead("verb",p);
+synloop:	setslots(TC_NONE); verb.ents++; p=skiplead("verb",p);
 		p2=getword(p); p2=skipspc(p2);
 
 		/* If syntax line is 'syntax=verb any' or 'syntax=none' */
 		if(*p2==0 && strcmp("any",Word)==NULL)
 		{
-			setslots(WANY); goto endsynt;
+			setslots(TC_ANY); goto endsynt;
 		}
 		if(*p2==0 && strcmp("none",Word)==NULL)
 		{
-			setslots(WNONE); goto endsynt;
+			setslots(TC_NONE); goto endsynt;
 		}
 
 sp2:		/*=* Syntax line processing *=*/
@@ -99,16 +99,16 @@ sp2:		/*=* Syntax line processing *=*/
 			sprintf(block,"Invalid phrase, '%s', on syntax line!",Word);
 			vbprob(block,s2); goto commands;
 		}
-		if(Word[0]==0) { s=WANY; goto skipeq; }
+		if(Word[0]==0) { s=TC_ANY; goto skipeq; }
 
 		/*=* First of all, eliminate illegal combinations *=*/
-		if(n==WNONE || n==WANY)
+		if(n==TC_NONE || n==TC_ANY)
 		{	/* you cannot say none=fred any=fred etc */
 			sprintf(block,"Tried to defined %s= on syntax line",syntax[n]);
 			vbprob(block,s2);
 			goto endsynt;
 		}
-		if(n==WPLAYER && strcmp(Word,"me")!=NULL && strcmp(Word,"myself")!=NULL)
+		if(n==TC_PLAYER && strcmp(Word,"me")!=NULL && strcmp(Word,"myself")!=NULL)
 		{
 			vbprob("Tried to specify player other than self",s2);
 			goto endsynt;
@@ -119,88 +119,88 @@ sp2:		/*=* Syntax line processing *=*/
 		s=-1;
 		switch(n)
 		{
-		    case WADJ:
+		    case TC_ADJ:
 			/* Need ISADJ() - do TT entry too */
-		    case WNOUN: s=isnoun(Word); break;
-		    case WPREP: s=isprep(Word); break;
-		    case WPLAYER:
+		    case TC_NOUN: s=isnoun(Word); break;
+		    case TC_PREP: s=isprep(Word); break;
+		    case TC_PLAYER:
 			if(strcmp(Word,"me")==NULL || strcmp(Word,"myself")==NULL) s=-3; break;
-		    case WROOM:	s=isroom(Word); break;
-		    case WSYN:	printf("!! Syn's not supported at this time!\n"); s=WANY;
-		    case WTEXT:	s=chkumsg(Word); break;
-		    case WVERB:	s=is_verb(Word); break;
-		    case WCLASS: s=WANY;
-		    case WNUMBER:
+		    case TC_ROOM:	s=isroom(Word); break;
+		    case TC_SYN:	printf("!! Syn's not supported at this time!\n"); s=TC_ANY;
+		    case TC_TEXT:	s=chkumsg(Word); break;
+		    case TC_VERB:	s=is_verb(Word); break;
+		    case TC_CLASS: s=TC_ANY;
+		    case WC_NUMBER:
 				if(Word[0]=='-') s=atoi(Word+1);
 				else s=atoi(Word);
 		    default:	 printf("** Internal error! Invalid W-type!\n");
 		}
 
-		if(n==WNUMBER && s>100000 || -s>100000)
+		if(n==WC_NUMBER && s>100000 || -s>100000)
 		{
 			sprintf(fnm,"Invalid number, %ld",s); vbprob(fnm,s2);
 		}
-		if(s==-1 && n!=WNUMBER)
+		if(s==-1 && n!=WC_NUMBER)
 		{
 			sprintf(fnm,"Invalid setting, '%s' after %s=",Word,syntax[n+1]);
 			vbprob(fnm,s2);
 		}
-		if(s==-3 && n==WNOUN) s=-1;
+		if(s==-3 && n==TC_NOUN) s=-1;
 
 skipeq:		/*=* (Skipped the equals signs) *=*/
 		/* Now fit this into the correct slot */
 		cs=1;			/* Noun1 */
 		switch(n)
 		{
-		    case WADJ:
-			if(vbslot.wtype[1]!=WNONE && vbslot.wtype[4]!=WNONE)
+		    case TC_ADJ:
+			if(vbslot.wtype[1]!=TC_NONE && vbslot.wtype[4]!=TC_NONE)
 			{
 				vbprob("Invalid NOUN NOUN ADJ combination",s2);
 				n=-5; break;
 			}
-			if(vbslot.wtype[1]!=WNONE && vbslot.wtype[3]!=WNONE)
+			if(vbslot.wtype[1]!=TC_NONE && vbslot.wtype[3]!=TC_NONE)
 			{
 				vbprob("Invalid NOUN ADJ NOUN ADJ combination",s2);
 				n=-5; break;
 			}
-			if(vbslot.wtype[0]!=WNONE && vbslot.wtype[3]!=WNONE)
+			if(vbslot.wtype[0]!=TC_NONE && vbslot.wtype[3]!=TC_NONE)
 			{
 				vbprob("More than two adjectives on a line",s2);
 				n=-5; break;
 			}
-			if(vbslot.wtype[0]!=WNONE) cs=3;
+			if(vbslot.wtype[0]!=TC_NONE) cs=3;
 			else cs=0;
 			break;
-		    case WNOUN:
-			if(vbslot.wtype[1]!=WNONE && vbslot.wtype[4]!=WNONE)
+		    case TC_NOUN:
+			if(vbslot.wtype[1]!=TC_NONE && vbslot.wtype[4]!=TC_NONE)
 			{
 				vbprob("Invalid noun arrangement",s2);
 				n=-5; break;
 			}
-			if(vbslot.wtype[1]!=WNONE) cs=4;
+			if(vbslot.wtype[1]!=TC_NONE) cs=4;
 			break;
-		    case WPREP:
-			if(vbslot.wtype[2]!=WNONE)
+		    case TC_PREP:
+			if(vbslot.wtype[2]!=TC_NONE)
 			{
 				vbprob("Invalid PREP arrangement",s2);
 				n=-5; break;
 			}
 			cs=2; break;
-		    case WPLAYER:
-		    case WROOM:
-		    case WSYN:
-		    case WTEXT:
-		    case WVERB:
-		    case WCLASS:
-		    case WNUMBER:
-			if(vbslot.wtype[1]!=WNONE && vbslot.wtype[4]!=WNONE)
+		    case TC_PLAYER:
+		    case TC_ROOM:
+		    case TC_SYN:
+		    case TC_TEXT:
+		    case TC_VERB:
+		    case TC_CLASS:
+		    case WC_NUMBER:
+			if(vbslot.wtype[1]!=TC_NONE && vbslot.wtype[4]!=TC_NONE)
 			{
 				sprintf(block,"No free noun slot for '%s' entry",
 					syntax[n+1]);
 				vbprob(block,s2);
 				n=-5; break;
 			}
-			if(vbslot.wtype[1]!=WNONE) cs=4;
+			if(vbslot.wtype[1]!=TC_NONE) cs=4;
 			break;
 		}
 		if(n==-5) goto sp2;
@@ -321,8 +321,8 @@ chae_err(char *p)
 
 setslots(unsigned char i)		/* Set the VT slots */
 {
-	vbslot.wtype[0]=WANY; vbslot.wtype[1]=i; vbslot.wtype[2]=i; vbslot.wtype[3]=WANY; vbslot.wtype[4]=i;
-	vbslot.slot[0]=vbslot.slot[1]=vbslot.slot[2]=vbslot.slot[3]=vbslot.slot[4]=WANY;
+	vbslot.wtype[0]=TC_ANY; vbslot.wtype[1]=i; vbslot.wtype[2]=i; vbslot.wtype[3]=TC_ANY; vbslot.wtype[4]=i;
+	vbslot.slot[0]=vbslot.slot[1]=vbslot.slot[2]=vbslot.slot[3]=vbslot.slot[4]=TC_ANY;
 }
 
 iswtype(char *s)		/* Is 'text' a ptype */
@@ -352,16 +352,16 @@ instead of matching the phrases WTYPE with n, match the relevant SLOT with
 n...
 
 So, if the syntax line is 'verb text player' the command 'tell noun2 text'
-will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
-structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
-the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
+will call isactual with *s=noun2, n=TC_PLAYER.... is you read the 'actual'
+structure definition, 'noun2' is type 'TC_NOUN'. TC_NOUN != TC_PLAYER, HOWEVER
+the slot for noun2 (vbslot.wtype[4]) is TC_PLAYER, and this is REALLY what the
 user is refering too.							     */
 actualval(char *s,int n)	/* Get actual value! */
 {	register int i;
 
 	if(n!=-70 && (*s=='?' || *s=='%' || *s=='^' || *s=='~' || *s=='\`'))
 	{
-		if(n!=WNUMBER) return -1;
+		if(n!=WC_NUMBER) return -1;
 		if(*s=='~') return RAND0+atoi(s+1);
 		if(*s=='\`') return RAND1+atoi(s+1);
 		i=actualval(s+1,-70); if(i==-1) return -1;
@@ -385,17 +385,17 @@ actualval(char *s,int n)	/* Get actual value! */
 		switch(actual[i].value-IWORD)
 		{
 			case IVERB:		/* Verb */
-				if(n==PVERB || n==PREAL) return actual[i].value;
+				if(n==CAP_VERB || n==CAP_REAL) return actual[i].value;
 				return -1;
 			case IADJ1:		/* Adjective #1 */
 				if(vbslot.wtype[0]==n) return actual[i].value;
 				if(*(s+strlen(s)-1) != '1' && vbslot.wtype[3]==n) return IWORD+IADJ2;
-				if(n==PREAL) return actual[i].value;
+				if(n==CAP_REAL) return actual[i].value;
 				return -1;
 			case INOUN1:		/* noun 1 */
 				if(vbslot.wtype[1]==n) return actual[i].value;
 				if(*(s+strlen(s)-1) != '1' && vbslot.wtype[4]==n) return IWORD+INOUN2;
-				if(n==PREAL) return actual[i].value;
+				if(n==CAP_REAL) return actual[i].value;
 				return -1;
 			case IADJ2:
 				return (vbslot.wtype[3]==n || n==-70) ? actual[i].value:-1;

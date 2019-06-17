@@ -16,11 +16,11 @@ loopit:	t=0;
 	if(t==-'R') goto here;
 	if((ap=(struct Aport *)GetMsg((struct MsgPort *)reply))==NULL) return;
 	ip=1; addcr=YES;
-	if(ap->type==MCLOSEING || ap->type==-'R')
+	if(ap->type==MSG_CLOSEING || ap->type==-'R')
 	{
 here:		me2->helping=me2->helped=me2->following=me2->followed=-1;
 		sys(RESETSTART);
-		if(MyFlag == am_USER)
+		if(MyFlag == ROLE_PLAYER)
 		{
 			fopenr("reset.txt");
 			do	/*  Print the Reset Text */
@@ -36,47 +36,47 @@ here:		me2->helping=me2->helped=me2->following=me2->followed=-1;
 	}
 	t=ap->type; d=ap->data; f=ap->from; pt=ap->ptr;
 	p[0]=ap->p1; p[1]=ap->p2; p[2]=ap->p3; p[3]=ap->p4;
-	if(t==MDAEMON)
+	if(t==MSG_DAEMON)
 	{	register long	p1,p2,p3,p4,v;
 		ReplyMsg((struct Message *)ap);
-		if(MyFlag == am_DAEM) tx("Processing daemon!\n");
+		if(MyFlag == ROLE_DAEMON) tx("Processing daemon!\n");
 		p1=inoun1; p2=inoun2; p3=wtype[2]; p4=wtype[5]; v=iverb;
 		inoun1=p[0]; inoun2=p[1]; wtype[2]=p[2]; wtype[5]=p[3]; ip=0;
 		lang_proc(d,0);
 		inoun1=p1; inoun2=p2; wtype[2]=p3; wtype[4]=p4; iverb=v; ip=1;
 		goto voila;
 	}
-	if(t==MFORCE) strcpy(input,ap->ptr);
-	SendIt(MBUSY,NULL,NULL);
-	if(f!=-1 && (lstat+f)->state==PLAYING) ReplyMsg((struct Message *)ap);
+	if(t==MSG_FORCE) strcpy(input,ap->ptr);
+	SendIt(MSG_BUSY,NULL,NULL);
+	if(f!=-1 && (lstat+f)->state==US_CONNECTED) ReplyMsg((struct Message *)ap);
 	else FreeMem((char *)ap, (long)sizeof(*amul)); 
 	lockusr(Af);
 	/* Any messages we receive should wake us up. */
 
 	if(me2->flags & PFASLEEP)
 	{
-		cure(Af, SSLEEP); sys(IWOKEN); i=1;
+		cure(Af, SPELL_SLEEP); sys(IWOKEN); i=1;
 	}
 	else i=0;
 
-	if(t==MSUMMONED)
+	if(t==MSG_SUMMONED)
 	{
 		if(d!=me2->room)
 		{
 			sys(BEENSUMND);
-			if(lit(me2->room)==YES && !(me2->flags&PFINVIS) && !(me2->flags&PFSINVIS)) action(acp(SUMVANISH),AOTHERS);
+			if(lit(me2->room)==YES && !(me2->flags&PFINVIS) && !(me2->flags&PFSPELL_INVISIBLE)) action(acp(SUMVANISH),AOTHERS);
 			moveto(d);
-			if(lit(me2->room)==YES && !(me2->flags&PFINVIS) && !(me2->flags&PFSINVIS)) action(acp(SUMARRIVE),AOTHERS);
+			if(lit(me2->room)==YES && !(me2->flags&PFINVIS) && !(me2->flags&PFSPELL_INVISIBLE)) action(acp(SUMARRIVE),AOTHERS);
 		}
 		i=0;	/* wake in transit. */
 		goto endlok;
 	}
-	if(t==MDIE) { akillme(); goto endlok; }
-	if(t==MEXECUTE)
+	if(t==MSG_DIE) { akillme(); goto endlok; }
+	if(t==MSG_EXECUTE)
 	{
 		tt.condition=0; act(d,(long *)&p[0]);
 	}
-	if(t==MFORCE)
+	if(t==MSG_FORCE)
 	{
 		if(d==0)	/* 0=forced, 1=follow */
 			txs("--+ You are forced to \"%s\" +--\n",input);
@@ -87,16 +87,16 @@ here:		me2->helping=me2->helped=me2->following=me2->followed=-1;
 		}
 		forced=d+1;
 	}
-	if(t==MRWARN)
+	if(t==MSG_RESET_WARNING)
 	{
 		addcr=YES; tx(pt); goto endlok;
 	}
-	if(t!=MMESSAGE) goto endlok;
+	if(t!=MSG_MESSAGE) goto endlok;
 wait:	/* Lock my IO so I can read & clear my output buffer */
 loked:	addcr=YES; tx(ob); *ob=0;
 endlok:	me2->IOlock=-1;
-	if(i==1 && !IamINVIS && !(me2->flags&PFSINVIS)) action(acp(WOKEN),AOTHERS);
-voila:	ip=0; SendIt(MFREE,NULL,NULL);
+	if(i==1 && !IamINVIS && !(me2->flags&PFSPELL_INVISIBLE)) action(acp(WOKEN),AOTHERS);
+voila:	ip=0; SendIt(MSG_FREE,NULL,NULL);
 	goto loopit;		/* Check for further messages */
 }
 
@@ -104,7 +104,7 @@ lockusr(int u)
 {	register long t,d,p;
 	do
 	{
-		t=At; d=Ad; p=(long)Ap; SendIt(MLOCK,u,NULL);
+		t=At; d=Ad; p=(long)Ap; SendIt(MSG_LOCK,u,NULL);
 		if(Ad!=u && ip==0) { iocheck(); Ad=-1; }
 	} while(Ad!=u);
 	At=t; Ad=d; Ap=(char *)p;
@@ -167,34 +167,34 @@ esc(char *p,char *s)		/* Find @ escape sequences */
 		case 'v':
 			if(c == 'b') { strcpy(s,(vbtab+overb)->id); return 1; }
 			if(c == 'e') { strcpy(s,(vbtab+iverb)->id); return 1; }
-			if(c == '1' && inoun1 >= 0 && wtype[2] == WNOUN) { sprintf(s,"%ld",scaled(State(inoun1)->value,State(inoun1)->flags)); return 1; }
-			if(c == '2' && inoun2 >= 0 && wtype[5] == WNOUN) { sprintf(s,"%ld",scaled(State(inoun2)->value,State(inoun2)->flags)); return 1; }
+			if(c == '1' && inoun1 >= 0 && wtype[2] == TC_NOUN) { sprintf(s,"%ld",scaled(State(inoun1)->value,State(inoun1)->flags)); return 1; }
+			if(c == '2' && inoun2 >= 0 && wtype[5] == TC_NOUN) { sprintf(s,"%ld",scaled(State(inoun2)->value,State(inoun2)->flags)); return 1; }
 		case 'w':
-			if(c == '1' && inoun1 >= 0 && wtype[2] == WNOUN) { sprintf(s,"%ldg",((obtab+inoun1)->states+(long)(obtab+inoun1)->state)->weight); return 1; }
-			if(c == '2' && inoun2 >= 0 && wtype[5] == WNOUN) { sprintf(s,"%ldg",((obtab+inoun2)->states+(long)(obtab+inoun2)->state)->weight); return 1; }
+			if(c == '1' && inoun1 >= 0 && wtype[2] == TC_NOUN) { sprintf(s,"%ldg",((obtab+inoun1)->states+(long)(obtab+inoun1)->state)->weight); return 1; }
+			if(c == '2' && inoun2 >= 0 && wtype[5] == TC_NOUN) { sprintf(s,"%ldg",((obtab+inoun2)->states+(long)(obtab+inoun2)->state)->weight); return 1; }
 			if(c == 'i') { sprintf(s,"%ld",me2->wisdom); return 1; }
 		case 'n':
-			if(c == '1' && inoun1 >= 0 && wtype[2] == WNOUN)
+			if(c == '1' && inoun1 >= 0 && wtype[2] == TC_NOUN)
 			{
 				strcpy(s,(obtab+inoun1)->id); return 1;
 			}
-			if(c == '1' && wtype[2] == WTEXT)
+			if(c == '1' && wtype[2] == TC_TEXT)
 			{
 				strcpy(s,(char *)inoun1); return 1;
 			}
-			if(c == '1' && inoun1 >= 0 && wtype[2] == WPLAYER)
+			if(c == '1' && inoun1 >= 0 && wtype[2] == TC_PLAYER)
 			{
 				strcpy(s,(usr+inoun1)->name); return 1;
 			}
-			if(c == '2' && inoun2 >= 0 && wtype[5] == WNOUN)
+			if(c == '2' && inoun2 >= 0 && wtype[5] == TC_NOUN)
 			{
 				strcpy(s,(obtab+inoun2)->id); return 1;
 			}
-			if(c == '2' && wtype[5] == WTEXT)
+			if(c == '2' && wtype[5] == TC_TEXT)
 			{
 				strcpy(s,(char *)inoun2); return 1;
 			}
-			if(c == '2' && inoun2 >= 0 && wtype[5] == WPLAYER)
+			if(c == '2' && inoun2 >= 0 && wtype[5] == TC_PLAYER)
 			{
 				strcpy(s,(usr+inoun2)->name); return 1;
 			}
@@ -235,9 +235,9 @@ esc(char *p,char *s)		/* Find @ escape sequences */
 
 interact(int msg,int n,int d)
 {
-	if((lstat+n)->state < PLAYING) return;
+	if((lstat+n)->state < US_CONNECTED) return;
 	lockusr(n);
-	if(msg==MMESSAGE) strcat((lstat+n)->buf,ow);
+	if(msg==MSG_MESSAGE) strcat((lstat+n)->buf,ow);
 	if((intam=(struct Aport *)AllocMem(sizeof(*amul),MEMF_PUBLIC+MEMF_CLEAR))==NULL)
 		memfail("comms port");
 	IAm.mn_Length = (UWORD) sizeof(*amul); IAf=Af; IAm.mn_Node.ln_Type = NT_MESSAGE; IAm.mn_ReplyPort = repbk;
@@ -246,12 +246,12 @@ interact(int msg,int n,int d)
 
 sendex(register int n,register int d,register int p1,register int p2,register int p3,register int p4)
 {
-	if((lstat+n)->state < PLAYING) return;
+	if((lstat+n)->state < US_CONNECTED) return;
 	lockusr(n);
 	if((intam=(struct Aport *)AllocMem(sizeof(*amul),MEMF_PUBLIC+MEMF_CLEAR))==NULL)
 		memfail("comms port");
 	IAm.mn_Length = (UWORD) sizeof(*amul); IAf=Af; IAm.mn_Node.ln_Type = NT_MESSAGE; IAm.mn_ReplyPort = repbk;
-	IAt=MEXECUTE; IAd=-(1+d); intam->p1=p1; intam->p2=p2; intam->p3=p3; intam->p4=p4;
+	IAt=MSG_EXECUTE; IAd=-(1+d); intam->p1=p1; intam->p2=p2; intam->p3=p3; intam->p4=p4;
 	(lstat+n)->IOlock=-1;
 	PutMsg((lstat+n)->rep,(struct Message *)intam);
 }

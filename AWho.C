@@ -6,7 +6,7 @@
 
 	v1.0	First release, written by Oliver Smith.
 
-							*/
+*/
 
 #define	AMAN 1			/* Get AMan includes */
 
@@ -70,7 +70,8 @@ main(int argc,char *argv[])			/* Accept no arguments */
 	}
 	Am.mn_Node.ln_Type=NT_MESSAGE; Am.mn_ReplyPort = reply;
 	Am.mn_Length = (UWORD)sizeof(*amul);
-	At = MDATAREQ; Ad=Af = -1;
+	At = MSG_DATA_REQUEST;
+	Ad = Af = -1;
 
 	/* Get user structure and # online. */
 	sendmsg(-1); usr=(struct _PLAYER *)Ap; lstat=(struct LS *)Ap4; online=Ad; calls=Ap1; adname=(char *)Ap3;

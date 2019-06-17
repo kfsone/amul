@@ -70,15 +70,15 @@ act(long ac,long *pt)
 			case ASIT:		me2->flags = me2->flags | PFSITTING; me2->flags = me2->flags & (-1-PFLYING); break;
 			case ASTAND:		me2->flags = me2->flags & (-1-PFSITTING-PFLYING); break;
 			case ALIE:		me2->flags = me2->flags | PFLYING; me2->flags = me2->flags & (-1-PFSITTING); break;
-			case ARDMODE:		me->rdmode = TP1; txs("%s mode selected.\n",(me->rdmode==RDRC)?"Roomcount":(me->rdmode==RDVB)?"Verbose":"Brief"); break;
-			case ARESET:		SendIt(MRESET,0,NULL);	break;	/* Tell AMAN that we want a reset! */
+			case ARDMODE:		me->rdmode = TP1; txs("%s mode selected.\n",(me->rdmode==RD_VERBOSE_ONCE)?"Roomcount":(me->rdmode==RD_VERBOSE)?"Verbose":"Brief"); break;
+			case ARESET:		SendIt(MSG_RESET,0,NULL);	break;	/* Tell AMAN that we want a reset! */
 			case AACTION:		action(AP2,TP1);	break;
 			case AMOVE:		moveto(TP1); 	break;
 			case AMSGIN:		announcein(TP1,AP2); break;
 			case AACTIN:		actionin(TP1,AP2);   break;
 			case AMSGFROM:		announcefrom(TP1,AP2); break;
 			case AACTFROM:		actionfrom(TP1,AP2);   break;
-			case ATELL:		if(!((lstat+TP1)->flags&PFDEAF)) { setmxy(NOISE,TP1); utx(TP1,AP2); } break;
+			case ATELL:		if(!((lstat+TP1)->flags&PFDEAF)) { setmxy(PC_NOISE,TP1); utx(TP1,AP2); } break;
 			case AADDVAL:		aadd(scaled(State(TP1)->value,State(TP1)->flags), STSCORE, Af);break;
 			case AGET:		agive(TP1,Af);	break;
 			case ADROP:		adrop(TP1,me2->room,YES); break;
@@ -95,7 +95,7 @@ act(long ac,long *pt)
 			case ARECOVER:		arecover(TP1);	break;
 			case ASTART:		dpstart(TP1,TP2); break;
 			case AGSTART:		dgstart(TP1,TP2); break;
-			case ACANCEL:		SendIt(MDCANCEL,TP1,NULL); break;
+			case ACANCEL:		SendIt(MSG_DAEMON_CANCEL,TP1,NULL); break;
 			case ABEGIN:		dbegin(TP1);	break;
 			case ASHOWTIMER:	dshow(TP1);	break;
 			case AOBJAN:		objannounce(TP1,AP2); break;
@@ -144,7 +144,7 @@ act(long ac,long *pt)
 		needcr=NO; iocheck(); if(exeunt!=0 || died!=0) return;
 		if(fol==0) StopFollow();
 		Forbid();
-		if((rmtab+ac)->flags & SMALL)	/* Allow for losing follower! */
+		if((rmtab+ac)->flags & RF_TINY)	/* Allow for losing follower! */
 		{
 			for(i=0; i<MAXU; i++)
 				if((lstat+i)->room==ac)
@@ -161,7 +161,7 @@ act(long ac,long *pt)
 		StopFollow(); me2->room=ac;
 		me2->light=i; me2->hadlight=0; lighting(Af,AOTHERS);
 		if(visible()==YES) action(me2->arr,AOTHERS); me2->flags = me2->flags & -(1 + PFMOVING);
-		if(me2->followed>-1 && me2->followed != Af && (! IamINVIS) && (! IamSINVIS))
+		if(me2->followed>-1 && me2->followed != Af && (! IamINVIS) && (! IamSINVISIBLE))
 		{
 			/* If we didn't just execute a travel verb, we've lost them.
 			   If the other player hasn't caught up with us, lose them! */
@@ -250,9 +250,9 @@ cond(long n,int l)		/* Execute a condition on me */
 		case CGOTA:
 			if(gotin(CP1,CP2)==NO) ret=-1; break;
 		case CACTIVE:
-			SendIt(MCHECKD,CP1,NULL); if(Ad==-1) ret=-1; break;
+			SendIt(MSG_DAEMON_STATUS,CP1,NULL); if(Ad==-1) ret=-1; break;
 		case CTIMER:
-			SendIt(MCHECKD,CP1,NULL); if(Ad==-1 || numb(Ap1,CP2)==NO) ret=-1; break;
+			SendIt(MSG_DAEMON_STATUS,CP1,NULL); if(Ad==-1 || numb(Ap1,CP2)==NO) ret=-1; break;
 		case CBURNS:
 			if(!((obtab+CP1)->flags&OF_FLAMABLE)) ret=-1; break;
 		case CCONTAINER:
@@ -280,14 +280,14 @@ cond(long n,int l)		/* Execute a condition on me */
 		case CVISIBLETO:
 			if(cansee(CP1,Af)==NO) ret=-1; break;
 		case CNOUN1:
-			if(wtype[2]!=WNOUN) { ret=-1; break; }
+			if(wtype[2]!=TC_NOUN) { ret=-1; break; }
 			if(CP1==inoun1) break;
-			if(CP1==WNONE) { ret=-1; break; }
+			if(CP1==TC_NONE) { ret=-1; break; }
 			if(stricmp((obtab+CP1)->id,(obtab+inoun1)->id)!=NULL) ret=-1;
 			break;
 		case CNOUN2:
-			if(wtype[5]!=WNOUN) { ret=-1; break; }
-			if(CP1==WNONE) { ret=-1; break; }
+			if(wtype[5]!=TC_NOUN) { ret=-1; break; }
+			if(CP1==TC_NONE) { ret=-1; break; }
 			if(stricmp((obtab+CP1)->id,(obtab+inoun2)->id)!=NULL) ret=-1;
 			break;
 		case CAUTOEXITS:
@@ -331,8 +331,8 @@ strip:	p=*s; while(isspace(*p)) p++; *s=p;
 	/* Check for a players name BEFORE checking for white words! */
 
 	for(word=0; word<MAXU; word++)
-		if((lstat+word)->state == PLAYING && match((usr+word)->name,p)==NULL)
-		{ *s+=strlen((usr+word)->name); return WPLAYER; }
+		if((lstat+word)->state == US_CONNECTED && match((usr+word)->name,p)==NULL)
+		{ *s+=strlen((usr+word)->name); return TC_PLAYER; }
 
 	/* cut any white words out */
 	if(tolower(*p)=='a')
@@ -360,15 +360,15 @@ strip:	p=*s; while(isspace(*p)) p++; *s=p;
 		c=*p; p2=++p; word=(int)p;
 		while(*p2!=0 && *p2!=c) p2++;
 		if(*p2!=0) *(p2++)=0; else *(p2+1)=0;
-		*s=p2; return WTEXT;
+		*s=p2; return TC_TEXT;
 	}
 
-	if(match("it",p)==NULL) { word=it; *s+=2; return (it!=-1) ? WNOUN : -2; ; }
+	if(match("it",p)==NULL) { word=it; *s+=2; return (it!=-1) ? TC_NOUN : -2; ; }
 
 	if(tolower(*p)=='m')
 	{
-		if(match("me",p)==NULL) { word=Af; *s+=2; return WPLAYER; }
-		if(match("myself",p)==NULL) { word=Af; *s+=2; return WPLAYER; }
+		if(match("me",p)==NULL) { word=Af; *s+=2; return TC_PLAYER; }
+		if(match("myself",p)==NULL) { word=Af; *s+=2; return TC_PLAYER; }
 	}
 
 	/* inoun/sort crap is related to object chae patterns */
@@ -376,21 +376,21 @@ strip:	p=*s; while(isspace(*p)) p++; *s=p;
 	if((word=issyn(*s))!=-1)
 	{
 		*s+=word;
-		if(csyn<-1) { word=-2-csyn; return WVERB; }
-		if(inoun1==inoun2==-1) { word=csyn; return WNOUN; }
-		if((word=isnoun((obtab+csyn)->id,(inoun1==-1)?iadj1:iadj2,(inoun1==-1)?(vbtab+iverb)->sort:(vbtab+iverb)->sort2))!=-1) return WNOUN;
+		if(csyn<-1) { word=-2-csyn; return TC_VERB; }
+		if(inoun1==inoun2==-1) { word=csyn; return TC_NOUN; }
+		if((word=isnoun((obtab+csyn)->id,(inoun1==-1)?iadj1:iadj2,(inoun1==-1)?(vbtab+iverb)->sort:(vbtab+iverb)->sort2))!=-1) return TC_NOUN;
 		return -1;
 	}
 	if(inoun1==inoun2==-1)
 	{
-		if((word=isanoun(*s))!=-1) { *s+=strlen((obtab+word)->id); return WNOUN; }
+		if((word=isanoun(*s))!=-1) { *s+=strlen((obtab+word)->id); return TC_NOUN; }
 	}
 	else
-		if((word=isnoun(*s,(inoun1==-1)?iadj1:iadj2,(inoun1==-1)?(vbtab+iverb)->sort:(vbtab+iverb)->sort2))!=-1) { *s+=strlen((obtab+word)->id); return WNOUN; }
-	if((word=isadj(*s))!=-1)  { *s+=strlen(adtab+(word*(IDL+1))); return WADJ; }
-	if((word=isroom(*s))!=-1) { *s+=strlen((rmtab+word)->id); return WROOM; }
+		if((word=isnoun(*s,(inoun1==-1)?iadj1:iadj2,(inoun1==-1)?(vbtab+iverb)->sort:(vbtab+iverb)->sort2))!=-1) { *s+=strlen((obtab+word)->id); return TC_NOUN; }
+	if((word=isadj(*s))!=-1)  { *s+=strlen(adtab+(word*(IDL+1))); return TC_ADJ; }
+	if((word=isroom(*s))!=-1) { *s+=strlen((rmtab+word)->id); return TC_ROOM; }
 	if((word=isprep(*s))!=-1) { *s+=strlen(prep[word]); goto strip; }
-	if((word=isverb(*s))!=-1) { *s+=strlen(vbptr->id); return WVERB; }
+	if((word=isverb(*s))!=-1) { *s+=strlen(vbptr->id); return TC_VERB; }
 	while(!isspace(*p) && *p!=0) p++; word=-1;
 	return -2;		/* Unknown */
 }

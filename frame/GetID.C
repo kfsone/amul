@@ -41,7 +41,7 @@ getid()
 	} while(ok!=0);
 
 	/* Inform AMAN that we have begun! */
-	SendIt(MLOGGED,0,me->name);
+	SendIt(MSG_LOGGED_IN,0,me->name);
 	for(i=ranks-1; i>=0; i--)
 		if(me->score >= (rktab+i)->score) { me->rank=i; break; }
 	refresh();
@@ -52,7 +52,7 @@ getid()
 	roomtab=rmtab; me2->room=-1; lroom=-1; nrs=0;
 loop:	for(i=0;i<rooms;i++,roomtab++)
 	{
-		if(roomtab->flags & STARTL) start_rm[nrs++]=i;
+		if(roomtab->flags & RF_PLAYER_START) start_rm[nrs++]=i;
 	}
 
 	if(nrs==0) me2->room=0;
@@ -86,11 +86,11 @@ getname()
 		}
 
 		p=block;
-		if((i=type(&p))>-1 && i!=WPLAYER)
+		if((i=type(&p))>-1 && i!=TC_PLAYER)
 		{
 			sys(NAME_USED); continue;
 		}
-		if(i == WPLAYER && word!=Af)
+		if(i == TC_PLAYER && word!=Af)
 		{
 			utx(word,acp(LOGINASME)); strcpy(me->name,block);
 			sys(ALREADYIN); continue;

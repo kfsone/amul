@@ -39,7 +39,7 @@ vbloop:		do fgets(block,1000,ifp); while(com(block)==-1);
 		if(block[0]==0 || block[0]=='\n')
 		{
 			/* Only complain if room is not a death room */
-			if((roomtab->flags & DEATH)!=DEATH && warn==1)
+			if((roomtab->flags & RF_LETHAL)!=RF_LETHAL && warn==1)
 				printf("## Room \"%s\" has no TT entries!\n",roomtab->id);
 			roomtab->tabptr=-2;
 			ntt++; continue;
@@ -152,7 +152,7 @@ next:			strip=0;
 	{
 		roomtab=rmtab;
 		for(i=0; i<rooms; i++,roomtab++)
-			if(roomtab->tabptr == -1 && (roomtab->flags & DEATH) != DEATH)
+			if(roomtab->tabptr == -1 && (roomtab->flags & RF_LETHAL) != RF_LETHAL)
 				printf("Room \"%s\" has no TT entry!\n",roomtab->id);
 	}
 	if(err!=0)

@@ -52,7 +52,7 @@ utx(register int n,register char *s)
 {
 	ioproc(s);
 	if(n==Af) tx(s);
-	else interact(MMESSAGE,n,-1);
+	else interact(MSG_MESSAGE,n,-1);
 }
 
 utxn(register int plyr,register char *format,register int n)

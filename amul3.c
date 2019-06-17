@@ -93,7 +93,7 @@ whohere()
 {	register int i;
 
 	if(lit(me2->room)==NO) return;
-	if(((rmtab+me2->room)->flags & HIDE)!=NULL && me->rank!=ranks-1) { sys(WHO_HIDE); return; }
+	if(((rmtab+me2->room)->flags & RF_HIDE_PLAYERS)!=NULL && me->rank!=ranks-1) { sys(WHO_HIDE); return; }
 	for(i=0; i<MAXU; i++)
 	{
 		if(i!=Af && cansee(Af,i)==YES && !((lstat+i)->flags & PFMOVING))
@@ -112,9 +112,9 @@ whohere()
 awho(register int type)
 {	register int i, j;
 
-	if(type==TYPEV)
+	if(type==VERBOSE)
 	{	for(i=0; i<MAXU; i++)
-			if((usr+i)->name[0]!=0 && (lstat+i)->state>1 && (!((lstat+i)->flags & PFSINVIS)))
+			if((usr+i)->name[0]!=0 && (lstat+i)->state>1 && (!((lstat+i)->flags & PFSPELL_INVISIBLE)))
 			{
 				str[0]=0; if(isPINVIS(i)) { str[0]='('; str[1]=0; }
 				strcat(str,(usr+i)->name); strcat(str," the ");
@@ -130,7 +130,7 @@ awho(register int type)
 	{
 		j=0; str[0]=0;
 		for(i=0; i<MAXU; i++)
-			if((usr+i)->name[0]!=0 && (lstat+i)->state>1 && (!((lstat+i)->flags & PFSINVIS)))
+			if((usr+i)->name[0]!=0 && (lstat+i)->state>1 && (!((lstat+i)->flags & PFSPELL_INVISIBLE)))
 			{
 				if(i!=Af)
 				{
@@ -257,7 +257,7 @@ numb(register long x,register long n)
 *	atreatas -- switch parseing to another verb.
 *
 *   SYNOPSIS
-*	atreatas( NewVerb )
+*	atreatas( NewVERB )
 *
 *	void atreatas( int );
 *
@@ -511,7 +511,7 @@ rem_obj(register int to,register int ob) /*== Remove object from inventory */
 ainteract(register int who)
 {
 	actor = -1;
-	if((lstat+who)->state != PLAYING) return;
+	if((lstat+who)->state != US_CONNECTED) return;
 	actor = who;
 }
 
@@ -557,7 +557,7 @@ asyntax(register int n1,register int n2)
 
 	inc=0;
 	/* === N1 Handling === */
-	if(n1==WNONE) t1=n1;
+	if(n1==TC_NONE) t1=n1;
 	else if((n1 & IWORD))	/* Is it an IWORD? */
 	{
 		switch(n1 & -(1+IWORD))
@@ -573,11 +573,11 @@ asyntax(register int n1,register int n2)
 	}
 	else
 	{
-		n1=isnoun((obtab+n1)->id,(obtab+n1)->adj,(vbtab+iverb)->sort); t1=WNOUN;
+		n1=isnoun((obtab+n1)->id,(obtab+n1)->adj,(vbtab+iverb)->sort); t1=TC_NOUN;
 	}
 
 	/* === N2 Handling === */
-	if(n2==WNONE) t2=n2;
+	if(n2==TC_NONE) t2=n2;
 	else if((n2 & IWORD))	/* Is it an IWORD? */
 	{
 		switch(n2 & -(1+IWORD))
@@ -593,7 +593,7 @@ asyntax(register int n1,register int n2)
 	}
 	else
 	{
-		n2=isnoun((obtab+n2)->id,(obtab+n2)->adj,(vbtab+iverb)->sort2); t2=WNOUN;
+		n2=isnoun((obtab+n2)->id,(obtab+n2)->adj,(vbtab+iverb)->sort2); t2=TC_NOUN;
 	}
 
 	inoun1=n1; wtype[2]=t1; inoun2=n2; wtype[5]=t2;
@@ -680,7 +680,7 @@ DoThis( register int x, register char *cmd, register short int type)
 	lockusr(x);
 	if((intam=(struct Aport *)AllocMem(sizeof(*amul),MEMF_PUBLIC+MEMF_CLEAR))==NULL)
 		memfail("comms port");
-	IAm.mn_Length = (UWORD) sizeof(*amul); IAf=Af; IAm.mn_Node.ln_Type = NT_MESSAGE; IAm.mn_ReplyPort = repbk; IAt=MFORCE; IAd=type; IAp=cmd;
+	IAm.mn_Length = (UWORD) sizeof(*amul); IAf=Af; IAm.mn_Node.ln_Type = NT_MESSAGE; IAm.mn_ReplyPort = repbk; IAt=MSG_FORCE; IAd=type; IAp=cmd;
 	PutMsg((lstat+x)->rep,(struct Message *)intam); (lstat+x)->IOlock=-1;
 }
 
@@ -707,7 +707,7 @@ StopFollow()
 {
 	Forbid();
 	if(fol!=0 || me2->following == -1 || (vbtab+overb)->flags & VB_TRAVEL) { Permit(); return; }
-	if((lstat+me2->following)->state != PLAYING || (lstat+me2->following)->followed != Af) { me2->following=-1; Permit(); return; }
+	if((lstat+me2->following)->state != US_CONNECTED || (lstat+me2->following)->followed != Af) { me2->following=-1; Permit(); return; }
 	(lstat+me2->following)->followed = -1; Permit();
 	tx("You are no-longer following @mf.\n"); me2->following = -1;
 }
@@ -1065,12 +1065,12 @@ setmxy(register int Flags, register int Them)
 	{
 		switch(Flags)
 		{
-			case ACTION:
-			case EVENT:
-			case TEXTS:
+			case PC_ACTION:
+			case PC_EVENT:
+			case PC_TEXTS:
 				strcpy(mxx,"Someone nearby"); strcpy(mxy,"Someone nearby");
 				return;
-			case NOISE:
+			case PC_NOISE:
 				strcpy(mxx,"Someone nearby");
 				ioproc("A @gn voice nearby"); strcpy(mxy,ow);
 				return;
@@ -1079,18 +1079,18 @@ setmxy(register int Flags, register int Them)
 	/* They aren't in the same room */
 	switch(Flags)
 	{
-		case ACTION:
-		case EVENT:
+		case PC_ACTION:
+		case PC_EVENT:
 			strcpy(mxx,"Someone");
 			if(me->rank == ranks-1) strcpy(mxy,"Someone very powerful");
 			else strcpy(mxy,"Someone");
 			return;
-		case TEXTS:
+		case PC_TEXTS:
 			ioproc("@me");	strcpy(mxx,ow);
 			if(me->rank == ranks-1) ioproc("@me the @mr");
 			strcpy(mxy,ow);
 			return;
-		case NOISE:
+		case PC_NOISE:
 			strcpy(mxx,"Someone");
 			if(me->rank == ranks-1) ioproc("A powerful @gn voice somewhere in the distance");
 			else ioproc("A @gn voice in the distance");

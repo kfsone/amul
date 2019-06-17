@@ -5,7 +5,7 @@ lit(register int r)		/* Is my room lit? */
 
 	tobjtab=objtab;
 
-	if(!((rmtab+r)->flags & DARK)) return YES;
+	if(!((rmtab+r)->flags & RF_DARK)) return YES;
 	Forbid();
 	you2=lstat;
 	for(i=0; i<MAXU; i++,you2++)
@@ -46,7 +46,7 @@ nearto(register int ob)
 visible()		/* Can others in this room see me? */
 {
 	if(LightHere==NO) return NO;
-	if(IamINVIS || IamSINVIS) return NO;
+	if(IamINVIS || IamSINVISIBLE) return NO;
 	return YES;
 }
 
@@ -235,14 +235,14 @@ infl(register int plyr,register int spell)
 	you2=lstat+plyr;
 	switch(spell)
 	{
-		case SGLOW:	if(you2->flags & PFGLOW) return YES; break;
-		case SINVIS:	if(you2->flags & PFINVIS) return YES; break;
-		case SDEAF:	if(you2->flags & PFDEAF) return YES; break;
-		case SBLIND:	if(you2->flags & PFBLIND) return YES; break;
-		case SCRIPPLE:	if(you2->flags & PFCRIP) return YES; break;
-		case SDUMB:	if(you2->flags & PFDUMB) return YES; break;
-		case SSLEEP:	if(you2->flags & PFASLEEP) return YES; break;
-		case SSINVIS:	if(you2->flags & PFSINVIS) return YES; break;
+		case SPELL_GLOW:	if(you2->flags & PFGLOW) return YES; break;
+		case SPELL_INVISIBLE:	if(you2->flags & PFINVIS) return YES; break;
+		case SPELL_DEAFEN:	if(you2->flags & PFDEAF) return YES; break;
+		case SPELL_BLIND:	if(you2->flags & PFBLIND) return YES; break;
+		case SPELL_CRIPPLE:	if(you2->flags & PFCRIP) return YES; break;
+		case SPELL_MUTE:	if(you2->flags & PFDUMB) return YES; break;
+		case SPELL_SLEEP:	if(you2->flags & PFASLEEP) return YES; break;
+		case SPELL_SUPER_INVIS:	if(you2->flags & PFSPELL_INVISIBLE) return YES; break;
 	}
 	return NO;
 }
@@ -266,17 +266,17 @@ cansee(register int p1,register int p2)
 {
 	/* You can't see YOURSELF, and check for various other things... */
 	if(*(usr+p2)->name == 0 || p1==p2) return NO;
-	if((lstat+p2)->state != PLAYING) return NO;
+	if((lstat+p2)->state != US_CONNECTED) return NO;
 	/* If different rooms, or current room is dark */
 	if(pROOM(p1) != pROOM(p2)) return NO;
 	/* If p2 is Super Invis, he can't be seen! */
-	if((lstat+p2)->flags & PFSINVIS) return NO;
+	if((lstat+p2)->flags & PFSPELL_INVISIBLE) return NO;
 	/* If player is blind, obviously can't see p2! */
 	if((lstat+p1)->flags & PFBLIND) return NO;
 	if(lit(pROOM(p1))==NO) return NO;
 	/* If you are in a 'hide' room and he isn't a wizard */
 	if(pRANK(p1) == ranks-1) return YES;
-	if(((rmtab+pROOM(p1))->flags & HIDE)) return NO;
+	if(((rmtab+pROOM(p1))->flags & RF_HIDE_PLAYERS)) return NO;
 	/* If he isn't invisible */
 	if(!isPINVIS(p2)) return YES;
 	/* Otherwise */

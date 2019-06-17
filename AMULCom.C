@@ -39,8 +39,8 @@
 
 /* Compiler specific variables... */
 
-int	dchk;				/* Do we check DMOVE ptrs?	*/
-int	dmoves;				/* How many DMOVEs to check?	*/
+int	dchk;				/* Do we check RF_CEMETERY ptrs?	*/
+int	dmoves;				/* How many RF_CEMETERYs to check?	*/
 int	rmn;				/* Current room no.		*/
 int	rmrd;				/* Read rooms?			*/
 long	readgot,FPos;			/* Used during TT/Lang writes	*/
@@ -141,7 +141,7 @@ char *argv[];
 		tx("%% ROOMS....:\x0d");
 		opentxt("ROOMS");	room_proc();	fclose(ifp);
 	}
-	fopenr(rooms1fn);	/*=* Check DMOVE ptrs *=*/
+	fopenr(rooms1fn);	/*=* Check RF_CEMETERY ptrs *=*/
 	if(rmrd==0)
 	{
 		fseek(ifp,0,2L); rooms=ftell(ifp)/sizeof(room); rewind(ifp);
@@ -157,7 +157,7 @@ char *argv[];
 	}
 	if(dchk!=0 || dmoves!=0)
 	{
-		tx("%% DMOVEs...:\x0d"); checkdmoves(); fclose(ifp);
+		tx("%% RF_CEMETERYs...:\x0d"); checkdmoves(); fclose(ifp);
 	}
 	tx("%% RANKS....:\x0d");
 	opentxt("RANKS");	rank_proc();	fclose(ifp);

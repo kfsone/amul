@@ -35,7 +35,7 @@ FILE	*ofp4;					/* For lang. table	 */
 char	dir[60];				/* spc for work dir path */
 char	block[1024];				/* 1k block of spare txt */
 char	temp[256];				/* temp store		 */
-char	dmove[IDL+1];				/* Where to DMOVE to     */
+char	dmove[IDL+1];				/* Where to RF_CEMETERY to     */
 char	adname[42];				/* Adventure name	 */
 char	vername[40];				/* Version name etc	 */
 

@@ -148,7 +148,7 @@ look_here(register int f,register int rm)
 		sys(TOODARK); *(rctab+rm) = *(rctab+rm) & rclr; goto die;
 	}
 	desc_here(f); list_what(rm,0);
-die:	if((roomtab->flags & DEATH) && me->rank!=ranks-1)
+die:	if((roomtab->flags & RF_LETHAL) && me->rank!=ranks-1)
 	{
 		if(dmove[0]==0) strcpy(dmove,(rmtab+lroom)->id);
 		akillme(); return; 
@@ -159,13 +159,13 @@ die:	if((roomtab->flags & DEATH) && me->rank!=ranks-1)
 desc_here(register int f)
 {	register char *p,c;
 	fseek(ifp,roomtab->desptr,0L);
-	if(roomtab->flags & DMOVE)	/* A dmove room? */
+	if(roomtab->flags & RF_CEMETERY)	/* A dmove room? */
 		fgets(dmove,IDL,ifp);
 	else dmove[0]=0;
 
 	/* Print short description */
 	p=block;
-	if(!(roomtab->flags & DEATH)) ans("1m");
+	if(!(roomtab->flags & RF_LETHAL)) ans("1m");
 	while((c=fgetc(ifp))!=0 && c!=EOF && c!='\n')
 	{
 		*(p++)=c; *p=0;
@@ -179,7 +179,7 @@ desc_here(register int f)
 	ans("0;37m");
 	if(me->rank == ranks-1) {sprintf(block,"   (%s)",roomtab->id); tx(block); block[0]=0; }
 	txc('\n');
-	if(c == '\n' && f == RDVB)
+	if(c == '\n' && f == RD_VERBOSE)
 	{
 		/* Display LONG description! */
 		p=block;
@@ -201,7 +201,7 @@ list_what(register int r,register int i)
 	f=-1;
 	if(lit(me2->room)==NO) return sys(TOOMAKE);
 	if(me2->flags & PFBLIND) sys(YOURBLIND);
-	if(((rmtab+r)->flags & HIDEWY) && i!=0 && me->rank != ranks-1)
+	if(((rmtab+r)->flags & RF_HIDE_OBJECTS) && i!=0 && me->rank != ranks-1)
 	{
 		sys(NOWTSPECIAL); /* Wizards can see in hideaways! */
 	}
@@ -209,7 +209,7 @@ list_what(register int r,register int i)
 	{
 		/* Only let the right people see the object */
 		if(canseeobj(o,Af)==NO) continue;
-		if(((rmtab+r)->flags & HIDEWY) && (i==0 || (i==1 && me->rank!=ranks-1)) && !((obtab+o)->flags & OF_SCENERY)) continue;
+		if(((rmtab+r)->flags & RF_HIDE_OBJECTS) && (i==0 || (i==1 && me->rank!=ranks-1)) && !((obtab+o)->flags & OF_SCENERY)) continue;
 		if(lit(me2->room) == NO && !((obtab+o)->flags & OF_SMELL)) continue;
 		obj=*(obtab+o); 
 		for(or=0; or<obj.nrooms; or++)
@@ -245,34 +245,34 @@ descobj(register int Ob)
 
 inflict(register int x, register int s)
 {
-	you2=lstat+x; if(you2->state != PLAYING) return;
+	you2=lstat+x; if(you2->state != US_CONNECTED) return;
 	switch(s)
 	{
-		case SGLOW:	if(!(you2->flags&PFGLOW)) { you2->flags=(you2->flags|PFGLOW); you2->light++; } break;
-		case SINVIS:	you2->flags=you2->flags|PFINVIS; break;
-		case SDEAF:	you2->flags=you2->flags|PFDEAF; break;
-		case SBLIND:	you2->flags=you2->flags|PFBLIND; break;
-		case SCRIPPLE:	you2->flags=you2->flags|PFCRIP; break;
-		case SDUMB:	you2->flags=you2->flags|PFDUMB; break;
-		case SSLEEP:	you2->flags=you2->flags|PFASLEEP; break;
-		case SSINVIS:	you2->flags=you2->flags|PFSINVIS; break;
+		case SPELL_GLOW:	if(!(you2->flags&PFGLOW)) { you2->flags=(you2->flags|PFGLOW); you2->light++; } break;
+		case SPELL_INVISIBLE:	you2->flags=you2->flags|PFINVIS; break;
+		case SPELL_DEAFEN:	you2->flags=you2->flags|PFDEAF; break;
+		case SPELL_BLIND:	you2->flags=you2->flags|PFBLIND; break;
+		case SPELL_CRIPPLE:	you2->flags=you2->flags|PFCRIP; break;
+		case SPELL_MUTE:	you2->flags=you2->flags|PFDUMB; break;
+		case SPELL_SLEEP:	you2->flags=you2->flags|PFASLEEP; break;
+		case SPELL_SUPER_INVIS:	you2->flags=you2->flags|PFSPELL_INVISIBLE; break;
 	}
 	calcdext(); lighting(x,AHERE);
 }
 
 cure(register int x, register int s)
 {
-	you2=lstat+x; if(you2->state != PLAYING) return;
+	you2=lstat+x; if(you2->state != US_CONNECTED) return;
 	switch(s)
 	{
-		case SGLOW:	if(you2->flags&PFGLOW) { you2->flags=(you2->flags&(-1-PFGLOW)); you2->light--; } break;
-		case SINVIS:	you2->flags=you2->flags & -(1+PFINVIS); break;
-		case SDEAF:	you2->flags=you2->flags & -(1+PFDEAF); break;
-		case SBLIND:	you2->flags=you2->flags & -(1+PFBLIND); break;
-		case SCRIPPLE:	you2->flags=you2->flags & -(1+PFCRIP); break;
-		case SDUMB:	you2->flags=you2->flags & -(1+PFDUMB); break;
-		case SSLEEP:	you2->flags=you2->flags & -(1+PFASLEEP); break;
-		case SSINVIS:	you2->flags=you2->flags & -(1+PFSINVIS); break;
+		case SPELL_GLOW:	if(you2->flags&PFGLOW) { you2->flags=(you2->flags&(-1-PFGLOW)); you2->light--; } break;
+		case SPELL_INVISIBLE:	you2->flags=you2->flags & -(1+PFINVIS); break;
+		case SPELL_DEAFEN:	you2->flags=you2->flags & -(1+PFDEAF); break;
+		case SPELL_BLIND:	you2->flags=you2->flags & -(1+PFBLIND); break;
+		case SPELL_CRIPPLE:	you2->flags=you2->flags & -(1+PFCRIP); break;
+		case SPELL_MUTE:	you2->flags=you2->flags & -(1+PFDUMB); break;
+		case SPELL_SLEEP:	you2->flags=you2->flags & -(1+PFASLEEP); break;
+		case SPELL_SUPER_INVIS:	you2->flags=you2->flags & -(1+PFSPELL_INVISIBLE); break;
 	}
 	calcdext(); lighting(x,AHERE);
 }
@@ -283,7 +283,7 @@ summon(int plyr)
 	{
 		txs(acp(CANTSUMN),(usr+plyr)->name); return;
 	}
-	interact(MSUMMONED,plyr,me2->room);
+	interact(MSG_SUMMONED,plyr,me2->room);
 }
 
 adestroy(register int obj)
@@ -382,7 +382,7 @@ newrank(register int plyr,register int r)
 
 	if(r == ranks-1)
 	{
-		sys(TOPRANK); SendIt(MMADEWIZ,0,me->name);
+		sys(TOPRANK); SendIt(MSG_MADE_ADMIN,0,me->name);
 	}
 }
 
@@ -485,7 +485,7 @@ announce(register char *s,register int towho)	/* Loud noises/events */
 			and the room is a silent room, ignore him.
 		*/
 		if(i != Af && (lstat+i)->room != me2->room &&	/* --v */
-			((rmtab+(lstat+i)->room)->flags & SILENT)) continue;
+			((rmtab+(lstat+i)->room)->flags & RF_SILENT)) continue;
 		x=0;
 		switch(towho)
 		{
@@ -498,7 +498,7 @@ announce(register char *s,register int towho)	/* Loud noises/events */
 		}
 		if(x == 1)
 		{
-			setmxy(NOISE,i); utx(i,s);
+			setmxy(PC_NOISE,i); utx(i,s);
 		}
 	}
 }
@@ -509,7 +509,7 @@ announcein(int toroom,char *s)	/* Loud noises/events */
 	{
 		/* If the player is deaf, ignore him */
 		if(actor == i || ((lstat+i)->state < 2) || ((lstat+i)->flags & PFDEAF) || (lstat+i)->room!=toroom) continue;
-		setmxy(NOISE,i); utx(i,s);
+		setmxy(PC_NOISE,i); utx(i,s);
 	}
 }
 
@@ -522,7 +522,7 @@ announcefrom(int obj,char *s)	/* Loud noises/events */
 		/* Check if the player is NEAR to someone carrying the object */
 		if((o=owner(obj))!=-1 && (lstat+o)->room!=(lstat+i)->room) continue;
 		if(o==-1 && isin(obj,(lstat+o)->room)==NO) continue;
-		setmxy(NOISE,i); utx(i,s);
+		setmxy(PC_NOISE,i); utx(i,s);
 	}
 }
 
@@ -535,7 +535,7 @@ objannounce(register int obj,register char *s)	/* Loud noises/events */
 		/* Check if the player is NEAR to someone carrying the object */
 		if((o=owner(obj))!=-1 && (lstat+o)->room!=(lstat+i)->room) continue;
 		if(o==-1 && isin(obj,(lstat+o)->room)==NO) continue;
-		setmxy(NOISE,i); utx(i,s);
+		setmxy(PC_NOISE,i); utx(i,s);
 	}
 }
 
@@ -557,7 +557,7 @@ action(char *s,int towho)	/* Quiet actions/notices */
 		}
 		if(x == 1)
 		{
-			setmxy(ACTION,i); utx(i,s);
+			setmxy(PC_ACTION,i); utx(i,s);
 		}
 	}
 }
@@ -567,8 +567,8 @@ actionin(int toroom,char *s)	/* Quiet actions/notices */
 	for(i=0; i<MAXU; i++)
 	{
 		/* If the player is asleep, or blind, skip him */
-		if(actor == i || ((lstat+i)->state < PLAYING) || ((lstat+i)->flags & (PFBLIND+PFASLEEP)) || (lstat+i)->room!=toroom) continue;
-		setmxy(ACTION,i); utx(i,s);
+		if(actor == i || ((lstat+i)->state < US_CONNECTED) || ((lstat+i)->flags & (PFBLIND+PFASLEEP)) || (lstat+i)->room!=toroom) continue;
+		setmxy(PC_ACTION,i); utx(i,s);
 	}
 }
 
@@ -581,7 +581,7 @@ actionfrom(int obj,char *s)	/* Quiet actions/notices */
 		/* Check if the player is NEAR to someone carrying the object */
 		if((o=owner(obj))!=-1) if((lstat+o)->room!=(lstat+i)->room) continue;
 		if(o==-1 && isin(obj,(lstat+i)->room)==NO) continue;
-		setmxy(ACTION,i); utx(i,s);
+		setmxy(PC_ACTION,i); utx(i,s);
 	}
 }
 
@@ -594,7 +594,7 @@ objaction(register int obj,register char *s)	/* Quiet actions/notices */
 		/* Check if the player is NEAR to someone carrying the object */
 		if((o=owner(obj))!=-1) if((lstat+o)->room!=(lstat+i)->room) continue;
 		if(o==-1 && isin(obj,(lstat+i)->room)==NO) continue;
-		setmxy(ACTION,i); utx(i,s);
+		setmxy(PC_ACTION,i); utx(i,s);
 	}
 }
 
@@ -620,7 +620,7 @@ ableep(int n)
 
 lighting(int x, int twho)	/*== twho - tell who! */
 {
-	if((lstat+x)->light==(lstat+x)->hadlight || !((rmtab+(lstat+x)->room)->flags & DARK)) return;
+	if((lstat+x)->light==(lstat+x)->hadlight || !((rmtab+(lstat+x)->room)->flags & RF_DARK)) return;
 	if((lstat+x)->light<=0)
 	{
 		if((lstat+x)->hadlight <= 0) return;
@@ -669,7 +669,7 @@ aforce(register int x,register char *cmd)
 afight(int plyr)
 {
 	if(plyr==Af) return;
-	if((rmtab+me2->room)->flags&PEACEFUL) { sys(NOFIGHT); return; }
+	if((rmtab+me2->room)->flags&RF_SANCTUARY) { sys(NOFIGHT); return; }
 	if((lstat+plyr)->fighting == Af) { txs("You are already fighting %s!\n",(usr+plyr)->name); donet=ml+1; return; }
 	if((lstat+plyr)->fighting != -1) { txs("%s is already in a fight!\n",(usr+plyr)->name); donet=ml+1; return; }
 	you2=lstat+plyr;
@@ -712,7 +712,7 @@ acombat()
 
 	calcdext();
 
-	if(me2->fighting == Af || me2->fighting == -1 || me2->state < PLAYING || me2->stamina <= 0)
+	if(me2->fighting == Af || me2->fighting == -1 || me2->state < US_CONNECTED || me2->stamina <= 0)
 	{
 		donet=ml+1;	/* End parse */
 		finishfight(Af);
@@ -721,7 +721,7 @@ acombat()
 		
 	you=usr+me2->fighting; you2=lstat+me2->fighting; minpksl=(rktab+you->rank)->minpksl;
 
-	if(you2->state < PLAYING || you2->room != me2->room || you2->stamina <= 0)
+	if(you2->state < US_CONNECTED || you2->room != me2->room || you2->stamina <= 0)
 	{
 		donet=ml+1; finishfight(Af); return;
 	}
@@ -840,8 +840,8 @@ exits()
 				{
 					txs("%-10s ",vbptr->id); brk=1;
 					roomtab=rmtab+(ttabp->action);
-					if(roomtab->flags & DEATH) sys(CERTDEATH);
-					else desc_here(RDBF);
+					if(roomtab->flags & RF_LETHAL) sys(CERTDEATH);
+					else desc_here(RD_TERSE);
 					break;
 				}
 				ac=-1-ttabp->action;
@@ -878,7 +878,7 @@ follow(register int x,register char *cmd)
 	lockusr(x);
 	if((intam=(struct Aport *)AllocMem(sizeof(*amul),MEMF_PUBLIC+MEMF_CLEAR))==NULL)
 		memfail("comms port");
-	IAm.mn_Length = (UWORD) sizeof(*amul); IAf=Af; IAm.mn_Node.ln_Type = NT_MESSAGE; IAm.mn_ReplyPort = repbk; IAt=MFORCE; IAd=1; IAp=cmd;
+	IAm.mn_Length = (UWORD) sizeof(*amul); IAf=Af; IAm.mn_Node.ln_Type = NT_MESSAGE; IAm.mn_ReplyPort = repbk; IAt=MSG_FORCE; IAd=1; IAp=cmd;
 	PutMsg((lstat+x)->rep,(struct Message *)intam); (lstat+x)->IOlock=-1;
 }
 
@@ -890,7 +890,7 @@ log(register char *s)
 		if(*s=='\n' || *s=='\r') { strcpy(s,s+1); continue; }
 		s++;
 	}
-	SendIt(MLOG,NULL,ow);
+	SendIt(MSG_LOG,NULL,ow);
 }
 
 PutRankInto(char *s)
@@ -981,7 +981,7 @@ ascore(register int type)
 {	
 	calcdext();
 
-	if(type == TYPEV)
+	if(type == VERBOSE)
 	{
 		sprintf(block,"Recorded details:		%s\n\n",vername); tx(block);
 		tx("Name: @m! Sex  : @gn		Played   : @gp times\n");
@@ -1024,7 +1024,7 @@ calcdext()
 	me2->dext-=((me2->dext/10)-(((me2->dext/10)*((rktab+me->rank)->maxweight-(me2->weight)))/(rktab+me->rank)->maxweight));
 
 	if (me2->flags & PFINVIS) me2->dext+=(me2->dext/3);
-	if (me2->flags & PFSINVIS) me2->dext+=(me2->dext/2);
+	if (me2->flags & PFSPELL_INVISIBLE) me2->dext+=(me2->dext/2);
 	if(me->flags&PFCRIP) me2->dext=0;
 	me2->dext+=me2->dextadj;
 }

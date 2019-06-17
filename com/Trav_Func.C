@@ -89,18 +89,18 @@ char *chkp(char *p,char t,int c,int z,FILE *fp)
 		case -3:	x=spell(p2); break;
 		case -2:	x=rdmode(toupper(*p2)); break;
 		case -1:	x=antype(p2); break;
-		case PROOM:	x=isroom(p2); break;
-		case PVERB:	x=is_verb(p2); break;
-		case PADJ:	break;
+		case CAP_ROOM:	x=isroom(p2); break;
+		case CAP_VERB:	x=is_verb(p2); break;
+		case CAP_ADJ:	break;
 		case -70:
-		case PNOUN:	x=isnounh(p2); break;
-		case PUMSG:	x=ttumsgchk(p2); break;
-		case PNUM:	x=chknum(p2); break;
-		case PRFLAG:	x=isrflag(p2); break;
-		case POFLAG: 	x=isoflag1(p2); break;
-		case PSFLAG: 	x=isoflag2(p2); break;
-		case PSEX:	x=isgen(toupper(*p2)); break;
-		case PDAEMON:	if((x=is_verb(p2))==-1 || *p2!='.') x=-1; break;
+		case CAP_NOUN:	x=isnounh(p2); break;
+		case CAP_UMSG:	x=ttumsgchk(p2); break;
+		case CAP_NUM:	x=chknum(p2); break;
+		case CAP_ROOM_FLAG:	x=isrflag(p2); break;
+		case CAP_OBJ_FLAG: 	x=isoflag1(p2); break;
+		case CAP_STAT_FLAG: 	x=isoflag2(p2); break;
+		case CAP_GENDER:	x=isgen(toupper(*p2)); break;
+		case CAP_DAEMON_ID:	if((x=is_verb(p2))==-1 || *p2!='.') x=-1; break;
 		default:
 		{
 			if(!(proc==1 && t>=0 && t<=10))
@@ -113,7 +113,7 @@ char *chkp(char *p,char t,int c,int z,FILE *fp)
 		}
 	}
 	if(t==-70 && x==-2) x=-1;
-	else if(((x==-1 || x==-2) && t!=PNUM) || x==-1000001)
+	else if(((x==-1 || x==-2) && t!=CAP_NUM) || x==-1000001)
 	{
 		printf("\x07\nInvalid parameter, '%s', after %s '%s' in %s '%s'.\n",
 			p2,(z==1)?"condition":"action",(z==1)?conds[c]:acts[c],
@@ -169,22 +169,22 @@ isnounh(char *s)	/* Test noun state, checking rooms */
 
 rdmode(char c)
 {
-	if(c == 'R') return RDRC;
-	if(c == 'V') return RDVB;
-	if(c == 'B') return RDBF;
+	if(c == 'R') return RD_VERBOSE_ONCE;
+	if(c == 'V') return RD_VERBOSE;
+	if(c == 'B') return RD_TERSE;
 	return -1;
 }
 
 spell(register char *s)
 {
-	if(strcmp(s,"glow")==NULL) return SGLOW;
-	if(strcmp(s,"invis")==NULL)return SINVIS;
-	if(strcmp(s,"deaf")==NULL) return SDEAF;
-	if(strcmp(s,"dumb")==NULL) return SDUMB;
-	if(strcmp(s,"blind")==NULL)return SBLIND;
-	if(strcmp(s,"cripple")==NULL)return SCRIPPLE;
-	if(strcmp(s,"sleep")==NULL)return SSLEEP;
-	if(strcmp(s,"sinvis")==NULL)return SSINVIS;
+	if(strcmp(s,"glow")==NULL) return SPELL_GLOW;
+	if(strcmp(s,"invis")==NULL)return SPELL_INVISIBLE;
+	if(strcmp(s,"deaf")==NULL) return SPELL_DEAFEN;
+	if(strcmp(s,"dumb")==NULL) return SPELL_MUTE;
+	if(strcmp(s,"blind")==NULL)return SPELL_BLIND;
+	if(strcmp(s,"cripple")==NULL)return SPELL_CRIPPLE;
+	if(strcmp(s,"sleep")==NULL)return SPELL_SLEEP;
+	if(strcmp(s,"sinvis")==NULL)return SPELL_SUPER_INVIS;
 	return -1;
 }
 
@@ -204,8 +204,8 @@ stat(register char *s)
 
 bvmode(char c)
 {
-	if(c=='V') return TYPEV;
-	if(c=='B') return TYPEB;
+	if(c=='V') return VERBOSE;
+	if(c=='B') return TERSE;
 	return -1;
 }
 

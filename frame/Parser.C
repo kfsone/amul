@@ -46,7 +46,7 @@ parser()
 	om=more;	/* We need to know if this is phrase one in a mo... */
 	more=0; if(strlen(block)==0) return;
 
-phrase:	wtype[1]=wtype[2]=wtype[3]=wtype[4]=wtype[5]=WNONE;
+phrase:	wtype[1]=wtype[2]=wtype[3]=wtype[4]=wtype[5]=TC_NONE;
 	iadj1=inoun1=iprep=iadj2=inoun2=-1; actor=-1;
 	p=block+strlen(block)-1;
 	while(p!=block && isspace(*p)) *(p--)=0;
@@ -65,7 +65,7 @@ phrase:	wtype[1]=wtype[2]=wtype[3]=wtype[4]=wtype[5]=WNONE;
 		if((iverb=isverb("\"speech"))==-1) { sys(CANTDO); return -1; }
 		p2=p+1;
 loop:		while(*p != *p2 && *p2!=0) p2++;
-		*(p2+1)=*(p2)=0; inoun1=(long) p+1; wtype[2]=WTEXT;
+		*(p2+1)=*(p2)=0; inoun1=(long) p+1; wtype[2]=TC_TEXT;
 		goto skip;
 	}
 	if((word=isaverb(&p)) == -1)
@@ -84,7 +84,7 @@ loop:		while(*p != *p2 && *p2!=0) p2++;
 		}
 		word=iverb;
 	}
-	x=WVERB; vbptr=vbtab+word;
+	x=TC_VERB; vbptr=vbtab+word;
 	if((me2->flags & PFASLEEP) && !(vbptr->flags & VB_DREAM))
 	{
 		tx("You can't do anything until you wake up!\n"); failed=YES; return -1;
@@ -99,44 +99,44 @@ loop:		while(*p != *p2 && *p2!=0) p2++;
 	}
 	if(iverb>=0) lverb=iverb;
 	iverb=word; vbptr=vbtab+iverb;
-	wtype[0]=WVERB;
+	wtype[0]=TC_VERB;
 
 	/* adjectives are optional, so assume next word is a noun */
 l1:	if(*p==0) goto ended;
-	wtype[2]=type(&p); inoun1=word; if(wtype[2] == WNOUN) it=inoun1;
-	if(wtype[2] == WADJ)
+	wtype[2]=type(&p); inoun1=word; if(wtype[2] == TC_NOUN) it=inoun1;
+	if(wtype[2] == TC_ADJ)
 	{
 		if(wtype[1]!=-1)
 		{
 			sys(NONOUN); return -1;
 		}
-		wtype[1]=WADJ; iadj1=inoun1; wtype[2]=-1; inoun1=-1; goto l1;
+		wtype[1]=TC_ADJ; iadj1=inoun1; wtype[2]=-1; inoun1=-1; goto l1;
 	}
-	if(wtype[2] == WPREP)
+	if(wtype[2] == TC_PREP)
 	{
 		if(wtype[3]!=-1)
 		{
 			sys(WORDMIX); return -1;
 		}
-		wtype[3]=WPREP; iprep=inoun1; wtype[2]=-1; inoun1=-1;
+		wtype[3]=TC_PREP; iprep=inoun1; wtype[2]=-1; inoun1=-1;
 	}
 l2:	if(*p==0) goto ended;
-	wtype[5]=type(&p); inoun2=word; if(wtype[5] == WNOUN) it=inoun2;
-	if(wtype[5] == WPREP)
+	wtype[5]=type(&p); inoun2=word; if(wtype[5] == TC_NOUN) it=inoun2;
+	if(wtype[5] == TC_PREP)
 	{
 		if(wtype[3]!=-1)
 		{
 			sys(WORDMIX); return -1;
 		}
-		wtype[3]=WPREP; iprep=inoun2; wtype[5]=-1; inoun2=-1; goto l2;
+		wtype[3]=TC_PREP; iprep=inoun2; wtype[5]=-1; inoun2=-1; goto l2;
 	}
-	if(wtype[5] == WADJ)
+	if(wtype[5] == TC_ADJ)
 	{
 		if(wtype[4]!=-1)
 		{
 			sys(NONOUN); return -1;
 		}
-		wtype[4]=WADJ; iadj2=inoun2; wtype[5]=-1; inoun2=-1; goto l2;
+		wtype[4]=TC_ADJ; iadj2=inoun2; wtype[5]=-1; inoun2=-1; goto l2;
 	}
 ended:	overb=iverb; vbptr=vbtab+iverb;
 skip:	iocheck(); if(forced!=0 || exeunt!=0 || died!=0 || failed!=NO) return;
@@ -150,26 +150,26 @@ lang_proc(register int v,char e)
 caloop:	for(i=0; i<(vbtab+v)->ents; i++)
 	{
 		m=0; stptr=vbptr->ptr+i; donet=0; ml=stptr->ents;
-		if(stptr->wtype[2]!=WANY) for(j=0; j<5 && m==0; j++)
+		if(stptr->wtype[2]!=TC_ANY) for(j=0; j<5 && m==0; j++)
 		{
-			if(stptr->wtype[j]==WANY && (j==0 || j==3 || wtype[j+1]!=WNONE)) continue;
+			if(stptr->wtype[j]==TC_ANY && (j==0 || j==3 || wtype[j+1]!=TC_NONE)) continue;
 			if(stptr->wtype[j]!=wtype[j+1]) { m=1; continue; }
 			/* We have a match, now see if its the same word! */
-			if(stptr->slot[j]==WANY) continue;
+			if(stptr->slot[j]==TC_ANY) continue;
 			switch(j)
 			{
 				case 0: if(iadj1!=stptr->slot[j]) m=1; break;
-				case 1:	if(stptr->slot[j]==WNONE && inoun1==WNONE) break;
-					if(stptr->wtype[j]==WPLAYER && inoun1==Af && stptr->slot[j]==-3) break;
-					if(stptr->wtype[j]==WTEXT   && stricmp((char *)inoun1,umsgp+*(umsgip+stptr->slot[j]))==NULL) break;
-					if(stptr->wtype[j]==WNOUN   && stricmp((obtab+inoun1)->id,(obtab+stptr->slot[j])->id)==NULL) break;
+				case 1:	if(stptr->slot[j]==TC_NONE && inoun1==TC_NONE) break;
+					if(stptr->wtype[j]==TC_PLAYER && inoun1==Af && stptr->slot[j]==-3) break;
+					if(stptr->wtype[j]==TC_TEXT   && stricmp((char *)inoun1,umsgp+*(umsgip+stptr->slot[j]))==NULL) break;
+					if(stptr->wtype[j]==TC_NOUN   && stricmp((obtab+inoun1)->id,(obtab+stptr->slot[j])->id)==NULL) break;
 					if(inoun1!=stptr->slot[j])m=1; break;
 				case 2: if(iprep!=stptr->slot[j]) m=1; break;
 				case 3: if(iadj2!=stptr->slot[j]) m=1; break;
-				case 4:	if(stptr->slot[j]==WNONE && inoun2==WNONE) break;
-					if(stptr->wtype[j]==WPLAYER && inoun2==Af && stptr->slot[j]==-3) break;
-					if(stptr->wtype[j]==WTEXT   && stricmp((char *)inoun2,umsgp+*(umsgip+stptr->slot[j]))==NULL) break;
-					if(stptr->wtype[j]==WNOUN   && stricmp((obtab+inoun2)->id,(obtab+stptr->slot[j])->id)==NULL) break;
+				case 4:	if(stptr->slot[j]==TC_NONE && inoun2==TC_NONE) break;
+					if(stptr->wtype[j]==TC_PLAYER && inoun2==Af && stptr->slot[j]==-3) break;
+					if(stptr->wtype[j]==TC_TEXT   && stricmp((char *)inoun2,umsgp+*(umsgip+stptr->slot[j]))==NULL) break;
+					if(stptr->wtype[j]==TC_NOUN   && stricmp((obtab+inoun2)->id,(obtab+stptr->slot[j])->id)==NULL) break;
 					if(inoun2!=stptr->slot[j]) m=1; break;
 			}
 		}

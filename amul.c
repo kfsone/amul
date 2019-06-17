@@ -20,14 +20,16 @@
 #include "h/AMUL.Cons.H"			/* Predefined Constants etc */
 #include "frame/AMULInc.H"			/*=* Main Include file *=*/
 
+void
+init()
+{
+	sprintf(vername,"AMUL v%d.%d (%s)", VERSION, REVISION, DATE);
+	lverb=-1; iverb=-1; ip=1; needcr=NO; addcr=NO;	MyFlag = ROLE_PLAYER;
+}
 
-main(int argc,char *argv[])			/*=* Main Program *=*/
-{	register int i;
-
-	lverb=-1; iverb=-1; ip=1; needcr=NO; addcr=NO;	MyFlag = am_USER;
-
-	sprintf(vername,"AMUL v%d.%d (%s)",VERSION,REVISION,DATE);
-
+void
+parseCommandLine()
+{
 	if(argc>1 && argv[1][0]!='-')
 	{
 		printf("\n\x07!! Invalid argument, %s!\n",argv[1]);
@@ -38,9 +40,9 @@ main(int argc,char *argv[])			/*=* Main Program *=*/
 		switch(toupper(*(argv[1]+1)))
 		{
 			case  3 :		/* Daemon processor */
-				MyFlag = am_DAEM; iosup = LOGFILE; break;
+				MyFlag = ROLE_DAEMON; break;
 			case  4 :
-				MyFlag = am_MOBS; iosup = LOGFILE; break;
+				MyFlag = ROLE_NPCS; break;
 			case 'C':		/* Custom screen */
 				switchC(argc,*(argv[1]+2)); break;
 			case 'S':		/* Serial Device */
@@ -54,6 +56,29 @@ main(int argc,char *argv[])			/*=* Main Program *=*/
 		}
 	}
 	else switchC(argc,0);
+}
+
+void
+processStatus(int connectionNo, const char* prefix, const char* note=NULL)
+{
+	char buffer[512];
+	if (note != NULL) {
+		snprintf(buffer, sizeof(buffer), "%s #%2d: %s: %s", vername, connectionNo, prefix, note);
+	} else {
+		snprintf(buffer, sizeof(buffer, "%s #%2d: %s", vername, connectionNo, prefix));
+	}
+	///TODO: Use this value
+}
+
+main(int argc,char *argv[])			/*=* Main Program *=*/
+{	register int i;
+
+	processStatus(Af, "Initializing");
+
+	init();
+
+	parseCommandLine();
+
 	if((ob=(char *)AllocMem(5000,MEMF_PUBLIC+MEMF_CLEAR))==NULL) memfail("IO buffers");
 	if((ow=(char *)AllocMem(3000,MEMF_PUBLIC+MEMF_CLEAR))==NULL) memfail("IO buffers");
 	if((input=(char *)AllocMem(400,MEMF_PUBLIC+MEMF_CLEAR))==NULL) memfail("IO buffers");
@@ -68,18 +93,20 @@ main(int argc,char *argv[])			/*=* Main Program *=*/
 	Am.mn_Length = (UWORD) sizeof(*amul); Am.mn_Node.ln_Type = NT_MESSAGE; Am.mn_ReplyPort = amanrep;
 	switch(MyFlag)	/* What type of line? */
 	{
-		case am_DAEM:	Af = MAXU; break;
-		case am_MOBS:	Af = MAXU+1; break;
+		case ROLE_DAEMON:	Af = MAXU; break;
+		case ROLE_NPCS:	Af = MAXU+1; break;
 	}
 	*amanp = *amul;
-	link=1; SendIt(MCNCT,-10,NULL);		/* Go for a connection! */
+	link=1; SendIt(MSG_CONNECT,-10,NULL);		/* Go for a connection! */
 	lstat=(struct LS *)Ad; me2=lstat+Af; me2->IOlock=Af; ip=0;
 	usr=(struct _PLAYER *)Ap; me=usr+Af; me2->rep=reply;
 	if(Ad==-'R') { tx("\n...Reset In Progress...\n"); Delay(40); quit(); }
 	reset();		/* Read in data files */
 	if(Af<0)     { sys(NOSLOTS); pressret(); quit(); }
-	me2->unum=Af; me2->sup=iosup; me2->buf=ob; *ob=0;
-	me2->IOlock=-1; *ob=0; SendIt(MFREE,NULL,NULL); iocheck();
+
+	processStatus(Af, "Connecting");
+	me2->unum=Af; me2->buf=ob; *ob=0;
+	me2->IOlock=-1; *ob=0; SendIt(MSG_FREE,NULL,NULL); iocheck();
 
 	/* Special processors go HERE: */
 
@@ -97,14 +124,15 @@ main(int argc,char *argv[])			/*=* Main Program *=*/
 
 	getid();	/*  GET USERS INFO */
 
+	processStatus(Af, "Player", me->name);
 
 	last_him=last_her=it=-1;
 
 	do
 	{
 		died=0; actor=-1; fol=0; needcr=NO; addcr=NO;
-		if(last_him != -1 && (lstat+last_him)->state != PLAYING) last_him=-1;
-		if(last_her != -1 && (lstat+last_her)->state != PLAYING) last_her=-1;
+		if(last_him != -1 && (lstat+last_him)->state != US_CONNECTED) last_him=-1;
+		if(last_her != -1 && (lstat+last_her)->state != US_CONNECTED) last_her=-1;
 		iocheck();
 		tx((rktab+me->rank)->prompt); needcr=YES; block[0]=0; Inp(input,390);
 		if(exeunt!=0) break;
@@ -144,7 +172,7 @@ look(char *s,int f)
 
 	if((roomno=isroom(s))==-1) return;
 	roomtab=rmtab+roomno;
-	if (f==RDRC && ((*(rctab+roomno) & rset) != rset)) mod=RDVB;
+	if (f==RD_VERBOSE_ONCE && ((*(rctab+roomno) & rset) != rset)) mod=RD_VERBOSE;
 	else mod=f;
 	if(f!=2) *(rctab+roomno) = *(rctab+roomno) | rset;
 	look_here(mod,roomno);
@@ -181,7 +209,7 @@ adrop(int ob,int r,int f)	/* Drop the object (to a room) */
 	objtab=obtab+ob; *objtab->rmlist=r; rem_obj(Af,ob); lighting(Af,AHERE);
 
 	/* If the room IS a 'swamp', give em points */
-	if((rmtab+me2->room)->flags&SANCTRY) 
+	if((rmtab+me2->room)->flags&RF_SINKHOLE) 
 	{
 		/*== Only give points if player hasn't quit. */
 		if(exeunt == 0) aadd(scaled(STATE->value, STATE->flags), STSCORE, Af); 

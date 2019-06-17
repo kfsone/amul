@@ -28,14 +28,14 @@ Special_Proc()		/* Special Processor core */
 {	register int i;
 
 	if(ifp!=NULL)fclose(ifp); ifp=NULL;
-	wtype[0]=wtype[1]=wtype[2]=wtype[3]=wtype[4]=wtype[5]=WNONE;
+	wtype[0]=wtype[1]=wtype[2]=wtype[3]=wtype[4]=wtype[5]=TC_NONE;
 	iverb=iadj1=inoun1=iprep=iadj2=inoun2=-1; actor=last_him=last_her=it=-1;
 	switch(MyFlag)		/* What type of processor ? */
 	{
-		case am_DAEM:	/* Execute the boot-up daemon */
+		case ROLE_DAEMON:	/* Execute the boot-up daemon */
 				if((i=isverb("\"boot"))!=-1) lang_proc(i,0);
 				Daem_Proc();	/* Daemon Processor */
-		case am_MOBS:	printf("-- Mobile processor loaded\n");
+		case ROLE_NPCS:	printf("-- Mobile processor loaded\n");
 		default:	printf("-- Unsupported special processor requested\n");
 	}
 	quit();		/* Don't go anywhere */
