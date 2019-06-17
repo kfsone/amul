@@ -19,7 +19,7 @@
 									    */
 
 
-#include "adv:frame/AMULInc.H"
+#include "frame/AMULInc.H"
 
 long	minop;		/* Mobiles in operation */
 

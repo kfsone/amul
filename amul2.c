@@ -18,13 +18,13 @@
              Secondary/low-level functions, macros and routines
 									    */
 
-#include "adv:frame/AMULInc.H"
+#include "frame/AMULInc.H"
 
 extern	char	ncop[];				/* Conditions */
 
-#include	<ADV:Frame/Daemons.C>
-#include	<ADV:Frame/FileBits.C>
-#include	<ADV:Frame/Parser.C>
+#include	"frame/Daemons.C"
+#include	"frame/FileBits.C"
+#include	"frame/Parser.C"
 
 /* Various low-level macros/functions for AMUL... */
 

@@ -14,8 +14,4 @@
 #include <exec/types.h>			/* Exec bits and pieces   */
 #include <exec/memory.h>		/* Memory details........ */
 #include <exec/ports.h>			/* Message details	  */
-#ifdef FRAME
-#include <devices/serial.h>		/* Serial device info	  */
-#include <intuition/intuition.h>	/* Eek! -MORE- Exec	  */
-#endif
-#include <ADV:H/AMUL.Stct.H>		/* AMUL Structures!	  */
+#include "h/AMUL.Stct.H"		/* AMUL Structures!	  */

@@ -14,9 +14,9 @@
 #include <stdio.h>
 #include <exec/types.h>
 #include <exec/exec.h>
-#include "adv:h/amul.defs.h"
-#include "adv:h/amul.stct.h"
-#include "adv:h/amul.cons.h"
+#include "h/amul.defs.h"
+#include "h/amul.stct.h"
+#include "h/amul.cons.h"
 
 struct	MsgPort	*port,*reply,*FindPort(),*CreatePort();
 struct	Task *mytask,*FindTask();

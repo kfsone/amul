@@ -30,12 +30,12 @@
 
 #define	COMPILER 1
 
-#include "adv:h/AMULCom.H"
-#include "adv:h/amul.defs.h"		/* Defines in one nice file     */
-#include "adv:h/amul.incs.h"		/* Include files tidily stored. */
-#include "adv:h/amul.vars.h"		/* all INTERNAL variables       */
-#include "adv:h/amul.lnks.h"		/* (external) Linkage symbols   */
-#include "adv:h/amul.cons.h"		/* Predefined Constants etc     */
+#include "h/AMULCom.H"
+#include "h/amul.defs.h"		/* Defines in one nice file     */
+#include "h/amul.incs.h"		/* Include files tidily stored. */
+#include "h/amul.vars.h"		/* all INTERNAL variables       */
+#include "h/amul.lnks.h"		/* (external) Linkage symbols   */
+#include "h/amul.cons.h"		/* Predefined Constants etc     */
 
 /* Compiler specific variables... */
 
@@ -85,20 +85,20 @@ CXBRK()
 
 	/*---------------------------------------------------------*/
 
-#include "adv:com/filebits.c"
+#include "com/filebits.c"
 
-#include "adv:COM/Room_Proc.C"
-#include "adv:COM/CheckDMoves.C"
-#include "adv:COM/Rank_Proc.C"
-#include "adv:COM/ObDs_Proc.C"
-#include "adv:COM/Obj_Proc.C"
-#include "adv:COM/Title_Proc.C"
-#include "adv:COM/Trav_Proc.C"
-#include "adv:COM/Lang_Proc.C"
-#include "adv:COM/UMsg_Proc.C"
-#include "adv:COM/SMsg_Proc.C"
-#include "adv:COM/Syns_Proc.C"
-#include "adv:COM/Mob_Proc.C"
+#include "COM/Room_Proc.C"
+#include "COM/CheckDMoves.C"
+#include "COM/Rank_Proc.C"
+#include "COM/ObDs_Proc.C"
+#include "COM/Obj_Proc.C"
+#include "COM/Title_Proc.C"
+#include "COM/Trav_Proc.C"
+#include "COM/Lang_Proc.C"
+#include "COM/UMsg_Proc.C"
+#include "COM/SMsg_Proc.C"
+#include "COM/Syns_Proc.C"
+#include "COM/Mob_Proc.C"
 
 	/*---------------------------------------------------------*/
 

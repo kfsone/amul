@@ -14,11 +14,10 @@
 #define	PORTS	1
 #endif
 
-#include <ADV:H/AMUL.Defs.H>		/* Defines in one nice file	*/
-#include <ADV:H/AMUL.Incs.H>		/* Include files tidily stored.	*/
-#include <ADV:H/AMUL.Lnks.H>		/* (external) Linkage symbols	*/
-#include <ADV:H/AMUL.Msgs.H>		/* System Message Flags		*/
-#include "SetJmp.H"
+#include "h/AMUL.Defs.H"		/* Defines in one nice file	*/
+#include "h/AMUL.Incs.H"		/* Include files tidily stored.	*/
+#include "h/AMUL.Lnks.H"		/* (external) Linkage symbols	*/
+#include "h/AMUL.Msgs.H"		/* System Message Flags		*/
 
 #define	dtx(x)	if(debug!=0) tx(x)
 extern short int	debug;				/* Is debug mode on?	 */

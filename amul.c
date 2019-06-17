@@ -16,14 +16,14 @@
 
 									   */
 
+#include "h/AMUL.H"					/*=* Version info etc. *=*/
+#include "h/AMUL.Cons.H"			/* Predefined Constants etc */
+#include "frame/AMULInc.H"			/*=* Main Include file *=*/
 #define	AMUL	1
 #define	AMUL1	1
 #define	FRAME	1
 #define	PORTS	1
 
-#include <ADV:H/AMUL.H>				/*=* Version info etc. *=*/
-#include <ADV:H/AMUL.Cons.H>			/* Predefined Constants etc */
-#include <ADV:Frame/AMULInc.H>			/*=* Main Include file *=*/
 
 main(int argc,char *argv[])			/*=* Main Program *=*/
 {	register int i;

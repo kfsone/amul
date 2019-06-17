@@ -414,8 +414,8 @@
 #define	LightHere	lit(me2->room)
 #define	unfreeze	Permit(); return
 
-#include <adv:h/AMUL.Msgs.H>		/* System message defines */
-#include <adv:h/AMUL.Acts.H>
+#include "h/AMUL.Msgs.H"		/* System message defines */
+#include "h/AMUL.Acts.H"
 
 #define	CP1	actual(*(tt.pptr))
 #define	CP2	actual(*(tt.pptr+1))
