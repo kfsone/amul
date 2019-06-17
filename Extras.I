@@ -1,7 +1,7 @@
 
 	* M/C functions for AMUL
 
-	output	"adv:extras.o"
+	output	"extras.o"
 
 	xref	_block,_strcpy,__ctype,_Write,_ohd,_Word,_printf,_strlen
 
