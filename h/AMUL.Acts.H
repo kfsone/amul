@@ -4,11 +4,11 @@
 	------------------
 
 
- These are pretty important... The 'actuals' allow you the end user to refer
+These are pretty important... The 'actuals' allow the end user to refer to
 variable elements of the adventure... Such as 'noun1', 'adj2', 'room of object
 the box', 'current state of door', 'no. of player carrying' etc...
 
-									    */
+*/
 
 /* Actual flags */
 

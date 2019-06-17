@@ -1,11 +1,8 @@
 /*
-
 	AWHO			List AMUL Users Online
 	~~~~			~~~~~~~~~~~~~~~~~~~~~~
 
-
 	v1.0	First release, written by Oliver Smith.
-
 */
 
 #define	AMAN 1			/* Get AMan includes */

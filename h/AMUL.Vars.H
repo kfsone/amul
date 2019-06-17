@@ -1,7 +1,7 @@
 /*
               ****    AMUL.VARS.H.....Adventure Compiler    ****
               ****           Internal Variables!            ****
-									   */
+*/
 
 
 	/* Integers */

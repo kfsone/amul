@@ -1,7 +1,5 @@
 /*
      Travel Processing Routines for AMUL, Copyright (C) Oliver Smith, '90
-     --------------------------------------------------------------------
-  Warning! All source code in this file is copyright (C) KingFisher Software
 */
 
 #include "com/Trav_Func.C"

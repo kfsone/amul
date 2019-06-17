@@ -1,6 +1,6 @@
 /* Mobiles.Txt Processor */
 
-	/*=* Pass 1: Indexes mobile names *=*/
+/*=* Pass 1: Indexes mobile names *=*/
 
 mob_proc1()
 {	register char	*p,*s1,*s2; register long n;
@@ -110,7 +110,8 @@ loop:	if(com(px)==-1) { px=skipline(px); goto loop; }
 	n=ttumsgchk(q); px=skipline(px); if(n==-1) { printf("## Mobile '%s': Bad text on '%s' line!\n",mob.id,s); err++; }
 	return n;
 }
-	/*=* Pass 2: Indexes commands mobiles have access to *=*/
+
+/*=* Pass 2: Indexes commands mobiles have access to *=*/
 
 /*mob_proc2()
 {*/

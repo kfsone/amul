@@ -1,7 +1,7 @@
 
 /*
 	Routines to process/handle Synonyms
-						*/
+*/
 
 syn_proc()
 {	register char *s,*t; short int no; register short int x;

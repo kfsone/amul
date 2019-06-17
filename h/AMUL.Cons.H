@@ -2,7 +2,7 @@
               ****    AMUL.CONS.H.....Adventure Compiler    ****
               ****                constants                 ****
 
-									   */
+*/
 
 #ifdef COMPILER
 #define	NRFLAGS		15

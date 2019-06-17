@@ -25,8 +25,7 @@
 
    Last Amendments: 26/08/90   12:30   OS   Installed GameTime= (title.txt)
 		    27/09/90   14:52   OS   Enhanced ObjProc.C (uses MC rtns)
-
-									   */
+*/
 
 #define	COMPILER 1
 

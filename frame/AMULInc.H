@@ -1,8 +1,7 @@
-
 /*
 
-                     AMULInc.H - AMUL.C & AMUL2.C Includes
-		     -------------------------------------
+  AMULInc.H - AMUL.C & AMUL2.C Includes
+	-------------------------------------
 
   SPECIAL NOTICE!
 

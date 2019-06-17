@@ -1,5 +1,4 @@
-
- /* Daemon processing bizness! */
+/* Daemon processing bizness! */
 
 dpstart(register int d,register int c)	/* Begin PRIVATE daemon! */
 {
