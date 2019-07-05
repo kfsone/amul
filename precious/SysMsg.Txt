@@ -1,0 +1,295 @@
+; SysMsg.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by Oliver Smith / KingFisher Software
+; 70 Legsby Avenue,
+; Grimsby,
+; S. Humberside. DN32 0NE
+; England.
+;
+; This software is furnished on the understanding that it may be used and or
+; copied  only  with the inclusion of this notice.  No title or ownership of
+; this  software is hearby transferred.  The information in this software is
+; subject  to  change  without notice.  No responsibility is assumed for the
+; use or reliability of this software.
+
+; All System Messages get word-wrap treatment based on the users screen
+; width/height settings - so its a good idea to try and put as much of the
+; text onto one line as possible, this way best use of the USERS screen
+; is made!
+;
+; Also -- put your own plugs into some of the messages... Like on the
+; goodbye one ... Put 'Leaving Precious Days on the Mega BBS'.
+
+
+$1			; Can't enter the game - reset in progress
+	...Precious Days is currently resetting - try again in a few minutes...
+ 
+
+$2			; All 16 slots in use (let me know if this ever happens)
+	Sorry, all lines out of the dimension are engaged! Please try later!
+
+$3			; 'Press RETURN' prompt.
+	Hit <RETURN>: {
+
+$4			; 'Enter your name' prompt.
+	Under what name will your adventures be enacted?
+	Name: {
+
+$5			; Entered an invalid name.
+	That name is no good, try something more, well, suitable?
+
+$6			; Entere a name used by SOMETHING in the game
+	That name is used for something else in the game! Try another!
+
+$7			; Warn other player someone just tried to be them.
+	Someone just tried to login as you (@me)!
+
+$8			; Can't have two of the same name at once!
+	Oops! "@me" is currently wandering around Precious! Try a different name!
+
+$9			; Didn't recognise name : "Are you a new user? (Y/N) {"
+	"@me" - is that correct (I do not recognise the name!) (Y/N) {
+
+$10			; Offer them Male or Female - its all we got!
+	You can choose to have a Male or Female character. The gender has very little affect on the game play, but some people chose to be female to hide their true identity. Remember - Precious is a role-playing game.
+	What'll it be? (M)ale or (F)emale? {
+
+$11			; They tried to be clever and didn't enter M or F
+	Now WHAT did I say? >M<ale or >F<emale, wise-guy.
+
+$12			; Password prompt
+	Password: {
+
+$13			; We didn't like the length of the password
+	Invalid password, try something between 3-8 letters long.
+
+$14			; Do they want the ODD (and I MEAN odd) ANSI code?
+	Does your terminal support ANSI? (Y/N): {
+
+$15			; Welcome a first time player
+ 
+	Welcome to the world of Precious Days. PLEASE take the time to read through the Help Texts. If you are stuck, try communicating with other players, or leave some E-Mail to the SysOp!
+ 
+	You begin as "@me the @mr"... Enjoy your travels and have FUN!
+
+$16			; Scare them off - third bad attempt at entering password
+	** Logging failed password attempt and disconnecting!
+
+$17			; Inform a user someone has been trying to use the account (put %ld where you want the number)
+ 
+	%ld attempts have been made to use this soul since last logon!
+
+$18			; Welcome back an old hat.
+ 
+	Welcome back, @me the @mr! You have now played @gp times!
+
+$19			; Tell them when ANSI is enabled
+ 
+	> ANSI decoration enabled <
+
+$20			; Tell other players in the SAME ROOM you've begun
+	@me the @mr has just entered the land!
+
+$21			; Text displayed when user types 'HELP'
+	Precious Days		Copyright (C) Oliver Smith, 1991/1992
+	~~~~~~~~~~~~~		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+	Precious days is a multi-user role-playing/adventure game written using AMUL the Amiga games language!
+ 
+	Summary of basic commands: (there are MANY MANY more commands available)
+ 
+	Movement commands: N, S, E, W, NE, SE, SW, NW, U, D, IN, O.
+ 
+	Act, Answer, Ask, Attack, AutoExits, Bug, Brief, Bye, Close, Douse, Drop, Extinguish, Farewell, Fight, Flee, Follow, Force, Get, Give, Glow, Hi, Introduce, Inventory, Kill, Lie, Light, Listen, Look, Open, Press, Push, Quit, Reset, Roomcount, Save, Say, Score, Sit, Sleep, Stand, Suggest, Summon, Tell, UnAuto, Unglow, Use, Value, Verbose, Wake, Weigh, What, Where, Who, Wield.
+ 
+	Other help texts available:
+	Hints, Commands, Spells, Acting, Scoring, Levels, About, Communicating.
+	
+
+$22			; Say goodbye to a first time player (I recommend you remind them of their password)
+ 
+	I hope you enjoyed this visit, PLEASE call again! And remember, your password is "@pw"...
+ 
+	<< Precious Days - the AMUL Demonstration Adventure by Oliver Smith >>
+ 
+
+$23			; Tell other players that you are quitting
+	@me has ceased to be!
+
+$24			; Pillock just got himself zonked
+ 
+	You have died...
+
+$25			; And we'll tell the other people as much!
+	@me has passed away...
+
+$26			; A spell failed to work
+	Your spell failed.
+
+$27			; when listing other players online (who/verbose)
+	 is playing{
+
+$28			; Tell the player that their rank just changed
+	Your ranking has changed to @mr!
+
+$29			; Saving X many points (put %ld if/where you want number to be)
+	Saving at %ld points!
+
+$30			; Make sure the user wants to quit.
+ 
+	Remember: Precious is a REAL-TIME multi-user game, so when you quit your inventory and location are not stored!
+ 
+	Leave Precious Days [y/N]: {
+
+$31			; Tell people the lights just went out.
+	It is now too dark to see.
+
+$32			; Now someones fixed them again.
+	It is now light enough to see.
+
+$33			; Description of a dark room.
+	It is too dark to see.
+
+$34			; When the player tries to 'WHAT' in a dark room.
+	It is too dark to make anything out.
+
+$35			; When WHAT sees nothing in a hideaway.
+	You can see nothing special here.
+
+$36			; How to describe another player in the room (first %s = name, second %s = rank)
+	%s the %s is here{
+
+$37			; When the reset happens.
+	--|> Something magical is happening <|--
+
+$38			; The sentence was pure garbage.
+	I just didn't understand that.
+
+$39			; You tried to move in a direction you can't.
+	You can't go @vb from here.
+
+$40			; Something you tried to but can't do.
+	You can't do that!
+
+$41			; You've just done a supergo
+	>> Kappowwww! <<
+
+$42			; When a player leaves (supergo)
+	With a puff of smoke, @me dissapears...
+
+$43			; When a player arrives (supergo)
+	As if by magic, @me appears from nowhere!
+
+$44			; First word was understood, but not a verb!
+	I didn't quite understand that, try again...
+
+$45			; Understood the verb, but not the rest
+	Sorry, but I didn't understand that.
+
+$46			; Understood the verb, but no matching syntax lines
+	I get your drift, but I don't quite understand.
+
+$47			; You've just been summoned
+	--|> You have magically been summoned <|--
+
+$48			; When a player leaves (summoned)
+	There is a sudden >WHOOSH< and @me vanishes into thin air!
+
+$49			; When a player arrives (summoned)
+	There is a sudden >POOF< and @me appears out of nowhere!
+
+$50			; Tell others you just got woken up.
+	@me has just woken up.
+
+$51			; You've just been rudely awoken.
+	You are suddenly awake!
+
+$52			; Can't summon a player who'se already here.
+	%s is already here!
+
+$53			; When a player leaves a room (walking)
+	@me has just left.
+
+$54			; When a player arrives in a room (walking)
+	@me has just arrived.
+
+$55			; Tried to enter a SMALL room which is occupied
+	Someone else is already in there, and there is only enough space for one.
+
+$56			; Tell the other player about ^^
+	Someone else has just tried to enter here, but there wasn't enough room for them.
+
+$57			; When the players sex changes
+	Your sex has magically been changed! You are now a @gn!
+
+; * NOTE
+;
+;   The text in the fight-sequence where the opponent DEFENDS against a
+;   blow is sent BY THE ATTACKING player. Therefore you should use
+;
+;	You defend against an attack from @me
+;   not
+;	You defend against an attack from @pl
+;
+; *NW = No Weapon
+; *WP = Weapon
+
+$58			; YOU hit @pl				*NW
+	You strike @pl with your bare hands!
+
+$59			; tell @pl he blocked YOUR attack	*NW
+	You manage to parry a blow from @xx.
+
+$60			; YOU hit @pl				*WP
+	You score a direct hit on @pl with your @o1.
+
+$61			; YOU WOULD have hit, but @pl blocked	*WP
+	Using your @o2 you manage to block a feeble attack from @xx.
+
+$62			; tell @pl YOU struck			*NW
+	@xx manages to score a hefty blow on you!
+
+$63			; @pl blocked YOUR attack		*NW
+	@pl easily blocks a clumsy lunge from you.
+
+$64			; tell @pl YOU struck			*WP
+	@xx strikes you with @go @o1!
+
+$65			; @pl blocked your attack		*WP
+	@pl easily blocks a feeble attack from you with @go @g2.
+
+$66			; You miss - dimwit			*NW
+	You attack @pl but miss.
+
+$67			; tell @pl you missed			*NW
+	@xx attacks you but misses.
+
+$68			; Wizard message (when a user makes it, that is)
+	From high above you comes a rumble as though the end of the world has arrived. A loud voice booms at you:
+	"Harken, @me. No longer art thou mortal. Thy deeds have shown thee worthy of imortality, and we grantest it unreservedly uponst thineself. Thou art now a @mr of The Lands and all the forces of magic withinst them. Fare ye well, @mr @me."
+	 
+	A scruffy looking human appears before you:
+	"Congratulations", he says unconvincingly, "you'll be notified of your new powers through the lower four dimensions (the BBS)."
+
+$69			; Scored enough points but not enough tasks for new rank
+	You have not completed the required task(s) to reach the next level.
+
+$70			; 
+	You can see nothing.
+
+$71
+	{
+
+$72
+	You can make nothing out!
+
+$73
+	Fighting is forbidden here.
+
+$74
+	You aren't powerful to cast that spell, you'll have to wait until you reach a higher rank!
+
+$75
+	You don't have enough magical power to cast the spell!
+
+; <End of file>

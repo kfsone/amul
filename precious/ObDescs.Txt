@@ -1,0 +1,44 @@
+; ObDescs.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by Oliver Smith / KingFisher Software
+; 70 Legsby Avenue,
+; Grimsby,
+; S. Humberside. DN32 0NE
+; England.
+;
+; This software is furnished on the understanding that it may be used and or
+; copied  only  with the inclusion of this notice.  No title or ownership of
+; this  software is hearby transferred.  The information in this software is
+; subject  to  change  without notice.  No responsibility is assumed for the
+; use or reliability of this software.
+
+;
+; --- Commentary ---
+;
+;
+; --- Commentary ---
+
+; -- standard door state descriptions (with adjectives)
+dooraop
+The %s door is open.
+
+dooracl
+The %s door is closed.
+
+dooralk
+The %s door is locked.
+
+; -- standard door state descriptions (without adjectives)
+doorop
+The door is open.
+
+doorcl
+The door is closed.
+
+doorlk
+The door is locked.
+
+phone
+Firmly attached to the cavern wall is an old-fashioned telephone without dial.
+
+; <End of file>
