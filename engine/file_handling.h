@@ -7,7 +7,7 @@ void fopenr(const char *s);
 void fopena(const char *s);
 void close_ofps();
 void kquit(const char *s);
-void quit();
+[[noreturn]] void quit();
 void SendIt(int t, int d, char *p);
 void pressret();
 void sys(int sysMsgNo);

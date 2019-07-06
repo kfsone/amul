@@ -1,27 +1,26 @@
-#include "amulcominc.h"
+#include "amulcom.includes.h"
+
+using namespace AMUL::Logging;
+using namespace Compiler;
 
 void
 obds_proc()
 {
-	char lastc;
+	char c, lastc;
 
 	obdes = 0;
-	err = 0;
-	fopenw(obdsfn);
-	close_ofps(); /* Create file */
+	OS::CreateFile(Resources::Compiled::objDesc());
 	if (nextc(0) == -1)
 		return tx("** No Long Object Descriptions!\n");
-	fopenw("-ram:ODIDs");
-	fopenw(obdsfn);
+	fopenw("ODIDs.tmp");
+	fopenw(Resources::Compiled::objDesc());
 	do {
 		fgets(block, 1024, ifp);
 		tidy(block);
 		striplead("desc=", block);
 		getword(block);
 		if (strlen(Word) < 3 || strlen(Word) > IDL) {
-			printf("!! \x07 Invalid ID: \"%s\"\x07 !!\n", Word);
-			printf("@! note: strlen(Word)=%ld\n", strlen(Word));
-			err++;
+			GetLogger().errorf("Invalid object ID: %s: bad length", Word);
 			skipblock();
 			continue;
 		}
@@ -39,9 +38,8 @@ obds_proc()
 		obdes++;
 		nextc(0);
 	} while (c != EOF);
-	if (err != 0) {
-		printf("\n\n\x07!! Aborting due to %ld errors!\n\n", err);
-		quit();
-	}
+
+	GetContext().terminateOnErrors();
+
 	close_ofps();
 }

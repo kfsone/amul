@@ -1,24 +1,30 @@
-#include "amulcominc.h"
+// title file parser
+//
+// The title file was for the login/motd/splash text, but it then
+// became a place to also put configuration.
 
-int
-getno(char *s)
+#include "amulcom.includes.h"
+
+using namespace AMUL::Logging;
+using namespace Compiler;
+
+static int
+getno(const char *title)
 {
-	char *p;
 	remspc(block);
-	if (!striplead(s, block)) {
-		printf("## Missing %s entry!\n", s);
-		err++;
+	if (!striplead(title, block)) {
+		GetLogger().errorf("Missing '%s' entry.", title);
 		return -1;
 	}
-	p = getword(block);
+	const char* p = getword(block);
 	strcpy(block, p);
 	if (!isdigit(Word[0])) {
-		printf("## Invalid %s entry...\n", s);
-		err++;
+		GetLogger().errorf("Invalid '%s' entry.", title);
 		return -1;
 	}
 	return atoi(Word);
 }
+
 
 void
 title_proc()
@@ -51,8 +57,7 @@ title_proc()
 	remspc(block);
 	getword(block);
 	if (!isdigit(Word[0])) {
-		printf("## Invalid rank for visible players to see other invisible players/objects.\n");
-		err++;
+		GetLogger().error("Invalid rank for visible players to see invisible players/objects.");
 	} else
 		invis2 = atoi(Word);
 
@@ -68,8 +73,5 @@ title_proc()
 
 	readgot = ftell(ifp);
 
-	if (err != 0) {
-		printf("\n\n!! Aborting due to %ld errors !!\n\n", err);
-		quit();
-	}
+	GetContext().terminateOnErrors();
 }

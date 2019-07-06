@@ -4,7 +4,7 @@
 /* GetID.C -- Get user name & details. Create record for new users. */
 
 #include "amulinc.h"
-#include "filebits.h"
+#include "file_handling.h"
 
 short int start_rm[512];
 
@@ -65,7 +65,7 @@ getid()
 		sys(WELCOMEBAK);
 
 	/* Work out the players start location */
-	fopenr(rooms2fn); /* Get descriptions file */
+	fopenr(Resources::Compiled::roomData()); /* Get descriptions file */
 	roomtab = rmtab;
 	me2->room = -1;
 	lroom = -1;

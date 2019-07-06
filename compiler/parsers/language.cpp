@@ -1,26 +1,33 @@
-/* Lang.TXT processor */
-#include "amulcominc.h"
+// Lang.TXT processor
+#include "amulcom.includes.h"
 
-/*=* Process LANG.TXT *=*/
+using namespace AMUL::Logging;
+using namespace Compiler;
+
+static void
+chae_err()
+{
+	GetLogger().errorf("Invalid '#CHAE' flags, \"%s\" in verb \"%s\".\n", Word, verb.id);
+}
+
+// Process LANG.TXT
 void
 lang_proc()
 {
 	char lastc, *p, *p2, *s1, *s2;
-	/* n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2) */
+	// n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2)
 	int		 n, cs, s, r;
 	uint32_t of2p, of3p;
 
-	err = 0;
 	verbs = 0;
 	nextc(1);
-	fopenw(lang1fn);
-	close_ofps();
-	fopena(lang1fn);
+	OS::CreateFile(Resources::Compiled::lang1());
+	fopena(Resources::Compiled::lang1());
 	ofp1 = afp;
 	afp = NULL;
-	fopenw(lang2fn);
-	fopenw(lang3fn);
-	fopenw(lang4fn);
+	fopenw(Resources::Compiled::lang2());
+	fopenw(Resources::Compiled::lang3());
+	fopenw(Resources::Compiled::lang4());
 
 	blkget(&vbmem, (char **)&vbtab, 64 * (sizeof(verb)));
 	vbptr = vbtab + 64;
@@ -31,10 +38,8 @@ lang_proc()
 	FPos = ftell(ofp4);
 
 	do {
-		if (err > 30) {
-			printf("\x07** Maximum number of errors exceeded!\n");
-			quit();
-		}
+		GetContext().checkErrorCount();
+
 		verbs++;
 		p = block;
 	loop:
@@ -56,8 +61,8 @@ lang_proc()
 			goto loop;
 		}
 		if (strlen(Word) > IDL) {
-			printf("\x07 Invalid verb ID: \"%s\"", Word);
-			err++;
+			GetLogger().errorf("Invalid Verb ID: \"%s\"", Word);
+
 			do {
 				s1 = sgetl((s2 = s1), block);
 				*(s1 - 1) = 0;
@@ -127,7 +132,7 @@ lang_proc()
 			goto stuffloop;
 		}
 
-		/* Syntax line loop */
+		// Syntax line loop
 	synloop:
 		setslots(TC_NONE);
 		verb.ents++;
@@ -135,7 +140,7 @@ lang_proc()
 		p2 = getword(p);
 		p2 = skipspc(p2);
 
-		/* If syntax line is 'syntax=verb any' or 'syntax=none' */
+		// If syntax line is 'syntax=verb any' or 'syntax=none'
 		if (*p2 == 0 && strcmp("any", Word) == NULL) {
 			setslots(TC_ANY);
 			goto endsynt;
@@ -145,7 +150,7 @@ lang_proc()
 			goto endsynt;
 		}
 
-	sp2: /*=* Syntax line processing *=*/
+	sp2:  // Syntax line processing
 		p = skipspc(p);
 		if (*p == ';' || *p == '|' || *p == '*')
 			goto endsynt;
@@ -163,8 +168,8 @@ lang_proc()
 			goto skipeq;
 		}
 
-		/*=* First of all, eliminate illegal combinations *=*/
-		if (n == TC_NONE || n == TC_ANY) { /* you cannot say none=fred any=fred etc */
+		// First of all, eliminate illegal combinations
+		if (n == TC_NONE || n == TC_ANY) {  // you cannot say none=fred any=fred etc
 			sprintf(block, "Tried to defined %s= on syntax line", syntax[n]);
 			vbprob(block, s2);
 			goto endsynt;
@@ -174,12 +179,12 @@ lang_proc()
 			goto endsynt;
 		}
 
-		/* Now check that the 'tag' is the correct type of word */
+		// Now check that the 'tag' is the correct type of word
 
 		s = -1;
 		switch (n) {
 		case TC_ADJ:
-		/* Need ISADJ() - do TT entry too */
+		// Need ISADJ() - do TT entry too
 		case TC_NOUN: s = isnoun(Word); break;
 		case TC_PREP: s = isprep(Word); break;
 		case TC_PLAYER:
@@ -210,9 +215,9 @@ lang_proc()
 		if (s == -3 && n == TC_NOUN)
 			s = -1;
 
-	skipeq: /*=* (Skipped the equals signs) *=*/
-		/* Now fit this into the correct slot */
-		cs = 1; /* Noun1 */
+	skipeq:  // (Skipped the equals signs)
+		// Now fit this into the correct slot
+		cs = 1;  // Noun1
 		switch (n) {
 		case TC_ADJ:
 			if (vbslot.wtype[1] != TC_NONE && vbslot.wtype[4] != TC_NONE) {
@@ -271,7 +276,7 @@ lang_proc()
 		}
 		if (n == -5)
 			goto sp2;
-		/* Put the bits into the slots! */
+		// Put the bits into the slots!
 		vbslot.wtype[cs] = n;
 		vbslot.slot[cs] = s;
 		goto sp2;
@@ -305,12 +310,12 @@ lang_proc()
 		r = -1;
 		vt.pptr = (int32_t *)FPos;
 
-		/* Process the condition */
+		// Process the condition
 	notloop:
 		p = precon(p);
 		p = getword(p);
 
-		/*=* always endparse *=*/
+		// always endparse
 		if (strcmp(Word, ALWAYSEP) == NULL) {
 			vt.condition = CALWAYS;
 			vt.action = -(1 + AENDPARSE);
@@ -321,7 +326,7 @@ lang_proc()
 			goto notloop;
 		}
 
-		/*=* If they forgot space between !<condition>, eg !toprank *=*/
+		// If they forgot space between !<condition>, eg !toprank
 	notlp2:
 		if (Word[0] == '!') {
 			strcpy(Word, Word + 1);
@@ -347,7 +352,7 @@ lang_proc()
 		p = skipspc(p);
 		proc = 1;
 		if ((p = chkcparms(p, vt.condition, ofp4)) == NULL) {
-			err++;
+			GetContext().addError();
 			goto commands;
 		}
 		if (*p == 0) {
@@ -373,12 +378,12 @@ lang_proc()
 	doaction:
 		p = skipspc(p);
 		if ((p = chkaparms(p, vt.action, ofp4)) == NULL) {
-			err++;
+			GetContext().addError();
 			goto commands;
 		}
 		vt.action = 0 - (vt.action + 1);
 
-	writecna: /* Write the C & A lines */
+	writecna:  // Write the C & A lines
 		fwrite((char *)&vt.condition, sizeof(vt), 1, ofp3);
 		proc = 0;
 		of3p += sizeof(vt);
@@ -398,17 +403,16 @@ lang_proc()
 		fwrite(verb.id, sizeof(verb), 1, ofp1);
 		proc = 0;
 		*(vbtab + (verbs - 1)) = verb;
-		if ((int32_t)(vbtab + (verbs - 1)) > (int32_t)s1)
+		if ((uintptr_t)(vbtab + (verbs - 1)) > (uintptr_t)s1)
 			printf("@! table overtaking s1\n");
 	} while (*s1 != 0);
-	if (err != 0) {
-		printf("\n\n!! Aborting due to %ld errors !!\n\n", err);
-		quit();
-	}
+
+	GetContext().terminateOnErrors();
+
 	close_ofps();
 }
 
-/* From and To */
+// From and To
 int
 chae_proc(char *f, char *t)
 {
@@ -446,14 +450,7 @@ chae_proc(char *f, char *t)
 	return 0;
 }
 
-void
-chae_err(char *p)
-{
-	printf("\x07## Invalid '#CHAE' flags, \"%s\" in verb %s.\n", Word, verb.id);
-	err++;
-}
-
-/* Set the VT slots */
+// Set the VT slots
 void
 setslots(unsigned char i)
 {
@@ -465,13 +462,13 @@ setslots(unsigned char i)
 	vbslot.slot[0] = vbslot.slot[1] = vbslot.slot[2] = vbslot.slot[3] = vbslot.slot[4] = TC_ANY;
 }
 
-/* Is 'text' a ptype */
+// Is 'text' a ptype
 int
-iswtype(char *s)
+iswtype(const char *s)
 {
 	int i;
 
-	for (i = 0; i < nsynts; i++) {
+	for (i = 0; i < NSYNTS; i++) {
 		if (strcmp(s, syntax[i]) == NULL) {
 			*s = 0;
 			return i - 1;
@@ -486,12 +483,12 @@ iswtype(char *s)
 	return -3;
 }
 
-/* Declare a PROBLEM, and which verb its in */
+// Declare a PROBLEM, and which verb its in
 void
-vbprob(char *s, char *s2)
+vbprob(char *error, char *input)
 {
-	printf("## Verb %s: line '%s'\n%s!\n", verb.id, s2, s);
-	err++;
+	printf("## Verb: %s, Line: %s\n", verb.id, input);
+	GetLogger().error(error);
 }
 
 /* Note about matching actuals...
@@ -507,7 +504,9 @@ will call isactual with *s=noun2, n=TC_PLAYER.... is you read the 'actual'
 structure definition, 'noun2' is type 'TC_NOUN'. TC_NOUN != TC_PLAYER, HOWEVER
 the slot for noun2 (vbslot.wtype[4]) is TC_PLAYER, and this is REALLY what the
 user is refering too.							     */
-int actualval(char *s, int n) /* Get actual value */
+// Get actual value
+int
+actualval(const char *s, int n)
 {
 	int i;
 
@@ -540,17 +539,17 @@ int actualval(char *s, int n) /* Get actual value */
 	for (i = 0; i < NACTUALS; i++) {
 		if (stricmp(s, actual[i].name) != NULL)
 			continue;
-		/* If its not a slot label, and the wtypes match, we's okay! */
+		// If its not a slot label, and the wtypes match, we's okay!
 		if (!(actual[i].value & IWORD))
 			return (actual[i].wtype == n || n == -70) ? actual[i].value : -1;
 
-		/* Now we know its a slot label... check which: */
+		// Now we know its a slot label... check which:
 		switch (actual[i].value - IWORD) {
-		case IVERB: /* Verb */
+		case IVERB:  // Verb
 			if (n == CAP_VERB || n == CAP_REAL)
 				return actual[i].value;
 			return -1;
-		case IADJ1: /* Adjective #1 */
+		case IADJ1:  // Adjective #1
 			if (vbslot.wtype[0] == n)
 				return actual[i].value;
 			if (*(s + strlen(s) - 1) != '1' && vbslot.wtype[3] == n)
@@ -558,7 +557,7 @@ int actualval(char *s, int n) /* Get actual value */
 			if (n == CAP_REAL)
 				return actual[i].value;
 			return -1;
-		case INOUN1: /* noun 1 */
+		case INOUN1:  // noun 1
 			if (vbslot.wtype[1] == n)
 				return actual[i].value;
 			if (*(s + strlen(s) - 1) != '1' && vbslot.wtype[4] == n)
@@ -568,8 +567,8 @@ int actualval(char *s, int n) /* Get actual value */
 			return -1;
 		case IADJ2: return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
 		case INOUN2: return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
-		default: return -1; /* Nah... Guru instead 8-) */
+		default: return -1;  // Nah... Guru instead 8-)
 		}
 	}
-	return -2; /* It was no actual */
+	return -2;  // It was no actual
 }

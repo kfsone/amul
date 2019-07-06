@@ -1,4 +1,7 @@
-#include "amulcominc.h"
+#include "amulcom.includes.h"
+
+using namespace AMUL::Logging;
+using namespace Compiler;
 
 void
 objs_proc()
@@ -6,15 +9,15 @@ objs_proc()
 	char *p, *s;
 	int   roomno;
 
-	nouns = adjs = err = 0;
+	nouns = adjs;
 
 	/* Clear files */
-	fopenw(adjfn);
-	close_ofps();
-	fopenw(objsfn);
-	fopenw(statfn);
-	fopenw(objrmsfn);
-	fopena(adjfn);
+	OS::CreateFile(Resources::Compiled::adjTable());
+
+	fopenw(Resources::Compiled::objData());
+	fopenw(Resources::Compiled::objState());
+	fopenw(Resources::Compiled::objLoc());
+	fopena(Resources::Compiled::adjTable());
 
 	if (nextc(0) == -1) {
 		close_ofps();
@@ -25,13 +28,10 @@ objs_proc()
 	s = (char *)objtab2;
 
 	do {
-		if (err > 30) {
-			printf("\x07** Maximum number of errors exceeded!\n");
-			quit();
-		}
-		do
+		GetContext().checkErrorCount();
+		do {
 			p = s = sgetl(s, block);
-		while (*s != 0 && (com(block) == -1 || block[0] == 0));
+		} while (*s != 0 && (com(block) == -1 || block[0] == 0));
 		if (*s == 0 || block[0] == 0)
 			continue;
 		tidy(block);
@@ -40,8 +40,7 @@ objs_proc()
 		striplead("noun=", block);
 		p = getword(block);
 		if (strlen(Word) < 3 || strlen(Word) > IDL) {
-			printf("## \x07 Invalid ID: \"%s\"\x07 ##\n", Word);
-			err++;
+			GetLogger().errorf("Invalid object ID: '%s'", Word);)
 			Word[IDL + 1] = 0;
 		}
 		obj2.adj = obj2.mobile = -1;
@@ -59,8 +58,7 @@ objs_proc()
 				obj2.flags = (obj2.flags | bitset(roomno));
 			else {
 				if ((roomno = isoparm()) == -1) {
-					printf("\x07## Invalid parameter '%s'\n", Word);
-					err++;
+					GetLogger().errorf("Invalid object parameter: %s", Word);
 					continue;
 				}
 				switch (bitset(roomno)) {
@@ -92,8 +90,7 @@ objs_proc()
 					s = sgetl(s, block);
 				while (*s != 0 && block[0] != 0 && com(block) == -1);
 				if (*s == 0) {
-					printf("** Unexpected end of file in Objects.TXT!\n");
-					quit();
+					GetLogger().fatal("Unexpected end of Objects.TXT file");
 				}
 				p = block;
 				Word[0] = ' ';
@@ -109,8 +106,7 @@ objs_proc()
 			obj2.nrooms++;
 		} while (Word[0] != 0);
 		if (obj2.nrooms == 0 && roomno == 0) {
-			printf("\x07!! No rooms listed for object '%s'...\n", obj2.id);
-			err++;
+			GetLogger().errorf("No locations specified for object: %s", obj2.id);
 		}
 		obj2.nstates = 0;
 		do {
@@ -128,73 +124,104 @@ objs_proc()
 			printf("@! table exceeded data\n");
 		*(obtab2 + (nouns++)) = obj2;
 	} while (*s != 0);
-	if (err != 0) {
-		printf("\n\n!! Aborting due to %ld errors !!\n\n", err);
-		quit();
-	}
-	/*
+
+	GetContext().terminateOnErrors();
+
+#if defined(AMUL_SORT_OBJS)
 	close_ofps();
 	sort_objs();
-	*/
+#endif
+
 	fwrite((char *)obtab2, sizeof(obj2), nouns, ofp1);
 	close_ofps();
 }
 
-/*
+#if defined(AMUL_SORT_OBJS)
+void
 sort_objs()
-{	int i,j,k,nts; int32_t *rmtab,*rmptr;
+{
+	int		 i, j, k, nts;
+	int32_t *rmtab, *rmptr;
 
-	if(ifp!=NULL) fclose(ifp); ifp=NULL;
-	close_ofps(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
-	close_ofps(); fopenr(objrmsfn); blkget(&datal2,&data2,NULL); fclose(ifp); ifp=NULL;
-	close_ofps(); fopenw(objsfn);	fopenw(statfn); fopenw(objrmsfn); fopenw(ntabfn);
-	ifp=NULL;
+	if (ifp != NULL)
+		fclose(ifp);
+	ifp = NULL;
+	close_ofps();
+	fopenr(Resources::Compiled::objState());
+	blkget(&datal, &data, NULL);
+	fclose(ifp);
+	ifp = NULL;
+	close_ofps();
+	fopenr(Resources::Compiled::objLoc());
+	blkget(&datal2, &data2, NULL);
+	fclose(ifp);
+	ifp = NULL;
+	close_ofps();
+	fopenw(Resources::Compiled::objData());
+	fopenw(Resources::Compiled::objState());
+	fopenw(Resources::Compiled::objLoc());
+	fopenw(Resources::Compiled::nounTable());
+	ifp = NULL;
 
-	printf("Sorting Objects...:\r"); objtab2=obtab2; nts=0; k=0;
+	printf("Sorting Objects...:\r");
+	objtab2 = obtab2;
+	nts = 0;
+	k = 0;
 
-	statab=(struct _OBJ_STATE *)data; rmtab=(int32_t *)data2;
-	for(i=0; i<nouns; i++)
-	{
-		if(*(objtab2=(obtab2+i))->id==0)
-		{
-			printf("@! skipping %ld states, %ld rooms.\n",objtab2->nstates,objtab2->nrooms);
+	statab = (struct _OBJ_STATE *)data;
+	rmtab = (int32_t *)data2;
+	for (i = 0; i < nouns; i++) {
+		if (*(objtab2 = (obtab2 + i))->id == 0) {
+			printf("@! skipping %ld states, %ld rooms.\n", objtab2->nstates, objtab2->nrooms);
 			statab += objtab2->nstates;
-			rmtab  += objtab2->nrooms;
+			rmtab += objtab2->nrooms;
 			continue;
 		}
-		strcpy(nountab.id,objtab2->id); nts++;
-		nountab.num_of=0; osrch=objtab2; statep=statab; rmptr=rmtab;
-		for(j=i; j<nouns; j++, osrch++)
-		{
-			if(*(osrch->id)!=0 && stricmp(nountab.id,osrch->id)==NULL)
-			{
-				fwrite((char *)osrch,  sizeof(obj),   1,               ofp1);
-				fwrite((char *)statep, sizeof(state), osrch->nstates,  ofp2);
-				fwrite((char *)rmptr,  sizeof(int32_t),  osrch->nrooms,   ofp3);
-				nountab.num_of++; *osrch->id=0; if(osrch!=objtab) k++;
-				statep+=osrch->nstates; rmptr+=osrch->nrooms;
-				if(osrch==objtab2) { statab=statep; rmtab=rmptr; objtab2++; i++; }
-			}
-			else statep+=osrch->nstates; rmptr+=osrch->nrooms;
+		strcpy(nountab.id, objtab2->id);
+		nts++;
+		nountab.num_of = 0;
+		osrch = objtab2;
+		statep = statab;
+		rmptr = rmtab;
+		for (j = i; j < nouns; j++, osrch++) {
+			if (*(osrch->id) != 0 && stricmp(nountab.id, osrch->id) == NULL) {
+				fwrite((char *)osrch, sizeof(obj), 1, ofp1);
+				fwrite((char *)statep, sizeof(state), osrch->nstates, ofp2);
+				fwrite((char *)rmptr, sizeof(int32_t), osrch->nrooms, ofp3);
+				nountab.num_of++;
+				*osrch->id = 0;
+				if (osrch != objtab)
+					k++;
+				statep += osrch->nstates;
+				rmptr += osrch->nrooms;
+				if (osrch == objtab2) {
+					statab = statep;
+					rmtab = rmptr;
+					objtab2++;
+					i++;
+				}
+			} else
+				statep += osrch->nstates;
+			rmptr += osrch->nrooms;
 		}
-		
 
 		fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
 	}
-	printf("%20s\r%ld objects moved.\n"," ",k);
+	printf("%20s\r%ld objects moved.\n", " ", k);
 	close_ofps();
-	FreeMem(data, datal); FreeMem(data2, datal2); data=data2=NULL;
-	fopenr(objsfn); fread((char *)obtab2, sizeof(obj), nouns, ifp);
+	OS:: : Free(data, datal);
+	OS::Free(data2, datal2);
+	fopenr(Resources::Compiled::objData());
+	fread((char *)obtab2, sizeof(obj), nouns, ifp);
 }
-*/
+#endif
 
 void
 statinv(char *s)
 {
-	printf("\nObject #%d \"%s\" has invalid %s state line!\n", nouns + 1, obj2.id, s, block);
+	printf("\nObject #%d \"%s\" has invalid %s state line: %s\n", nouns + 1, obj2.id, s, block);
 	quit();
 }
-
 
 void
 state_proc()
@@ -285,8 +312,8 @@ is_desid()
 	FILE *fp;
 	if (stricmp(Word, "none") == NULL)
 		return state.descrip = -2;
-	if ((fp = fopen("ram:ODIDs", "rb+")) == NULL)
-		Err("open", "ram:ODIDs");
+	if ((fp = fopen("ODIDs.tmp", "rb+")) == NULL)
+		GetLogger().fatalop("open", "ODIDs.tmp");
 	for (i = 0; i < obdes; i++) {
 		fread(objdes.id, sizeof(objdes), 1, fp);
 		state.descrip = objdes.descrip;
@@ -317,14 +344,14 @@ text_id(char *p, char c)
 	else
 		ptr = p;
 
-	sprintf(temp, "%s%s", dir, obdsfn); /* Open output file */
+	sprintf(temp, "%s%s", dir, Resources::Compiled::objDesc()); /* Open output file */
 	if ((fp = fopen(temp, "rb+")) == NULL)
-		Err("open", temp);
+		GetLogger().fatalop("open", temp);
 	fseek(fp, 0, 2L);
 	state.descrip = ftell(fp); /* Get pos */
 	if (fwrite(block, ptr - block, 1, fp) != 1) {
 		fclose(fp);
-		Err("write", temp);
+		GetLogger().fatalop("write", temp);
 	}
 	fputc(0, fp);
 	strcpy(block, p);
@@ -357,19 +384,19 @@ iscont(char *s)
 	return -1;
 }
 
+// Test if something is a location (a room or a container)
 int
-isloc(char *s) /* Room or container */
+isloc(char *subject)
 {
 	int i;
 
-	if ((i = isroom(s)) != -1)
+	if ((i = isroom(subject)) != -1)
 		return i;
-	if ((i = iscont(s)) == -1) {
-		if (isnoun(s) == -1)
-			printf("\x07## Invalid object start location, '%s'...\n", s);
+	if ((i = iscont(subject)) == -1) {
+		if (isnoun(subject) == -1)
+			GetLogger().errorf("Invalid object start location: %s", subject);
 		else
-			printf("\x07## Tried to start '%s' in non-container '%s'!\n", obj2.id, s);
-		err++;
+			GetLogger().errorf("Tried to start '%s' in non-container: %s", obj2.id, subject);
 		return -1;
 	}
 

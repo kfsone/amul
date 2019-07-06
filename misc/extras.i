@@ -3,7 +3,7 @@
 
 	output	"extras.o"
 
-	xref	_block,_strcpy,__ctype,_Write,_ohd,_Word,_printf,_strlen
+	xref	_block,_strcpy,__ctype,_Write,_Word,_printf,_strlen
 
 	xdef	_bitset,_striplead,,_com,_repspc,_remspc,_skipspc
 	xdef	_getword,_sgetl,

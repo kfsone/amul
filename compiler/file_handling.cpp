@@ -1,4 +1,16 @@
-#include "amulcominc.h"
+#include "amulcom.includes.h"
+#include "h/amul.vars.h"
+
+using namespace AMUL::Logging;
+using namespace Compiler;
+
+extern FILE *ifp;
+extern FILE *ofp1;
+extern FILE *ofp2;
+extern FILE *ofp3;
+extern FILE *ofp4;
+extern FILE *ofp5;
+extern FILE *afp;
 
 void
 close_ofps()
@@ -22,6 +34,7 @@ close_ofps()
 char
 nextc(int f)
 {
+	char c;
 	do {
 		while ((c = fgetc(ifp)) != EOF && isspace(c))
 			;
@@ -43,44 +56,33 @@ nextc(int f)
 void
 quit()
 {
-	if (exi != 1) {
-		sprintf(block, "%s%s", dir, advfn);
+	if (GetContext().m_completed) {
+		sprintf(block, "%s%s", dir, Resources::Compiled::gameProfile());
 		unlink(block);
 	}
-	unlink("ram:ODIDs");
-	unlink("ram:umsg.tmp");
-	unlink("ram:objh.tmp");
-	if (mobdat)
-		FreeMem(mobdat, moblen);
-	mobdat = NULL;
-	if (mobp)
-		FreeMem(mobp, sizeof(mob) * mobchars);
-	mobp = NULL;
-	if (rmtab != 0)
-		FreeMem(rmtab, sizeof(room) * rooms);
-	rmtab = NULL;
-	if (data != 0)
-		FreeMem(data, datal);
-	data = NULL;
-	if (data2 != 0)
-		FreeMem(data2, datal2);
-	data2 = NULL;
-	if (obtab2 != 0)
-		FreeMem(obtab2, obmem);
-	obtab2 = NULL;
-	if (vbtab != 0)
-		FreeMem(vbtab, vbmem);
-	vbtab = NULL;
+	unlink("ODIDs.tmp");
+	unlink("umsg.tmp");
+	unlink("objh.tmp");
+	OS::Free(mobdat, moblen);
+	OS::Free(mobp, sizeof(mob) * mobchars);
+	OS::Free(rmtab, sizeof(room) * rooms);
+	OS::Free(data, datal);
+	OS::Free(data2, datal2);
+	OS::Free(obtab2, obmem);
+	OS::Free(vbtab, vbmem);
+
 	if (ifp != NULL)
 		fclose(ifp);
 	ifp = NULL;
+
 	close_ofps();
+
 	exit(0);
 }
 
 /* Open file for reading */
 FILE *
-fopenw(char *s)
+fopenw(const char *s)
 {
 	FILE *tfp;
 	if (*s == '-')
@@ -88,7 +90,7 @@ fopenw(char *s)
 	else
 		sprintf(fnm, "%s%s", dir, s);
 	if ((tfp = fopen(fnm, "wb")) == NULL)
-		Err("write", fnm);
+		GetLogger().fatalop("write", fnm);
 	if (ofp1 == NULL)
 		ofp1 = tfp;
 	else if (ofp2 == NULL)
@@ -104,7 +106,7 @@ fopenw(char *s)
 
 /* Open file for appending */
 FILE *
-fopena(char *s)
+fopena(const char *s)
 {
 	if (afp != NULL)
 		fclose(afp);
@@ -113,13 +115,13 @@ fopena(char *s)
 	else
 		sprintf(fnm, "%s%s", dir, s);
 	if ((afp = fopen(fnm, "rb+")) == NULL)
-		Err("create", fnm);
+		GetLogger().fatalop("create", fnm);
 	return NULL;
 }
 
 /* Open file for reading */
 FILE *
-fopenr(char *s)
+fopenr(const char *s)
 {
 	if (ifp != NULL)
 		fclose(ifp);
@@ -128,29 +130,22 @@ fopenr(char *s)
 	else
 		strcpy(fnm, s + 1);
 	if ((ifp = fopen(fnm, "rb")) == NULL)
-		Err("open", fnm);
-}
-
-void
-Err(char *s, char *t)
-{
-	printf("## Error!\x07\nCan't %s %s!\n\n", s, t);
-	quit();
+		GetLogger().fatalop("open", fnm);
+	return ifp;
 }
 
 /* Open file for reading */
-int32_t
-rfopen(char *s)
+FILE *
+rfopen(const char *filename)
 {
-	FILE *fp;
-
-	if (*s != '-')
-		sprintf(fnm, "%s%s", dir, s);
-	else
-		strcpy(fnm, s + 1);
-	if ((fp = fopen(fnm, "rb")) == NULL)
-		Err("open", fnm);
-	return (int32_t)fp;
+	if (FILE *fp = fopen(filename, "rb"); fp) {
+		strcpy(fnm, filename);
+		return fp;
+	}
+	snprintf(fnm, sizeof(fnm), "%s%s", dir, filename);
+	if (FILE *fp = fopen(fnm, "rb"); fp)
+		return fp;
+	GetLogger().fatalop("open", fnm);
 }
 
 /* Update room entries after TT */
@@ -162,7 +157,7 @@ ttroomupdate()
 }
 
 void
-opentxt(char *s)
+opentxt(const char *s)
 {
 	sprintf(block, "%s%s.TXT", dir, s);
 	if ((ifp = fopen(block, "rb")) == NULL) {
@@ -178,7 +173,7 @@ skipblock()
 
 	lc = 0;
 	c = '\n';
-	while (c != EOF && !(c == lc == '\n')) {
+	while (c != EOF && !(c == lc && c == '\n')) {
 		lc = c;
 		c = fgetc(ifp);
 	}
@@ -204,7 +199,7 @@ tidy(char *s)
 }
 
 int
-is_verb(char *s)
+is_verb(const char *s)
 {
 	int i;
 

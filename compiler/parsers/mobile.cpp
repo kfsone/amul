@@ -1,7 +1,59 @@
-/* Mobiles.Txt Processor */
-#include "amulcominc.h"
+// mobiles parser
 
-/*=* Pass 1: Indexes mobile names *=*/
+#include "amulcom.includes.h"
+
+using namespace AMUL::Logging;
+using namespace Compiler;
+
+void
+mobmis(char *field)
+{
+	GetLogger().errorf("Mobile: %s: Missing '%s' field", mob.id, field) skipblock();
+}
+
+int
+badmobend()
+{
+	return -1;
+}
+
+/* Fetch mobile message line */
+int
+getmobmsg(char *s)
+{
+	char *q;
+	int   n;
+
+loop:
+	if (com(px) == -1) {
+		px = skipline(px);
+		goto loop;
+	}
+	if (*px == 0 || *px == 13 || *px == 10) {
+		GetLogger().error("Mobile: %s: Unexpected end of mobile definition", mob.id);
+		return -1;
+	}
+	px = skipspc(px);
+	if (*px == 0 || *px == 13 || *px == 10)
+		goto loop;
+
+	if ((q = skiplead(s, px)) == px) {
+		mobmis(s);
+		return -1;
+	}
+	if (toupper(*q) == 'N') {
+		px = skipline(px);
+		return -2;
+	}
+	n = ttumsgchk(q);
+	px = skipline(px);
+	if (n == -1) {
+		GetLogger().errorf("Mobile: %s, malformed '%s' line", mob.id, s);
+	}
+	return n;
+}
+
+/* Pass 1: Indexes mobile names */
 
 void
 mob_proc1()
@@ -9,9 +61,8 @@ mob_proc1()
 	char *  p, *s1, *s2;
 	int32_t n;
 
-	err = 0;
 	mobchars = 0;
-	fopenw(mobfn);
+	fopenw(Resources::Compiled::mobData());
 	if (nextc(0) == -1)
 		return;
 
@@ -42,8 +93,7 @@ mob_proc1()
 				s1 = getword(s2);
 				mob.dmove = isroom(Word);
 				if (mob.dmove == -1) {
-					printf("## Mobile '%s': invalid DMove '%s'.\n", mob.id, Word);
-					err++;
+					GetLogger().errorf("Mobile: %s: Invalid dmove destination: '%s'", mob.id, Word);
 				}
 				continue;
 			}
@@ -90,8 +140,7 @@ mob_proc1()
 		s1 = skipspc(s1);
 		mob.wait = atoi(Word);
 		if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
-			printf("## Mobile '%s': Travel+Fight+Act+Wait <> 100%! Please check!\n", mob.id);
-			err++;
+			GetLogger().errorf("Mobile: %s, Total of action ratios not equal to 100%", mob.id);
 		}
 		if ((s2 = skiplead("fear=", s1)) == s1) {
 			mobmis("fear=");
@@ -139,76 +188,19 @@ mob_proc1()
 		fwrite(mob.id, sizeof(mob), 1, ofp1);
 	} while (*p != 0);
 
-	if (err != 0) {
-		printf("\n\n!! Aborting due to %ld errors !!\n\n", err);
-		quit();
-	}
+	GetContext().terminateOnErrors();
 	close_ofps();
 	if (mobchars != 0) {
-		if ((mobp = (struct _MOB_ENT *)AllocMem(sizeof(mob) * mobchars, MEMF_PUBLIC)) == NULL) {
-			printf("### FATALY OUT OF MEMORY!\n");
-			quit();
+		if ((mobp = (struct _MOB_ENT *)OS::Allocate(sizeof(mob) * mobchars)) == NULL) {
+			GetLogger().fatal("OUT OF MEMORY");
 		}
-		fopena(mobfn);
+		fopena(Resources::Compiled::mobData());
 		fread((char *)mobp, sizeof(mob) * mobchars, 1, afp);
 		close_ofps();
 	}
 }
 
-void
-mobmis(char *s)
-{
-	printf("## Mobile '%s': missing %s field.\n", mob.id, s);
-	err++;
-	skipblock();
-}
-
-int
-badmobend()
-{
-	return -1;
-}
-
-/*=* Fetch mobile message line *=*/
-int
-getmobmsg(char *s)
-{
-	char *q;
-	int   n;
-
-loop:
-	if (com(px) == -1) {
-		px = skipline(px);
-		goto loop;
-	}
-	if (*px == 0 || *px == 13 || *px == 10) {
-		err++;
-		printf("## Mobile '%s': Unexpected end of mobile!\n");
-		return -1;
-	}
-	px = skipspc(px);
-	if (*px == 0 || *px == 13 || *px == 10)
-		goto loop;
-
-	if ((q = skiplead(s, px)) == px) {
-		mobmis(s);
-		err++;
-		return -1;
-	}
-	if (toupper(*q) == 'N') {
-		px = skipline(px);
-		return -2;
-	}
-	n = ttumsgchk(q);
-	px = skipline(px);
-	if (n == -1) {
-		printf("## Mobile '%s': Bad text on '%s' line!\n", mob.id, s);
-		err++;
-	}
-	return n;
-}
-
-/*=* Pass 2: Indexes commands mobiles have access to *=*/
+/* Pass 2: Indexes commands mobiles have access to */
 
 /*mob_proc2()
 {*/

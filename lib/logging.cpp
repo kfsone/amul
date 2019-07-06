@@ -1,6 +1,6 @@
 #include "h/amul.logging.h"
 
-extern void quit();
+[[noreturn]] void quit();
 
 namespace AMUL::Logging {
 

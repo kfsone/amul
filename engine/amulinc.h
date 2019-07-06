@@ -126,7 +126,7 @@ bool match(const char *lhs, const char *rhs);
 #include "amul2.h"
 #include "cond.h"
 #include "daemons.h"
-#include "filebits.h"
+#include "file_handling.h"
 #include "getid.h"
 #include "iobits.h"
 #include "parser.h"

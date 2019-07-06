@@ -1,4 +1,14 @@
-#include "amulcominc.h"
+// travel parsing helpers, used by both the travel and the language parser
+
+#include "amulcom.includes.h"
+
+#include "constants.h"
+
+using namespace AMUL::Logging;
+using namespace Compiler;
+
+///TODO: relocate to header
+extern const char nacp[NACTS];
 
 const char *
 precon(const char *s)
@@ -91,25 +101,24 @@ optis(const char *p)
 	return p;
 }
 
-char *
-chkp(const char *p, char t, int c, int z, FILE *fp)
+const char *
+chkp(char *p, char t, int c, int z, FILE *fp)
 {
-	char	qc, *p2;
+	char	qc;
 	int32_t x;
 
-	p = optis(p);
-	p2 = (p = skipspc(p)); /*=* Strip crap out *=*/
+	p = const_cast<char*>(optis(p));
+	const char* p2 = (p = const_cast<char*>(skipspc(p)));  // clean out whitespace
 	if (*p == 0) {
-		printf("\x07\%s \"%s\" has incomplete C&A line! (%s='%s')\n\n",
+		GetLogger().fatalf("%s: %s: incomplete condition/action line: %s='%s'",
 			   (proc == 1) ? "Verb" : "Room", (proc == 1) ? verb.id : roomtab->id,
 			   (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c]);
-		quit();
 	}
 	if (*p != '\"' && *p != '\'')
 		while (*p != 32 && *p != 0)
 			p++;
 	else {
-		qc = *(p++); /* Search for same CLOSE quote */
+		qc = *(p++);  // look for matching close quote
 		while (*p != 0 && *p != qc)
 			p++;
 	}
@@ -117,7 +126,7 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
 		*p = 0;
 	else
 		*(p + 1) = 0;
-	if ((t >= 0 && t <= 10) || t == -70) /* Processing lang tab? */
+	if ((t >= 0 && t <= 10) || t == -70)  // processing language table?
 	{
 		x = actualval(p2, t);
 		if (x == -1) /* If it was an actual, but wrong type */
@@ -209,12 +218,11 @@ int
 isnounh(const char *s)
 {
 	int		i, l, j;
-	FILE *  fp;
 	int32_t orm;
 
 	if (stricmp(s, "none") == NULL)
 		return -2;
-	fp = (FILE *)rfopen(objrmsfn);
+	FILE *fp = rfopen(Resources::Compiled::objLoc());
 	l = -1;
 	objtab2 = obtab2;
 

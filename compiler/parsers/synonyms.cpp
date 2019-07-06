@@ -1,18 +1,19 @@
+// synonyms parser
 
-/*
-	Routines to process/handle Synonyms
-*/
+#include "amulcom.includes.h"
 
-#include "amulcominc.h"
+using namespace AMUL::Logging;
+using namespace Compiler;
 
 void
 syn_proc()
 {
-	char *	s, *t;
-	short int no;
-	short int x;
+	const char *t;
+	const char *s;
+	short int   no;
+	short int   x;
 
-	err = syns = 0;
+	syns = 0;
 	if (nextc(0) == -1)
 		return;
 	fopenw(synsfn);
@@ -34,8 +35,7 @@ syn_proc()
 
 		if ((no = isnoun(Word)) < 0) {
 			if ((x = is_verb(Word)) == -1) {
-				printf("\x07!! Invalid verb/noun, \"%s\"...\n", Word);
-				err++;
+				GetLogger().errorf("Invalid verb/noun: %s", Word);
 				continue;
 			}
 			no = -(2 + x);
@@ -51,11 +51,7 @@ syn_proc()
 		}
 	} while (*s != 0);
 	close_ofps();
-	FreeMem(data, datal);
-	data = NULL;
-	datal = NULL;
-	if (err != 0) {
-		printf("\n\n!! Aborting due to %ld errors !!\n\n", err);
-		quit();
-	}
+	OS::Free(data, datal);
+
+	GetContext().terminateOnErrors();
 }

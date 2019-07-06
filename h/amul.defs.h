@@ -1,10 +1,32 @@
-/*
- ****    AMUL.DEFS.H.....Adventure Compiler    ****
- ****                #defines!                 ****
- */
+#pragma once
 
-#define MAXU 14			   /* Max users at 1 time		*/
-#define MAXNODE (MAXU + 2) /* + 1 mobiles+1 daemons	*/
+// defines and enums
+///TODO: Move enums to their own file
+
+enum
+{
+	// 'node' being an instance of the AMUL engine
+	NUM_USER_NODES = 14,
+	NUM_MOBILE_NODES = 1,
+	NUM_DAEMON_NODES = 1,
+
+	MAXNODE = NUM_USER_NODES + NUM_MOBILE_NODES + NUM_DAEMON_NODES,
+	MAXU = NUM_USER_NODES,
+};
+
+enum
+{
+	NPUTS = 4,
+	NPREP = 6,
+	NRFLAGS = 15,
+	NRNULL = 1,
+	NOFLAGS = 8,
+	NOPARMS = 5,
+	NSFLAGS = 7,
+	NCONDS = 64,
+	NACTS = 96,
+	NSYNTS = 12,
+};
 
 enum Truth
 {

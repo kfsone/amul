@@ -1,4 +1,4 @@
-/* Phrase/sentance processing */
+// Phrase/sentance processing 
 
 #include "amulinc.h"
 
@@ -101,8 +101,8 @@ act(int32_t ac, int32_t *pt)
 		case ABLEEP: ableep(TP1); break;
 		case AWHEREAMI: txs("Current room is known as \"%s\".\n", (rmtab + me2->room)->id); break;
 		case ASEND: send(TP1, TP2); break;
-		case AERROR: afailparse();	 /* Set those flags! */
-		case ARESPOND: donet = ml + 1; /* Then do reply etc */
+		case AERROR: afailparse();	 // Set those flags! 
+		case ARESPOND: donet = ml + 1; // Then do reply etc 
 		case AREPLY:
 		case AMESSAGE: tx(AP1); break;
 		case AANOUN: announce(AP2, TP1); break;
@@ -124,7 +124,7 @@ act(int32_t ac, int32_t *pt)
 										   ? "Roomcount"
 										   : (me->rdmode == RD_VERBOSE) ? "Verbose" : "Brief");
 			break;
-		case ARESET: SendIt(MSG_RESET, 0, NULL); break; /* Tell AMAN that we want a reset! */
+		case ARESET: SendIt(MSG_RESET, 0, NULL); break; // Tell AMAN that we want a reset! 
 		case AACTION: action(AP2, TP1); break;
 		case AMOVE: moveto(TP1); break;
 		case AMSGIN: announcein(TP1, AP2); break;
@@ -187,14 +187,14 @@ act(int32_t ac, int32_t *pt)
 		case AWIELD:
 			me2->wield = TP1;
 			break;
-		/* - */ case AFOLLOW:
+		// -  case AFOLLOW:
 			(lstat + TP1)->followed = me2->unum;
 			me2->following = TP1;
 			break;
-		/* - */ case ALOSE:
+		// -  case ALOSE:
 			LoseFollower();
 			break;
-		/* - */ case ASTOPFOLLOW:
+		// -  case ASTOPFOLLOW:
 			StopFollow();
 			break;
 		case AEXITS: exits(); break;
@@ -242,19 +242,20 @@ act(int32_t ac, int32_t *pt)
 			return;
 		if (fol == 0)
 			StopFollow();
+
 		Amiga::Forbid();
-		if ((rmtab + ac)->flags & RF_TINY) /* Allow for losing follower! */
+		if ((rmtab + ac)->flags & RF_TINY) // Allow for losing follower! 
 		{
 			for (i = 0; i < MAXU; i++)
 				if ((lstat + i)->room == ac) {
-					Permit();
+					Amiga::Permit();
 					sys(NOROOM);
 					actionin(ac, acp(NOROOMIN));
 					LoseFollower();
 					return;
 				};
 		}
-		me2->flags = me2->flags | PFMOVING; /* As of now I'm out of here. */
+		me2->flags = me2->flags | PFMOVING; // As of now I'm out of here. 
 		if (visible() == YES) {
 			Amiga::Permit();
 			action(me2->dep, AOTHERS);
@@ -297,7 +298,7 @@ act(int32_t ac, int32_t *pt)
 		donet = ml + 1;
 }
 
-int cond(int32_t n, int l) /* Execute a condition on me */
+int cond(int32_t n, int l) // Execute a condition on me 
 {
 	int mult, ret, i;
 
@@ -309,7 +310,7 @@ int cond(int32_t n, int l) /* Execute a condition on me */
 		mult = -1;
 	}
 
-	/* Do the conditions */
+	// Do the conditions 
 	switch (n) {
 	case CALTEP:
 	case CSTAR:
@@ -589,9 +590,9 @@ strip:
 	if (*p == 0) {
 		word = -1;
 		return -1;
-	} /* none */
+	} // none 
 
-	/* Check for a players name BEFORE checking for white words! */
+	// Check for a players name BEFORE checking for white words! 
 
 	for (word = 0; word < MAXU; word++)
 		if ((lstat + word)->state == US_CONNECTED && match((usr + word)->name, p) == NULL) {
@@ -599,7 +600,7 @@ strip:
 			return TC_PLAYER;
 		}
 
-	/* cut any white words out */
+	// cut any white words out 
 	if (tolower(*p) == 'a') {
 		if (match("an", p) == NULL) {
 			*s += 2;
@@ -682,7 +683,7 @@ strip:
 		}
 	}
 
-	/* inoun/sort crap is related to object chae patterns */
+	// inoun/sort crap is related to object chae patterns 
 
 	if ((word = issyn(*s)) != -1) {
 		*s += word;
@@ -729,7 +730,7 @@ strip:
 	while (!isspace(*p) && *p != 0)
 		p++;
 	word = -1;
-	return -2; /* Unknown */
+	return -2; // Unknown 
 }
 
 int
@@ -754,7 +755,7 @@ actual(uint32_t n)
 		return -1;
 	}
 	if ((n & IWORD) == IWORD) {
-		/* Replace with no. of a users word */
+		// Replace with no. of a users word 
 		switch (n & (-1 - IWORD)) {
 		case IVERB: return iverb;
 		case IADJ1: return iadj1;
@@ -766,9 +767,9 @@ actual(uint32_t n)
 		return -1;
 	}
 	if ((n & MEPRM) == MEPRM) {
-		/* Replace with details of self */
+		// Replace with details of self 
 		switch (n & (-1 - MEPRM)) {
-		case LOCATE: return -1; /* Not implemented */
+		case LOCATE: return -1; // Not implemented 
 		case SELF: return (int)Af;
 		case HERE: return (int)me2->room;
 		case RANK: return (int)me->rank;
@@ -794,7 +795,7 @@ actptr(uint32_t n)
 	if (n == -1 || n == -2)
 		return (int)&"\0";
 	if ((n & IWORD) == IWORD) {
-		/* Replace with no. of a users word */
+		// Replace with no. of a users word 
 		switch (n & (-1 - IWORD)) {
 		case INOUN2: return (int)&"@n2\n";
 		default: return (int)&"@n1\n";
@@ -814,5 +815,5 @@ deduct(int plyr, int howmuch)
 		amount = me->score * howmuch / 100;
 		asub(amount, STSCORE, Af);
 	} else
-		sendex(plyr, ADEDUCT, plyr, howmuch, 0, 0); /* Tell them to clear up! */
+		sendex(plyr, ADEDUCT, plyr, howmuch, 0, 0); // Tell them to clear up! 
 }

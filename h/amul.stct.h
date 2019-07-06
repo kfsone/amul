@@ -1,3 +1,7 @@
+#pragma once
+
+#include "h/amul.defs.h"
+
 struct _PLAYER /* Player def struct */
 {
 	char	  name[NAMEL + 1]; /* Player's name	 */

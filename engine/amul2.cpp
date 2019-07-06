@@ -24,7 +24,7 @@
 #define dtx(x)                                                                                     \
 	if (debug != 0)                                                                                \
 	tx(x)
-short int debug; /* Is debug mode on?	 */
+short int debug; // Is debug mode on?	 
 char	  llen;
 
 struct Screen *  sC;
@@ -36,97 +36,97 @@ struct RastPort *rpG;
 Amiga::MsgPort * ReadRep, *WriteRep, *repbk;
 struct IOStdReq  ReadIo, WriteIo;
 
-/* Frame specific variables */
-char				serop, MyFlag;						   /* SerPort open? What am I? */
-char *				input;								   /* 400 bytes, 5 lines */
-char				str[800], spc[200], mxx[40], mxy[60];  /* Output string */
-char				wtil[80];							   /* Window title */
-char				inc, forced, failed, died, addcr, fol; /* For parsers use */
-char				actor, last_him, last_her;			   /* People we talked about */
-char				autoexits, needcr;					   /* General flags */
+// Frame specific variables 
+char				serop, MyFlag;						   // SerPort open? What am I? 
+char *				input;								   // 400 bytes, 5 lines 
+char				str[800], spc[200], mxx[40], mxy[60];  // Output string 
+char				wtil[80];							   // Window title 
+char				inc, forced, failed, died, addcr, fol; // For parsers use 
+char				actor, last_him, last_her;			   // People we talked about 
+char				autoexits, needcr;					   // General flags 
 int32_t				iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir, lroom;
-int32_t				wtype[6], word, mins;			  /* Type of word... */
-unsigned short int *rescnt;							  /* Reset counter from AMan */
-short int			donev, skip;					  /* No. of vb's/TT's done */
-char				exeunt, more, link;				  /* If we've linked yet */
-int32_t				ml, donet, it;					  /* Maximum lines */
-Aport *				ap, *amanp, *intam;				  /* The message pointers */
-Amiga::MsgPort *	amanrep;						  /* AMAN reply port */
-char *				ob, *gp, *ow, *lastres, *lastcrt; /* Pointer to output buffers etc */
-short int			rset, rclr, ip, csyn;			  /* Masks for Room Counter */
+int32_t				wtype[6], word, mins;			  // Type of word... 
+unsigned short int *rescnt;							  // Reset counter from AMan 
+short int			donev, skip;					  // No. of vb's/TT's done 
+char				exeunt, more, link;				  // If we've linked yet 
+int32_t				ml, donet, it;					  // Maximum lines 
+Aport *				ap, *amanp, *intam;				  // The message pointers 
+Amiga::MsgPort *	amanrep;						  // AMAN reply port 
+char *				ob, *gp, *ow, *lastres, *lastcrt; // Pointer to output buffers etc 
+short int			rset, rclr, ip, csyn;			  // Masks for Room Counter 
 
-/* Various low-level macros/functions for AMUL... */
+// Various low-level macros/functions for AMUL... 
 
 void
 reset()
 {
-	SendIt(MSG_DATA_REQUEST, 0, dir); /* Get basic data */
+	SendIt(MSG_DATA_REQUEST, 0, dir); // Get basic data 
 
-	fopenr(advfn);
+	fopenr(Resources::Compiled::gameProfile());
 	fgets(adname, 41, ifp);
 	adname[strlen(adname) - 1] = 0;
 	fscanf(ifp, "%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld", &rooms,
 		   &ranks, &verbs, &syns, &nouns, &adjs, &ttents, &umsgs, &word, &mins, &invis, &invis2,
 		   &minsgo, &mobs, &rscale, &tscale, &mobchars);
 
-	SendIt(MSG_DATA_REQUEST, 1, NULL); /* Get rooms data */
+	SendIt(MSG_DATA_REQUEST, 1, NULL); // Get rooms data 
 	rooms = Ad;
 	rmtab = (struct room *)Ap;
 	rescnt = (short *)Ap1;
 
-	SendIt(MSG_DATA_REQUEST, 2, NULL); /* Get ranks data */
+	SendIt(MSG_DATA_REQUEST, 2, NULL); // Get ranks data 
 	ranks = Ad;
 	rktab = (struct rank *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 3, NULL); /* Get object headers */
+	SendIt(MSG_DATA_REQUEST, 3, NULL); // Get object headers 
 	nouns = Ad;
 	obtab = (struct obj *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 4, NULL); /* Get verbs */
+	SendIt(MSG_DATA_REQUEST, 4, NULL); // Get verbs 
 	verbs = Ad;
 	vbtab = (struct verb *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 5, NULL); /* Get descriptions */
+	SendIt(MSG_DATA_REQUEST, 5, NULL); // Get descriptions 
 	desctab = Ap;
 
-	SendIt(MSG_DATA_REQUEST, 6, NULL); /* Get room table data */
+	SendIt(MSG_DATA_REQUEST, 6, NULL); // Get room table data 
 	ormtab = (int32_t)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 7, NULL); /* Get states! */
+	SendIt(MSG_DATA_REQUEST, 7, NULL); // Get states! 
 	statab = (_OBJ_STATE *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 8, NULL); /* Get adjectives */
+	SendIt(MSG_DATA_REQUEST, 8, NULL); // Get adjectives 
 	adtab = Ap;
 
-	SendIt(MSG_DATA_REQUEST, 9, NULL); /* Get travel table */
+	SendIt(MSG_DATA_REQUEST, 9, NULL); // Get travel table 
 	ttp = (_TT_ENT *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 10, NULL); /* Get UMsg Indexes */
+	SendIt(MSG_DATA_REQUEST, 10, NULL); // Get UMsg Indexes 
 	umsgip = (int32_t *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 11, NULL); /* Get UMsg Text */
+	SendIt(MSG_DATA_REQUEST, 11, NULL); // Get UMsg Text 
 	umsgp = Ap;
 
-	SendIt(MSG_DATA_REQUEST, 12, NULL); /* Get TT Params */
+	SendIt(MSG_DATA_REQUEST, 12, NULL); // Get TT Params 
 	ttpp = (int32_t *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 13, NULL); /* Get roomcount table */
+	SendIt(MSG_DATA_REQUEST, 13, NULL); // Get roomcount table 
 	rctab = (short *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 14, NULL); /* Get slot table */
+	SendIt(MSG_DATA_REQUEST, 14, NULL); // Get slot table 
 	slottab = (struct vbslot *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 15, NULL); /* Get vt table */
+	SendIt(MSG_DATA_REQUEST, 15, NULL); // Get vt table 
 	vtp = (struct vt *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 16, NULL); /* Get vtp table */
+	SendIt(MSG_DATA_REQUEST, 16, NULL); // Get vtp table 
 	vtpp = (int32_t *)Ap;
 
-	SendIt(MSG_DATA_REQUEST, 17, NULL); /* Get syn data */
+	SendIt(MSG_DATA_REQUEST, 17, NULL); // Get syn data 
 	synp = Ap;
 	synip = (short int *)Ad;
 
-	SendIt(MSG_DATA_REQUEST, 18, NULL); /* Get last reset & create times */
+	SendIt(MSG_DATA_REQUEST, 18, NULL); // Get last reset & create times 
 	lastres = Ap;
 	lastcrt = (char *)Ad;
 }
@@ -157,7 +157,7 @@ look(const char *roomName, int visitFlag)
 	look_here(mod, roomno);
 }
 
-/* Add object to players inventory */
+// Add object to players inventory 
 void
 agive(int obj, int to)
 {
@@ -175,20 +175,20 @@ agive(int obj, int to)
 	/*== The lighting conditions for transfering an object between a
 		 variable source and destination are complex! See below!	*/
 	if (STATE->flags & SF_LIT) {
-		if (own == -1) /*== Did I just pick and was it from here? */
+		if (own == -1) //== Did I just pick and was it from here? 
 		{
 			if (orm == (lstat + own)->room)
 				return;
-		} else { /*== If I got it from someone, and he is near me... */
+		} else { //== If I got it from someone, and he is near me... 
 			if ((lstat + own)->room == (lstat + to)->room)
 				return;
-			lighting(own, AHERE); /*== Else check his lights! */
+			lighting(own, AHERE); //== Else check his lights! 
 		}
 		lighting(to, AHERE);
 	}
 }
 
-/* Drop the object (to a room) */
+// Drop the object (to a room) 
 void
 adrop(int ob, int r, int f)
 {
@@ -197,9 +197,9 @@ adrop(int ob, int r, int f)
 	rem_obj(Af, ob);
 	lighting(Af, AHERE);
 
-	/* If the room IS a 'swamp', give em points */
+	// If the room IS a 'swamp', give em points 
 	if ((rmtab + me2->room)->flags & RF_SINKHOLE) {
-		/*== Only give points if player hasn't quit. */
+		//== Only give points if player hasn't quit. 
 		if (exeunt == 0)
 			aadd(scaled(STATE->value, STATE->flags), STSCORE, Af);
 		*objtab->rmlist = -1;
@@ -239,7 +239,7 @@ make_rank(int p, int rankn, int gender)
 	}
 }
 
-/* Move player to room, testing ligthing! */
+// Move player to room, testing ligthing! 
 void
 moveto(int r)
 {
@@ -264,7 +264,7 @@ moveto(int r)
 	me2->flags = me2->flags & -(1 + PFMOVING);
 }
 
-/* n MODulo X */
+// n MODulo X 
 int32_t
 mod(int32_t n, int32_t x)
 {
@@ -275,7 +275,7 @@ mod(int32_t n, int32_t x)
 	}
 }
 
-/* Return pseudo-random number */
+// Return pseudo-random number 
 int32_t
 rnd()
 {
@@ -286,7 +286,7 @@ rnd()
 	return rand();
 }
 
-/* Do I own a 'obj' in state 'stat'? */
+// Do I own a 'obj' in state 'stat'? 
 bool
 gotin(int obj, int st)
 {
@@ -298,8 +298,8 @@ gotin(int obj, int st)
 	return false;
 }
 
-/* The next two commands are ACTIONS but work like conditions */
-/* Check player is near object, else msg + endparse */
+// The next two commands are ACTIONS but work like conditions 
+// Check player is near object, else msg + endparse 
 int
 achecknear(int obj)
 {
@@ -312,7 +312,7 @@ achecknear(int obj)
 	return 0;
 }
 
-/* Check the player can 'get' the object */
+// Check the player can 'get' the object 
 int
 acheckget(int obj)
 {
@@ -362,12 +362,12 @@ look_here(int f, int rm)
 {
 	char il;
 
-	/* Can I see? */
+	// Can I see? 
 	if (me2->flags & PFBLIND) {
 		list_what(rm, 0);
 		return;
 	}
-	/* Can we see in here? */
+	// Can we see in here? 
 	if ((il = lit(me2->room)) == NO) {
 		sys(TOODARK);
 		*(rctab + rm) = *(rctab + rm) & rclr;
@@ -390,12 +390,12 @@ desc_here(int f)
 {
 	char *p, c;
 	fseek(ifp, roomtab->desptr, 0L);
-	if (roomtab->flags & RF_CEMETERY) /* A dmove room? */
+	if (roomtab->flags & RF_CEMETERY) // A dmove room? 
 		fgets(dmove, IDL, ifp);
 	else
 		dmove[0] = 0;
 
-	/* Print short description */
+	// Print short description 
 	p = block;
 	if (!(roomtab->flags & RF_LETHAL))
 		ans("1m");
@@ -409,8 +409,8 @@ desc_here(int f)
 		}
 	}
 	if (p != block)
-		tx(block); /* Make sure we dump it! */
-	/* If I am the toprank show me the room id too! */
+		tx(block); // Make sure we dump it! 
+	// If I am the toprank show me the room id too! 
 	ans("0;37m");
 	if (me->rank == ranks - 1) {
 		sprintf(block, "   (%s)", roomtab->id);
@@ -419,7 +419,7 @@ desc_here(int f)
 	}
 	txc('\n');
 	if (c == '\n' && f == RD_VERBOSE) {
-		/* Display LONG description! */
+		// Display LONG description! 
 		p = block;
 		while ((c = fgetc(ifp)) != 0 && c != EOF) {
 			*(p++) = c;
@@ -451,11 +451,11 @@ list_what(int r, int i)
 	}
 
 	if (((rmtab + r)->flags & RF_HIDE_OBJECTS) && i != 0 && me->rank != ranks - 1) {
-		sys(NOWTSPECIAL); /* Wizards can see in hideaways! */
+		sys(NOWTSPECIAL); // Wizards can see in hideaways! 
 	}
-	for (o = 0; o < nouns; o++) /* All objects */
+	for (o = 0; o < nouns; o++) // All objects 
 	{
-		/* Only let the right people see the object */
+		// Only let the right people see the object 
 		if (canseeobj(o, Af) == NO)
 			continue;
 		if (((rmtab + r)->flags & RF_HIDE_OBJECTS) &&
@@ -571,13 +571,12 @@ summon(int plyr)
 void
 adestroy(int obj)
 {
-	Amiga::Forbid();
+	Amiga::ScheduleGuard guard;
 	loseobj(obj);
 	for (int i = 0; i < (obtab + obj)->nrooms; i++) {
 		*((obtab + obj)->rmlist + i) = -1;
 	}
 	(obtab + obj)->flags = (obtab + obj)->flags | OF_ZONKED;
-	Amiga::Permit();
 }
 
 void
@@ -591,7 +590,7 @@ arecover(int obj)
 	lighting(Af, AHERE);
 }
 
-/* Restore players details */
+// Restore players details 
 void
 refresh()
 {
@@ -622,12 +621,14 @@ zapme()
 	char *p;
 	int   i;
 
-	Amiga::Forbid();
-	p = (char *)me->name;
-	exeunt = 1;
-	for (i = 0; i < sizeof(usr); i++)
-		*(p++) = 0;
-	Amiga::Permit();
+	{
+		Amiga::ScheduleGuard guard;
+		p = (char *)me->name;
+		exeunt = 1;
+		for (i = 0; i < sizeof(usr); i++)
+			*(p++) = 0;
+	}
+
 	save_me();
 	nohelp();
 }
@@ -652,11 +653,11 @@ achange(int u)
 		me->sex = 1 - me->sex;
 		sys(CHANGESEX);
 	} else {
-		sendex(u, ACHANGESEX, u, NONE); /* Tell them to clear up */
+		sendex(u, ACHANGESEX, u, NONE); // Tell them to clear up 
 	}
 }
 
-/*== Fixed to allow increase/decrease */
+//== Fixed to allow increase/decrease 
 void
 newrank(int plyr, int r)
 {
@@ -672,7 +673,7 @@ newrank(int plyr, int r)
 	me->rank = r;
 	sys(MADERANK);
 
-	/* Update Current Line Stats */
+	// Update Current Line Stats 
 	me2->strength += (rktab + r)->strength - (rktab + or)->strength;
 	if (me2->strength > (rktab + r)->strength)
 		me2->strength = (rktab + r)->strength;
@@ -690,7 +691,7 @@ newrank(int plyr, int r)
 		me2->magicpts = (rktab + r)->magicpts;
 	calcdext();
 
-	/* Update File Stats */
+	// Update File Stats 
 	me->strength = (rktab + r)->strength;
 	me->stamina = (rktab + r)->stamina;
 	me->wisdom = (rktab + r)->wisdom;
@@ -745,7 +746,7 @@ aadd(int howmuch, int stat, int plyr)
 		case STMAGIC: me2->magicpts += howmuch; break;
 		}
 	} else
-		sendex(plyr, AADD, howmuch, stat, plyr); /* Tell them to clear up! */
+		sendex(plyr, AADD, howmuch, stat, plyr); // Tell them to clear up! 
 }
 
 void
@@ -813,7 +814,7 @@ asub(int howmuch, int stat, int plyr)
 			break;
 		}
 	} else
-		sendex(plyr, ASUB, howmuch, stat, plyr); /* Tell them to clear up! */
+		sendex(plyr, ASUB, howmuch, stat, plyr); // Tell them to clear up! 
 }
 
 void
@@ -836,17 +837,17 @@ afix(int stat, int plyr)
 		case STMAGIC: me2->magicpts = (rktab + me->rank)->magicpts; break;
 		}
 	} else
-		sendex(plyr, AFIX, stat, plyr, 0); /* Tell them to clear up! */
+		sendex(plyr, AFIX, stat, plyr, 0); // Tell them to clear up! 
 }
 
-/* Loud noises/events */
+// Loud noises/events 
 void
 announce(const char *s, int towho)
 {
 	int i, x;
 
 	for (i = 0; i < MAXU; i++) {
-		/* If the player is deaf, ignore him */
+		// If the player is deaf, ignore him 
 		if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & PFDEAF))
 			continue;
 		/*
@@ -854,7 +855,7 @@ announce(const char *s, int towho)
 			if this is another player, and he's in another room,
 			and the room is a silent room, ignore him.
 		*/
-		if (i != Af && (lstat + i)->room != me2->room && /* --v */
+		if (i != Af && (lstat + i)->room != me2->room && // --v 
 			((rmtab + (lstat + i)->room)->flags & RF_SILENT))
 			continue;
 		x = 0;
@@ -884,13 +885,13 @@ announce(const char *s, int towho)
 	}
 }
 
-/* Loud noises/events */
+// Loud noises/events 
 void
 announcein(int toroom, const char *s)
 {
 	int i;
 	for (i = 0; i < MAXU; i++) {
-		/* If the player is deaf, ignore him */
+		// If the player is deaf, ignore him 
 		if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & PFDEAF) ||
 			(lstat + i)->room != toroom)
 			continue;
@@ -899,17 +900,17 @@ announcein(int toroom, const char *s)
 	}
 }
 
-/* Loud noises/events */
+// Loud noises/events 
 void
 announcefrom(int obj, const char *s)
 {
 	int i, o;
 	for (i = 0; i < MAXU; i++) {
-		/* If the player is deaf or can see me, ignore him */
+		// If the player is deaf or can see me, ignore him 
 		if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & PFDEAF) ||
 			(lstat + i)->room == me2->room)
 			continue;
-		/* Check if the player is NEAR to someone carrying the object */
+		// Check if the player is NEAR to someone carrying the object 
 		if ((o = owner(obj)) != -1 && (lstat + o)->room != (lstat + i)->room)
 			continue;
 		if (o == -1 && isin(obj, (lstat + o)->room) == NO)
@@ -919,14 +920,14 @@ announcefrom(int obj, const char *s)
 	}
 }
 
-void objannounce(int obj, char *s) /* Loud noises/events */
+void objannounce(int obj, char *s) // Loud noises/events 
 {
 	int i, o;
 	for (i = 0; i < MAXU; i++) {
-		/* If the player is deaf or can see me, ignore him */
+		// If the player is deaf or can see me, ignore him 
 		if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & PFDEAF))
 			continue;
-		/* Check if the player is NEAR to someone carrying the object */
+		// Check if the player is NEAR to someone carrying the object 
 		if ((o = owner(obj)) != -1 && (lstat + o)->room != (lstat + i)->room)
 			continue;
 		if (o == -1 && isin(obj, (lstat + o)->room) == NO)
@@ -936,13 +937,13 @@ void objannounce(int obj, char *s) /* Loud noises/events */
 	}
 }
 
-/* Quiet actions/notices */
+// Quiet actions/notices 
 void
 action(const char *s, int towho)
 {
 	int i, x;
 	for (i = 0; i < MAXU; i++) {
-		/* If the player is asleep, or blind, skip him */
+		// If the player is asleep, or blind, skip him 
 		if (actor == i || ((lstat + i)->state < 2) ||
 			((lstat + i)->flags & (PFBLIND + PFASLEEP)) != 0)
 			continue;
@@ -973,12 +974,12 @@ action(const char *s, int towho)
 	}
 }
 
-/* Quiet actions/notices */
+// Quiet actions/notices 
 void
 actionin(int toroom, const char *s)
 {
 	for (int i = 0; i < MAXU; i++) {
-		/* If the player is asleep, or blind, skip him */
+		// If the player is asleep, or blind, skip him 
 		if (actor == i || ((lstat + i)->state < US_CONNECTED) ||
 			((lstat + i)->flags & (PFBLIND + PFASLEEP)) || (lstat + i)->room != toroom)
 			continue;
@@ -987,16 +988,16 @@ actionin(int toroom, const char *s)
 	}
 }
 
-/* Quiet actions/notices */
+// Quiet actions/notices 
 void
 actionfrom(int obj, const char *s)
 {
 	for (int i = 0; i < MAXU; i++) {
-		/* If the player is asleep, or blind, skip him */
+		// If the player is asleep, or blind, skip him 
 		if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & (PFBLIND + PFASLEEP)) ||
 			(lstat + i)->room == me2->room)
 			continue;
-		/* Check if the player is NEAR to someone carrying the object */
+		// Check if the player is NEAR to someone carrying the object 
 		int o = owner(obj);
 		if (o != -1)
 			if ((lstat + o)->room != (lstat + i)->room)
@@ -1008,16 +1009,16 @@ actionfrom(int obj, const char *s)
 	}
 }
 
-/* Quiet actions/notices */
+// Quiet actions/notices 
 void
 objaction(int obj, const char *s)
 {
 	int i, o;
 	for (i = 0; i < MAXU; i++) {
-		/* If the player is asleep, or blind, skip him */
+		// If the player is asleep, or blind, skip him 
 		if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & (PFBLIND + PFASLEEP)))
 			continue;
-		/* Check if the player is NEAR to someone carrying the object */
+		// Check if the player is NEAR to someone carrying the object 
 		if ((o = owner(obj)) != -1)
 			if ((lstat + o)->room != (lstat + i)->room)
 				continue;
@@ -1051,7 +1052,7 @@ ableep(int n)
 	txc('\n');
 }
 
-/*== twho - tell who */
+//== twho - tell who 
 void
 lighting(int x, int twho)
 {
@@ -1073,7 +1074,7 @@ lighting(int x, int twho)
 	}
 }
 
-/* Remove object from its owners inventory */
+// Remove object from its owners inventory 
 void
 loseobj(int obj)
 {
@@ -1143,12 +1144,11 @@ afight(int plyr)
 void
 clearfight()
 {
-	Amiga::Forbid();
+	Amiga::ScheduleGuard guard;
 	if (me2->fighting != -1 && me2->fighting != Af) {
 		finishfight(me2->fighting);
 	}
 	finishfight(Af);
-	Amiga::Permit();
 }
 
 void
@@ -1180,9 +1180,9 @@ acombat()
 
 	if (me2->fighting == Af || me2->fighting == -1 || me2->state < US_CONNECTED ||
 		me2->stamina <= 0) {
-		donet = ml + 1; /* End parse */
+		donet = ml + 1; // End parse 
 		finishfight(Af);
-		return; /* Macro : Permit(); return */
+		return; // Macro : Permit(); return 
 	}
 
 	you = usr + me2->fighting;
@@ -1252,7 +1252,7 @@ acombat()
 				sys(BLOCK);
 				utx(me2->fighting, acp(DEFEND));
 			}
-			/*			if((i=isverb("\"block"))!=-1) lang_proc(i,0);	*/
+			//			if((i=isverb("\"block"))!=-1) lang_proc(i,0);	
 		} else {
 			if (me2->wield != -1) {
 				sys(WATTACK);
@@ -1265,21 +1265,21 @@ acombat()
 				utx(me2->fighting, acp(AMHIT));
 			}
 			asub(adam, STSTAM, me2->fighting);
-			/*			if((i=isverb("\"hit"))!=-1) lang_proc(i,0);	*/
+			//			if((i=isverb("\"hit"))!=-1) lang_proc(i,0);	
 		}
 	} else {
 		sys(MISSED);
 		utx(me2->fighting, acp(HEMISSED));
-		/*		if((i=isverb("\"miss"))!=-1) lang_proc(i,0);		*/
+		//		if((i=isverb("\"miss"))!=-1) lang_proc(i,0);		
 	}
 	oldstr -= adam;
 	if ((me2->flags & PFATTACKER) && oldstr > 0) {
-		/*		if(me2->helped != -1 && (lstat+me2->helped)->room==me2->room)	Well?	*/
+		//		if(me2->helped != -1 && (lstat+me2->helped)->room==me2->room)	Well?	
 
-		sendex(me2->fighting, ACOMBAT, -1, 0, 0); /* Tell them to clear up! */
+		sendex(me2->fighting, ACOMBAT, -1, 0, 0); // Tell them to clear up! 
 	}
 	if (oldstr <= 0) {
-		donet = ml + 1; /* End parse */
+		donet = ml + 1; // End parse 
 		tx("You have defeated @pl!\n");
 		aadd(minpksl, STSCORE, Af);
 		finishfight(Af);
@@ -1309,7 +1309,7 @@ exits()
 
 	for (v = 0; v < verbs; v++, vbptr++) {
 		if (vbptr->flags & VB_TRAVEL)
-			continue; /* Not a trav verb */
+			continue; // Not a trav verb 
 
 		roomtab = rmtab + me2->room;
 		l = -1;
@@ -1473,7 +1473,7 @@ show_tasks(int p)
 	tx(block);
 }
 
-/* Drop everything to a room */
+// Drop everything to a room 
 void
 dropall(int torm)
 {
@@ -1548,7 +1548,7 @@ ascore(int type)
 			tx("Helped by: @he.");
 		if (me2->helping != -1 || me2->helped != -1)
 			txc('\n');
-		/*== Current weapon */
+		//== Current weapon 
 		if (me2->wield != -1)
 			txs("Currently wielding: %s.\n", (obtab + me2->wield)->id);
 		show_tasks(Af);
@@ -1631,7 +1631,7 @@ asave()
 	txn(acp(SAVED), me->score);
 }
 
-/* Update my record. */
+// Update my record. 
 void
 save_me()
 {
@@ -1742,7 +1742,7 @@ awho(int type)
 	}
 }
 
-/* Get the users flag bits */
+// Get the users flag bits 
 void
 flagbits()
 {
@@ -1840,7 +1840,7 @@ getflags()
 		me->flags = me->flags & (toupper(str[0]) == 'Y') ? UF_ANSI : -(1 + UF_ANSI);
 }
 
-/*============= Please adhere to AutoDoc style docs herewith ================*/
+//============= Please adhere to AutoDoc style docs herewith ================
 
 /*===========================================================================*
  *
@@ -2121,9 +2121,9 @@ ado(int verb)
  *
  */
 
-void add_obj(int to) /*== Add an object into a players inventory */
+void add_obj(int to) //== Add an object into a players inventory 
 {
-	*objtab->rmlist = -(5 + to); /* It now belongs to them */
+	*objtab->rmlist = -(5 + to); // It now belongs to them 
 	(lstat + to)->numobj++;
 	(lstat + to)->weight += STATE->weight;
 	(lstat + to)->strength -= ((rktab + (usr + to)->rank)->strength * STATE->weight) /
@@ -2162,7 +2162,7 @@ void add_obj(int to) /*== Add an object into a players inventory */
  ******************************************************************************
  *
  */
-void rem_obj(int to, int ob) /*== Remove object from inventory */
+void rem_obj(int to, int ob) //== Remove object from inventory 
 {
 	(lstat + to)->numobj--;
 	(lstat + to)->weight -= STATE->weight;
@@ -2171,7 +2171,7 @@ void rem_obj(int to, int ob) /*== Remove object from inventory */
 	if (STATE->flags & SF_LIT)
 		(lstat + to)->light--;
 	if (me2->wield == ob)
-		me2->wield = -1; /*== Don't let me wield it */
+		me2->wield = -1; //== Don't let me wield it 
 }
 
 /****** AMUL3.C/ainteract ******************************************
@@ -2256,10 +2256,10 @@ asyntax(int n1, int n2)
 	uint32_t t1, t2;
 
 	inc = 0;
-	/* === N1 Handling === */
+	// === N1 Handling === 
 	if (n1 == TC_NONE)
 		t1 = n1;
-	else if ((n1 & IWORD)) /* Is it an IWORD? */
+	else if ((n1 & IWORD)) // Is it an IWORD? 
 	{
 		switch (n1 & -(1 + IWORD)) {
 		case IVERB:
@@ -2296,10 +2296,10 @@ asyntax(int n1, int n2)
 		t1 = TC_NOUN;
 	}
 
-	/* === N2 Handling === */
+	// === N2 Handling === 
 	if (n2 == TC_NONE)
 		t2 = n2;
-	else if ((n2 & IWORD)) /* Is it an IWORD? */
+	else if ((n2 & IWORD)) // Is it an IWORD? 
 	{
 		switch (n2 & -(1 + IWORD)) {
 		case IVERB:
@@ -2383,17 +2383,16 @@ iocopy(char *dst, const char *src, uint32_t length)
 	qcopy(dst, ow, length);
 }
 
-/* -- Quick copy - used by iocopy and others -- */
+// -- Quick copy - used by iocopy and others -- 
 
 void
 qcopy(char *dst, const char *src, uint32_t length)
 {
-	Amiga::Forbid();
+	Amiga::ScheduleGuard guard;
 	while (length > 0 && *src != 0 && *src != '\n') {
 		*(dst++) = *(src++);
 	}
 	*dst = 0;
-	Amiga::Permit();
 }
 
 /****** AMUL3.C/DoThis ******************************************
@@ -2460,19 +2459,19 @@ DoThis(int x, const char *cmd, short int type)
 void
 StopFollow()
 {
-	Amiga::Forbid();
-	if (fol != 0 || me2->following == -1 || (vbtab + overb)->flags & VB_TRAVEL) {
-		Amiga::Permit();
-		return;
+	{
+		Amiga::ScheduleGuard guard;
+		if (fol != 0 || me2->following == -1 || (vbtab + overb)->flags & VB_TRAVEL) {
+			return;
+		}
+		if ((lstat + me2->following)->state != US_CONNECTED ||
+			(lstat + me2->following)->followed != Af) {
+			me2->following = -1;
+			return;
+		}
+		(lstat + me2->following)->followed = -1;
 	}
-	if ((lstat + me2->following)->state != US_CONNECTED ||
-		(lstat + me2->following)->followed != Af) {
-		me2->following = -1;
-		Amiga::Permit();
-		return;
-	}
-	(lstat + me2->following)->followed = -1;
-	Amiga::Permit();
+
 	tx("You are no-longer following @mf.\n");
 	me2->following = -1;
 }
@@ -2626,9 +2625,9 @@ LoseFollower()
 {
 	if (me2->followed == -1)
 		return;
-	(lstat + (me2->followed))->following = -1; /* Unhook them */
+	(lstat + (me2->followed))->following = -1; // Unhook them 
 	utx(me2->followed, "You are no-longer able to follow @me.\n");
-	me2->followed = -1; /* Unhook me */
+	me2->followed = -1; // Unhook me 
 }
 
 /****** AMUL3.C/ShowFile ******************************************
@@ -2850,7 +2849,7 @@ showin(int o, int mode)
  *
  */
 
-int stfull(int st, int p) /* full <st> <player> */
+int stfull(int st, int p) // full <st> <player> 
 {
 	you = (usr + p);
 	you2 = (lstat + p);
@@ -2915,8 +2914,8 @@ asetstat(int obj, int stat)
 
 	objtab = obtab + obj;
 	x = owner(obj);
-	i = lit(loc(obj)); /* WAS the room lit? */
-	/* Remove from owners inventory */
+	i = lit(loc(obj)); // WAS the room lit? 
+	// Remove from owners inventory 
 	if (x != -1) {
 		w = (lstat + x)->wield;
 		rem_obj(x, obj);
@@ -2930,12 +2929,12 @@ asetstat(int obj, int stat)
 			STATE->flags = STATE->flags | SF_LIT;
 		if (x != -1)
 			add_obj(x);
-		return; /* Don't need to check for change of lights! */
+		return; // Don't need to check for change of lights! 
 	}
 
 	if (x != -1) {
-		add_obj(x); /* And put it back again */
-		/*== Should check to see if its too heavy now */
+		add_obj(x); // And put it back again 
+		//== Should check to see if its too heavy now 
 		lighting(x, AHERE);
 		(lstat + x)->wield = w;
 	}
@@ -2958,7 +2957,7 @@ awhere(int obj)
 	int32_t *rp;
 
 	found = -1;
-	for (i = 0; i < nouns; i++) /* Check all */
+	for (i = 0; i < nouns; i++) // Check all 
 	{
 		if (stricmp((obtab + obj)->id, (obtab + i)->id) == NULL) {
 			if (canseeobj(i, Af) == NO)
@@ -3028,12 +3027,12 @@ osflag(int o, int flag)
 		}
 }
 
-/* Set @xx and @xy corresponding to a specific player */
+// Set @xx and @xy corresponding to a specific player 
 
 void
 setmxy(int Flags, int Them)
 {
-	if (Them == Af || cansee(Them, Af) == YES) /* If he can see me */
+	if (Them == Af || cansee(Them, Af) == YES) // If he can see me 
 	{
 		ioproc("@me");
 		strcpy(mxx, ow);
@@ -3056,7 +3055,7 @@ setmxy(int Flags, int Them)
 			return;
 		}
 	}
-	/* They aren't in the same room */
+	// They aren't in the same room 
 	switch (Flags) {
 	case PC_ACTION:
 	case PC_EVENT:

@@ -1,17 +1,16 @@
-/*
-	 System Message processing routines for AMUL, (C) KingFisher Software
-	 --------------------------------------------------------------------
+// system message parser
+//
+// Note:
+//
+// System messages are enumerated so they must be listed in order and must
+// all be defined.
+//
+// AMUL didn't include defaults because that would have used up more memory/space.
 
- Notes:
+#include "amulcom.includes.h"
 
-	System messages MUST be listed in order, and MUST all exist! These
-	  should be supplied with the package, so the user has a set of defaults.
-	  We could write all the default system messages into AMULCOM, but this
-	  would simply be a waste of space!
-
-*/
-
-#include "amulcominc.h"
+using namespace AMUL::Logging;
+using namespace Compiler;
 
 void
 smsg_proc()
@@ -20,7 +19,7 @@ smsg_proc()
 	int32_t id;
 	int32_t pos;
 
-	err = smsgs = 0;
+	smsgs = 0;
 
 	if (nextc(0) == -1)
 		return; /* Nothing to process! */
@@ -84,7 +83,6 @@ smsg_proc()
 		fputc(0, ofp2);
 	} while (*s != 0);
 	close_ofps();
-	FreeMem(data, datal);
-	data = NULL;
-	datal = NULL;
+
+	OS::Free(data, datal);
 }

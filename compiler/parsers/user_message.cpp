@@ -1,13 +1,17 @@
-#include "amulcominc.h"
+// user message definition parser
 
-void
+#include "amulcom.includes.h"
+
+using namespace AMUL::Logging;
+using namespace Compiler;
+
+bool
 umsg_proc()
 {
 	char *s;
 
-	err = umsgs = 0;
-	fopenw("-ram:umsg.tmp");
-	close_ofps();
+	umsgs = 0;
+	OS::CreateFile("umsg.tmp");
 	fopena(umsgifn);
 	ofp1 = afp;
 	afp = NULL;
@@ -16,10 +20,10 @@ umsg_proc()
 	ofp2 = afp;
 	afp = NULL;
 	fseek(ofp2, 0, 2L);
-	fopena("-ram:umsg.tmp");
+	fopena("umsg.tmp");
 	if (nextc(0) == -1) {
 		close_ofps();
-		return 0;
+		return false;
 	} /* None to process */
 	blkget(&datal, &data, 0L);
 	s = data;
@@ -40,16 +44,12 @@ umsg_proc()
 			goto loop;
 
 		if (Word[0] == '$') {
-			printf("Invalid ID, '%s'. ", Word);
-			printf("'$' is reserved for System messages!\n");
-			err++;
+			GetLogger().errorf("Invalid ID: %s: '$' is reserved for System Messages", Word);
 			skipblock();
 			goto loop;
 		}
 		if (strlen(Word) > IDL) {
-			printf("Invalid ID, '%s'. ", Word);
-			printf("Length exceeds %d characters.\n", IDL);
-			err++;
+			GetLogger().errorf("Invalid ID: %s: too long", Word);
 			skipblock();
 			goto loop;
 		}
@@ -84,13 +84,12 @@ umsg_proc()
 		fputc(0, ofp2);
 	} while (*s != 0);
 	close_ofps();
-	FreeMem(data, datal);
-	data = NULL;
-	datal = NULL;
-	if (err != 0) {
-		printf("\n\n!! Aborting due to %ld errors !!\n\n", err);
-		quit();
-	}
+
+	OS::Free(data, datal);
+
+	GetContext().terminateOnErrors();
+
+	return true;
 }
 
 /* Check FP for umsg id! */
@@ -102,8 +101,8 @@ isumsg(char *s, FILE *fp)
 	if (*s == '$') {
 		i = atoi(s + 1);
 		if (i < 1 || i > NSMSGS) {
-			printf("\x07\n!! Invalid System Message ID, '%s'!\n\n", s);
-			quit();
+			GetLogger().error("Invalid System Message ID: %s", s);
+			return -1;
 		}
 		return i - 1;
 	}
@@ -138,9 +137,8 @@ chkumsg(char *s)
 	if (*s != '$' && umsgs == 0)
 		return -1;
 
-	if ((fp = fopen("ram:umsg.tmp", "rb+")) == NULL) {
-		printf("Unable to re-access ram:umsg.tmp!\n");
-		quit();
+	if ((fp = fopen("umsg.tmp", "rb+")) == NULL) {
+		GetLogger().fatalf("Unable to access umsg.tmp");
 	}
 	r = isumsg(s, fp);
 	fclose(fp);

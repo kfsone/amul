@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <utility>
 
-void quit();
+[[noreturn]] void quit();
 
 namespace AMUL { namespace Logging {
 
@@ -52,15 +52,21 @@ namespace AMUL { namespace Logging {
 		}
 
 		template <typename... Args>
-		void
+		[[noreturn]] void
 		fatalf(const char *fmt, Args &&... args)
 		{
 			logf("FATAL", fmt, std::forward<Args>(args)...);
 			quit();
 		}
 
-		void
-		fatal(const char *verb, const char *noun)
+		[[noreturn]] void
+		fatal(const char *issue)
+		{
+			fatalf("%s", issue);
+		}
+
+		[[noreturn]] void
+		fatalop(const char *verb, const char *noun)
 		{
 			fatalf("Can't %s %s.");
 		}

@@ -29,37 +29,35 @@
 
 #define COMPILER 1
 
-#include "amulcominc.h"
-#include "h/amul.cons.h" /* Predefined Constants etc     */
-#include "h/amul.vars.h" /* all INTERNAL variables       */
+#include "amulcom.includes.h"
+#include "context.h"
+#include "parsers/parsers.h"
 
-/* Compiler specific variables... */
+#include "h/amul.cons.h"  // Predefined Constants etc
+#include "h/amul.vars.h"  // all INTERNAL variables
 
-int		dchk;				 /* Do we check RF_CEMETERY ptrs?	*/
-int		dmoves;				 /* How many RF_CEMETERYs to check?	*/
-int		rmn;				 /* Current room no.		*/
-int		rmrd;				 /* Read rooms?			*/
-int32_t readgot, FPos;		 /* Used during TT/Lang writes	*/
-char	exi = 0;			 /* Is it okay to exit?		*/
-int		warn = 1;			 /* Display warnings?		*/
-char	Word[64], c;		 /* For internal use only <grin>	*/
-int		err;				 /* Error count			*/
-int		proc;				 /* What we are processing	*/
-int32_t clock;				 /* Bits for time etc		*/
-int32_t ohd;				 /* Output handle for direct dos	*/
-char *  data;				 /* Pointer to data buffer	*/
-char *  data2;				 /* Secondary buffer area	*/
-char *  syntab;				 /* Synonym table, re-read	*/
-char	idt[IDL + 1];		 /* Temporary ID store		*/
-int32_t datal, datal2, mins; /* Length of data! & gametime	*/
-int32_t obmem;				 /* Size of Objects.TXT		*/
-int32_t vbmem;				 /* Size of Lang.Txt		*/
-int32_t invis, invis2;		 /* Invisibility Stuff		*/
-int32_t wizstr;				 /* Wizards strength		*/
-char *  mobdat, *px;		 /* Mobile data			*/
-int32_t moblen;				 /* Length			*/
+using namespace AMUL::Logging;
+using namespace Compiler;
 
-struct Task *mytask, *FindTask();
+// Compiler specific variables...
+
+int		dmoves;				  // How many RF_CEMETERYs to check?
+int		rmn;				  // Current room no.
+int32_t readgot, FPos;		  // Used during TT/Lang writes
+int		proc;				  // What we are processing
+char *  data;				  // Pointer to data buffer
+char *  data2;				  // Secondary buffer area
+char *  syntab;				  // Synonym table, re-read
+char	idt[IDL + 1];		  // Temporary ID store
+int32_t datal, datal2, mins;  // Length of data! & gametime
+int32_t obmem;				  // Size of Objects.TXT
+int32_t vbmem;				  // Size of Lang.Txt
+int32_t invis, invis2;		  // Invisibility Stuff
+int32_t wizstr;				  // Wizards strength
+char *  mobdat, *px;		  // Mobile data
+int32_t moblen;				  // Length
+
+Amiga::Task *mytask;
 
 struct UMSG
 {
@@ -67,8 +65,9 @@ struct UMSG
 	int32_t fpos;
 } umsg;
 
-char fnm[150], was[128], *getword(char *), *skipspc(char *), *sgetl(char *, char *),
-	*skiplead(char *, char *);
+const char *skipspc(const char *);
+
+char  fnm[150], was[128], *getword(char *), *sgetl(char *, char *), *skiplead(char *, char *);
 char *skipline(char *);
 FILE *ofp5;
 
@@ -82,10 +81,10 @@ CXBRK()
 	quit();
 }
 
-/*---------------------------------------------------------*/
+//---------------------------------------------------------
 
-void
-parseArguments(int argc, const char *argv)
+static void
+parseArguments(int argc, const char *argv[])
 {
 	if (argc > 6) {
 		puts("!! Error !!\n\n Usage:\n   amulcom <game "
@@ -94,33 +93,24 @@ parseArguments(int argc, const char *argv)
 	}
 	for (int n = 1; n < argc; n++) {
 		if (strcmp("-d", argv[n]) == 0) {
-			dchk = 0;
+			GetContext().m_skipDmoveCheck = true;
 			continue;
 		}
 		if (strcmp("-q", argv[n]) == 0) {
-			warn = 0;
+			GetLogger().m_quiet = false;
 			continue;
 		}
 		if (strcmp("-r", argv[n]) == 0) {
-			rmrd = 0;
+			GetContext().m_skipRoomRead = true;
 			continue;
 		}
 		strcpy(dir, argv[n]);
-		if ((c = dir[strlen(dir) - 1]) != '/' && c != ':')
+		if (char c = dir[strlen(dir) - 1]; c != '/' && c != ':')
 			strcat(dir, "/");
 	}
 }
 
-/*---------------------------------------------------------*/
-
-int isrflag(const char *s) /* Check to see if s is a room flag */
-{
-	for (int x = 0; x < NRFLAGS; x++) {
-		if (strcmp(s, rflag[x]) == 0)
-			return x;
-	}
-	return -1;
-}
+//---------------------------------------------------------
 
 int
 isroom(const char *s)
@@ -129,37 +119,6 @@ isroom(const char *s)
 	for (int r = 0; r < rooms; r++, roomtab++) {
 		if (strcmp(roomtab->id, s) == 0)
 			return r;
-	}
-	return -1;
-}
-
-int isoflag1(const char *s) /* Is it a FIXED object flag? */
-{
-	for (int i = 0; i < NOFLAGS; i++) {
-		if (strcmp(obflags1[i], s) == NULL)
-			return i;
-	}
-	return -1;
-}
-
-/* Is it an object parameter? */
-int
-isoparm()
-{
-	for (int i = 0; i < NOPARMS; i++) {
-		if (striplead(obparms[i], Word))
-			return i;
-	}
-	return -1;
-}
-
-/* Is it a state flag? */
-int
-isoflag2(const char *s)
-{
-	for (int i = 0; i < NSFLAGS; i++) {
-		if (strcmp(obflags2[i], s) == NULL)
-			return i;
 	}
 	return -1;
 }
@@ -183,10 +142,10 @@ set_adj()
 		return;
 	}
 
-	fseek(afp, 0L, 0); /* Move to beginning */
+	fseek(afp, 0L, 0);  // Move to beginning
 	for (int i = 0; !feof(afp); ++i) {
 		if (fread(dmove, IDL + 1, 1, afp) != 1)
-			continue; /* Read adj! */
+			continue;  // Read adj!
 		if (strcmp(Word, dmove) == NULL) {
 			obj2.adj = i;
 			return;
@@ -194,8 +153,8 @@ set_adj()
 	}
 	memset(dmove, 0, sizeof(dmove));
 	strcpy(dmove, Word);
-	fseek(afp, 0L, 2);				/* Move to end! */
-	fwrite(dmove, IDL + 1, 1, afp); /* Add this adjective */
+	fseek(afp, 0L, 2);				 // Move to end!
+	fwrite(dmove, IDL + 1, 1, afp);  // Add this adjective
 	obj2.adj = adjs++;
 }
 
@@ -263,40 +222,10 @@ checkf(char *s)
 }
 
 int
-iscond(const char *s)
-{
-	for (int i = 0; i < NCONDS; i++) {
-		if (strcmp(conds[i], s) == 0)
-			return i;
-	}
-	return -1;
-}
-
-int
-isact(const char *s)
-{
-	for (int i = 0; i < NACTS; i++) {
-		if (strcmp(acts[i], s) == 0)
-			return i;
-	}
-	return -1;
-}
-
-int
-isprep(const char *s)
-{
-	for (int i = 0; i < NPREP; i++) {
-		if (strcmp(s, prep[i]) == 0)
-			return i;
-	}
-	return -1;
-}
-
-int
 main(int argc, const char *argv[])
 {
 	sprintf(vername, "AMULCom v%d.%03d (%8s)", VERSION, REVISION, DATE);
-	mytask = FindTask(0L);  // find this process
+	mytask = Amiga::FindTask(0L);  // find this process
 	mytask->tc_Node.ln_Name = vername;
 
 	puts("\x0C\n  [33mAMUL  Multi-User Games Language Copyright "
@@ -308,14 +237,12 @@ main(int argc, const char *argv[])
 	ofp2 = NULL;
 	ofp3 = NULL;
 	dir[0] = 0;
-	dchk = rmrd = 1;
-	ohd = Output();
 
-	/* Check we have correct no. of parameters */
+	// Check we have correct no. of parameters
 
 	parseArguments(argc, argv);
 
-	/* Check the files/directories */
+	// Check the files/directories
 
 	tx("\n%% Checking existence of files\x0d");
 	checkf("Title.TXT");
@@ -338,19 +265,21 @@ main(int argc, const char *argv[])
 	title_proc();
 	fclose(ifp);
 	dmoves = 0;
-	if (rmrd == 1) {
+
+	// Now load the rooms data.
+	if (!GetContext().m_skipRoomRead) {
 		tx("%% ROOMS....:\x0d");
 		opentxt("ROOMS");
 		room_proc();
 		fclose(ifp);
 	}
-	fopenr(rooms1fn); /*=* Check RF_CEMETERY ptrs *=*/
-	if (rmrd == 0) {
+	fopenr(Resources::Compiled::roomData());  // Check RF_CEMETERY ptrs
+	if (GetContext().m_skipRoomRead) {
 		fseek(ifp, 0, 2L);
 		rooms = ftell(ifp) / sizeof(room);
 		rewind(ifp);
 	}
-	if ((rmtab = (struct room *)AllocMem(sizeof(room) * rooms, MEMF_PUBLIC)) == NULL) {
+	if ((rmtab = (_ROOM_STRUCT*)OS::Allocate(sizeof(room) * rooms)) == NULL) {
 		puts("No memory for ROOM ID table!\n");
 		quit();
 	}
@@ -359,7 +288,7 @@ main(int argc, const char *argv[])
 			 "files! Aborting!");
 		quit();
 	}
-	if (dchk != 0 || dmoves != 0) {
+	if (!GetContext().m_skipDmoveCheck || dmoves != 0) {
 		tx("%% RF_CEMETERYs...:\x0d");
 		checkdmoves();
 		fclose(ifp);
@@ -378,7 +307,7 @@ main(int argc, const char *argv[])
 	}
 	tx("%% UMSG.....:\x0d");
 	opentxt("UMSG");
-	if (umsg_proc() == -1)
+	if (!umsg_proc())
 		quit();
 	else
 		fclose(ifp);
@@ -415,8 +344,7 @@ main(int argc, const char *argv[])
 	printf("		T.T's: %6d	Umsgs: %6d	SMsgs: %6d\n", ttents, umsgs, NSMSGS);
 	printf("		 [33mTotal items processed:[0;1m%7d\n\n[0m",
 		   rooms + ranks + adjs + verbs + nouns + syns + ttents + umsgs + NSMSGS + mobs + mobchars);
-	fopenw(advfn);
-	time(&clock);
+	fopenw(Resources::Compiled::gameProfile());
 	fprintf(ofp1,
 			"%s\n%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld "
 			"%ld %ld %ld %ld %ld",
@@ -429,6 +357,43 @@ main(int argc, const char *argv[])
 		readgot = fread(block, 1, 1020, ifp);
 		fwrite(block, readgot, 1, ofp1);
 	} while (readgot == 1020);
-	exi = 1;
+
+	GetContext().m_completed = true;
+
 	quit();
+}
+
+void
+checkdmoves()
+{
+	int			  n;
+	_ROOM_STRUCT *roomptr;
+
+	// Check RF_CEMETERY ptrs
+	fopenr(Resources::Compiled::roomDesc());  // Open desc. file
+	roomptr = rmtab;
+	for (n = 0; n < rooms; n++) {
+		if (roomptr->flags & RF_CEMETERY) {
+			sprintf(block, "%-9s\x0d", roomptr->id);
+			tx(block);
+			fseek(ifp, roomptr->desptr, 0);
+			fread(dmove, IDL, 1, ifp);  // Read the RF_CEMETERY name
+			if (isroom(dmove) == -1)	// Is it a valid room?
+			{
+				GetLogger().errorf("%-9s - invalid dmove: %s", roomptr->id, dmove);
+			}
+		}
+		roomptr++;
+	}
+	GetContext().terminateOnErrors();
+}
+
+int
+isprep(const char *s)
+{
+	for (int i = 0; i < NPREP; i++) {
+		if (strcmp(s, prep[i]) == 0)
+			return i;
+	}
+	return -1;
 }

@@ -1,8 +1,8 @@
-/* Conditions for AMUL */
+// Conditions for AMUL 
 
 #include "amulinc.h"
 
-/* Is my room lit? */
+// Is my room lit? 
 int
 lit(int r)
 {
@@ -13,7 +13,9 @@ lit(int r)
 
 	if (!((rmtab + r)->flags & RF_DARK))
 		return YES;
-	Amiga::Forbid();
+
+	Amiga::ScheduleGuard guard;
+
 	you2 = lstat;
 	for (i = 0; i < MAXU; i++, you2++)
 		if (you2->room == r && you2->hadlight != 0) {
@@ -32,7 +34,7 @@ lit(int r)
 			}
 	};
 	objtab = tobjtab;
-	Amiga::Permit();
+
 	return NO;
 }
 
@@ -43,7 +45,7 @@ loc(int o)
 		return *(obtab + o)->rmlist;
 	if (*(obtab + o)->rmlist >= -5 && *(obtab + o)->rmlist <= -(5 + MAXU))
 		return (int)(lstat + owner(o))->room;
-	/* Else its in a container */
+	// Else its in a container 
 }
 
 int
@@ -68,7 +70,7 @@ nearto(int ob)
 	return NO;
 }
 
-/* Can others in this room see me? */
+// Can others in this room see me? 
 int
 visible()
 {
@@ -79,7 +81,7 @@ visible()
 	return YES;
 }
 
-/* If player could manage to carry object */
+// If player could manage to carry object 
 int
 cangive(int obj, int plyr)
 {
@@ -121,7 +123,7 @@ isaverb(char **s)
 	return -1;
 }
 
-/* Is VERB syn */
+// Is VERB syn 
 int
 isvsyn(const char *s)
 {
@@ -137,7 +139,7 @@ isvsyn(const char *s)
 	return (int)(csyn = -1);
 }
 
-/* Is noun syn */
+// Is noun syn 
 int
 isnsyn(const char *s)
 {
@@ -217,9 +219,9 @@ isnoun(const char *s, int adj, const char *pat)
 			} else if (lsuc == 0)
 				return lobj;
 		} else {
-			/* Did we get a match? */
+			// Did we get a match? 
 			if ((x = scan(start, verb.sort[pass], 0, s, adj)) != -1) {
-				/* If adjectives match */
+				// If adjectives match 
 				if (adj != -1 || (obtab + x)->adj == adj)
 					return x;
 				if (lsuc == 0)
@@ -233,7 +235,7 @@ isnoun(const char *s, int adj, const char *pat)
 					lobj = x;
 					lsuc = 0;
 					continue;
-				} /* Must have matched */
+				} // Must have matched 
 				if (lsuc == 0)
 					return lobj;
 			}
@@ -275,7 +277,7 @@ scan(int start, char Type, int tst, const char *s, int adj)
 			continue;
 		if (!match(obpt->id, s) || CHAEtype(i) != Type)
 			continue;
-		/* If state doesn't matter or states match, we'll try it */
+		// If state doesn't matter or states match, we'll try it 
 		if (verb.sort[0] == -1 || tst == -1 || obpt->state == verb.sort[0]) {
 			if (adj == obpt->adj)
 				return i;
@@ -400,35 +402,35 @@ stat(int plyr, int st, int x)
 	}
 }
 
-/* If <player1> can see <player2> */
+// If <player1> can see <player2> 
 int
 cansee(int p1, int p2)
 {
-	/* You can't see YOURSELF, and check for various other things... */
+	// You can't see YOURSELF, and check for various other things... 
 	if (*(usr + p2)->name == 0 || p1 == p2)
 		return NO;
 	if ((lstat + p2)->state != US_CONNECTED)
 		return NO;
-	/* If different rooms, or current room is dark */
+	// If different rooms, or current room is dark 
 	if (pROOM(p1) != pROOM(p2))
 		return NO;
-	/* If p2 is Super Invis, he can't be seen! */
+	// If p2 is Super Invis, he can't be seen! 
 	if ((lstat + p2)->flags & PFSPELL_INVISIBLE)
 		return NO;
-	/* If player is blind, obviously can't see p2! */
+	// If player is blind, obviously can't see p2! 
 	if ((lstat + p1)->flags & PFBLIND)
 		return NO;
 	if (lit(pROOM(p1)) == NO)
 		return NO;
-	/* If you are in a 'hide' room and he isn't a wizard */
+	// If you are in a 'hide' room and he isn't a wizard 
 	if (pRANK(p1) == ranks - 1)
 		return YES;
 	if (((rmtab + pROOM(p1))->flags & RF_HIDE_PLAYERS))
 		return NO;
-	/* If he isn't invisible */
+	// If he isn't invisible 
 	if (!isPINVIS(p2))
 		return YES;
-	/* Otherwise */
+	// Otherwise 
 	if (isPINVIS(p1) && pRANK(p1) >= invis - 1)
 		return YES;
 	if (pRANK(p1) >= invis2 - 1)

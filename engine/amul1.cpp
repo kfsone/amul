@@ -86,7 +86,7 @@ match(const char *lhs, const char *rhs)
 	}
 }
 
-/*=* Main Program *=*/
+/* Main Program */
 int
 main(int argc, char *argv[])
 {

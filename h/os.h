@@ -2,6 +2,11 @@
 
 #include <cstdlib>
 
+#if defined(WIN32)
+
+#include <io.h>
+#endif
+
 // OS-specific helpers
 namespace OS {
 
@@ -18,10 +23,17 @@ AllocateClear(size_t bytes)
 {
 	return calloc(1, bytes);
 }
+
+template<typename T>
 void
-Free(void *ptr, size_t size)
+Free(T *&ptr, size_t size)
 {
-	free(ptr);
+	if (ptr) {
+		free(reinterpret_cast<void*>(ptr));
+		ptr = nullptr;
+	}
 }
+
+void CreateFile(const char *filename);
 
 }  // namespace OS

@@ -1,17 +1,21 @@
-#include "amulcominc.h"
+#include "amulcom.includes.h"
 
- /*=* Process ROOMS.TXT *=*/
+using namespace AMUL::Logging;
+using namespace Compiler;
+
+ /* Process ROOMS.TXT */
 void
 room_proc()
 {
+	char c;
 	char lastc, *p, *p2;
 	int  n;
 
 	rooms = 0;
 	nextc(1); /* Skip any headings etc */
 
-	fopenw(rooms1fn);
-	fopenw(rooms2fn);
+	fopenw(Resources::Compiled::roomData());
+	fopenw(Resources::Compiled::roomDesc());
 
 	do {
 		rooms++;
@@ -25,7 +29,7 @@ room_proc()
 			quit();
 		}
 		strcpy(room.id, block);
-		/*=* Do the flags *=*/
+		/* Do the flags */
 		room.flags = 0;
 		room.tabptr = -1;
 		temp[0] = 0;

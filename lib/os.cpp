@@ -1,10 +1,26 @@
 // OS Utilities
 
 #include "h/amul.incs.h"
+#include "h/amul.logging.h"
+
 #include <cstdarg>
 #include <cstdlib>
+#include <cerrno>
+#include <fcntl.h>
+
+using namespace AMUL::Logging;
 
 namespace OS {
+
+void
+CreateFile(const char *filename)
+{
+	int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC);
+	if (fd == -1) {
+		GetLogger().fatalf("Failed to create file: %s: %s", filename, strerror(errno));
+	}
+	close(fd);
+}
 
 void
 SetProcessName(const char *title)

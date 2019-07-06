@@ -262,7 +262,7 @@ kernel()
 		Amiga::Wait(-1);
 	readport:
 		while ((am = (Aport *)Amiga::GetMsg(replyPort)) != NULL) {
-			FreeMem((char *)am, (int32_t)sizeof(*amul));
+			OS::Free(am, sizeof(*amul));
 		}
 		while (Amiga::GetMsg(timerPort) != NULL) {
 			/* Process counter table */
@@ -542,7 +542,7 @@ asend(int type, int data)
 		case 'E': printf("... Game extended by %ld seconds ...\n", Ap1); break;
 		default: printf("** Internal AMUL error ** (Returned '%c')\n", Ad); break;
 		}
-	FreeMem((char *)amul, (int32_t)sizeof(*amul));
+	OS::Free(amul, sizeof(*amul));
 	DeletePort(replyPort);
 	printf("\n");
 	return 0;
@@ -662,7 +662,7 @@ setup()
 	char *   p;
 
 	rc = 0;
-	fopenr(advfn);
+	fopenr(Resources::Compiled::gameProfile());
 	fgets(adname, 41, ifp);
 	adname[strlen(adname) - 1] = 0;
 	fscanf(ifp, "%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld", &rooms,
@@ -676,35 +676,35 @@ setup()
 	p += sizeof(*lstat) * MAXNODE;
 	rctab = (short *)p;
 
-	fopenr(rooms1fn); /* 1: Open room block file */
-	if ((rmtab = (struct room *)AllocMem(rooms * sizeof(room), MEMF_PUBLIC)) == NULL)
+	fopenr(Resources::Compiled::roomData()); /* 1: Open room block file */
+	if ((rmtab = (struct room *)OS::Allocate(rooms * sizeof(room))) == NULL)
 		memfail("room table"); /* Allocate memory */
 	if ((i = fread((char *)rmtab, sizeof(room), rooms, ifp)) != rooms)
 		readfail("room table", i, rooms);
 
 	fopenr(ranksfn); /* 2: Read player ranks */
-	if ((rktab = (struct rank *)AllocMem(ranks * sizeof(rank), MEMF_PUBLIC)) == NULL)
+	if ((rktab = (struct rank *)OS::Allocate(ranks * sizeof(rank))) == NULL)
 		memfail("player ranks"); /* Allocate memory */
 	if ((i = fread((char *)rktab, sizeof(rank), ranks, ifp)) != ranks)
 		readfail("player ranks", i, ranks);
 
 	fopenr(lang1fn); /* 4: Read the verbs in */
-	if ((vbtab = (struct verb *)AllocMem(verbs * sizeof(verb), MEMF_PUBLIC)) == NULL)
+	if ((vbtab = (struct verb *)OS::Allocate(verbs * sizeof(verb))) == NULL)
 		memfail("verb table");
 	if ((i = fread(vbtab->id, sizeof(verb), verbs, ifp)) != verbs)
 		readfail("verb table", i, verbs);
 
 	/* 3, 5, 6 & 7: Read objects */
-	obtlen = fsize(objsfn);
-	desctlen = fsize(obdsfn);
-	ormtablen = fsize(objrmsfn);
-	statablen = fsize(statfn);
-	if ((p = AllocMem(obtlen + desctlen + ormtablen + statablen, MEMF_PUBLIC)) == NULL)
+	obtlen = fsize(Resources::Compiled::objData());
+	desctlen = fsize(Resources::Compiled::objDesc());
+	ormtablen = fsize(Resources::Compiled::objLoc());
+	statablen = fsize(Resources::Compiled::objState());
+	if ((p = OS::Allocate(obtlen + desctlen + ormtablen + statablen)) == NULL)
 		memfail("object data");
-	obtab = (struct obj *)readf(objsfn, p);
-	desctab = (char *)readf(obdsfn, (p = p + obtlen));
-	ormtab = (int32_t)readf(objrmsfn, (p = p + desctlen));
-	statab = (struct state *)readf(statfn, p + ormtablen);
+	obtab = (struct obj *)readf(Resources::Compiled::objData(), p);
+	desctab = (char *)readf(Resources::Compiled::objDesc(), (p = p + obtlen));
+	ormtab = (int32_t)readf(Resources::Compiled::objLoc(), (p = p + desctlen));
+	statab = (struct state *)readf(Resources::Compiled::objState(), p + ormtablen);
 
 	/* Update the object room list ptrs and the state ptrs */
 	statep = statab;
@@ -720,7 +720,7 @@ setup()
 
 	umsgil = fsize(umsgifn);
 	umsgl = fsize(umsgfn);
-	if ((p = AllocMem(umsgil + umsgl, MEMF_PUBLIC)) == NULL)
+	if ((p = OS::Allocate(umsgil + umsgl)) == NULL)
 		memfail("user messages");
 	umsgip = (int32_t *)readf(umsgifn, p);
 	umsgp = (char *)readf(umsgfn, p + umsgil);
@@ -754,7 +754,7 @@ setup()
 	stlen = fsize(lang2fn);
 	vtlen = fsize(lang3fn);
 	vtplen = fsize(lang4fn);
-	if ((p = AllocMem(stlen + vtlen + vtplen, MEMF_PUBLIC)) == NULL)
+	if ((p = OS::Allocate(stlen + vtlen + vtplen)) == NULL)
 		memfail("language data");
 	slottab = (struct _SLOTTAB *)readf(lang2fn, p);
 	vtp = (struct _VBTAB *)readf(lang3fn, p + stlen);
@@ -764,7 +764,7 @@ setup()
 	synlen = fsize(synsfn);
 	synilen = fsize(synsifn);
 	adtablen = fsize(adjfn);
-	if ((p = AllocMem(synlen + synilen + adtablen, MEMF_PUBLIC)) == NULL)
+	if ((p = OS::Allocate(synlen + synilen + adtablen)) == NULL)
 		memfail("synonym data");
 	synp = (char *)readf(synsfn, p);
 	synip = (short int *)readf(synsifn, (p = p + synlen));
@@ -833,45 +833,25 @@ readfail(char *s, int got, int wanted)
 void
 givebackmemory()
 {
-	if (usr)
-		FreeMem((char *)usr, UINFO);
-	if (rmtab)
-		FreeMem((char *)rmtab, sizeof(room) * rooms);
-	if (rktab)
-		FreeMem((char *)rktab, sizeof(rank) * ranks);
-	if (vbtab)
-		FreeMem((char *)vbtab, verbs * sizeof(verb));
-	if (obtab)
-		FreeMem((char *)obtab, obtlen + desctlen + ormtablen + statablen);
-	if (umsgip)
-		FreeMem((char *)umsgip, umsgil + umsgl);
-	if (ttp)
-		FreeMem((char *)ttp, ttlen);
-	if (ttpp)
-		FreeMem((char *)ttpp, ttplen);
-	if (slottab)
-		FreeMem((char *)slottab, stlen + vtlen + vtplen);
-	if (synp)
-		FreeMem((char *)synp, synlen + synilen + adtablen);
+	OS::Free(usr, UINFO);
+	OS::Free(rmtab, sizeof(room) * rooms);
+	OS::Free(rktab, sizeof(rank) * ranks);
+	OS::Free(vbtab, verbs * sizeof(verb));
+	OS::Free(obtab, obtlen + desctlen + ormtablen + statablen);
+	OS::Free(umsgip, umsgil + umsgl);
+	OS::Free(ttp, ttlen);
+	OS::Free(ttpp, ttplen);
+	OS::Free(slottab, stlen + vtlen + vtplen);
+	OS::Free(synp, synlen + synilen + adtablen);
 
 	lstat = NULL;
-	umsgip = NULL;
 	umsgp = NULL;
-	ttpp = NULL;
-	ttp = NULL;
-	vbtab = NULL;
-	slottab = NULL;
 	vtp = NULL;
 	vtpp = NULL;
 	adtab = NULL;
 	statab = NULL;
 	ormtab = NULL;
 	desctab = NULL;
-	obtab = NULL;
-	rktab = NULL;
-	rmtab = NULL;
-	usr = NULL;
-	rctab = NULL;
 	synp = NULL;
 	synip = NULL;
 }
@@ -927,7 +907,7 @@ xread(const char *s, int32_t *n, char *t)
 	*n = ftell(ifp);
 	fseek(ifp, 0, 0L);
 	if (*n != 0) {
-		if ((p = (char *)AllocMem(*n, MEMF_PUBLIC)) == NULL)
+		if ((p = (char *)OS::Allocate(*n)) == NULL)
 			memfail(t);
 		if ((i = fread(p, 1, *n, ifp)) != *n)
 			readfail(t, i, *n);
