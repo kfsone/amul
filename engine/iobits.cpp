@@ -34,7 +34,7 @@ loopit:
 		sys(RESETSTART);
 		if (MyFlag == ROLE_PLAYER) {
 			fopenr("reset.txt");
-			do /*  Print the Reset Text */
+			do //  Print the Reset Text
 			{
 				i = fread(block, 1, 800, ifp);
 				block[i] = 0;
@@ -92,7 +92,7 @@ loopit:
 	else
 		OS::Free((char *)ap, (int32_t)sizeof(*amul));
 	lockusr(Af);
-	/* Any messages we receive should wake us up. */
+	// Any messages we receive should wake us up.
 
 	if (me2->flags & PFASLEEP) {
 		cure(Af, SPELL_SLEEP);
@@ -112,7 +112,7 @@ loopit:
 				!(me2->flags & PFSPELL_INVISIBLE))
 				action(acp(SUMARRIVE), AOTHERS);
 		}
-		i = 0; /* wake in transit. */
+		i = 0; // wake in transit.
 		goto endlok;
 	}
 	if (t == MSG_DIE) {
@@ -124,7 +124,7 @@ loopit:
 		act(d, (int32_t *)&p[0]);
 	}
 	if (t == MSG_FORCE) {
-		if (d == 0) /* 0=forced, 1=follow */
+		if (d == 0) // 0=forced, 1=follow
 			txs("--+ You are forced to \"%s\" +--\n", input);
 		else {
 			sprintf(block, "You follow %s %s...\n", (usr + f)->name, input);
@@ -140,7 +140,7 @@ loopit:
 	}
 	if (t != MSG_MESSAGE)
 		goto endlok;
-wait: /* Lock my IO so I can read & clear my output buffer */
+wait: // Lock my IO so I can read & clear my output buffer
 loked:
 	addcr = YES;
 	tx(ob);
@@ -152,7 +152,7 @@ endlok:
 voila:
 	ip = 0;
 	SendIt(MSG_FREE, NULL, NULL);
-	goto loopit; /* Check for further messages */
+	goto loopit; // Check for further messages
 }
 
 void
@@ -192,7 +192,7 @@ lp:
 	goto lp;
 }
 
-int esc(const char *p, char *s) /* Find @ escape sequences */
+int esc(const char *p, char *s) // Find @ escape sequences
 {
 	char c;
 
@@ -329,12 +329,12 @@ int esc(const char *p, char *s) /* Find @ escape sequences */
 			timeto(s, *rescnt);
 			return 1;
 		}
-	case 'h': /* The person helping you */
+	case 'h': // The person helping you
 		if (c == 'e' && me2->helped != -1) {
 			strcpy(s, (usr + me2->helped)->name);
 			return 1;
 		}
-	case 'f': /* <friend> - person you are helping */
+	case 'f': // <friend> - person you are helping
 		if (c == 'r' && me2->helping != -1) {
 			strcpy(s, (usr + me2->helping)->name);
 			return 1;
@@ -527,7 +527,7 @@ txs(const char *format, const char *s)
 	tx(str);
 }
 
-/* Get to str, and max length l */
+// Get to str, and max length l
 void
 Inp(char *s, int l)
 {

@@ -5,16 +5,15 @@
 #include "h/amul.stct.h"
 
 extern "C++" {
-	#include "h/amul.vars.h"
+#include "h/amul.vars.h"
 }
 #include "constants.h"
 #include "variables.h"
 
 #include "h/amulcom.h"
 
+#include "amulcom.h"
 #include "context.h"
 #include "extras.h"
 #include "file_handling.h"
 #include "travel_functions.h"
-
-void checkdmoves();

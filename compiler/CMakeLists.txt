@@ -4,6 +4,7 @@ SET(AMUL_COMPILER_SOURCES
 
 	constants.cpp
 	context.cpp
+	extras.cpp
 	file_handling.cpp
 	travel_functions.cpp
 
@@ -31,6 +32,8 @@ SET(AMUL_COMPILER_HEADERS
 	variables.h
 
 	parsers/parsers.h
+
+	${AMUL_LIB_HEADERS}
 )
 
 include_directories(".")
@@ -38,9 +41,8 @@ add_compile_definitions(COMPILER=1)
 
 add_executable(
 	${AMUL_COMPILER_NAME}
+
 	${AMUL_COMPILER_SOURCES}
 	${AMUL_COMPILER_HEADERS}
-	${AMUL_LIB_HEADERS}
 )
-
-link_libraries($AMUL_COMPILER_NAME $AMUL_LIB_NAME)
+target_link_libraries(${AMUL_COMPILER_NAME} ${AMUL_LIB_NAME})

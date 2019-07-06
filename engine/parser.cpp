@@ -1,10 +1,10 @@
-/* The AMUL parser and VT processor */
+// The AMUL parser and VT processor
 
 #include "amulinc.h"
 
-void grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
+void grab() // Copy INPUT to BLOCK, taking one sentence at a time, etc
 {
-	char *s, *d, *p, c; /* Source & Destination */
+	char *s, *d, *p, c; // Source & Destination
 
 	s = input;
 	more = 10;
@@ -21,24 +21,24 @@ void grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
 	loop:
 		*d = 0;
 		while (isspace(*s))
-			s++; /* Skip spaces */
+			s++; // Skip spaces
 		if (*s == 0) {
 			*(s + 1) = 0;
 			goto proc;
 		}
 	quotes:
 		if (block[0] != 0)
-			*(d++) = ' '; /* Force spacing */
+			*(d++) = ' '; // Force spacing
 		if (*s == '\'' || *s == '\"') {
-			c = *(d++) = *(s++);	   /* Store which */
-			while (*s != c && *s != 0) /* Find match or \0 */
+			c = *(d++) = *(s++);	   // Store which
+			while (*s != c && *s != 0) // Find match or \0
 				*(d++) = *(s++);
 			if (*s == 0)
 				*(s + 1) = 0;
 			*(d++) = *(s++);
 			*d = 0;
 			if (*s != 0)
-				s++; /* Skip " or ' at end */
+				s++; // Skip " or ' at end
 			goto loop;
 		}
 
@@ -61,7 +61,7 @@ void grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
 			s++;
 		if (block[0] == 0)
 			continue;
-		/* Print the prompt & the line, if not first text */
+		// Print the prompt & the line, if not first text
 		if (more != 10) {
 			ans("3m");
 			tx((rktab + me->rank)->prompt);
@@ -80,7 +80,7 @@ parser()
 	char *p;
 	int   x, om;
 
-	om = more; /* We need to know if this is phrase one in a mo... */
+	om = more; // We need to know if this is phrase one in a mo...
 	more = 0;
 	if (strlen(block) == 0)
 		return;
@@ -126,7 +126,7 @@ phrase:
 	}
 	if ((word = isaverb(&p)) == -1) {
 		char *bp;
-		/*== If not a verb, then check for nouns. If they typed
+		/* If not a verb, then check for nouns. If they typed
 			> get NounA, NounB, NounC  then allow it.
 			 If they typed
 			> kiss PlayerA, NounA
@@ -162,7 +162,7 @@ phrase:
 	vbptr = vbtab + iverb;
 	wtype[0] = TC_VERB;
 
-	/* adjectives are optional, so assume next word is a noun */
+	// adjectives are optional, so assume next word is a noun
 l1:
 	if (*p == 0)
 		goto ended;
@@ -258,7 +258,7 @@ caloop:
 					m = 1;
 					continue;
 				}
-				/* We have a match, now see if its the same word! */
+				// We have a match, now see if its the same word!
 				if (stptr->slot[j] == TC_ANY)
 					continue;
 				switch (j) {
@@ -338,7 +338,7 @@ caloop:
 			break;
 	}
 	if (d > -1)
-		return 0; /* If we processed something... */
+		return 0; // If we processed something...
 
 	vbptr = vbtab + v;
 	if (!(vbptr->flags & VB_TRAVEL)) {

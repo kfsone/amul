@@ -2,13 +2,15 @@
 
 [[noreturn]] void quit();
 
-namespace AMUL::Logging {
-
+namespace AMUL::Logging
+{
 Logger &
 GetLogger()
 {
-	static Logger logger;
-	return logger;
+    static Logger logger;
+    return logger;
 }
+
+Logger::~Logger() {}
 
 }  // namespace AMUL::Logging

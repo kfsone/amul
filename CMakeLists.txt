@@ -19,4 +19,4 @@ ENDIF ()
 
 add_subdirectory(lib)
 add_subdirectory(compiler)
-add_subdirectory(engine)
+#add_subdirectory(engine)

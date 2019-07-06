@@ -1,6 +1,6 @@
 #include "amulinc.h"
 
-/* What to do when ^C pressed */
+// What to do when ^C pressed
 
 int
 CXBRK()
@@ -151,11 +151,11 @@ timeto(char *s, int32_t secs)
 {
 	int x, y;
 
-	if (secs >= 3600) /* More than an hour */
+	if (secs >= 3600) // More than an hour
 	{
-		x = secs / 3600;	   /* Hours */
-		y = secs - (x * 3600); /* Minutes & seconds */
-		if (y < 60)			   /* Upto 1 minute? */
+		x = secs / 3600;	   // Hours
+		y = secs - (x * 3600); // Minutes & seconds
+		if (y < 60)			   // Upto 1 minute?
 		{
 			sprintf(s, "%ld %s, %ld %s", x, (x > 1) ? "hours" : "hour", y,
 					(y > 1) ? "seconds" : "second");

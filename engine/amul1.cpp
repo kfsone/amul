@@ -42,9 +42,9 @@ parseCommandLine(int argc, const char *argv[])
 	}
 	if (argc > 1) {
 		switch (toupper(*(argv[1] + 1))) {
-		case 3: /* Daemon processor */ MyFlag = ROLE_DAEMON; break;
+		case 3: // Daemon processor MyFlag = ROLE_DAEMON; break;
 		case 4: MyFlag = ROLE_NPCS; break;
-		default: /* None specified */
+		default: // None specified
 		{
 			txs("\nInvalid parameter '%s'!\n", argv[1]);
 			quit();
@@ -86,7 +86,7 @@ match(const char *lhs, const char *rhs)
 	}
 }
 
-/* Main Program */
+// Main Program
 int
 main(int argc, char *argv[])
 {
@@ -121,14 +121,14 @@ main(int argc, char *argv[])
 	Am->mn_Length = sizeof(*amul);
 	Am->mn_Node.ln_Type = NT_MESSAGE;
 	Am->mn_ReplyPort = amanrep;
-	switch (MyFlag) /* What type of line? */
+	switch (MyFlag) // What type of line?
 	{
 	case ROLE_DAEMON: Af = MAXU; break;
 	case ROLE_NPCS: Af = MAXU + 1; break;
 	}
 	*amanp = *amul;
 	link = 1;
-	SendIt(MSG_CONNECT, -10, NULL); /* Go for a connection! */
+	SendIt(MSG_CONNECT, -10, NULL); // Go for a connection!
 	lstat = (struct LS *)Ad;
 	me2 = lstat + Af;
 	me2->IOlock = Af;
@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 		Amiga::Delay(40);
 		quit();
 	}
-	reset(); /* Read in data files */
+	reset(); // Read in data files
 	if (Af < 0) {
 		sys(NOSLOTS);
 		pressret();
@@ -157,18 +157,18 @@ main(int argc, char *argv[])
 	SendIt(MSG_FREE, NULL, NULL);
 	iocheck();
 
-	/* Special processors go HERE: */
+	// Special processors go HERE:
 
 	if (Af >= MAXU)
 		Special_Proc();
 
-	/* Clear room flags, and send scenario */
+	// Clear room flags, and send scenario
 	rset = (1 << Af);
 	rclr = -1 - rset;
 	for (i = 0; i < rooms; i++)
 		*(rctab + i) = (*(rctab + i) & rclr);
 
-	do /* Print the title */
+	do // Print the title
 	{
 		i = fread(block, 1, 900, ifp);
 		block[i] = 0;
@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 	fclose(ifp);
 	ifp = NULL;
 
-	getid(); /*  GET USERS INFO */
+	getid(); //  GET USERS INFO
 
 	processStatus(Af, "Player", me->name);
 
@@ -226,7 +226,7 @@ main(int argc, char *argv[])
 			goto gloop;
 	} while (exeunt == 0 && died == 0);
 
-quitgame: /* Quite the game, tidily. */
+quitgame: // Quite the game, tidily.
 	if (died == 0)
 		action(acp(EXITED), AGLOBAL);
 	else
@@ -240,6 +240,6 @@ quitgame: /* Quite the game, tidily. */
 		dropall(isroom(dmove));
 	else
 		dropall(me2->room);
-	LoseFollower(); /* Lose who ever is following us. */
+	LoseFollower(); // Lose who ever is following us.
 	quit();
 }

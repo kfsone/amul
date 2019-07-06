@@ -5,73 +5,80 @@
 
 #include "amulcom.includes.h"
 
+#include <functional>
+#include <string>
+
 using namespace AMUL::Logging;
 using namespace Compiler;
 
+std::string titleText;
+
 static int
-getno(const char *title)
+getNo(const char *prefix, const char *from)
 {
-	remspc(block);
-	if (!striplead(title, block)) {
-		GetLogger().errorf("Missing '%s' entry.", title);
-		return -1;
-	}
-	const char* p = getword(block);
-	strcpy(block, p);
-	if (!isdigit(Word[0])) {
-		GetLogger().errorf("Invalid '%s' entry.", title);
-		return -1;
-	}
-	return atoi(Word);
+    int result = 0;
+    if (sscanf(from, "%d", &result) != 1) {
+        GetLogger().fatalf("Invalid '%s' entry: %s", prefix, from);
+    }
+    return result;
 }
 
+const char *
+getBlock(const char *linetype, std::function<void(const char *prefix, const char *value)>)
+{
+    for (;;) {
+        if (fgets(block, 1000, ifp) == nullptr) {
+            GetLogger().fatalf("Invalid title.txt: Missing '%s' line", linetype);
+        }
+
+        repspc(block);
+        auto p = skipspc(block);
+        stripNewline(block);
+        if (!*p || isCommentChar(*p))
+            continue;
+
+        if (!skiplead(linetype, &p)) {
+            GetLogger().fatalf("Invalid title.txt: Expected '%s' got: %s", linetype, p);
+        }
+    }
+}
+
+void
+getBlockNo(const char *prefix, int *into)
+{
+    getBlock(prefix, [into](const char *prefix, const char *value) { *into = getNo(prefix, value); });
+}
 
 void
 title_proc()
 {
-	nextc(1);
-	fgets(block, 1000, ifp);
-	repspc(block);
-	remspc(block);
-	if (!striplead("name=", block)) {
-		tx("Invalid title.txt; missing 'name=' line!\n");
-		quit();
-	}
-	block[strlen(block) - 1] = 0; /* Remove \n */
-	if (strlen(block) > 40) {
-		block[40] = 0;
-		printf("Adventure name too long!            \nTruncated to %40s...\n", block);
-	}
-	strcpy(adname, block);
-	fgets(block, 1000, ifp);
-	repspc(block);
-	mins = getno("gametime=");
-	if (mins < 15) {
-		tx("!! Minimum game time of 15 minutes inforced!\n");
-		mins = 15;
-	}
+    nextc(1);
 
-	fgets(block, 1000, ifp);
-	repspc(block);
-	invis = getno("invisible=");
-	remspc(block);
-	getword(block);
-	if (!isdigit(Word[0])) {
-		GetLogger().error("Invalid rank for visible players to see invisible players/objects.");
-	} else
-		invis2 = atoi(Word);
+    getBlock("name=", [](const char *prefix, const char *value) {
+        strncpy(adname, value, sizeof(adname));
+        if (strlen(value) > sizeof(adname) - 1) {
+            GetLogger().warnf("Game name too long: truncated to %s", adname);
+        }
+    });
 
-	fgets(block, 1000, ifp);
-	repspc(block);
-	minsgo = getno("min sgo=");
+    getBlockNo("gametime=", &mins);
+    if (mins < 15) {
+        mins = 15;
+        GetLogger().warnf("gametime=%d too short: falling back to %d minutes", mins);
+    }
 
-	/*-* Get the Scaleing line. *-*/
-	fgets(block, 1000, ifp);
-	repspc(block);
-	rscale = getno("rankscale="); /* Process RankScale= */
-	tscale = getno("timescale="); /* Process TimeScale= */
+    getBlockNo("invisible=", &invis);
 
-	readgot = ftell(ifp);
+	getBlockNo("min sgo=", &minsgo);
 
-	GetContext().terminateOnErrors();
+    // Get the Scaleing lines.
+    getBlockNo("rankscale=", &rscale);
+    getBlockNo("timescale=", &tscale);
+
+    // Read the rest of the text into "titleText";
+    while (fread(block, sizeof(block), 1, ifp) == sizeof(block)) {
+        titleText += block;
+    }
+
+    GetContext().terminateOnErrors();
 }

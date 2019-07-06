@@ -22,31 +22,6 @@ _striplead		; strip text (a0) from text
 .end	moveq	#0,d0
 	rts
 
-_com
-	move.l	4(sp),a0
-com			; m/c entry point
-	tst.b	(a0)			; Empty string?
-	beq.s	.zed
-	cmp.b	#13,(a0)		; Blank line?
-	beq.s	.zed
-	cmp.b	#-1,(a0)		; EOF?
-	beq.s	.zed
-	cmp.b	#';',(a0)
-	beq.s	.neg
-	cmp.b	#'*',(a0)
-	bne.s	.zed
-	move.l	a0,-(sp)
-	lea	rev,a0
-	bsr.s	tx
-	bsr.s	_tx
-	lea	revof,a0
-	bsr.s	tx
-	move.l	(sp)+,a0
-.neg	moveq	#-1,d0
-	rts
-.zed	moveq	#0,d0
-	rts
-
 _remspc			; Chop leading spaces from (a0)
 	move.l	4(sp),a0
 remspc			; m/c entry point
@@ -91,30 +66,6 @@ getword			; m/c entry point
 .ret	move.l	a0,d0			; return end of string ptr
 	move.b	#0,(a1)
 	subq.l	#1,d0
-	rts
-
-newline
-	tst.b	(a0)			; EOS?
-	beq.s	.ret
-	cmp.b	#10,(a0)+		; RETURN?
-	bne.s	newline
-.ret	bra.s	sgetl
-
-_sgetl			; Get string from (a0) to (a1)
-	move.l	4(sp),a0		; Get FROM
-	move.l	8(sp),a1		; Get TO
-	cmp.b	#';',(a0)		; comment line?
-	beq.s	newline			; yes -> next line
-	cmp.b	#'*',(a0)		; comment line?
-	beq.s	newline
-	move.b	#0,(a1)
-sgetl			; M/C entry point
-	move.b	(a0)+,(a1)		; Copy
-	beq.s	.rts			; End of string?
-	cmp.b	#10,(a1)+		; Carriage return? (blank line)
-	bne.s	sgetl
-.crlf	clr.b	-1(a1)
-.rts	move.l	a0,d0			; Return (char *) a0
 	rts
 
 rev	dc.b	27,"[3m",0

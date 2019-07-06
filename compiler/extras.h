@@ -4,99 +4,89 @@
 #include <cctype>
 #include <cstdio>
 
+const char *sgetl(const char *from, char *to) noexcept;
+bool        stripNewline(char *text) noexcept;
+const char *getword(const char *from) noexcept;
+
 static constexpr int
-bitset(int bitNo)
+bitset(int bitNo) noexcept
 {
-	return 1 << bitNo;
+    return 1 << bitNo;
 }
 
 static inline void
-tx(const char *s)
+repspc(char *s) noexcept
 {
-	printf("%s", s);
-}
-
-static inline void
-repspc(char *s)
-{
-	while (*s) {
-		if (*s == '\t')
-			*s = ' ';
-		++s;
-	}
+    while (*s) {
+        if (*s == '\t')
+            *s = ' ';
+        ++s;
+    }
 }
 
 static const char *
-skipspc(const char *s)
+skipspc(const char *s) noexcept
 {
-	while (isspace(*s)) {
-		++s;
-	}
-	return s;
+    while (*s && isspace(*s)) {
+        ++s;
+    }
+    return s;
 }
 
 static const char *
-skipline(const char *s)
+skipline(const char *s) noexcept
 {
-	while (*s && *s != '\n')
-		++s;
-	return s;
+    while (*s && *s != '\n')
+        ++s;
+    return s;
 }
 
 static const char *
-skiplead(const char *lead, const char *from)
+skiplead(const char *lead, const char *from) noexcept
 {
-	const char *beginning = from;
-	while (*from) {
-		if (tolower(*from) != tolower(*lead))
-			return beginning;
-		++lead, ++from;
-	}
-	return from;
+    const char *beginning = from;
+    while (*from) {
+        if (tolower(*from) != tolower(*lead))
+            return beginning;
+        ++lead, ++from;
+    }
+    return from;
 }
 
 static bool
-striplead(const char *lead, char *from)
+skiplead(const char *lead, const char **from) noexcept
 {
-	const char *following = skiplead(lead, from);
-	if (following == from) {
-		return false;
-	}
-	while (*following) {
-		*(from++) = *(following++);
-	}
-	return true;
+    const char *origin = *from;
+    *from = skiplead(lead, *from);
+    return (*from != origin);
 }
 
-const char *
-getword(const char *from)
+static bool
+striplead(const char *lead, char *from) noexcept
 {
-	char *to = Word;
-	*to = 0;
-	from = skipspc(from);
-	for (auto end = Word + sizeof(Word) - 1; to < end; ++to, ++from) {
-		char c = *to = tolower(*from);
-		if (c == ' ' || c == '\t') {
-			c = *to = 0;
-		}
-		if (c == 0) {
-			goto broke;
-		}
-	}
+    const char *following = skiplead(lead, from);
+    if (following == from) {
+        return false;
+    }
+    while (*following) {
+        *(from++) = *(following++);
+    }
+    return true;
+}
 
-	// overflowed 'Word', add a trailing '\0' and drain remaining characters.
-	*to = 0;
-	for (;;) {
-		switch (*from) {
-		case 0:
-		case ';':
-		case '*':
-		case ' ':
-		case '\t': goto broke;
-		default: ++from;
-		}
-	}
+template <size_t Size>
+static void
+nulTerminate(char (&text)[Size]) noexcept
+{
+    text[Size - 1] = 0;
+}
 
-broke:
-	return from;
+template <typename CharT>
+static CharT *
+strstop(CharT *in, char stop)
+{
+    while (*in && *in != stop) {
+        ++in;
+    }
+    return in;
 }

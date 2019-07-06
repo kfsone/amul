@@ -1,18 +1,18 @@
-/* Daemon processing functions */
+// Daemon processing functions
 
 #include "amulinc.h"
 
-int32_t minop; /* Mobiles in operation */
+int32_t minop; // Mobiles in operation
 
-/* Daemon processing host */
+// Daemon processing host
 void
 Daem_Proc()
 {
 	int32_t lastt;
 	int		i, ded, next;
 
-	/* Setup Mobile bits & pieces */
-	/* Whats the highest travel verb number? */
+	// Setup Mobile bits & pieces
+	// Whats the highest travel verb number?
 	for (i = 0; i < verbs; i++)
 		if (!(vbptr->flags & VB_TRAVEL))
 			lastt = i;
@@ -23,7 +23,7 @@ Daem_Proc()
 	} while (1 == 1);
 }
 
-/* Special Processor core */
+// Special Processor core
 void
 Special_Proc()
 {
@@ -35,26 +35,26 @@ Special_Proc()
 	wtype[0] = wtype[1] = wtype[2] = wtype[3] = wtype[4] = wtype[5] = TC_NONE;
 	iverb = iadj1 = inoun1 = iprep = iadj2 = inoun2 = -1;
 	actor = last_him = last_her = it = -1;
-	switch (MyFlag) /* What type of processor ? */
+	switch (MyFlag) // What type of processor ?
 	{
-	case ROLE_DAEMON: /* Execute the boot-up daemon */
+	case ROLE_DAEMON: // Execute the boot-up daemon
 		if ((i = isverb("\"boot")) != -1)
 			lang_proc(i, 0);
-		Daem_Proc(); /* Daemon Processor */
+		Daem_Proc(); // Daemon Processor
 	case ROLE_NPCS: printf("-- Mobile processor loaded\n");
 	default: printf("-- Unsupported special processor requested\n");
 	}
-	quit(); /* Don't go anywhere */
+	quit(); // Don't go anywhere
 }
 
-/* Begin PRIVATE daemon */
+// Begin PRIVATE daemon
 void
 dpstart(int d, int c)
 {
 	dstart(d, c, MSG_DAEMON_START);
 }
 
-/* Begin GLOBAL daemon */
+// Begin GLOBAL daemon
 void
 dgstart(int d, int c)
 {
@@ -90,11 +90,11 @@ dstart(int d, int c, int t)
 		Apx2 = inoun2;
 		Apx3 = wtype[2];
 		Apx4 = wtype[5];
-		SendIt(t, d, (char *)c); /* Inform AMAN... */
+		SendIt(t, d, (char *)c); // Inform AMAN...
 	}
 }
 
-/* Force daemon to happen */
+// Force daemon to happen
 void
 dbegin(int d)
 {}
@@ -111,11 +111,11 @@ dshow(int d)
 	tx(block);
 }
 
-/* Send a daemon */
+// Send a daemon
 void
 dsend(int p, int d, int c)
 {
 	if (p == Af)
 		dpstart(d, c);
-	sendex(p, ASTART, d, c, 0, 0); /* Tell THEM to start the daemon */
+	sendex(p, ASTART, d, c, 0, 0); // Tell THEM to start the daemon
 }

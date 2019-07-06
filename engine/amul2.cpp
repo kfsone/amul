@@ -63,8 +63,8 @@ reset()
 	SendIt(MSG_DATA_REQUEST, 0, dir); // Get basic data 
 
 	fopenr(Resources::Compiled::gameProfile());
-	fgets(adname, 41, ifp);
-	adname[strlen(adname) - 1] = 0;
+	fgets(adname, sizeof(adname), ifp);
+    nulTerminate(adname);
 	fscanf(ifp, "%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld", &rooms,
 		   &ranks, &verbs, &syns, &nouns, &adjs, &ttents, &umsgs, &word, &mins, &invis, &invis2,
 		   &minsgo, &mobs, &rscale, &tscale, &mobchars);

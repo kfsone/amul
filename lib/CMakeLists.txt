@@ -1,12 +1,14 @@
 SET(AMUL_LIB_SOURCES
-	amigastubs.cpp
-	logging.cpp
-	os.cpp
+	./amigastubs.cpp
+	./constants.cpp
+	./logging.cpp
+	./os.cpp
+	./variables.cpp
 )
 
 SET(AMUL_LIB_HEADERS
-	h/amul.acts.h
 	h/amigastubs.h
+	h/amul.acts.h
 	h/amul.cons.h
 	h/amul.defs.h
 	h/amul.incs.h
@@ -20,5 +22,6 @@ SET(AMUL_LIB_HEADERS
 
 ADD_LIBRARY(
 	${AMUL_LIB_NAME}
+	STATIC
 	${AMUL_LIB_SOURCES}
 )
