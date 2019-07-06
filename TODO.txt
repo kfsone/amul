@@ -2,4 +2,8 @@ TODO:
 
 - Replace <type>OS::Allocate(sizeof(type) * number) with a cleaner allocate
 	template<typename T> OS::AllocateArray(count)
-
+- Match changed flag names, e.g. dmove -> cemetery
+- normalize case usage, do_thing -> doThing, isroom -> isRoom
+- situate prototypes
+- remove default-ansi encoding
+- replace checkf with stat/access checks
