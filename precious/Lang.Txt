@@ -24,7 +24,7 @@
 ; --------------------------- Special Verbs! ------------------------------- ;
 ;
 ; Verbs which perform special functions (note - "start is at the end of the
-; file, because it requires several Daemons...
+; file, because it requires several Daemons...)
 
 "travel			; Check if player can move before processing TT..
 syntax=verb any
@@ -257,17 +257,17 @@ syntax=verb any
 	quit
 
 
-verb=look	; look around (or at something)
-syntax=verb any		* Blind players can't look at anything!
+verb=look			; look around (or at something)
+syntax=verb any		; Blind players can't look at anything!
 	infl me blind error YourBlind
-syntax=verb none	* "look" on its own describes current room
+syntax=verb none	; "look" on its own describes current room
 	-> look			; call 'look' and then endparse.
-syntax=verb noun=wall	* It's different to others!
+syntax=verb noun=wall	; It's different to others!
 	inroom tvroom respond ExamWPaper
 	inroom store respond NoWallEre
 	inroom limbo respond NoWallEre
 	inroom heaven respond NoWallEre
-syntax=verb noun	* Looking AT something!
+syntax=verb noun	; Looking AT something!
 	noun1 all error NoAllYet
 	noun1 breeze respond CantExam	; Can't examine a breeze!
 	checknear noun			; gotta be near the thing
