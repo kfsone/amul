@@ -348,7 +348,7 @@ lang_proc()
             break;
         case TC_ROOM: s = isroom(Word); break;
         case TC_SYN: printf("!! Syn's not supported at this time!\n"); s = TC_ANY;
-        case TC_TEXT: s = chkumsg(Word); break;
+        case TC_TEXT: s = isumsg(Word); break;
         case TC_VERB: s = is_verb(Word); break;
         case TC_CLASS: s = TC_ANY;
         case WC_NUMBER:

@@ -9,15 +9,17 @@
 
 #include "amulcom.includes.h"
 
+#include <string>
+
 using namespace AMUL::Logging;
 using namespace Compiler;
+
+void registerMessageId(std::string id);
 
 void
 smsg_proc()
 {
     const char *s;
-    int32_t     id;
-    int32_t     pos;
 
     smsgs = 0;
 
@@ -54,14 +56,17 @@ smsg_proc()
             printf("\x07\n\n!! Too many System Messages, only require %ld!\n\n", NSMSGS);
             quit();
         }
-        id = ++smsgs;  // Now copy the text across
-        pos = ftell(ofp2);
-        fwrite((char *)&pos, 4, 1, ofp1);
+
+        registerMessageId(Word);
+
+        umsgoff_t pos = ftell(ofp2);
+        fwrite(&pos, sizeof(pos), 1, ofp1);
+
         do {
             while (isCommentChar(*s))
                 s = skipline(s);
             if (isLineEnding(*s)) {
-                s = "";			// to break the while loops
+                s = "";  // to break the while loops
                 break;
             }
             if (*s == 9)
@@ -80,7 +85,10 @@ smsg_proc()
                 strcat(block + (pos++) - 1, "\n");
             fwrite(block, 1, pos, ofp2);
         } while (*s != 0 && block[0] != 0);
-        fputc(0, ofp2);
+
+		fputc(0, ofp2);
+
+        ++smsgs;  // Now copy the text across
     } while (*s != 0);
     close_ofps();
 

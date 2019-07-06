@@ -2,30 +2,35 @@
 
 #include "amulcom.includes.h"
 
+#include <string>
+#include <unordered_map>
+
 using namespace AMUL::Logging;
 using namespace Compiler;
 
-struct UMSG {
-    char    id[IDL + 1];
-    int32_t fpos;
-};
+static std::unordered_map<std::string, int32_t> umsgIDs;
+
+void
+registerMessageId(std::string id)
+{
+    if (id[0] != '$')
+        std::transform(id.cbegin(), id.cend(), id.begin(), ::tolower);
+    int32_t msgNo = (int32_t)umsgIDs.size();
+    umsgIDs[id] = msgNo;
+}
 
 bool
 umsg_proc()
 {
-    UMSG umsg{};
-
     umsgs = 0;
-    OS::CreateFile("umsg.tmp");
     fopena(Resources::Compiled::umsgIndex());
     ofp1 = afp;
     afp = NULL;
-    fseek(ofp1, 0, 2L);
+    fseek(ofp1, 0, SEEK_END);
     fopena(Resources::Compiled::umsgData());
     ofp2 = afp;
     afp = NULL;
-    fseek(ofp2, 0, 2L);
-    fopena("umsg.tmp");
+    fseek(ofp2, 0, SEEK_END);
     if (nextc(0) == -1) {
         close_ofps();
         return false;
@@ -35,7 +40,6 @@ umsg_proc()
     const char *s = data;
 
     do {
-    loop:
         do
             s = sgetl(s, block);
         while (isCommentChar(block[0]) && *s != 0);
@@ -43,27 +47,29 @@ umsg_proc()
             break;
         tidy(block);
         if (block[0] == 0)
-            goto loop;
+            continue;
         striplead("msgid=", block);
         getword(block);
         if (Word[0] == 0)
-            goto loop;
+            continue;
 
         if (Word[0] == '$') {
             GetLogger().errorf("Invalid ID: %s: '$' is reserved for System Messages", Word);
             skipblock();
-            goto loop;
+            continue;
         }
         if (strlen(Word) > IDL) {
             GetLogger().errorf("Invalid ID: %s: too long", Word);
             skipblock();
-            goto loop;
+            continue;
         }
-        umsgs++;  // Now copy the text across
-        strcpy(umsg.id, Word);
-        umsg.fpos = ftell(ofp2);
-        fwrite(umsg.id, sizeof(umsg), 1, afp);
-        fwrite((char *)&umsg.fpos, 4, 1, ofp1);
+
+        // write index
+        umsgoff_t fpos = ftell(ofp2);
+        fwrite(&fpos, sizeof(fpos), 1, ofp1);
+
+        registerMessageId(Word);
+
         do {
             while (isCommentChar(*s))
                 s = skipline(s);
@@ -80,14 +86,16 @@ umsg_proc()
             s = sgetl(s, block);
             if (block[0] == 0)
                 break;
-            umsg.fpos = (int32_t)strlen(block);
-            if (block[umsg.fpos - 1] == '{')
-                block[--umsg.fpos] = 0;
+            umsgoff_t umsglen = strlen(block);
+            if (block[umsglen - 1] == '{')
+                block[--umsglen] = 0;
             else
-                strcat(block + (umsg.fpos++) - 1, "\n");
-            fwrite(block, 1, umsg.fpos, ofp2);
+                strcat(block + (umsglen++) - 1, "\n");
+            fwrite(block, 1, umsglen, ofp2);
         } while (*s != 0 && block[0] != 0);
+
         fputc(0, ofp2);
+        umsgs++;
     } while (*s != 0);
     close_ofps();
 
@@ -100,27 +108,22 @@ umsg_proc()
 
 // Check FP for umsg id!
 int
-isumsg(const char *s, FILE *fp)
+isumsg(const char *str)
 {
-    int i;
-
-    if (*s == '$') {
-        i = atoi(s + 1);
+    if (*str == '$') {
+        int i = atoi(str + 1);
         if (i < 1 || i > NSMSGS) {
-            GetLogger().errorf("Invalid System Message ID: %s", s);
+            GetLogger().errorf("Invalid System Message ID: %s", str);
             return -1;
         }
         return i - 1;
     }
     if (umsgs == 0)
         return -1;
-    fseek(fp, 0, 0L);  // Rewind file
-    for (i = 0; i < umsgs; i++) {
-        UMSG umsg;
-        fread(umsg.id, sizeof(umsg), 1, fp);
-        if (stricmp(umsg.id, s) == NULL)
-            return i + NSMSGS;
-    }
+    std::string id{};
+    std::transform(str, str + strlen(str), id.begin(), ::tolower);
+    if (auto match = umsgIDs.find(id); match != umsgIDs.end())
+        return match->second;
     return -1;
 }
 
@@ -129,7 +132,7 @@ msgline(const char *s)
 {
     int32_t pos;
     char    c;
-    FILE* fp = afp;
+    FILE *  fp = afp;
     afp = NULL;
     fopena(Resources::Compiled::umsgData());
     fseek(afp, 0, 2L);
@@ -157,23 +160,5 @@ ttumsgchk(const char *s)
     s = skipspc(s);
     if (*s == '\"' || *s == '\'')
         return msgline(s + 1);
-    return chkumsg(s);
+    return isumsg(s);
 }
-
-int
-chkumsg(const char *s)
-{
-    int   r;
-    FILE *fp;
-
-    if (*s != '$' && umsgs == 0)
-        return -1;
-
-    if ((fp = fopen("umsg.tmp", "rb+")) == NULL) {
-        GetLogger().fatalf("Unable to access umsg.tmp");
-    }
-    r = isumsg(s, fp);
-    fclose(fp);
-    return r;
-}
-

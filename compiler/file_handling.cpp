@@ -38,10 +38,8 @@ nextc(int f)
     do {
         while ((c = fgetc(ifp)) != EOF && isspace(c))
             ;
-        if (c == ';' || c == '*')
+        if (isCommentChar(c))
             fgets(block, 1024, ifp);
-        if (c == '*')
-            printf("[3m*%s[0m", block);  // Print cmts
     } while (c != EOF && (c == '*' || c == ';' || isspace(c)));
     if (f == 1 && c == EOF) {
         printf("\nFile contains NO data!\n\n");
@@ -61,7 +59,6 @@ quit()
         unlink(block);
     }
     unlink("ODIDs.tmp");
-    unlink("umsg.tmp");
     unlink("objh.tmp");
     OS::Free(mobdat, moblen);
     OS::Free(mobp, sizeof(mob) * mobchars);

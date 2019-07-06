@@ -23,4 +23,5 @@
 #include "h/os.h"
 
 #include "h/amul.defs.h"
+#include "h/amul.types.h"
 #include "h/amul.stct.h"  // AMUL Structures

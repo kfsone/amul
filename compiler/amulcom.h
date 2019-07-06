@@ -9,7 +9,7 @@ int  iscont(const char *name);
 int  isloc(const char *name);
 int  isprep(const char *s);
 int  ttumsgchk(const char *s);
-int  chkumsg(const char *s);
+int  isumsg(const char *s);
 void set_adj();
 void object(const char *s);
 void set_start();
