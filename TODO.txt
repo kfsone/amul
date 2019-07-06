@@ -1,0 +1,5 @@
+TODO:
+
+- Replace <type>OS::Allocate(sizeof(type) * number) with a cleaner allocate
+	template<typename T> OS::AllocateArray(count)
+
