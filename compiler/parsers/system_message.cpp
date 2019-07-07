@@ -55,7 +55,7 @@ smsg_proc()
             valid = false;
         } else {
             auto msgId = atoi(Word + 1);
-            if (msgId < 1 || msgId >= NSMSGS) {
+            if (msgId < 1 || msgId > NSMSGS) {
                 GetLogger().errorf("Invalid sysmsg id (out of range): %s", Word);
                 valid = false;
             } else if (registered.find(msgId) != registered.end()) {
