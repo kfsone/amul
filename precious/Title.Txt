@@ -12,7 +12,7 @@
 ; subject  to  change  without notice.  No responsibility is assumed for the
 ; use or reliability of this software.
 
-* Adventure name is "Precious Days"
+; Adventure name is "Precious Days"
 ; Standard 'game' time is 80 minutes (period between resets)
 ; Players of rank 10-12 can see invisible players when they are _invisible_
 ; Players of rank 11/12 can see invisible players when they are _visible_
