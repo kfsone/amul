@@ -187,8 +187,8 @@ lp:
 	if ((*p = *(s++)) == '@' && esc(s, p) != 0) {
 		p += strlen(p);
 		s += 2;
-	} else if (*(p++) == '\n')
-		*(p++) = '\r';
+	}
+	p++;
 	goto lp;
 }
 
@@ -446,10 +446,6 @@ tx(const char *s)
 				ls = s;
 				lp = p;
 			}
-			if (*s == '\r') {
-				s++;
-				continue;
-			}
 			*(p++) = *(s++);
 			i++;
 		} while (*s != 0 && *s != '\n' && (me->llen < 8 || i < (me->llen - 1)) && *s != 12);
@@ -507,7 +503,6 @@ txc(char c)
 {
 	putchar(c);
 	if (c == '\n') {
-		txc('\r');
 		needcr = NO;
 	} else
 		needcr = YES;

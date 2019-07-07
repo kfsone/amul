@@ -15,11 +15,13 @@ void              opentxt(const char *s);
 void              skipblock();
 void              tidy(char *s);
 int               is_verb(const char *s);
-struct Buffer final {
+struct Buffer     final {
+    Buffer() {}
+    Buffer(size_t offset) { open(offset); }
     ~Buffer();
+    void   open(size_t offset);
     void   free();
-    size_t m_size;
-    void * m_data;
+    size_t m_size{0};
+    void * m_data{nullptr};
 };
-Buffer  blkget(int32_t off);
 int32_t filesize();

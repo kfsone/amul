@@ -185,7 +185,7 @@ objs_proc()
         close_ofps();
         return;
     }  // Nothing to process
-    objBuffer = blkget(32 * sizeof(obj2));
+    objBuffer.open(32 * sizeof(obj2));
     obtab2 = static_cast<_OBJ_STRUCT2*>(objBuffer.m_data);
     objtab2 = obtab2 + 32;
 

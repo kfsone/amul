@@ -1,6 +1,8 @@
 #include "amulcom.includes.h"
 #include "h/amul.vars.h"
 
+#include <string>
+
 using namespace AMUL::Logging;
 using namespace Compiler;
 
@@ -11,6 +13,8 @@ extern FILE *ofp3;
 extern FILE *ofp4;
 extern FILE *ofp5;
 extern FILE *afp;
+
+extern Buffer verbBuffer, mobBuffer, objBuffer;
 
 void
 close_ofps()
@@ -49,19 +53,6 @@ nextc(int f)
         return -1;
     fseek(ifp, -1, 1);  // Move back 1 char
     return 0;
-}
-
-extern Buffer verbBuffer, mobBuffer, objBuffer;
-
-Buffer::~Buffer() { this->free(); }
-
-void
-Buffer::free()
-{
-    if (m_data) {
-        OS::Free(m_data, m_size);
-        m_data = nullptr;
-	}
 }
 
 void
@@ -164,23 +155,25 @@ ttroomupdate()
 }
 
 void
-opentxt(const char *s)
+opentxt(const char *filename)
 {
-    sprintf(block, "%s%s.TXT", dir, s);
-    if ((ifp = fopen(block, "rb")) == NULL) {
-        printf("[33;1m !! Missing file %s !! [0m\n\n", block);
-        exit(202);
+    // One a source file (.txt) for reading, and because it's a text file,
+    // open it in non-binary mode so that the OS will potentially do eol
+    // conversion for us.
+    std::string filepath = dir;
+    filepath += filename;
+    filepath += ".txt";
+    ifp = fopen(filepath.c_str(), "r");
+    if (!ifp) {
+        GetLogger().fatalf("Unable to open file: %s", filepath.c_str());
     }
 }
 
 void
 skipblock()
 {
-    char c, lc;
-
-    lc = 0;
-    c = '\n';
-    while (c != EOF && !(c == lc && c == '\n')) {
+    char c{'\n'}, lc{0};
+    while (c != EOF && !(c == lc && isEol(c))) {
         lc = c;
         c = fgetc(ifp);
     }
@@ -223,20 +216,39 @@ is_verb(const char *s)
     return -1;
 }
 
-Buffer
-blkget(int32_t off)
-{
-    auto   size = filesize();
-    Buffer buf{size + off + 1, nullptr};
-    buf.m_data = OS::AllocateClear(buf.m_size);
-    if (!buf.m_data) {
-        GetLogger().fatalf("Out of memory (requested %zu bytes)", buf.m_size);
-    }
-    if (auto bytes = fread(static_cast<char *>(buf.m_data) + off, 1, size, ifp); bytes != size) {
-        GetLogger().fatalf("I/O Error: expected %d, got %d", size, bytes);
-    }
+#include <cassert>
 
-    return buf;
+void
+Buffer::open(size_t offset)
+{
+    auto size = filesize();
+    // add nul-terminator and round to page size
+    m_size = (size + offset + 1 + 4095) & ~4095;
+    if (offset > 0)
+        m_data = OS::AllocateClear(m_size);
+    else
+        m_data = OS::Allocate(m_size);
+    if (!m_data) {
+        GetLogger().fatalf("Out of memory (requested %zu bytes)", m_size);
+    }
+    auto into = static_cast<char *>(m_data) + offset;
+    /// TODO: What if we needed *more* space?
+    auto bytes = fread(into, 1, size, ifp);
+    // fread does not add a trailing zero, and in-case character conversions
+    // were done in-place, we need to add one so that we don't inadvertantly
+    // see left-over characters from the conversion.
+    into[bytes] = '\0';
+}
+
+Buffer::~Buffer() { this->free(); }
+
+void
+Buffer::free()
+{
+    if (m_data) {
+        OS::Free(m_data, m_size);
+        m_data = nullptr;
+    }
 }
 
 // Return size of current file

@@ -89,7 +89,7 @@ skipOptionalPrefixes(const char *p)
         p = skipspc(p);
         if (isLineEnding(*p))
             return p;
-        const char *nextWord = strpbrk(p, " \r\n;");
+        const char *nextWord = strpbrk(p, " \n;");
         if (!nextWord)
             nextWord = p + strlen(p);
         if (optionalPrefixes.find(std::string(p, nextWord)) == optionalPrefixes.end())

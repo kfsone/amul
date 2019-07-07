@@ -19,7 +19,7 @@ vbprob(const char *error, const char *input)
     GetLogger().error(error);
 }
 
-Buffer verbBuffer{};
+Buffer verbBuffer;
 
 // From and To
 int
@@ -199,7 +199,7 @@ lang_proc()
     // data. Messy and awful.
 
     // Load the entire file into memory
-    verbBuffer = blkget(64 * (sizeof(verb)));
+    verbBuffer.open(64 * (sizeof(verb)));
     vbtab = static_cast<_VERB_STRUCT*>(verbBuffer.m_data);
     vbptr = vbtab + 64;
     cursor = (char *)vbptr;

@@ -69,7 +69,7 @@ mob_proc1()
     if (nextc(0) == -1)
         return;
 
-    mobBuffer = blkget(0L);
+    mobBuffer.open(0L);
     mobdat = static_cast<char*>(mobBuffer.m_data);
     p = mobdat;
     repspc(mobdat);

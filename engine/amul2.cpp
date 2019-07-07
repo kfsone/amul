@@ -1386,7 +1386,7 @@ log(const char *s)
 	ioproc(s);
 	char *p = ow;
 	while (*p != 0) {
-		if (*p == '\n' || *p == '\r') {
+		if (*p == '\n') {
 			*p = ' ';
 		}
 		++p;

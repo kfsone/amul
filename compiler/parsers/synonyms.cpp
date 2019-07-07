@@ -19,7 +19,7 @@ syn_proc()
     fopenw(Resources::Compiled::synonymData());
     fopenw(Resources::Compiled::synonymIndex());
 
-	Buffer synBuffer = blkget(0L);
+	Buffer synBuffer{0L};
     s = static_cast<const char*>(synBuffer.m_data);
 
     do {

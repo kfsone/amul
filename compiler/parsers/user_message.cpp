@@ -36,7 +36,7 @@ umsg_proc()
         return false;
     }  // None to process
 
-	Buffer umsgBuffer = blkget(0L);
+	Buffer      umsgBuffer{0};
     const char *s = static_cast<const char*>(umsgBuffer.m_data);
 
     do {

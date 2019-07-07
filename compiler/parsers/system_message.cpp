@@ -20,19 +20,18 @@ void registerMessageId(std::string id);
 void
 smsg_proc()
 {
-    const char *s;
+    std::unordered_set<int> registered{};
+    const char *            s;
 
     if (nextc(0) == -1) {
         GetLogger().fatalf("Empty system messages file.");
-	}
+    }
 
     fopenw(Resources::Compiled::umsgIndex());
     fopenw(Resources::Compiled::umsgData());
 
-	Buffer smsgBuffer = blkget(0L);
-    s = static_cast<const char*>(smsgBuffer.m_data);
-
-    std::unordered_set<int> registered;
+    Buffer smsgBuffer{0};
+    s = static_cast<const char *>(smsgBuffer.m_data);
 
     do {
         GetContext().checkErrorCount();
@@ -40,6 +39,8 @@ smsg_proc()
         do {
             s = extractLine(s, block);
         } while (isCommentChar(block[0]));
+        if (block[0] == 0)
+            continue;
 
         tidy(block);
         if (block[0] == 0)
@@ -79,12 +80,8 @@ smsg_proc()
             if (isLineEnding(*s)) {
                 break;
             }
-            if (*s == 9)
+            if (*s == '\t')
                 s++;
-            if (*s == 13) {
-                block[0] = 13;
-                continue;
-            }
             s = extractLine(s, block);
             if (block[0] == 0)
                 break;
@@ -100,12 +97,10 @@ smsg_proc()
     } while (*s != 0);
     close_ofps();
 
-	smsgBuffer.free();
+    smsgBuffer.free();
 
-	// Validate that we have all the system messages
+    // Validate that we have all the system messages
     if (registered.size() != NSMSGS) {
-        std::string missing{};
-        int         missed = 0;
         for (int i = 1; i < NSMSGS; ++i) {
             if (registered.find(i) == registered.end()) {
                 GetLogger().fatalf(
@@ -113,4 +108,6 @@ smsg_proc()
             }
         }
     }
+
+	GetContext().terminateOnErrors();
 }
