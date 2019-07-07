@@ -18,15 +18,14 @@ badmobend()
     return -1;
 }
 
-const char *px;
-
 // Fetch mobile message line
 int
-getmobmsg(char *s)
+getmobmsg(char *s, const char** p)
 {
     const char *q;
     int   n;
 
+	const char *&px = *p;
 loop:
     while (isCommentChar(*px)) {
         px = skipline(px);
@@ -60,7 +59,7 @@ loop:
 void
 mob_proc1()
 {
-    const char *  p, *s1, *s2;
+    const char *  p, *cur;
     int32_t n;
 
     mobchars = 0;
@@ -79,111 +78,109 @@ mob_proc1()
             break;
         p = extractLine(p, block);
         mobchars++;
-        s1 = getword(block + 1);
+        cur = getword(block + 1);
         strcpy(mob.id, Word);
         do {
-            s1 = skipspc(s1);
-            if (*s1 == 0 || *s1 == ';')
+            cur = skipspc(cur);
+            if (isLineBreak(*cur))
                 break;
-            if ((s2 = skiplead("dead=", s1)) != s1) {
-                s1 = getword(s2);
+            if (skiplead("dead=", &cur)) {
+                cur = getword(cur);
                 mob.dead = atoi(Word);
                 continue;
             }
-            if ((s2 = skiplead("dmove=", s1)) != s1) {
-                s1 = getword(s2);
+            if (skiplead("dmove=", &cur)) {
+                cur = getword(cur);
                 mob.dmove = isroom(Word);
                 if (mob.dmove == -1) {
                     GetLogger().errorf("Mobile: %s: Invalid dmove destination: '%s'", mob.id, Word);
                 }
                 continue;
             }
-        } while (*s1 != 0 && *s1 != ';' && Word[0] != 0);
+        } while (!isLineBreak(*cur) && Word[0] != 0);
 
         p = extractLine(p, block);
         tidy(block);
-        s1 = block;
+        cur = skipspc(block);
         mob.dmove = -1;
 
-        if ((s2 = skiplead("speed=", s1)) == s1) {
+        if (!skiplead("speed=", &cur)) {
             mobmis("speed=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.speed = atoi(Word);
-        if ((s2 = skiplead("travel=", s1)) == s1) {
+
+        if (!skiplead("travel=", &cur)) {
             mobmis("travel=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.travel = atoi(Word);
-        if ((s2 = skiplead("fight=", s1)) == s1) {
+
+        if (!skiplead("fight=", &cur)) {
             mobmis("speed=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.fight = atoi(Word);
-        if ((s2 = skiplead("act=", s1)) == s1) {
+
+        if (!skiplead("act=", &cur)) {
             mobmis("act=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.act = atoi(Word);
-        if ((s2 = skiplead("wait=", s1)) == s1) {
+
+        if (!skiplead("wait=", &cur)) {
             mobmis("wait=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.wait = atoi(Word);
-        if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
+
+		if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
             GetLogger().errorf("Mobile: %s, Total of action ratios not equal to 100%", mob.id);
         }
-        if ((s2 = skiplead("fear=", s1)) == s1) {
+        if (!skiplead("fear=", &cur)) {
             mobmis("fear=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
-        mob.fear = atoi(Word);
-        if ((s2 = skiplead("attack=", s1)) == s1) {
+        cur = getword(cur);
+		mob.fear = atoi(Word);
+
+        if (!skiplead("attack=", &cur)) {
             mobmis("attack=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
-        mob.attack = atoi(Word);
-        if ((s2 = skiplead("hitpower=", s1)) == s1) {
+        cur = getword(cur);
+		mob.attack = atoi(Word);
+
+        if (!skiplead("hitpower=", &cur)) {
             mobmis("hitpower=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.hitpower = atoi(Word);
 
-        if ((n = getmobmsg("arrive=")) == -1)
+        if ((n = getmobmsg("arrive=", &p)) == -1)
             continue;
         mob.arr = n;
-        if ((n = getmobmsg("depart=")) == -1)
+        if ((n = getmobmsg("depart=", &p)) == -1)
             continue;
         mob.dep = n;
-        if ((n = getmobmsg("flee=")) == -1)
+        if ((n = getmobmsg("flee=", &p)) == -1)
             continue;
         mob.flee = n;
-        if ((n = getmobmsg("strike=")) == -1)
+        if ((n = getmobmsg("strike=", &p)) == -1)
             continue;
         mob.hit = n;
-        if ((n = getmobmsg("miss=")) == -1)
+        if ((n = getmobmsg("miss=", &p)) == -1)
             continue;
         mob.miss = n;
-        if ((n = getmobmsg("dies=")) == -1)
+        if ((n = getmobmsg("dies=", &p)) == -1)
             continue;
         mob.death = n;
-        p = px;
 
         fwrite(mob.id, sizeof(mob), 1, ofp1);
     } while (*p != 0);

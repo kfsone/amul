@@ -19,6 +19,10 @@ TEST(ExtrasTest, SkipLead)
     p = "foo=bar";
     EXPECT_TRUE(skiplead("foo=", &p));
     EXPECT_STREQ(p, "bar");
+
+	p = " foo=bar";
+    EXPECT_TRUE(skiplead("foo=", &p));
+    EXPECT_STREQ(p, "bar");
 }
 
 TEST(ExtrasTest, StripLead)
@@ -111,12 +115,18 @@ TEST(ExtrasTest, ExtractLine_Multiline)
     char        output[100]{};
     const char *input = "Line 1\n; Comment\n2nd\n";
 
-	const char *p = extractLine(input, output);
+    const char *p = extractLine(input, output);
     EXPECT_STREQ(output, "Line 1");
     EXPECT_FALSE(p == input);
     EXPECT_EQ(*p, ';');
 
-	p = extractLine(p, output);
+    p = extractLine(p, output);
     EXPECT_STREQ(output, "2nd");
     EXPECT_EQ(p, input + strlen(input));
+}
+
+TEST(ExtrasTest, SkipLine)
+{
+    EXPECT_STREQ(skipline(""), "");
+    EXPECT_STREQ(skipline("abc\ndef"), "def");
 }
