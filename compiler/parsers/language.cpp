@@ -219,7 +219,7 @@ lang_proc()
         if (block[0] == 0)
             continue;
 
-		getWordAfter("verb=", block);
+		p = getWordAfter("verb=", block);
         if (Word[0] == 0) {
             GetLogger().error("verb= line without a verb");
             continue;
@@ -237,7 +237,7 @@ lang_proc()
             continue;
         }
 
-        strncpy(verb.id, Word, sizeof(Word));
+        strncpy(verb.id, Word, sizeof(verb.id));
 
         memcpy(verb.sort, "\0xffCHAE\x0fCHAE", sizeof(verb.sort));
 
@@ -543,7 +543,7 @@ lang_proc()
         goto commands;
 
     writeslot:
-        fwrite(vbslot.wtype, sizeof(vbslot), 1, ofp2);
+        fwrite(&vbslot, sizeof(vbslot), 1, ofp2);
         proc = 0;
         of2p += sizeof(vbslot);
         if (lastc > 1)
@@ -553,10 +553,10 @@ lang_proc()
 
         lastc = '\n';
     write:
-        fwrite(verb.id, sizeof(verb), 1, ofp1);
+        fwrite(&verb, sizeof(verb), 1, ofp1);
         proc = 0;
-        *(vbtab + (verbs - 1)) = verb;
-        if ((uintptr_t)(vbtab + (verbs - 1)) > (uintptr_t)cursor)
+        *(vbtab + verbs - 1) = verb;
+        if ((uintptr_t)(vbtab + verbs - 1) > (uintptr_t)cursor)
             printf("@! table overtaking s1\n");
     } while (*cursor != 0);
 

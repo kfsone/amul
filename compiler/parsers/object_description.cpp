@@ -29,7 +29,7 @@ obds_proc()
         strcpy(objdes.id, Word);
         fseek(ofp2, 0, SEEK_END);
         objdes.descrip = ftell(ofp2);
-        fwrite(objdes.id, sizeof(objdes), 1, ofp1);
+        fwrite(&objdes, sizeof(objdes), 1, ofp1);
         lastc = '\n';
         while ((c = fgetc(ifp)) != EOF && !(c == '\n' && lastc == '\n')) {
             if ((lastc == EOF || lastc == '\n') && c == 9)
@@ -39,7 +39,7 @@ obds_proc()
         fputc(0, ofp2);
         obdes++;
         nextc(0);
-    } while (c != EOF);
+    } while (!feof(ifp));
 
     GetContext().terminateOnErrors();
 

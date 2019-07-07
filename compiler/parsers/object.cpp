@@ -54,7 +54,7 @@ is_desid()
         GetLogger().fatalop("open", "ODIDs.tmp");
 
     for (int i = 0; i < obdes; i++) {
-        fread(objdes.id, sizeof(objdes), 1, fp);
+        fread(&objdes, sizeof(objdes), 1, fp);
         state.descrip = objdes.descrip;
         if (stricmp(Word, objdes.id) == 0) {
             fclose(fp);

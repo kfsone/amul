@@ -182,7 +182,7 @@ mob_proc1()
             continue;
         mob.death = n;
 
-        fwrite(mob.id, sizeof(mob), 1, ofp1);
+        fwrite(&mob, sizeof(mob), 1, ofp1);
     } while (*p != 0);
 
     GetContext().terminateOnErrors();
