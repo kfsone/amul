@@ -16,6 +16,8 @@ void set_start();
 void set_holds();
 void set_put();
 void set_mob();
+int  getObjDescID(const char *name);
+
 
 constexpr bool
 isCommentChar(char c) noexcept

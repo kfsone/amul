@@ -7,17 +7,22 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <fcntl.h>
+#include <string>
 
 using namespace AMUL::Logging;
 
 namespace OS
 {
 void
-CreateFile(const char *filename)
+CreateFile(const char *path, const char *filename)
 {
-    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC);
+    std::string filepath = path;
+    filepath += "/";
+    filepath += filename;
+
+    int fd = open(filepath.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
     if (fd == -1) {
-        GetLogger().fatalf("Failed to create file: %s: %s", filename, strerror(errno));
+        GetLogger().fatalf("Failed to create file: %s: %s", filepath.c_str(), strerror(errno));
     }
     close(fd);
 }

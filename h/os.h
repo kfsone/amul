@@ -34,6 +34,6 @@ Free(T *&ptr, size_t size)
     }
 }
 
-void CreateFile(const char *filename);
+void CreateFile(const char *path, const char *filename);
 
 }  // namespace OS

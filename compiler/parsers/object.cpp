@@ -43,29 +43,6 @@ text_id(const char *from, char c)
 }
 
 void
-is_desid()
-{
-    if (stricmp(Word, "none") == NULL) {
-        state.descrip = -2;
-        return;
-    }
-    FILE *fp;
-    if ((fp = fopen("ODIDs.tmp", "rb+")) == NULL)
-        GetLogger().fatalop("open", "ODIDs.tmp");
-
-    for (int i = 0; i < obdes; i++) {
-        fread(&objdes, sizeof(objdes), 1, fp);
-        state.descrip = objdes.descrip;
-        if (stricmp(Word, objdes.id) == 0) {
-            fclose(fp);
-            return;
-        }
-    }
-    fclose(fp);
-    state.descrip = -1;
-}
-
-void
 state_proc()
 {
     int flag;
@@ -124,7 +101,7 @@ state_proc()
         p = block;
     } else {
         p = getword(p);
-        is_desid();  // Is it valid?
+        state.descrip = getObjDescID(Word);
     }
     if (state.descrip == -1) {
         sprintf(temp, "desc= ID (%s) on", Word);
@@ -195,7 +172,7 @@ objs_proc()
     nouns = adjs;
 
     // Clear files
-    OS::CreateFile(Resources::Compiled::adjTable());
+    OS::CreateFile(dir, Resources::Compiled::adjTable());
 
     fopenw(Resources::Compiled::objData());
     fopenw(Resources::Compiled::objState());

@@ -184,7 +184,7 @@ lang_proc()
 
     verbs = 0;
     nextc(1);
-    OS::CreateFile(Resources::Compiled::lang1());
+    OS::CreateFile(dir, Resources::Compiled::lang1());
     fopena(Resources::Compiled::lang1());
     ofp1 = afp;
     afp = NULL;

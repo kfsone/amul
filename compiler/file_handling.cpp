@@ -58,7 +58,6 @@ quit()
         sprintf(block, "%s%s", dir, Resources::Compiled::gameProfile());
         unlink(block);
     }
-    unlink("ODIDs.tmp");
     unlink("objh.tmp");
     OS::Free(mobdat, moblen);
     OS::Free(mobp, sizeof(mob) * mobchars);
@@ -184,7 +183,7 @@ tidy(char *ptr)
     while (*ptr) {
         if (*ptr == '\t' || *ptr == '\r')
             *ptr = ' ';
-        if (*ptr != ' ')
+        if (!isspace(*ptr))
             lastNonSpace = ptr;
         ++ptr;
     }

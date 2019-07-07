@@ -222,7 +222,7 @@ main(int argc, const char *argv[])
     sprintf(vername, "amulcom v%d.%03d (%8s)", VERSION, REVISION, DATE);
     OS::SetProcessName(vername);
 
-    puts("AMUL  Multi-User Games Language Copyright (C) KingFisher Software, 1991-2019\n");
+    puts("AMUL  Multi-User Games Language Copyright (C) KingFisher Software, 1991-2019\n");
     printf("AMUL Compiler: %s\n\n", vername);
 
     // Parse commandline

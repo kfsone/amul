@@ -13,6 +13,11 @@ enum {
     MAXU = NUM_USER_NODES,
 };
 
+// Old hard-coded value replacement. Conversion in-progress.
+enum {
+	OBJ_DESC_NONE = -2
+};
+
 enum {
     NPUTS = 4,
     NPREP = 6,
