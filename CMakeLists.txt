@@ -16,10 +16,10 @@ IF (MSVC)
 	add_compile_definitions("_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE")
 ENDIF ()
 
-option(PACKAGE_TESTS "Build tests" ON)
+OPTION(PACKAGE_TESTS "Build tests" ON)
 IF (PACKAGE_TESTS)
 	enable_testing()
-	SET(gtest_force_shared_crt ON)
+	SET(gtest_force_shared_crt ON CACHE BOOL "Force gtest to use shared crt" FORCE)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/tests/googletest" "tests/googletest")
 
 	mark_as_advanced(
