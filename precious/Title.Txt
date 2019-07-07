@@ -24,7 +24,8 @@ name=Precious Days
 gametime=80
 invisible=10 11
 min sgo=12
-RankScale=90  timescale=55
+RankScale=90
+timescale=55
 
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
