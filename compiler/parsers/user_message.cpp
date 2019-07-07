@@ -119,8 +119,8 @@ isumsg(const char *str)
     }
     if (umsgs == 0)
         return -1;
-    std::string id{};
-    std::transform(str, str + strlen(str), id.begin(), ::tolower);
+    std::string id = str;
+    std::transform(id.cbegin(), id.cend(), id.begin(), ::tolower);
     if (auto match = umsgIDs.find(id); match != umsgIDs.end())
         return match->second;
     return -1;
