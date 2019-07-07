@@ -18,17 +18,21 @@ room_proc()
     fopenw(Resources::Compiled::roomDesc());
 
     do {
-        rooms++;
         p = block;
         while ((c = fgetc(ifp)) != EOF && !isspace(c))
             *(p++) = c;
         *p = 0;  // Set null byte
-        const char* id = skiplead("room=", block);
-        if (strlen(id) < 3 || strlen(id) > IDL) {
-            printf("!! \x07 Invalid ID: \"%s\"\x07 !!\n", id);
-            quit();
-        }
-        strcpy(room.id, id);
+        if (block[0] == 0)
+            break;
+
+        const char *id = skiplead("room=", block);
+        auto        len = strlen(id);
+        if (len < 3) {
+            GetLogger().errorf("Invalid room id (too short): %s", id);
+        } else if (len >= sizeof(room.id)) {
+            GetLogger().errorf("Invalid room id (too long): %s", id);
+		}
+        strncpy(room.id, id, sizeof(room.id));
 
         // Do the flags
         room.flags = 0;
@@ -56,8 +60,7 @@ room_proc()
                     continue;
                 }
                 if ((n = isrflag(p)) == -1) {
-                    printf("\x07'%s' is invalid!\n\n\x07", p);
-                    quit();
+                    GetLogger().errorf("Room: %s: Invalid room flag: %s", room.id, p);
                 }
                 n -= NRNULL;
                 if (n >= 0)
@@ -79,7 +82,8 @@ room_proc()
             n++;
         };
         fputc(0, ofp2);
-        fwrite(room.id, sizeof(room), 1, ofp1);
+        fwrite(&room, sizeof(room), 1, ofp1);
+        rooms++;
         nextc(0);
     } while (c != EOF);
     close_ofps();

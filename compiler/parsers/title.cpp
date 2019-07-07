@@ -23,8 +23,8 @@ getNo(const char *prefix, const char *from)
     return result;
 }
 
-const char *
-getBlock(const char *linetype, std::function<void(const char *prefix, const char *value)>)
+static void
+getBlock(const char *linetype, std::function<void(const char *prefix, const char *value)> callback)
 {
     for (;;) {
         if (fgets(block, 1000, ifp) == nullptr) {
@@ -32,14 +32,18 @@ getBlock(const char *linetype, std::function<void(const char *prefix, const char
         }
 
         repspc(block);
-        auto p = skipspc(block);
         stripNewline(block);
+        auto p = skipspc(block);
         if (!*p || isCommentChar(*p))
             continue;
 
         if (!skiplead(linetype, &p)) {
             GetLogger().fatalf("Invalid title.txt: Expected '%s' got: %s", linetype, p);
         }
+
+        callback(linetype, p);
+
+		break;
     }
 }
 
@@ -69,7 +73,7 @@ title_proc()
 
     getBlockNo("invisible=", &invis);
 
-	getBlockNo("min sgo=", &minsgo);
+    getBlockNo("min sgo=", &minsgo);
 
     // Get the Scaleing lines.
     getBlockNo("rankscale=", &rscale);

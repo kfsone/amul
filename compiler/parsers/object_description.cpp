@@ -27,7 +27,7 @@ obds_proc()
             continue;
         }
         strcpy(objdes.id, Word);
-        fseek(ofp2, 0, 2);
+        fseek(ofp2, 0, SEEK_END);
         objdes.descrip = ftell(ofp2);
         fwrite(objdes.id, sizeof(objdes), 1, ofp1);
         lastc = '\n';

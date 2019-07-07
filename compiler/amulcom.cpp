@@ -69,7 +69,7 @@ set_adj()
     }
     memset(dmove, 0, sizeof(dmove));
     strcpy(dmove, Word);
-    fseek(afp, 0L, 2);               // Move to end!
+    fseek(afp, 0L, SEEK_END);
     fwrite(dmove, IDL + 1, 1, afp);  // Add this adjective
     obj2.adj = adjs++;
 }

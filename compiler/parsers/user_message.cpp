@@ -134,7 +134,7 @@ msgline(const char *s)
     FILE *  fp = afp;
     afp = NULL;
     fopena(Resources::Compiled::umsgData());
-    fseek(afp, 0, 2L);
+    fseek(afp, 0, SEEK_END);
     pos = ftell(afp);
 
     fwrite(s, strlen(s) - 1, 1, afp);
@@ -144,7 +144,7 @@ msgline(const char *s)
     }
     fputc(0, afp);
     fopena(Resources::Compiled::umsgIndex());
-    fseek(afp, 0, 2L);
+    fseek(afp, 0, SEEK_END);
     fwrite((char *)&pos, sizeof(int32_t), 1, afp);
     fclose(afp);
     afp = fp;

@@ -78,7 +78,7 @@ int
 fsize(char *s)
 {
     fopenr(s);
-    fseek(ifp, 0, 2L);
+    fseek(ifp, 0, SEEK_END);
     int n = ftell(ifp);
     fclose(ifp);
     ifp = NULL;
@@ -901,7 +901,7 @@ xread(const char *s, int32_t *n, char *t)
     int   i;
 
     fopenr(s);
-    fseek(ifp, 0, 2L);
+    fseek(ifp, 0, SEEK_END);
     *n = ftell(ifp);
     fseek(ifp, 0, 0L);
     if (*n != 0) {
@@ -934,9 +934,9 @@ log(char *s)
 
     if ((fp = fopen("AMUL.Log", "ab+")) == NULL)
         oer("AMUL.Log", "logg");
-    fseek((FILE *)fp, 0, 2L);
-    fprintf((FILE *)fp, s);
-    fclose((FILE *)fp);
+    fseek(fp, 0, SEEK_END);
+    fprintf(fp, s);
+    fclose(fp);
 }
 
 // Remove daemon from list

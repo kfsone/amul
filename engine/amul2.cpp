@@ -2688,7 +2688,7 @@ ShowFile(const char *s)
 	txs("\n--+ Please inform the dungeon master that file %s is missing.\n\n", s);
 	return;
 show:
-	fseek(ifp, 0, 2L);
+	fseek(ifp, 0, SEEK_END);
 	fsize = ftell(ifp);
 	fseek(ifp, 0, 0L);
 	if ((p = (char *)OS::AllocateClear(fsize + 2)) == NULL) {

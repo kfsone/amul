@@ -235,7 +235,7 @@ filesize()
     int32_t now, s;
 
     now = ftell(ifp);
-    fseek(ifp, 0, 2L);
+    fseek(ifp, 0, SEEK_END);
     s = ftell(ifp) - now;
     fseek(ifp, now, 0L);
     return s + 2;  // Just for luck

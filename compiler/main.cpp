@@ -124,9 +124,9 @@ compileGame()
         room_proc();
         fclose(ifp);
     }
-    fopenr(Resources::Compiled::roomData());  // Check RF_CEMETERY ptrs
+    fopenr(Resources::Compiled::roomData());
     if (GetContext().m_skipRoomRead) {
-        fseek(ifp, 0, 2L);
+        fseek(ifp, 0, SEEK_END);
         rooms = ftell(ifp) / sizeof(room);
         rewind(ifp);
     }

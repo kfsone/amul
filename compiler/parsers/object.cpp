@@ -31,7 +31,7 @@ text_id(const char *from, char c)
     sprintf(temp, "%s%s", dir, Resources::Compiled::objDesc());  // Open output file
     if ((fp = fopen(temp, "rb+")) == NULL)
         GetLogger().fatalop("open", temp);
-    fseek(fp, 0, 2L);
+    fseek(fp, 0, SEEK_END);
     state.descrip = ftell(fp);  // Get pos
     if (fwrite(block, ptr - block, 1, fp) != 1) {
         fclose(fp);
