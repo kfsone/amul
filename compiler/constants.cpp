@@ -61,7 +61,7 @@ const short int syntl[NSYNTS] = {4, 3, 4, 3, 4, 6, 4, 3, 4, 4, 5, 6};
 
 // Check to see if s is a room flag
 int
-isrflag(const char *s)
+isrflag(const char *s) noexcept
 {
     for (int x = 0; x < NRFLAGS; x++) {
         if (strcmp(s, rflag[x]) == 0)
@@ -72,7 +72,7 @@ isrflag(const char *s)
 
 // Is it a FIXED object flag?
 int
-isoflag1(const char *s)
+isoflag1(const char *s) noexcept
 {
     for (int i = 0; i < NOFLAGS; i++) {
         if (strcmp(obflags1[i], s) == NULL)
@@ -83,7 +83,7 @@ isoflag1(const char *s)
 
 // Is it an object parameter?
 int
-isoparm()
+isoparm() noexcept
 {
     for (int i = 0; i < NOPARMS; i++) {
         if (striplead(obparms[i], Word))
@@ -94,7 +94,7 @@ isoparm()
 
 // Is it a state flag?
 int
-isoflag2(const char *s)
+isoflag2(const char *s) noexcept
 {
     for (int i = 0; i < NSFLAGS; i++) {
         if (strcmp(obflags2[i], s) == NULL)
@@ -104,7 +104,7 @@ isoflag2(const char *s)
 }
 
 int
-iscond(const char *s)
+iscond(const char *s) noexcept
 {
     for (int i = 0; i < NCONDS; i++) {
         if (strcmp(conds[i], s) == 0)
@@ -114,7 +114,7 @@ iscond(const char *s)
 }
 
 int
-isact(const char *s)
+isact(const char *s) noexcept
 {
     for (int i = 0; i < NACTS; i++) {
         if (strcmp(acts[i], s) == 0)

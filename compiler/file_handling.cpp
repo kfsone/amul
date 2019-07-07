@@ -1,6 +1,8 @@
 #include "amulcom.includes.h"
 #include "h/amul.vars.h"
 
+#include <sys/stat.h>
+
 #include <string>
 
 using namespace AMUL::Logging;
@@ -15,6 +17,8 @@ extern FILE *ofp5;
 extern FILE *afp;
 
 extern Buffer verbBuffer, mobBuffer, objBuffer;
+
+static size_t ifpFileSize;
 
 void
 close_ofps()
@@ -36,23 +40,24 @@ close_ofps()
 
 // Find the next real stuff in file
 char
-nextc(int f)
+nextc(bool required)
 {
-    char c;
-    do {
-        while ((c = fgetc(ifp)) != EOF && isspace(c))
-            ;
-        if (isCommentChar(c))
+    for (;;) {
+        char c = fgetc(ifp);
+        if (c == EOF) {
+            if (required)
+                GetLogger().fatalf("File contains no data");
+            return -1;
+        }
+        if (isspace(c))
+            continue;
+        if (isCommentChar(c)) {
             fgets(block, 1024, ifp);
-    } while (c != EOF && (isCommentChar(c) || isspace(c)));
-    if (f == 1 && c == EOF) {
-        printf("\nFile contains NO data!\n\n");
-        quit();
+            continue;
+        }
+        ungetc(c, ifp);
+        return 0;
     }
-    if (c == EOF)
-        return -1;
-    fseek(ifp, -1, 1);  // Move back 1 char
-    return 0;
 }
 
 void
@@ -117,6 +122,17 @@ fopena(const char *s)
     return NULL;
 }
 
+static size_t
+getFileSize(const char *filepath)
+{
+    struct stat sb {};
+    int err = stat(filepath, &sb);
+    if (err == -1) {
+        GetLogger().fatalop("stat", filepath);
+	}
+    return sb.st_size;
+}
+
 // Open file for reading
 FILE *
 fopenr(const char *s)
@@ -127,9 +143,13 @@ fopenr(const char *s)
         sprintf(fnm, "%s%s", dir, s);
     else
         strcpy(fnm, s + 1);
-    if ((ifp = fopen(fnm, "rb")) == NULL)
+
+    ifpFileSize = getFileSize(fnm);
+    
+	if (ifp = fopen(fnm, "rb"); !ifp)
         GetLogger().fatalop("open", fnm);
-    return ifp;
+
+	return ifp;
 }
 
 // Open file for reading
@@ -151,7 +171,7 @@ void
 ttroomupdate()
 {
     fseek(afp, 0, 0L);
-    fwrite(rmtab->id, sizeof(room), rooms, afp);
+    fwritesafe(*rmtab, afp);
 }
 
 void
@@ -163,8 +183,12 @@ opentxt(const char *filename)
     std::string filepath = dir;
     filepath += filename;
     filepath += ".txt";
-    ifp = fopen(filepath.c_str(), "r");
-    if (!ifp) {
+
+    ifpFileSize = getFileSize(filepath.c_str());
+
+	ifp = fopen(filepath.c_str(), "r");
+    
+	if (!ifp) {
         GetLogger().fatalf("Unable to open file: %s", filepath.c_str());
     }
 }
@@ -234,8 +258,9 @@ Buffer::open(size_t offset)
     auto into = static_cast<char *>(m_data) + offset;
     /// TODO: What if we needed *more* space?
     auto bytes = fread(into, 1, size, ifp);
+
     // fread does not add a trailing zero, and in-case character conversions
-    // were done in-place, we need to add one so that we don't inadvertantly
+    // were done in-place, we need to add one so that we don't inadvertently
     // see left-over characters from the conversion.
     into[bytes] = '\0';
 }
@@ -255,9 +280,7 @@ Buffer::free()
 int32_t
 filesize()
 {
-    auto now = ftell(ifp);
-    fseek(ifp, 0, SEEK_END);
-    auto delta = ftell(ifp) - now;
-    fseek(ifp, now, 0L);
-    return delta;
+    if (!ifp)
+        return -1;
+    return static_cast<int32_t>(ifpFileSize);
 }

@@ -34,7 +34,6 @@ extern FILE *ofp4;  // For lang. table
 // Text
 extern char dir[60];         // spc for work dir path
 extern char block[1024];     // 1k block of spare txt
-extern char temp[256];       // temp store
 extern char dmove[IDL + 1];  // Where to RF_CEMETERY to
 extern char adname[41];      // Adventure name
 extern char vername[41];     // Version name etc

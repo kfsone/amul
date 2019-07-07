@@ -41,7 +41,7 @@ getid()
 
         fopena(plyrfn);  // See if user is already in file
         while (!feof(afp)) {
-            fread(me->name, sizeof(him), 1, afp);
+            freadsafe(*me, afp);
             if (stricmp(me->name, him.name) == NULL)
                 break;
         }

@@ -1,20 +1,20 @@
 #include "amulcom.includes.h"
 
+#include <string>
+
 using namespace AMUL::Logging;
 using namespace Compiler;
 
-void
-statinv(char *s)
+static void
+statinv(const char *s)
 {
-    printf("\nObject #%d \"%s\" has invalid %s state line: %s\n", nouns + 1, obj2.id, s, block);
-    quit();
+    GetLogger().fatalf("Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s, block);
 }
 
 void
 text_id(const char *from, char c)
 {
     char *ptr;
-    FILE *fp;
 
     strcpy(block, from);
     char *p = block;
@@ -28,14 +28,16 @@ text_id(const char *from, char c)
     else
         ptr = p;
 
-    sprintf(temp, "%s%s", dir, Resources::Compiled::objDesc());  // Open output file
-    if ((fp = fopen(temp, "rb+")) == NULL)
-        GetLogger().fatalop("open", temp);
+    std::string filepath{dir};
+    filepath += Resources::Compiled::objDesc();
+    FILE *fp = fopen(filepath.c_str(), "rb+");
+    if (!fp)
+        GetLogger().fatalop("open", filepath.c_str());
     fseek(fp, 0, SEEK_END);
     state.descrip = ftell(fp);  // Get pos
-    if (fwrite(block, ptr - block, 1, fp) != 1) {
+    if (fwrite(&block[0], ptr - block, 1, fp) != 1) {
         fclose(fp);
-        GetLogger().fatalop("write", temp);
+        GetLogger().fatalop("write", filepath.c_str());
     }
     fputc(0, fp);
     strcpy(block, p);
@@ -104,8 +106,10 @@ state_proc()
         state.descrip = getObjDescID(Word);
     }
     if (state.descrip == -1) {
-        sprintf(temp, "desc= ID (%s) on", Word);
-        statinv(temp);
+        std::string error = "desc= ID ";
+        error += Word;
+        error += " on";
+        statinv(error.c_str());
     }
     while (*p != 0) {
         p = getword(p);
@@ -115,7 +119,7 @@ state_proc()
             statinv("flag on");
         state.flags = (state.flags | bitset(flag));
     }
-    fwrite((char *)&state.weight, sizeof(state), 1, ofp2);
+    fwritesafe(state.weight, ofp2);
     obj2.nstates++;
 }
 
@@ -181,12 +185,12 @@ objs_proc()
     fopenw(Resources::Compiled::objLoc());
     fopena(Resources::Compiled::adjTable());
 
-    if (nextc(0) == -1) {
+    if (nextc(false) == -1) {
         close_ofps();
         return;
     }  // Nothing to process
     objBuffer.open(32 * sizeof(obj2));
-    obtab2 = static_cast<_OBJ_STRUCT2*>(objBuffer.m_data);
+    obtab2 = static_cast<_OBJ_STRUCT2 *>(objBuffer.m_data);
     objtab2 = obtab2 + 32;
 
     const char *s = reinterpret_cast<const char *>(objtab2);
@@ -269,7 +273,7 @@ objs_proc()
                 roomno = -1;
                 continue;
             }
-            fwrite((char *)&roomno, 1, 4, ofp3);
+            fwritesafe(roomno, ofp3);
             obj2.nrooms++;
         } while (Word[0] != 0);
         if (obj2.nrooms == 0 && roomno == 0) {
@@ -299,7 +303,7 @@ objs_proc()
     sort_objs();
 #endif
 
-    fwrite((char *)obtab2, sizeof(obj2), nouns, ofp1);
+    fwrite(obtab2, sizeof(obj2), nouns, ofp1);
     close_ofps();
 }
 
@@ -352,9 +356,9 @@ sort_objs()
         rmptr = rmtab;
         for (j = i; j < nouns; j++, osrch++) {
             if (*(osrch->id) != 0 && stricmp(nountab.id, osrch->id) == NULL) {
-                fwrite((char *)osrch, sizeof(obj), 1, ofp1);
-                fwrite((char *)statep, sizeof(state), osrch->nstates, ofp2);
-                fwrite((char *)rmptr, sizeof(int32_t), osrch->nrooms, ofp3);
+                fwritesafe(*osrch, ofp1);
+                fwrite(statep, sizeof(state), osrch->nstates, ofp2);
+                fwrite(rmptr, sizeof(int32_t), osrch->nrooms, ofp3);
                 nountab.num_of++;
                 *osrch->id = 0;
                 if (osrch != objtab)
@@ -372,7 +376,7 @@ sort_objs()
             rmptr += osrch->nrooms;
         }
 
-        fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
+        fwritesafe(nountab, ofp4);
     }
     printf("%20s\r%ld objects moved.\n", " ", k);
     close_ofps();

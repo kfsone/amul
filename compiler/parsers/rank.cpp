@@ -27,7 +27,7 @@ rank_proc()
     char defaultPrompt[sizeof(_RANK_STRUCT::prompt)] = "* ";
     int  n;
 
-    nextc(1);
+    nextc(true);
     fopenw(Resources::Compiled::rankData());
 
     ranks = 0;
@@ -170,7 +170,7 @@ rank_proc()
         }
 
         wizstr = rank.strength;
-        fwrite(&rank, sizeof(rank), 1, ofp1);
+        fwritesafe(rank, ofp1);
     } while (!feof(ifp));
 
     GetContext().terminateOnErrors();

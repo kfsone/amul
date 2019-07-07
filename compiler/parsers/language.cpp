@@ -185,7 +185,7 @@ lang_proc()
     uint32_t of2p, of3p;
 
     verbs = 0;
-    nextc(1);
+    nextc(true);
     OS::CreateFile(dir, Resources::Compiled::lang1());
     fopena(Resources::Compiled::lang1());
     ofp1 = afp;
@@ -200,7 +200,7 @@ lang_proc()
 
     // Load the entire file into memory
     verbBuffer.open(64 * (sizeof(verb)));
-    vbtab = static_cast<_VERB_STRUCT*>(verbBuffer.m_data);
+    vbtab = static_cast<_VERB_STRUCT *>(verbBuffer.m_data);
     vbptr = vbtab + 64;
     cursor = (char *)vbptr;
     vbptr = vbtab;
@@ -212,7 +212,7 @@ lang_proc()
         GetContext().checkErrorCount();
 
         do {
-            curline = cursor;               // remember the start of the line
+            curline = cursor;                     // remember the start of the line
             cursor = extractLine(cursor, block);  // consume the next line
         } while (isCommentChar(block[0]) || isEol(block[0]));
         if (block[0] == 0)
@@ -222,7 +222,7 @@ lang_proc()
         if (block[0] == 0)
             continue;
 
-		p = getWordAfter("verb=", block);
+        p = getWordAfter("verb=", block);
         if (Word[0] == 0) {
             GetLogger().error("verb= line without a verb");
             continue;
@@ -540,13 +540,13 @@ lang_proc()
         vt.action = 0 - (vt.action + 1);
 
     writecna:  // Write the C & A lines
-        fwrite((char *)&vt.condition, sizeof(vt), 1, ofp3);
+        fwritesafe(vt, ofp3);
         proc = 0;
         of3p += sizeof(vt);
         goto commands;
 
     writeslot:
-        fwrite(&vbslot, sizeof(vbslot), 1, ofp2);
+        fwritesafe(vbslot, ofp2);
         proc = 0;
         of2p += sizeof(vbslot);
         if (lastc > 1)
@@ -556,7 +556,7 @@ lang_proc()
 
         lastc = '\n';
     write:
-        fwrite(&verb, sizeof(verb), 1, ofp1);
+        fwritesafe(verb, ofp1);
         proc = 0;
         *(vbtab + verbs - 1) = verb;
         if ((uintptr_t)(vbtab + verbs - 1) > (uintptr_t)cursor)

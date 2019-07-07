@@ -84,7 +84,7 @@ static void
 checkf(const char *s)
 {
     sprintf(block, "%s%s", dir, s);
-    if (ifp = fopen(block, "rb"); !ifp) {
+    if (ifp = fopen(block, "r"); !ifp) {
         GetLogger().fatalf("Missing file: %s", block);
     }
     fclose(ifp);
@@ -219,13 +219,13 @@ int
 main(int argc, const char *argv[])
 {
     // capture game compile time
-    sprintf(vername, "amulcom v%d.%03d (%8s)", VERSION, REVISION, DATE);
+    snprintf(vername, sizeof(vername), "amulcom v%d.%03d (%8s)", VERSION, REVISION, DATE);
     OS::SetProcessName(vername);
 
     puts("AMUL  Multi-User Games Language Copyright (C) KingFisher Software, 1991-2019\n");
     printf("AMUL Compiler: %s\n\n", vername);
 
-    // Parse commandline
+    // Parse command-line
     parseArguments(argc, argv);
 
     // Check the files/directories

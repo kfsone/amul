@@ -3,6 +3,8 @@
 using namespace AMUL::Logging;
 using namespace Compiler;
 
+#include <string>
+
 // Process ROOMS.TXT
 void
 room_proc()
@@ -12,7 +14,7 @@ room_proc()
     int  n;
 
     rooms = 0;
-    nextc(1);  // Skip any headings etc
+    nextc(true);  // Skip any headings etc
 
     fopenw(Resources::Compiled::roomData());
     fopenw(Resources::Compiled::roomDesc());
@@ -31,14 +33,14 @@ room_proc()
             GetLogger().errorf("Invalid room id (too short): %s", id);
         } else if (len >= sizeof(room.id)) {
             GetLogger().errorf("Invalid room id (too long): %s", id);
-		}
+        }
         strncpy(room.id, id, sizeof(room.id));
 
         // Do the flags
         room.flags = 0;
         room.tabptr = -1;
-        temp[0] = 0;
-        if (c != '\n') {
+        std::string cemeteryId{};
+        if (!isEol(c)) {
             fgets(block, 1024, ifp);
             p = block;
             n = -1;
@@ -53,7 +55,7 @@ room_proc()
                 *p2 = 0;
                 if (n == 0)  // Get dmove param
                 {
-                    strcpy(temp, p);
+                    cemeteryId = p;
                     dmoves++;
                     p = p2 + 1;
                     n = -1;
@@ -73,18 +75,18 @@ room_proc()
         fseek(ofp2, 0, 1);
         room.desptr = ftell(ofp2);
         n = 0;
-        if (temp[0] != 0)
-            fwrite(temp, IDL, 1, ofp2);  // save dmove
-        while ((c = fgetc(ifp)) != EOF && !(c == '\n' && lastc == '\n')) {
-            if (lastc == '\n' && c == 9)
+        if (!cemeteryId.empty())
+            fwrite(cemeteryId.c_str(), IDL, 1, ofp2);  // save dmove	///ISSUE: IDL+1?
+        while ((c = fgetc(ifp)) != EOF && !(isEol(c) && isEol(lastc))) {
+            if (isEol(lastc) && c == '\t')
                 continue;
             fputc((lastc = c), ofp2);
             n++;
         };
         fputc(0, ofp2);
-        fwrite(&room, sizeof(room), 1, ofp1);
+        fwritesafe(room, ofp1);
         rooms++;
-        nextc(0);
+        nextc(false);
     } while (c != EOF);
     close_ofps();
 }

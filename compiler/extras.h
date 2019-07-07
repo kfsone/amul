@@ -91,7 +91,7 @@ nulTerminate(char (&text)[Size]) noexcept
 
 template <typename CharT>
 static CharT *
-strstop(CharT *in, char stop)
+strstop(CharT *in, char stop) noexcept
 {
     while (*in && *in != stop) {
         ++in;

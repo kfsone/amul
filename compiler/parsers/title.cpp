@@ -43,7 +43,7 @@ getBlock(const char *linetype, std::function<void(const char *prefix, const char
 
         callback(linetype, p);
 
-		break;
+        break;
     }
 }
 
@@ -56,7 +56,7 @@ getBlockNo(const char *prefix, int *into)
 void
 title_proc()
 {
-    nextc(1);
+    nextc(true);
 
     getBlock("name=", [](const char *prefix, const char *value) {
         strncpy(adname, value, sizeof(adname));
@@ -80,7 +80,7 @@ title_proc()
     getBlockNo("timescale=", &tscale);
 
     // Read the rest of the text into "titleText";
-    while (fread(block, sizeof(block), 1, ifp) == sizeof(block)) {
+    while (freadsafe(block, ifp) > 0) {
         titleText += block;
     }
 

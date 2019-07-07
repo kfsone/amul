@@ -31,13 +31,13 @@ umsg_proc()
     ofp2 = afp;
     afp = NULL;
     fseek(ofp2, 0, SEEK_END);
-    if (nextc(0) == -1) {
+    if (nextc(false) == -1) {
         close_ofps();
         return false;
     }  // None to process
 
-	Buffer      umsgBuffer{0};
-    const char *s = static_cast<const char*>(umsgBuffer.m_data);
+    Buffer      umsgBuffer{0};
+    const char *s = static_cast<const char *>(umsgBuffer.m_data);
 
     do {
         do
@@ -65,7 +65,7 @@ umsg_proc()
 
         // write index
         umsgoff_t fpos = ftell(ofp2);
-        fwrite(&fpos, sizeof(fpos), 1, ofp1);
+        fwritesafe(fpos, ofp1);
 
         registerMessageId(Word);
 
@@ -98,7 +98,7 @@ umsg_proc()
     } while (*s != 0);
     close_ofps();
 
-	umsgBuffer.free();
+    umsgBuffer.free();
 
     GetContext().terminateOnErrors();
 
@@ -145,7 +145,7 @@ msgline(const char *s)
     fputc(0, afp);
     fopena(Resources::Compiled::umsgIndex());
     fseek(afp, 0, SEEK_END);
-    fwrite((char *)&pos, sizeof(int32_t), 1, afp);
+    fwritesafe(pos, afp);
     fclose(afp);
     afp = fp;
     return NSMSGS + (umsgs++);

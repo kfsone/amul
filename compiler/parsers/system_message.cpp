@@ -23,7 +23,7 @@ smsg_proc()
     std::unordered_set<int> registered{};
     const char *            s;
 
-    if (nextc(0) == -1) {
+    if (nextc(false) == -1) {
         GetLogger().fatalf("Empty system messages file.");
     }
 
@@ -72,7 +72,7 @@ smsg_proc()
         }
 
         umsgoff_t pos = ftell(ofp2);
-        fwrite(&pos, sizeof(pos), 1, ofp1);
+        fwritesafe(pos, ofp1);
 
         do {
             while (isCommentChar(*s))
@@ -109,5 +109,5 @@ smsg_proc()
         }
     }
 
-	GetContext().terminateOnErrors();
+    GetContext().terminateOnErrors();
 }

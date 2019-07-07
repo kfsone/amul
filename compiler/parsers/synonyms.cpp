@@ -14,13 +14,13 @@ syn_proc()
     short int   x;
 
     syns = 0;
-    if (nextc(0) == -1)
+    if (nextc(false) == -1)
         return;
     fopenw(Resources::Compiled::synonymData());
     fopenw(Resources::Compiled::synonymIndex());
 
-	Buffer synBuffer{0L};
-    s = static_cast<const char*>(synBuffer.m_data);
+    Buffer synBuffer{0L};
+    s = static_cast<const char *>(synBuffer.m_data);
 
     do {
         do
@@ -45,14 +45,14 @@ syn_proc()
             t = getword(t);
             if (Word[0] == 0)
                 break;
-            fwrite((char *)&no, 1, sizeof(short int), ofp2);
+            fwritesafe(no, ofp2);
             fprintf(ofp1, "%s%c", Word, 0);
             syns++;
         }
     } while (*s != 0);
     close_ofps();
 
-	synBuffer.free();
+    synBuffer.free();
 
     GetContext().terminateOnErrors();
 }

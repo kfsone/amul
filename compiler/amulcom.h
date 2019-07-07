@@ -3,7 +3,7 @@
 // amulcom misc prototypes
 
 void checkdmoves();
-int  isroom(const char *name);
+int  isroom(const char *name) noexcept;
 int  isnoun(const char *name);
 int  iscont(const char *name);
 int  isloc(const char *name);
@@ -17,7 +17,6 @@ void set_holds();
 void set_put();
 void set_mob();
 int  getObjDescID(const char *name);
-
 
 constexpr bool
 isCommentChar(char c) noexcept

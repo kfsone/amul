@@ -4,7 +4,7 @@
 #include <cstdio>
 
 void              close_ofps();
-char              nextc(int f);
+char              nextc(bool required);
 [[noreturn]] void quit();
 FILE *            fopenw(const char *s);
 FILE *            fopena(const char *s);
@@ -15,7 +15,8 @@ void              opentxt(const char *s);
 void              skipblock();
 void              tidy(char *s);
 int               is_verb(const char *s);
-struct Buffer     final {
+
+struct Buffer final {
     Buffer() {}
     Buffer(size_t offset) { open(offset); }
     ~Buffer();
@@ -24,4 +25,19 @@ struct Buffer     final {
     size_t m_size{0};
     void * m_data{nullptr};
 };
+
 int32_t filesize();
+
+template <typename T>
+auto
+fwritesafe(const T &value, FILE *fp)
+{
+    return fwrite(&value, sizeof(value), 1, fp);
+}
+
+template <typename T>
+auto
+freadsafe(T &value, FILE *fp)
+{
+    return fread(&value, sizeof(value), 1, fp);
+}

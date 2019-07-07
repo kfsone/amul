@@ -18,7 +18,7 @@ getObjDescID(const char *name)
     std::transform(id.cbegin(), id.cend(), id.begin(), ::tolower);
     if (auto it = obdescIDs.find(id); it != obdescIDs.end()) {
         return it->second;
-	}
+    }
     return -1;
 }
 
@@ -28,7 +28,7 @@ obds_proc()
     char c, lastc;
 
     obdes = 0;
-    if (nextc(0) == -1) {
+    if (nextc(false) == -1) {
         GetLogger().infof("No entries in object-description file");
         return;
     }
@@ -47,7 +47,7 @@ obds_proc()
             GetLogger().errorf("Invalid object description ID: %s: reserved name", Word);
             skipblock();
             continue;
-		}
+        }
         std::string id = Word;
         std::transform(id.cbegin(), id.cend(), id.begin(), ::tolower);
         if (obdescIDs.find(id) != obdescIDs.end()) {
@@ -64,7 +64,7 @@ obds_proc()
             fputc((lastc = c), ofp1);
         };
         fputc(0, ofp1);
-        nextc(0);
+        nextc(false);
     } while (!feof(ifp));
 
     GetContext().terminateOnErrors();

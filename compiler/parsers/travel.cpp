@@ -2,17 +2,20 @@
 
 #include "amulcom.includes.h"
 
+#include <vector>
+
 using namespace AMUL::Logging;
 using namespace Compiler;
 
 void
 trav_proc()
 {
-    int      strip, lines, nvbs, i, ntt, t, r;
-    const char *   p;
-    int32_t *l;
+    int                   strip, lines, i, ntt, t, r;
+    const char *          p;
+    std::vector<verbid_t> verbsUsed{};
+    verbsUsed.reserve(256);
 
-    nextc(1);  // Move to first text
+    nextc(true);  // Move to first text
     fopenw(Resources::Compiled::travelTable());
     fopenw(Resources::Compiled::travelParams());
     fopena(Resources::Compiled::roomData());
@@ -61,25 +64,27 @@ trav_proc()
         roomtab->tabptr = t;
         roomtab->ttlines = 0;
     vbproc:  // Process verb list
-        nvbs = 0;
+        verbsUsed.clear();
         tt.pptr = (int32_t *)-1;
-        l = (int32_t *)temp;
+
         p = block;
+
         // Break verb list down to verb no.s
         do {
             p = getword(p);
             if (Word[0] == 0)
                 break;
-            if ((*l = is_verb(Word)) == -1) {
+            verbid_t verbId = is_verb(Word);
+            if (verbId == -1) {
                 GetLogger().errorf("Room: %s: invalid verb: %s", roomtab->id, Word);
             }
-            l++;
-            nvbs++;
+            verbsUsed.push_back(verbId);
         } while (Word[0] != 0);
-        if (nvbs == 0) {
-            printf("Room \"%s\" has empty verb[s]= line!\n", roomtab->id);
-            quit();
+
+        if (verbsUsed.empty()) {
+            GetLogger().errorf("Room: %s: Emtpy verb[s]= line", roomtab->id);
         }
+
         // Now process each instruction line
         do {
         xloop:
@@ -160,14 +165,14 @@ trav_proc()
             tt.action = 0 - (tt.action + 1);
         write:
             roomtab = rmtab + rmn;
-            l = (int32_t *)temp;
-            for (i = 0; i < nvbs; i++) {
-                if (i < nvbs - 1)
+            for (i = 0; i < verbsUsed.size(); i++) {
+                // apparently -2 indicates "more", -1 indicates "end". ick.
+                if (i < verbsUsed.size() - 1)
                     tt.pptr = (int32_t *)-2;
                 else
                     tt.pptr = (int32_t *)-1;
-                tt.verb = *(l++);
-                fwrite((char *)&tt.verb, sizeof(tt), 1, ofp1);
+                tt.verb = verbsUsed[i];
+                fwritesafe(tt, ofp1);
                 roomtab->ttlines++;
                 t++;
                 ttents++;
@@ -178,7 +183,7 @@ trav_proc()
         } while (strip == 0 && !feof(ifp));
         if (strip == 1 && !feof(ifp))
             goto vbproc;
-        nextc(0);
+        nextc(false);
         ntt++;
     } while (!feof(ifp));
 

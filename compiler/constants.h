@@ -11,9 +11,9 @@ extern const char      tacp[NACTS][3];
 extern const char *    syntax[NSYNTS];
 extern const short int syntl[NSYNTS];
 
-int isrflag(const char *s);
-int isoflag1(const char *s);
-int isoparm();
-int isoflag2(const char *s);
-int iscond(const char *s);
-int isact(const char *s);
+int isrflag(const char *s) noexcept;
+int isoflag1(const char *s) noexcept;
+int isoparm() noexcept;
+int isoflag2(const char *s) noexcept;
+int iscond(const char *s) noexcept;
+int isact(const char *s) noexcept;

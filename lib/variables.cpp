@@ -20,12 +20,11 @@ int32_t obdes;           // No. of obj descrips
 
 // Misc.
 FILE *ifp, *ofp1, *ofp2, *ofp3, *afp;  // In and out file ptrs
-FILE *ofp4;  // For lang. table
+FILE *ofp4;                            // For lang. table
 
 // Text
 char dir[60];         // spc for work dir path
 char block[1024];     // 1k block of spare txt
-char temp[256];       // temp store
 char dmove[IDL + 1];  // Where to RF_CEMETERY to
 char adname[41];      // Adventure name
 char vername[41];     // Version name etc

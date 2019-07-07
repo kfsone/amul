@@ -14,7 +14,7 @@ using namespace AMUL::Logging;
 using namespace Compiler;
 
 const char *
-precon(const char *s)
+precon(const char *s) noexcept
 {
     const char *s2 = s;
 
@@ -36,7 +36,7 @@ precon(const char *s)
 }
 
 const char *
-preact(const char *s)
+preact(const char *s) noexcept
 {
     const char *s2 = s;
     if ((s = skiplead("then ", s)) != s2) {
@@ -56,7 +56,7 @@ preact(const char *s)
 }
 
 int32_t
-chknum(const char *p)
+chknum(const char *p) noexcept
 {
     int32_t n;
 
@@ -79,26 +79,27 @@ chknum(const char *p)
     return n;
 }
 
-static const std::unordered_set<std::string> optionalPrefixes{"the", "of", "are", "is", "has", "next", "with", "to",
+static const std::unordered_set<std::string> optionalPrefixes = {"the", "of", "are", "is", "has", "next", "with", "to",
         "set", "from", "for", "by", "and", "was", "i", "am", "as"};
 
 static const char *
-skipOptionalPrefixes(const char *p)
+skipOptionalPrefixes(const char *p) noexcept
 {
-    for (;;) {
+    for (; p;) {
         p = skipspc(p);
         if (isLineEnding(*p))
-            return p;
+            break;
         const char *nextWord = strpbrk(p, " \n;");
         if (!nextWord)
             nextWord = p + strlen(p);
         if (optionalPrefixes.find(std::string(p, nextWord)) == optionalPrefixes.end())
-            return p;
+            break;
     }
+    return p;
 }
 
 const char *
-chkp(const char *p, char t, int c, int z, FILE *fp)
+chkp(const char *p, char t, int c, int z, FILE *fp) noexcept
 {
     int32_t x;
 
@@ -110,12 +111,12 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
     }
     std::string token{};
     if (*p != '\"' && *p != '\'') {
-        const char* end = strstop(p, ' ');
+        const char *end = strstop(p, ' ');
         token.assign(p, end);
         p = end;
     } else {
         const char *endquote = strstop(p + 1, *p);  // look for matching close quote
-        token.assign(p+ 1, endquote);
+        token.assign(p + 1, endquote);
         p = endquote + 1;
     }
 
@@ -155,7 +156,8 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
         break;
     default: {
         if (!(proc == 1 && t >= 0 && t <= 10)) {
-            GetLogger().fatalf("Internal error, invalid PTYPE (val: %d) in %s %s: %s = %s", t, (proc == 1) ? "verb" : "room", (proc == 1) ? verb.id : (rmtab + rmn)->id,
+            GetLogger().fatalf("Internal error, invalid PTYPE (val: %d) in %s %s: %s = %s", t,
+                    (proc == 1) ? "verb" : "room", (proc == 1) ? verb.id : (rmtab + rmn)->id,
                     (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c]);
         }
     }
@@ -163,19 +165,19 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
     if (t == -70 && x == -2)
         x = -1;
     else if (((x == -1 || x == -2) && t != CAP_NUM) || x == -1000001) {
-        GetLogger().errorf("\x07\nInvalid parameter, '%s', after %s '%s' in %s '%s'.\n", start, (z == 1) ? "condition" : "action",
-                (z == 1) ? conds[c] : acts[c], (proc == 1) ? "verb" : "room",
+        GetLogger().errorf("\x07\nInvalid parameter, '%s', after %s '%s' in %s '%s'.\n", start,
+                (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c], (proc == 1) ? "verb" : "room",
                 (proc == 1) ? (verb.id) : (rmtab + rmn)->id);
         return NULL;
     }
 write:
-    fwrite((char *)&x, 4, 1, fp);
+    fwritesafe(x, fp);
     FPos += 4;  // Writes a LONG
     return skipspc(p + 1);
 }
 
 int
-isgender(char c)
+isgender(char c) noexcept
 {
     if (c == 'M')
         return 0;
@@ -185,7 +187,7 @@ isgender(char c)
 }
 
 int
-antype(const char *s)
+antype(const char *s) noexcept
 {
     if (strcmp(s, "global") == NULL)
         return AGLOBAL;
@@ -221,7 +223,7 @@ isnounh(const char *s)
             continue;
         fseek(fp, (long)(uintptr_t)(objtab2->rmlist), 0L);
         for (j = 0; j < objtab2->nrooms; j++) {
-            fread((char *)&orm, 4, 1, fp);
+            freadsafe(orm, fp);
             if (orm == rmn) {
                 l = i;
                 i = nouns + 1;

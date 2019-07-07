@@ -8,15 +8,15 @@ using namespace Compiler;
 
 // Compiler specific variables...
 
-int     dmoves;               // How many RF_CEMETERYs to check?
-int     rmn;                  // Current room no.
-int32_t FPos;                 // Used during TT/Lang writes
-int     proc;                 // What we are processing
-char *  syntab;               // Synonym table, re-read
-int32_t mins;				  // Length of data! & gametime
-int32_t obmem;                // Size of Objects.TXT
-int32_t wizstr;               // Wizards strength
-char *  mobdat;               // Mobile data
+int     dmoves;  // How many RF_CEMETERYs to check?
+int     rmn;     // Current room no.
+int32_t FPos;    // Used during TT/Lang writes
+int     proc;    // What we are processing
+char *  syntab;  // Synonym table, re-read
+int32_t mins;    // Length of data! & gametime
+int32_t obmem;   // Size of Objects.TXT
+int32_t wizstr;  // Wizards strength
+char *  mobdat;  // Mobile data
 
 char Word[WORD_LEN];
 
@@ -26,11 +26,11 @@ FILE *ofp5;
 struct _OBJ_STRUCT2 *obtab2, *objtab2, obj2, *osrch, *osrch2;
 
 int
-isroom(const char *s)
+isroom(const char *name) noexcept
 {
     roomtab = rmtab;
     for (int r = 0; r < rooms; r++, roomtab++) {
-        if (strcmp(roomtab->id, s) == 0)
+        if (strcmp(roomtab->id, name) == 0)
             return r;
     }
     return -1;
@@ -43,11 +43,11 @@ set_adj()
         GetLogger().fatalf("Invalid adjective: %s", Word);
     }
     if (adjs == 0) {
-        memset(dmove, 0, sizeof(dmove));
-        strcpy(dmove, Word);
+        memset(&dmove[0], 0, sizeof(dmove));
+        strcpy(&dmove[0], &Word[0]);
         obj2.adj = 0;
 
-        fwrite(dmove, IDL + 1, 1, afp);
+        fwritesafe(dmove, afp);
 
         adjs++;
 
@@ -56,7 +56,7 @@ set_adj()
 
     fseek(afp, 0L, 0);  // Move to beginning
     for (int i = 0; !feof(afp); ++i) {
-        if (fread(dmove, IDL + 1, 1, afp) != 1)
+        if (freadsafe(dmove, afp) != 1)
             continue;  // Read adj!
         if (strcmp(Word, dmove) == NULL) {
             obj2.adj = i;
@@ -66,7 +66,7 @@ set_adj()
     memset(dmove, 0, sizeof(dmove));
     strcpy(dmove, Word);
     fseek(afp, 0L, SEEK_END);
-    fwrite(dmove, IDL + 1, 1, afp);  // Add this adjective
+    fwritesafe(dmove, afp);
     obj2.adj = adjs++;
 }
 

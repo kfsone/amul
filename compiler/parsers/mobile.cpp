@@ -66,11 +66,11 @@ mob_proc1()
 
     mobchars = 0;
     fopenw(Resources::Compiled::mobData());
-    if (nextc(0) == -1)
+    if (nextc(false) == -1)
         return;
 
     mobBuffer.open(0L);
-    mobdat = static_cast<char*>(mobBuffer.m_data);
+    mobdat = static_cast<char *>(mobBuffer.m_data);
     p = mobdat;
     repspc(mobdat);
 
@@ -185,7 +185,7 @@ mob_proc1()
             continue;
         mob.death = n;
 
-        fwrite(&mob, sizeof(mob), 1, ofp1);
+        fwritesafe(mob, ofp1);
     } while (*p != 0);
 
     GetContext().terminateOnErrors();
@@ -195,7 +195,7 @@ mob_proc1()
             GetLogger().fatal("OUT OF MEMORY");
         }
         fopena(Resources::Compiled::mobData());
-        fread((char *)mobp, sizeof(mob) * mobchars, 1, afp);
+        fread((char *)mobp, sizeof(mob), mobchars, afp);
         close_ofps();
     }
 }
