@@ -164,6 +164,8 @@ isloc(const char *subject)
     return -(INS + i);
 }
 
+Buffer objBuffer{};
+
 void
 objs_proc()
 {
@@ -183,7 +185,8 @@ objs_proc()
         close_ofps();
         return;
     }  // Nothing to process
-    blkget(&obmem, (char **)&obtab2, 32 * sizeof(obj2));
+    objBuffer = blkget(32 * sizeof(obj2));
+    obtab2 = static_cast<_OBJ_STRUCT2*>(objBuffer.m_data);
     objtab2 = obtab2 + 32;
 
     const char *s = reinterpret_cast<const char *>(objtab2);
@@ -373,7 +376,7 @@ sort_objs()
     }
     printf("%20s\r%ld objects moved.\n", " ", k);
     close_ofps();
-    OS:: : Free(data, datal);
+    OS::Free(data, datal);
     OS::Free(data2, datal2);
     fopenr(Resources::Compiled::objData());
     fread((char *)obtab2, sizeof(obj), nouns, ifp);

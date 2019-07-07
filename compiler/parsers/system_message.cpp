@@ -29,8 +29,8 @@ smsg_proc()
     fopenw(Resources::Compiled::umsgIndex());
     fopenw(Resources::Compiled::umsgData());
 
-    blkget(&datal, &data, 0L);
-    s = data;
+	Buffer smsgBuffer = blkget(0L);
+    s = static_cast<const char*>(smsgBuffer.m_data);
 
     std::unordered_set<int> registered;
 
@@ -100,7 +100,7 @@ smsg_proc()
     } while (*s != 0);
     close_ofps();
 
-    OS::Free(data, datal);
+	smsgBuffer.free();
 
 	// Validate that we have all the system messages
     if (registered.size() != NSMSGS) {

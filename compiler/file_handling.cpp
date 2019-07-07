@@ -51,6 +51,19 @@ nextc(int f)
     return 0;
 }
 
+extern Buffer verbBuffer, mobBuffer, objBuffer;
+
+Buffer::~Buffer() { this->free(); }
+
+void
+Buffer::free()
+{
+    if (m_data) {
+        OS::Free(m_data, m_size);
+        m_data = nullptr;
+	}
+}
+
 void
 quit()
 {
@@ -59,13 +72,11 @@ quit()
         unlink(block);
     }
     unlink("objh.tmp");
-    OS::Free(mobdat, moblen);
+    verbBuffer.free();
+    mobBuffer.free();
+    objBuffer.free();
     OS::Free(mobp, sizeof(mob) * mobchars);
     OS::Free(rmtab, sizeof(room) * rooms);
-    OS::Free(data, datal);
-    OS::Free(data2, datal2);
-    OS::Free(obtab2, obmem);
-    OS::Free(vbtab, vbmem);
 
     if (ifp != NULL)
         fclose(ifp);
@@ -212,27 +223,29 @@ is_verb(const char *s)
     return -1;
 }
 
-void
-blkget(int32_t *s, char **p, int32_t off)
+Buffer
+blkget(int32_t off)
 {
-    *s = filesize() + off;
-    if ((*p = (char *)OS::Allocate(*s)) == NULL) {
-        GetLogger().fatalf("Out of memory (requested %u bytes)", *s);
+    auto   size = filesize();
+    Buffer buf{size + off + 1, nullptr};
+    buf.m_data = OS::AllocateClear(buf.m_size);
+    if (!buf.m_data) {
+        GetLogger().fatalf("Out of memory (requested %zu bytes)", buf.m_size);
     }
-    fread((*p) + off, 1, *s, ifp);
-    *((*p + *s) - 2) = 0;
-    *((*p + *s) - 1) = 0;
+    if (auto bytes = fread(static_cast<char *>(buf.m_data) + off, 1, size, ifp); bytes != size) {
+        GetLogger().fatalf("I/O Error: expected %d, got %d", size, bytes);
+    }
+
+    return buf;
 }
 
 // Return size of current file
 int32_t
 filesize()
 {
-    int32_t now, s;
-
-    now = ftell(ifp);
+    auto now = ftell(ifp);
     fseek(ifp, 0, SEEK_END);
-    s = ftell(ifp) - now;
+    auto delta = ftell(ifp) - now;
     fseek(ifp, now, 0L);
-    return s + 2;  // Just for luck
+    return delta;
 }

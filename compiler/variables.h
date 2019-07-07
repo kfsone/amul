@@ -8,12 +8,10 @@ extern int     proc;                 // What we are processing
 extern char *  data;                 // Pointer to data buffer
 extern char *  data2;                // Secondary buffer area
 extern char *  syntab;               // Synonym table, re-read
-extern int32_t datal, datal2, mins;  // Length of data! & gametime
+extern int32_t datal2, mins;  // Length of data! & gametime
 extern int32_t obmem;                // Size of Objects.TXT
-extern int32_t vbmem;                // Size of Lang.Txt
 extern int32_t wizstr;               // Wizards strength
 extern char *  mobdat;               // Mobile data
-extern int32_t moblen;               // Length
 enum { WORD_LEN = 64 };
 extern char    Word[WORD_LEN];
 

@@ -20,12 +20,12 @@ badmobend()
 
 // Fetch mobile message line
 int
-getmobmsg(char *s, const char** p)
+getmobmsg(char *s, const char **p)
 {
     const char *q;
-    int   n;
+    int         n;
 
-	const char *&px = *p;
+    const char *&px = *p;
 loop:
     while (isCommentChar(*px)) {
         px = skipline(px);
@@ -56,18 +56,21 @@ loop:
 
 // Pass 1: Indexes mobile names
 
+Buffer mobBuffer{};
+
 void
 mob_proc1()
 {
-    const char *  p, *cur;
-    int32_t n;
+    const char *p, *cur;
+    int32_t     n;
 
     mobchars = 0;
     fopenw(Resources::Compiled::mobData());
     if (nextc(0) == -1)
         return;
 
-    blkget(&moblen, &mobdat, 0L);
+    mobBuffer = blkget(0L);
+    mobdat = static_cast<char*>(mobBuffer.m_data);
     p = mobdat;
     repspc(mobdat);
 
@@ -139,7 +142,7 @@ mob_proc1()
         cur = getword(cur);
         mob.wait = atoi(Word);
 
-		if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
+        if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
             GetLogger().errorf("Mobile: %s, Total of action ratios not equal to 100%", mob.id);
         }
         if (!skiplead("fear=", &cur)) {
@@ -147,14 +150,14 @@ mob_proc1()
             continue;
         }
         cur = getword(cur);
-		mob.fear = atoi(Word);
+        mob.fear = atoi(Word);
 
         if (!skiplead("attack=", &cur)) {
             mobmis("attack=");
             continue;
         }
         cur = getword(cur);
-		mob.attack = atoi(Word);
+        mob.attack = atoi(Word);
 
         if (!skiplead("hitpower=", &cur)) {
             mobmis("hitpower=");

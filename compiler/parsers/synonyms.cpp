@@ -19,8 +19,8 @@ syn_proc()
     fopenw(Resources::Compiled::synonymData());
     fopenw(Resources::Compiled::synonymIndex());
 
-    blkget(&datal, &data, 0L);
-    s = data;
+	Buffer synBuffer = blkget(0L);
+    s = static_cast<const char*>(synBuffer.m_data);
 
     do {
         do
@@ -51,7 +51,8 @@ syn_proc()
         }
     } while (*s != 0);
     close_ofps();
-    OS::Free(data, datal);
+
+	synBuffer.free();
 
     GetContext().terminateOnErrors();
 }

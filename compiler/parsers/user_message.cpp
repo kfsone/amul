@@ -35,9 +35,9 @@ umsg_proc()
         close_ofps();
         return false;
     }  // None to process
-    blkget(&datal, &data, 0L);
 
-    const char *s = data;
+	Buffer umsgBuffer = blkget(0L);
+    const char *s = static_cast<const char*>(umsgBuffer.m_data);
 
     do {
         do
@@ -98,7 +98,7 @@ umsg_proc()
     } while (*s != 0);
     close_ofps();
 
-    OS::Free(data, datal);
+	umsgBuffer.free();
 
     GetContext().terminateOnErrors();
 

@@ -12,15 +12,11 @@ int     dmoves;               // How many RF_CEMETERYs to check?
 int     rmn;                  // Current room no.
 int32_t FPos;                 // Used during TT/Lang writes
 int     proc;                 // What we are processing
-char *  data;                 // Pointer to data buffer
-char *  data2;                // Secondary buffer area
 char *  syntab;               // Synonym table, re-read
-int32_t datal, datal2, mins;  // Length of data! & gametime
+int32_t mins;				  // Length of data! & gametime
 int32_t obmem;                // Size of Objects.TXT
-int32_t vbmem;                // Size of Lang.Txt
 int32_t wizstr;               // Wizards strength
 char *  mobdat;               // Mobile data
-int32_t moblen;               // Length
 
 char Word[WORD_LEN];
 
