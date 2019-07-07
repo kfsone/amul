@@ -29,7 +29,6 @@ rank_proc()
 
     nextc(1);
     fopenw(Resources::Compiled::rankData());
-    putchar('\n');
 
     ranks = 0;
     n = 0;
