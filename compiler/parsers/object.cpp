@@ -215,7 +215,7 @@ objs_proc()
     do {
         GetContext().checkErrorCount();
         do {
-            p = s = sgetl(s, block);
+            p = s = extractLine(s, block);
         } while (*s != 0 && (isCommentChar(block[0]) || block[0] == 0));
         if (*s == 0 || block[0] == 0)
             continue;
@@ -274,7 +274,7 @@ objs_proc()
             p = getword(p);
             if (Word[0] == '+') {
                 do
-                    s = sgetl(s, block);
+                    s = extractLine(s, block);
                 while (*s != 0 && block[0] != 0 && isCommentChar(block[0]));
                 if (*s == 0) {
                     GetLogger().fatal("Unexpected end of Objects.TXT file");
@@ -298,7 +298,7 @@ objs_proc()
         obj2.nstates = 0;
         do {
             do
-                s = sgetl(s, block);
+                s = extractLine(s, block);
             while (isCommentChar(block[0]));
             if (block[0] == 0 || block[0] == '\n')
                 break;

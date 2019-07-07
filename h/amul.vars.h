@@ -16,7 +16,6 @@ extern int32_t nouns;           // No. of nouns
 extern int32_t mobs;            // No. of mobiles
 extern int32_t adjs;            // No. of adjectives
 extern int32_t umsgs;           // No. of user messages
-extern int32_t smsgs;           // No. of system msgs
 extern int32_t mobchars;        // No. of mobile chars
 extern int     invis;           // rnk 4 invis 2C invis
 extern int     invis2;          // rnk 4 !invis 2C invis

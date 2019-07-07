@@ -70,7 +70,6 @@ extern int32_t			   nouns;	// No. of nouns
 extern int32_t			   mobs;	 // No. of mobiles
 extern int32_t			   adjs;	 // No. of adjectives
 extern int32_t			   umsgs;	// No. of user messages
-extern int32_t			   smsgs;	// No. of system msgs
 extern int32_t			   mobchars; // Number of mobile chars
 extern int				   invis;	// Rank for invis to see each other.
 extern int				   invis2;   // Rank for vis to see invis

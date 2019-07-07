@@ -14,7 +14,7 @@ chae_err()
 void
 vbprob(const char *error, const char *input)
 {
-    sgetl(input, block);
+    extractLine(input, block);
     printf("## Verb: %s, Line: %s\n", verb.id, block);
     GetLogger().error(error);
 }
@@ -210,7 +210,7 @@ lang_proc()
 
         do {
             curline = cursor;               // remember the start of the line
-            cursor = sgetl(cursor, block);  // consume the next line
+            cursor = extractLine(cursor, block);  // consume the next line
         } while (isCommentChar(block[0]) || isEol(block[0]));
         if (block[0] == 0)
             break;
@@ -230,7 +230,7 @@ lang_proc()
             Word[IDL] = 0;
 
             do {
-                cursor = sgetl((curline = cursor), block);
+                cursor = extractLine((curline = cursor), block);
             } while (*cursor != 0 && block[0] != 0);
             if (*cursor == 0)
                 break;
@@ -269,7 +269,7 @@ lang_proc()
     stuffloop:
         do {
             curline = cursor;
-            cursor = sgetl(cursor, block);
+            cursor = extractLine(cursor, block);
         } while (*cursor != 0 && isCommentChar(block[0]));
         if (*cursor == 0 || block[0] == 0) {
             if (verb.ents == 0 && (verb.flags & VB_TRAVEL))
@@ -445,7 +445,7 @@ lang_proc()
 
         do {
             curline = cursor;
-            cursor = sgetl(cursor, block);
+            cursor = extractLine(cursor, block);
         } while (*cursor != 0 && isCommentChar(block[0]));
         if (block[0] == 0 || *cursor == 0) {
             lastc = 1;

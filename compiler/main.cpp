@@ -150,9 +150,6 @@ compileGame()
     opentxt("SysMsg");
     smsg_proc();
     fclose(ifp);
-    if (smsgs != NSMSGS) {
-        GetLogger().fatalf("%u system message(s) missing", NSMSGS - smsgs);
-    }
 
     GetLogger().info("-- user messages");
     opentxt("UMSG");

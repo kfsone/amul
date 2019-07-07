@@ -10,6 +10,7 @@
 #include "amulcom.includes.h"
 
 #include <string>
+#include <unordered_set>
 
 using namespace AMUL::Logging;
 using namespace Compiler;
@@ -21,20 +22,24 @@ smsg_proc()
 {
     const char *s;
 
-    smsgs = 0;
+    if (nextc(0) == -1) {
+        GetLogger().fatalf("Empty system messages file.");
+	}
 
-    if (nextc(0) == -1)
-        return;  // Nothing to process!
     fopenw(Resources::Compiled::umsgIndex());
     fopenw(Resources::Compiled::umsgData());
 
     blkget(&datal, &data, 0L);
     s = data;
 
+    std::unordered_set<int> registered;
+
     do {
-        do
-            s = sgetl(s, block);
-        while (isCommentChar(block[0]));
+        GetContext().checkErrorCount();
+
+        do {
+            s = extractLine(s, block);
+        } while (isCommentChar(block[0]));
 
         tidy(block);
         if (block[0] == 0)
@@ -43,20 +48,27 @@ smsg_proc()
         if (Word[0] == 0)
             break;
 
+        bool valid = true;
+
         if (Word[0] != '$') {
-            printf("\x07\n\n!! Invalid SysMsg ID, '%s'. SysMsgs MUST begin with a '$'!\n", Word);
-            quit();
-        }
-        if (atoi(Word + 1) != smsgs + 1) {
-            printf("\x07\n\n!! Message %s out of sequence!\n\n", Word);
-            quit();
-        }
-        if (smsgs >= NSMSGS) {
-            printf("\x07\n\n!! Too many System Messages, only require %ld!\n\n", NSMSGS);
-            quit();
+            GetLogger().errorf("Invalid sysmsg id (must start with '$'): %s", Word);
+            valid = false;
+        } else {
+            auto msgId = atoi(Word + 1);
+            if (msgId < 1 || msgId >= NSMSGS) {
+                GetLogger().errorf("Invalid sysmsg id (out of range): %s", Word);
+                valid = false;
+            } else if (registered.find(msgId) != registered.end()) {
+                GetLogger().errorf("Duplicate definition of system message: %s", Word);
+                valid = false;
+            }
+            if (valid)
+                registered.insert(msgId);
         }
 
-        registerMessageId(Word);
+        if (valid) {
+            registerMessageId(Word);
+        }
 
         umsgoff_t pos = ftell(ofp2);
         fwrite(&pos, sizeof(pos), 1, ofp1);
@@ -65,7 +77,6 @@ smsg_proc()
             while (isCommentChar(*s))
                 s = skipline(s);
             if (isLineEnding(*s)) {
-                s = "";  // to break the while loops
                 break;
             }
             if (*s == 9)
@@ -74,7 +85,7 @@ smsg_proc()
                 block[0] = 13;
                 continue;
             }
-            s = sgetl(s, block);
+            s = extractLine(s, block);
             if (block[0] == 0)
                 break;
             pos = (int32_t)strlen(block);
@@ -85,11 +96,21 @@ smsg_proc()
             fwrite(block, 1, pos, ofp2);
         } while (*s != 0 && block[0] != 0);
 
-		fputc(0, ofp2);
-
-        ++smsgs;  // Now copy the text across
+        fputc(0, ofp2);
     } while (*s != 0);
     close_ofps();
 
     OS::Free(data, datal);
+
+	// Validate that we have all the system messages
+    if (registered.size() != NSMSGS) {
+        std::string missing{};
+        int         missed = 0;
+        for (int i = 1; i < NSMSGS; ++i) {
+            if (registered.find(i) == registered.end()) {
+                GetLogger().fatalf(
+                        "System Message $%d is missing (total of %u missing)\n", i, NSMSGS - registered.size());
+            }
+        }
+    }
 }

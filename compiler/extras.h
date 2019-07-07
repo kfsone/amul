@@ -4,7 +4,7 @@
 #include <cctype>
 #include <cstdio>
 
-const char *sgetl(const char *from, char *to) noexcept;
+const char *extractLine(const char *from, char *to) noexcept;
 bool        stripNewline(char *text) noexcept;
 const char *getword(const char *from) noexcept;
 

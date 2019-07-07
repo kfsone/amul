@@ -24,7 +24,7 @@ syn_proc()
 
     do {
         do
-            s = sgetl(s, block);
+            s = extractLine(s, block);
         while (isCommentChar(block[0]));
 
         tidy(block);

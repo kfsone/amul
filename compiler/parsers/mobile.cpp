@@ -77,7 +77,7 @@ mob_proc1()
             p = skipline(p);
         if (*p == 0)
             break;
-        p = sgetl(p, block);
+        p = extractLine(p, block);
         mobchars++;
         s1 = getword(block + 1);
         strcpy(mob.id, Word);
@@ -100,7 +100,7 @@ mob_proc1()
             }
         } while (*s1 != 0 && *s1 != ';' && Word[0] != 0);
 
-        p = sgetl(p, block);
+        p = extractLine(p, block);
         tidy(block);
         s1 = block;
         mob.dmove = -1;

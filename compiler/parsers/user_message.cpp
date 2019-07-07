@@ -41,7 +41,7 @@ umsg_proc()
 
     do {
         do
-            s = sgetl(s, block);
+            s = extractLine(s, block);
         while (isCommentChar(block[0]) && *s != 0);
         if (*s == 0)
             break;
@@ -82,7 +82,7 @@ umsg_proc()
                 block[0] = 13;
                 continue;
             }
-            s = sgetl(s, block);
+            s = extractLine(s, block);
             if (block[0] == 0)
                 break;
             umsgoff_t umsglen = strlen(block);

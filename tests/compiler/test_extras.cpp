@@ -16,7 +16,7 @@ TEST(ExtrasTest, SkipLead)
     EXPECT_TRUE(skiplead("foo=", &p));
     EXPECT_EQ(*p, 0);
 
-	p = "foo=bar";
+    p = "foo=bar";
     EXPECT_TRUE(skiplead("foo=", &p));
     EXPECT_STREQ(p, "bar");
 }
@@ -66,4 +66,57 @@ TEST(ExtrasTest, GetWord_OverFlow_Space)
     const char *p = getword("   12345678901234567890123456789012345678901234567890123456789012345678901234567890 end");
     EXPECT_STREQ(Word, "123456789012345678901234567890123456789012345678901234567890123");
     EXPECT_STREQ(p, " end");
+}
+
+TEST(ExtrasTest, ExtractLine_Empty)
+{
+    char        output[100]{};
+    const char *input1 = "";
+    EXPECT_EQ(extractLine(input1, output), input1);
+    EXPECT_EQ(output[0], 0);
+
+    const char *input2 = ";";
+    EXPECT_EQ(extractLine(input2, output), input2 + 1);
+    EXPECT_EQ(output[0], 0);
+
+    const char *input3 = "\n";
+    EXPECT_EQ(extractLine(input3, output), input3 + 1);
+    EXPECT_EQ(output[0], 0);
+}
+
+TEST(ExtrasTest, ExtractLine_Comments)
+{
+    char        output[100]{};
+    const char *input1 = ";\n;cmt\n;comment\nHello";
+    const char *p1 = extractLine(input1, output);
+    EXPECT_EQ(*p1, 0);
+    EXPECT_EQ(p1, input1 + strlen(input1));
+    EXPECT_STREQ(output, "Hello");
+
+    const char *input2 = ";\n;cmt\n;comment\nHello\n";
+    const char *p2 = extractLine(input2, output);
+    EXPECT_EQ(*p2, 0);
+    EXPECT_EQ(p2, input2 + strlen(input2));
+    EXPECT_STREQ(output, "Hello");
+
+    const char *input3 = ";\n;\nHello ;world\n";
+    const char *p3 = extractLine(input3, output);
+    EXPECT_EQ(*p3, 0);
+    EXPECT_EQ(p3, input3 + strlen(input3));
+    EXPECT_STREQ(output, "Hello ;world");
+}
+
+TEST(ExtrasTest, ExtractLine_Multiline)
+{
+    char        output[100]{};
+    const char *input = "Line 1\n; Comment\n2nd\n";
+
+	const char *p = extractLine(input, output);
+    EXPECT_STREQ(output, "Line 1");
+    EXPECT_FALSE(p == input);
+    EXPECT_EQ(*p, ';');
+
+	p = extractLine(p, output);
+    EXPECT_STREQ(output, "2nd");
+    EXPECT_EQ(p, input + strlen(input));
 }

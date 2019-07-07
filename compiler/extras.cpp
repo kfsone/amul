@@ -2,7 +2,7 @@
 #include "amulcom.includes.h"
 
 const char *
-sgetl(const char *from, char *to) noexcept
+extractLine(const char *from, char *to) noexcept
 {
     *to = 0;
     // Skip whole-line comment lines
@@ -14,6 +14,8 @@ sgetl(const char *from, char *to) noexcept
     while (*from && !isEol(*from)) {
         *(to++) = *(from++);
     }
+    if (isEol(*from))
+        from++;
     *to = 0;
     return from;
 }

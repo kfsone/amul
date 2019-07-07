@@ -11,7 +11,6 @@ int32_t nouns;           // No. of nouns
 int32_t mobs;            // No. of mobiles
 int32_t adjs;            // No. of adjectives
 int32_t umsgs;           // No. of user messages
-int32_t smsgs;           // No. of system msgs
 int32_t mobchars;        // No. of mobile chars
 int     invis;           // rnk 4 invis 2C invis
 int     invis2;          // rnk 4 !invis 2C invis
