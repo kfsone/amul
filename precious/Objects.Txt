@@ -46,7 +46,7 @@ noun=dog  mobile=dog
 	1200 0 0 0 "A scruffy-looking, flea-infested, dog is wandering around here." alive
 	1200 0 0 0 "Near your feet lies a pile of blood-matted fur which was once presumably a very unpleasant dog."
 
-noun=rope	flamable fire
+noun=rope	flammable fire
   soundroom
 	8 1 0 0 "A short length of rope has been thrown to one side."
 	8 1 0 0 "A short length of rope has been tied in a knot and thrown to one side."
@@ -63,7 +63,7 @@ noun=nugget adj=golden
   caves4
 	10 75 0 0 "Lying on the floor is a small, golden nugget." scaled
 
-noun=book	fire flamable adj=ornate
+noun=book	fire flammable adj=ornate
   prayroom
 	60 30 2 2 "Carelessly, someone has dropped an ornate little book nearby." scaled
 
@@ -71,7 +71,7 @@ noun=spade	adj=rusty
   lawn
 	200 20 6 20 "A rusty spade has been left here." scaled
 
-noun=stove	flamable opens scenery
+noun=stove	flammable opens scenery
   kitchen
 	0 0 0 0 "In the middle of the room stands a huge, solitary stove. The door has been opened, revealing a cheery flame within." lit
 	0 0 0 0 "A huge stove stands in the middle of the room, looking quite undamaged. The door on it's front is closed."
@@ -112,7 +112,7 @@ noun=wafer
 ; doors being the most common. For ALL portals it is assumed:
 ;	state 0 = open, state 1 = closed, state 2 = locked
 
-noun=door	opens scenery adj=front start=1 flamable fire
+noun=door	opens scenery adj=front start=1 flammable fire
   hallway drive1
 	0 0 0 0 doorop
 	0 0 0 0 doorcl
@@ -122,7 +122,7 @@ noun=door	opens scenery adj=patio
   patio dining
 	0 0 0 0 none
 
-noun=gates	opens scenery flamable start=1 adj=mansions
+noun=gates	opens scenery flammable start=1 adj=mansions
   drive3 wlane2
 	0 0 0 0 "The mansion's gates are open."
 	0 0 0 0 "The mansion's gates are closed."
@@ -304,7 +304,7 @@ noun=hay scenery
   insidebarn bhayloft
 	0 0 0 0 none
 
-noun=ladder scenery flamable fire
+noun=ladder scenery flammable fire
   insidebarn bhayloft
 	0 0 0 0 "A wooden ladder runs between the barn and the hayloft."
 
