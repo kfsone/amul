@@ -129,4 +129,5 @@ TEST(ExtrasTest, SkipLine)
 {
     EXPECT_STREQ(skipline(""), "");
     EXPECT_STREQ(skipline("abc\ndef"), "def");
+    EXPECT_STREQ(skipline("\r\nboo"), "boo");
 }

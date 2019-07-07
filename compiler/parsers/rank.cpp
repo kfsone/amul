@@ -44,8 +44,7 @@ rank_proc()
         if (!chkline(p))
             continue;
         ranks++;
-        rank.male[0] = 0;
-        rank.female[0] = 0;
+        rank.male[0] = rank.female[0] = 0;
         if (strlen(Word) < 3 || strlen(Word) > RANKL) {
             GetLogger().errorf("Invalid male rank: %s", Word);
         }

@@ -36,8 +36,10 @@ skipspc(const char *s) noexcept
 static const char *
 skipline(const char *s) noexcept
 {
-    while (*s && *s != '\n')
-        ++s;
+    while (*s) {
+        if (isEol(*(s++)))
+            break;
+    }
     return s;
 }
 
