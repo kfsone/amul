@@ -178,21 +178,18 @@ skipblock()
 
 // trim both ends of a string, and replace tabs with spaces
 void
-tidy(char *s)
+tidy(char *ptr)
 {
-    char *p = s;
-    while (*p && isspace(*p))
-        p++;
-    if (!*p)
-        return;
-    while (*p) {
-        if (*p == '\t')
-            *p = ' ';
-        if (*p != ' ')
-            s = p;
-        ++p;
+    char *lastNonSpace = nullptr;
+    while (*ptr) {
+        if (*ptr == '\t' || *ptr == '\r')
+            *ptr = ' ';
+        if (*ptr != ' ')
+            lastNonSpace = ptr;
+        ++ptr;
     }
-    *(s + 1) = 0;
+    if (lastNonSpace)
+        *(lastNonSpace + 1) = 0;
 }
 
 int

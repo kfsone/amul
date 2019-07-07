@@ -31,19 +31,17 @@ rank_proc()
     fopenw(Resources::Compiled::rankData());
 
     ranks = 0;
-    n = 0;
 
     do {
         fgets(block, 1024, ifp);
         if (feof(ifp))
             continue;
-        if (isCommentChar(block[0]) || block[0] == '\n')
-            continue;
         tidy(block);
-        if (block[0] == 0)
+        const char *p = skipspc(block);
+        if (isLineBreak(*p))
             continue;
-        const char *p = getword(block);
-        if (chkline(p) != 0)
+        p = getword(p);
+        if (!chkline(p))
             continue;
         ranks++;
         rank.male[0] = 0;
@@ -60,9 +58,9 @@ rank_proc()
         } while (Word[n - 1] != 0);
 
         p = getword(p);
-        if (chkline(p) != 0)
+        if (!chkline(p))
             continue;
-        if (strcmp(Word, "=") != NULL && strlen(Word) < 3 || strlen(Word) > RANKL) {
+        if (strcmp(Word, "=") != NULL && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
             GetLogger().errorf("Invalid female rank: %s", Word);
         }
         if (Word[0] != '=') {
@@ -76,7 +74,7 @@ rank_proc()
         }
 
         p = getword(p);
-        if (chkline(p) != 0)
+        if (!chkline(p))
             continue;
         if (!isdigit(Word[0])) {
             rank_error("number for score");
