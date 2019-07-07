@@ -59,8 +59,14 @@ static bool
 skiplead(const char *lead, const char **from) noexcept
 {
     const char *origin = *from;
-    *from = skiplead(lead, *from);
-    return (*from != origin);
+    const char *start = skipspc(origin);
+    const char *cur = start;
+    cur = skiplead(lead, cur);
+    if (cur == start) {
+        return false;
+    }
+    *from = cur;
+    return true;
 }
 
 static bool
