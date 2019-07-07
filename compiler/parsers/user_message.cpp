@@ -48,8 +48,7 @@ umsg_proc()
         tidy(block);
         if (block[0] == 0)
             continue;
-        striplead("msgid=", block);
-        getword(block);
+        getWordAfter("msgid=", block);
         if (Word[0] == 0)
             continue;
 

@@ -40,7 +40,6 @@ getword(const char *from) noexcept
         switch (*from) {
         case 0:
         case ';':
-        case '*':
         case ' ':
         case '\t': goto broke;
         default: ++from;

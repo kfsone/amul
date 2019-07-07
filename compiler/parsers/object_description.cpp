@@ -20,8 +20,7 @@ obds_proc()
     do {
         fgets(block, 1024, ifp);
         tidy(block);
-        striplead("desc=", block);
-        getword(block);
+        getWordAfter("desc=", block);
         if (strlen(Word) < 3 || strlen(Word) > IDL) {
             GetLogger().errorf("Invalid object ID: %s: bad length", Word);
             skipblock();

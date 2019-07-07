@@ -23,12 +23,13 @@ room_proc()
         while ((c = fgetc(ifp)) != EOF && !isspace(c))
             *(p++) = c;
         *p = 0;  // Set null byte
-        striplead("room=", block);
-        if (strlen(block) < 3 || strlen(block) > IDL) {
-            printf("!! \x07 Invalid ID: \"%s\"\x07 !!\n", block);
+        const char* id = skiplead("room=", block);
+        if (strlen(id) < 3 || strlen(id) > IDL) {
+            printf("!! \x07 Invalid ID: \"%s\"\x07 !!\n", id);
             quit();
         }
-        strcpy(room.id, block);
+        strcpy(room.id, id);
+
         // Do the flags
         room.flags = 0;
         room.tabptr = -1;

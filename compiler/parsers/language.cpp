@@ -219,8 +219,7 @@ lang_proc()
         if (block[0] == 0)
             continue;
 
-        p = skiplead("verb=", block);
-        p = getword(p);
+		getWordAfter("verb=", block);
         if (Word[0] == 0) {
             GetLogger().error("verb= line without a verb");
             continue;
@@ -243,7 +242,7 @@ lang_proc()
         memcpy(verb.sort, "\0xffCHAE\x0fCHAE", sizeof(verb.sort));
 
         verb.flags = VB_TRAVEL;
-        if (*p == 0 || *p == ';' || *p == '*')
+        if (isLineBreak(*p))
             goto noflags;
         p = getword(p);
         if (strcmp("travel", Word) == NULL) {
@@ -254,13 +253,13 @@ lang_proc()
             verb.flags += VB_DREAM;
             p = getword(p);
         }
-        if (Word[0] == 0 || Word[0] == ';' || Word[0] == '*')
+        if (isLineBreak(Word[0]))
             goto noflags;
 
         if (chae_proc(Word, verb.sort) == -1)
             goto noflags;
         p = getword(p);
-        if (Word[0] != 0 && Word[0] != ';' && Word[0] != '*')
+        if (isLineBreak(Word[0]))
             chae_proc(Word, verb.sort2);
 
     noflags:
@@ -307,7 +306,7 @@ lang_proc()
 
     sp2:  // Syntax line processing
         p = skipspc(p);
-        if (*p == ';' || *p == '|' || *p == '*')
+        if (isCommentChar(*p) || *p == '|')
             goto endsynt;
         Word[0] = 0;
         p = getword(p);

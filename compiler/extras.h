@@ -45,12 +45,12 @@ static const char *
 skiplead(const char *lead, const char *from) noexcept
 {
     const char *beginning = from;
-    while (*from) {
+    while (*lead && *from) {
         if (tolower(*from) != tolower(*lead))
             return beginning;
         ++lead, ++from;
     }
-    return from;
+    return (*lead == 0) ? from : beginning;
 }
 
 static bool
@@ -68,9 +68,9 @@ striplead(const char *lead, char *from) noexcept
     if (following == from) {
         return false;
     }
-    while (*following) {
-        *(from++) = *(following++);
-    }
+    do {
+        *(from) = *(following++);
+    } while (*(from++));
     return true;
 }
 
@@ -89,4 +89,10 @@ strstop(CharT *in, char stop)
         ++in;
     }
     return in;
+}
+
+static inline const char *
+getWordAfter(const char *lead, const char *from) noexcept
+{
+    return getword(skiplead(lead, from));
 }

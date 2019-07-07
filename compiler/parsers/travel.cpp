@@ -28,9 +28,7 @@ trav_proc()
         tidy(block);
         if (isCommentChar(block[0]) || block[0] == 0)
             goto loop1;
-        p = block;
-        getword(block);
-        striplead("room=", Word);
+        getWordAfter("room=", block);
         if ((rmn = isroom(Word)) == -1) {
             GetLogger().errorf("Invalid room ID: %s", Word);
             skipblock();

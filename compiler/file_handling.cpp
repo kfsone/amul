@@ -40,7 +40,7 @@ nextc(int f)
             ;
         if (isCommentChar(c))
             fgets(block, 1024, ifp);
-    } while (c != EOF && (c == '*' || c == ';' || isspace(c)));
+    } while (c != EOF && (isCommentChar(c) || isspace(c)));
     if (f == 1 && c == EOF) {
         printf("\nFile contains NO data!\n\n");
         quit();

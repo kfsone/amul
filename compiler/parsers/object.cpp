@@ -17,7 +17,7 @@ text_id(const char *from, char c)
     FILE *fp;
 
     strcpy(block, from);
-    char* p = block;
+    char *p = block;
     while (*p != c && *p != 0)
         p++;
     if (*p == 0)
@@ -53,7 +53,7 @@ is_desid()
     if ((fp = fopen("ODIDs.tmp", "rb+")) == NULL)
         GetLogger().fatalop("open", "ODIDs.tmp");
 
-	for (int i = 0; i < obdes; i++) {
+    for (int i = 0; i < obdes; i++) {
         fread(objdes.id, sizeof(objdes), 1, fp);
         state.descrip = objdes.descrip;
         if (stricmp(Word, objdes.id) == 0) {
@@ -78,8 +78,7 @@ state_proc()
         return;
 
     // Get the weight of the object
-    const char *p = skiplead("weight=", block);
-    p = getword(block);
+    const char *p = getWordAfter("weight=", block);
     if (*p == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
@@ -90,8 +89,7 @@ state_proc()
 
     // Get the value of it
     p = skipspc(p);
-    p = skiplead("value=", p);
-    p = getword(p);
+    p = getWordAfter("value=", p);
     if (*p == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
@@ -100,8 +98,7 @@ state_proc()
 
     // Get the strength of it (hit points)
     p = skipspc(p);
-    p = skiplead("str=", p);
-    p = getword(p);
+    p = getWordAfter("str=", p);
     if (*p == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
@@ -110,8 +107,7 @@ state_proc()
 
     // Get the damage it does as a weapon
     p = skipspc(p);
-    p = skiplead("dam=", p);
-    p = getword(p);
+    p = getWordAfter("dam=", p);
     if (*p == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
@@ -226,8 +222,7 @@ objs_proc()
         tidy(block);
         if (block[0] == 0)
             continue;
-        p = skiplead("noun=", block);
-        p = getword(block);
+        p = getWordAfter("noun=", block);
         if (strlen(Word) < 3 || strlen(Word) > IDL) {
             GetLogger().errorf("Invalid object ID: '%s'", Word);
             Word[IDL + 1] = 0;
