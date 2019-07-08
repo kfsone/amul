@@ -42,7 +42,7 @@ syntax=verb text
 ;  list the FULL names are given, which looks MUCH tidier.
 ;
 
-;travel=north south east west northeast southeast southwest northwest up down in out jump
+travel=north south east west northeast southeast southwest northwest up down in out jump
 
 left
 syntax=verb any

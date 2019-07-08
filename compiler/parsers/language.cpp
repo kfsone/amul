@@ -13,7 +13,46 @@ using namespace Compiler;
 std::vector<_VERB_STRUCT>                 verbTable;
 std::unordered_map<std::string, verbid_t> verbIndex;
 
-int
+class Verb : public _VERB_STRUCT
+{
+  public:
+    Verb(const char *id_)
+    {
+        strncpy(id, id_, sizeof(id));
+        flags = VB_TRAVEL;
+        memcpy(verb.sort, "\0xffCHAE\x0fCHAE", sizeof(verb.sort));
+        ents = 0;
+        ptr = nullptr;
+    }
+};
+
+void
+registerVerb(const _VERB_STRUCT &vb)
+{
+    fwritesafe(vb, ofp1);
+    verbIndex[vb.id] = verbTable.size();
+    verbTable.emplace_back(vb);
+}
+
+void
+travelVerbs(const char *words)
+{
+    for (; !isLineBreak(*words);) {
+        words = getword(words);
+        if (Word[0] == 0) {
+            return;
+        }
+        if (verbIndex.find(Word) != verbIndex.cend()) {
+            GetLogger().warnf("Verb redefined on travel= line: %s", Word);
+            continue;
+        }
+
+        Verb vb{Word};
+        registerVerb(vb);
+    }
+}
+
+verbid_t
 verbCount() noexcept
 {
     return verbIndex.size();
@@ -241,6 +280,12 @@ lang_proc()
         tidy(block);
         if (block[0] == 0)
             continue;
+
+        // "travel=" line defines verbs that are purely travel verbs.
+        if (strncmp(block, "travel=", 7) == 0) {
+            travelVerbs(block + 7);
+            continue;
+        }
 
         p = getWordAfter("verb=", block);
         if (Word[0] == 0) {
@@ -578,10 +623,8 @@ lang_proc()
         lastc = '\n';
 
         // write:
-        fwritesafe(verb, ofp1);
+        registerVerb(verb);
         proc = 0;
-        verbIndex[verb.id] = verbTable.size();
-        verbTable.emplace_back(verb);
     } while (*cursor != 0);
 
     GetContext().terminateOnErrors();
