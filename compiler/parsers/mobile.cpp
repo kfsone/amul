@@ -6,7 +6,7 @@ using namespace AMUL::Logging;
 using namespace Compiler;
 
 void
-mobmis(char *field)
+mobmis(const char *field)
 {
     GetLogger().errorf("Mobile: %s: Missing '%s' field", mob.id, field);
     skipblock();
@@ -20,7 +20,7 @@ badmobend()
 
 // Fetch mobile message line
 int
-getmobmsg(char *s, const char **p)
+getmobmsg(const char *s, const char **p)
 {
     const char *q;
     int         n;

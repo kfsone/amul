@@ -23,6 +23,7 @@ struct Logger {
         printf("%c)%s: ", level[0], level + 1);
         printf(fmt, std::forward<Args>(args)...);
         printf("\n");
+        fflush(stdout);
     }
 
     template <typename... Args>
@@ -58,10 +59,7 @@ struct Logger {
 
     [[noreturn]] void fatal(const char *issue) { fatalf("%s", issue); }
 
-    [[noreturn]] void fatalop(const char *verb, const char *noun)
-    {
-        fatalf("Can't %s %s.");
-    }
+    [[noreturn]] void fatalop(const char *verb, const char *noun) { fatalf("Can't %s %s."); }
 };
 
 Logger &GetLogger();

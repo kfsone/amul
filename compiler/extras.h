@@ -24,7 +24,7 @@ repspc(char *s) noexcept
     }
 }
 
-static const char *
+static inline const char *
 skipspc(const char *s) noexcept
 {
     while (*s && isspace(*s)) {
@@ -33,7 +33,7 @@ skipspc(const char *s) noexcept
     return s;
 }
 
-static const char *
+static inline const char *
 skipline(const char *s) noexcept
 {
     while (*s) {
@@ -43,7 +43,7 @@ skipline(const char *s) noexcept
     return s;
 }
 
-static const char *
+static inline const char *
 skiplead(const char *lead, const char *from) noexcept
 {
     const char *beginning = from;
@@ -55,7 +55,7 @@ skiplead(const char *lead, const char *from) noexcept
     return (*lead == 0) ? from : beginning;
 }
 
-static bool
+static inline bool
 skiplead(const char *lead, const char **from) noexcept
 {
     const char *origin = *from;
@@ -69,18 +69,7 @@ skiplead(const char *lead, const char **from) noexcept
     return true;
 }
 
-static bool
-striplead(const char *lead, char *from) noexcept
-{
-    const char *following = skiplead(lead, from);
-    if (following == from) {
-        return false;
-    }
-    do {
-        *(from) = *(following++);
-    } while (*(from++));
-    return true;
-}
+bool striplead(const char *lead, char *from) noexcept;
 
 template <size_t Size>
 static void

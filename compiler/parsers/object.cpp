@@ -1,16 +1,41 @@
 #include "amulcom.includes.h"
 
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 using namespace AMUL::Logging;
 using namespace Compiler;
 
+using AdjectiveLookup = std::unordered_map<std::string, int>;
+static std::string     adjectiveTable;
+static AdjectiveLookup adjectiveIDs;
+
+void
+set_adj(std::string token)
+{
+    if (token.size() < 3)
+        GetLogger().errorf("Invalid adjective (too short): %s", token.c_str());
+    if (token.size() > IDL)
+        GetLogger().errorf("INvalid adjective (too long): %s", token.c_str());
+
+    auto it = adjectiveIDs.find(token);
+    if (it != adjectiveIDs.end()) {
+        obj.adj = it->second;
+        return;
+    }
+
+    int id = (int)adjectiveTable.size();
+    adjectiveIDs[token] = id;
+    adjectiveTable += token;
+    adjectiveTable += '\0';
+    obj.adj = id;
+}
+
 static void
 statinv(const char *s)
 {
-    GetLogger().fatalf(
-            "Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s,
-            block);
+    GetLogger().fatalf("Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s, block);
 }
 
 void
@@ -163,9 +188,7 @@ isloc(const char *subject)
         if (isnoun(subject) == -1)
             GetLogger().errorf("Invalid object start location: %s", subject);
         else
-            GetLogger().errorf(
-                    "Tried to start '%s' in non-container: %s", obj2.id,
-                    subject);
+            GetLogger().errorf("Tried to start '%s' in non-container: %s", obj2.id, subject);
         return -1;
     }
 
@@ -182,12 +205,9 @@ objs_proc()
     nouns = adjs;
 
     // Clear files
-    OS::CreateFile(dir, Resources::Compiled::adjTable());
-
     fopenw(Resources::Compiled::objData());
     fopenw(Resources::Compiled::objState());
     fopenw(Resources::Compiled::objLoc());
-    fopena(Resources::Compiled::adjTable());
 
     if (nextc(false) == -1) {
         close_ofps();
@@ -196,9 +216,10 @@ objs_proc()
     objBuffer.open(32 * sizeof(obj2));
     obtab2 = static_cast<_OBJ_STRUCT2 *>(objBuffer.m_data);
     objtab2 = obtab2 + 32;
-
     const char *s = reinterpret_cast<const char *>(objtab2);
     const char *p = nullptr;
+
+    adjectiveTable.reserve(512);
 
     do {
         GetContext().checkErrorCount();
@@ -238,7 +259,7 @@ objs_proc()
                     continue;
                 }
                 switch (bitset(roomno)) {
-                case OP_ADJ: set_adj(); break;
+                case OP_ADJ: set_adj(Word); break;
                 case OP_START: set_start(); break;
                 case OP_HOLDS: set_holds(); break;
                 case OP_PUT: set_put(); break;
@@ -284,8 +305,7 @@ objs_proc()
             obj2.nrooms++;
         } while (Word[0] != 0);
         if (obj2.nrooms == 0 && roomno == 0) {
-            GetLogger().errorf(
-                    "No locations specified for object: %s", obj2.id);
+            GetLogger().errorf("No locations specified for object: %s", obj2.id);
         }
         obj2.nstates = 0;
         do {
@@ -312,6 +332,11 @@ objs_proc()
 #endif
 
     fwrite(obtab2, sizeof(obj2), nouns, ofp1);
+    close_ofps();
+
+    // save the adjective table
+    fopenw(Resources::Compiled::adjTable());
+    fwrite(adjectiveTable.data(), 1, adjectiveTable.size(), ofp1);
     close_ofps();
 }
 
@@ -351,8 +376,7 @@ sort_objs()
     rmtab = (int32_t *)data2;
     for (i = 0; i < nouns; i++) {
         if (*(objtab2 = (obtab2 + i))->id == 0) {
-            printf("@! skipping %ld states, %ld rooms.\n", objtab2->nstates,
-                   objtab2->nrooms);
+            printf("@! skipping %ld states, %ld rooms.\n", objtab2->nstates, objtab2->nrooms);
             statab += objtab2->nstates;
             rmtab += objtab2->nrooms;
             continue;

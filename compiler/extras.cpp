@@ -61,3 +61,16 @@ stripNewline(char *text) noexcept
     }
     return len;
 }
+
+bool
+striplead(const char *lead, char *from) noexcept
+{
+    const char *following = skiplead(lead, from);
+    if (following == from) {
+        return false;
+    }
+    do {
+        *(from) = *(following++);
+    } while (*(from++));
+    return true;
+}

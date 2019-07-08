@@ -10,7 +10,6 @@ int  isloc(const char *name);
 int  isprep(const char *s);
 int  ttumsgchk(const char *s);
 int  isumsg(const char *s);
-void set_adj();
 void object(const char *s);
 void set_start();
 void set_holds();

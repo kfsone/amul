@@ -37,40 +37,6 @@ isroom(const char *name) noexcept
 }
 
 void
-set_adj()
-{
-    if (strlen(Word) > IDL || strlen(Word) < 3) {
-        GetLogger().fatalf("Invalid adjective: %s", Word);
-    }
-    if (adjs == 0) {
-        memset(&dmove[0], 0, sizeof(dmove));
-        strcpy(&dmove[0], &Word[0]);
-        obj2.adj = 0;
-
-        fwritesafe(dmove, afp);
-
-        adjs++;
-
-        return;
-    }
-
-    fseek(afp, 0L, 0);  // Move to beginning
-    for (int i = 0; !feof(afp); ++i) {
-        if (freadsafe(dmove, afp) != 1)
-            continue;  // Read adj!
-        if (strcmp(Word, dmove) == NULL) {
-            obj2.adj = i;
-            return;
-        }
-    }
-    memset(dmove, 0, sizeof(dmove));
-    strcpy(dmove, Word);
-    fseek(afp, 0L, SEEK_END);
-    fwritesafe(dmove, afp);
-    obj2.adj = adjs++;
-}
-
-void
 object(const char *s)
 {
     GetLogger().fatalf(

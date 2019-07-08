@@ -21,7 +21,7 @@ vbprob(const char *error, const char *input)
     GetLogger().error(error);
 }
 
-Buffer verbBuffer;
+Buffer verbBuffer{};
 
 // From and To
 int
@@ -186,10 +186,7 @@ lang_proc()
 
     verbs = 0;
     nextc(true);
-    OS::CreateFile(dir, Resources::Compiled::lang1());
-    fopena(Resources::Compiled::lang1());
-    ofp1 = afp;
-    afp = NULL;
+    fopenw(Resources::Compiled::lang1());
     fopenw(Resources::Compiled::lang2());
     fopenw(Resources::Compiled::lang3());
     fopenw(Resources::Compiled::lang4());
