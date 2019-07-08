@@ -41,19 +41,21 @@ statinv(const char *s)
 void
 text_id(const char *from, char c)
 {
-    char *ptr;
+    std::string copy{};
+    const char* end = strchr(from, c);
+    if (end) {
+        copy.assign(from, end);
+	strcpy(block, end+1);
+    } else {
+	copy.assign(from);
+        block[0] = 0;
+    }
 
-    strcpy(block, from);
-    char *p = block;
-    while (*p != c && *p != 0)
-        p++;
-    if (*p == 0)
-        *(p + 1) = 0;
-    *(p++) = '\n';
-    if (*(p - 2) == '{')
-        ptr = p - 1;
-    else
-        ptr = p;
+    if (copy.back() == '{') {
+        copy.pop_back();
+    } else {
+	copy += '\n';
+    }
 
     std::string filepath{dir};
     filepath += Resources::Compiled::objDesc();
@@ -62,12 +64,10 @@ text_id(const char *from, char c)
         GetLogger().fatalop("open", filepath.c_str());
     fseek(fp, 0, SEEK_END);
     state.descrip = ftell(fp);  // Get pos
-    if (fwrite(&block[0], ptr - block, 1, fp) != 1) {
+    if (fwrite(copy.data(), copy.size() + 1, 1, fp) != 1) {
         fclose(fp);
         GetLogger().fatalop("write", filepath.c_str());
     }
-    fputc(0, fp);
-    strcpy(block, p);
     fclose(fp);
 }
 

@@ -212,6 +212,8 @@ tidy(char *ptr)
         *(lastNonSpace + 1) = 0;
 }
 
+extern int lookup_verb(std::string token);
+
 int
 is_verb(const char *token)
 {
@@ -227,12 +229,7 @@ is_verb(const char *token)
     if (stricmp(token, verb.id) == 0)
         return (verbs - 1);
 
-    vbptr = vbtab;
-    for (int i = 0; i < verbs; i++, vbptr++) {
-        if (stricmp(vbptr->id, token) == 0)
-            return i;
-    }
-    return -1;
+    return lookup_verb(token);
 }
 
 void

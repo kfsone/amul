@@ -3,8 +3,24 @@
 
 #include "h/amul.instructions.h"
 
+#include <string>
+#include <vector>
+#include <unordered_map>
+
 using namespace AMUL::Logging;
 using namespace Compiler;
+
+std::vector<_VERB_STRUCT> verbTable;
+std::unordered_map<std::string, verbid_t> verbIndex;
+
+int
+lookup_verb(std::string token) noexcept
+{
+    if (auto it = verbIndex.find(token); it != verbIndex.end()) {
+	return it->second;
+    }
+    return -1;
+}
 
 static void
 chae_err()
@@ -196,11 +212,8 @@ lang_proc()
     // data. Messy and awful.
 
     // Load the entire file into memory
-    verbBuffer.open(64 * (sizeof(verb)));
-    vbtab = static_cast<_VERB_STRUCT *>(verbBuffer.m_data);
-    vbptr = vbtab + 64;
-    cursor = (char *)vbptr;
-    vbptr = vbtab;
+    verbBuffer.open(0);
+    cursor = static_cast<const char*>(verbBuffer.m_data);
     of2p = ftell(ofp2);
     of3p = ftell(ofp3);
     FPos = ftell(ofp4);
@@ -483,7 +496,7 @@ lang_proc()
         // If they forgot space between !<condition>, eg !toprank
     notlp2:
         if (Word[0] == '!') {
-            strcpy(Word, Word + 1);
+            strcpy(Word, Word + 1);  ///ISSUE: overlap strcpy
             r = -1 * r;
             goto notlp2;
         }
@@ -557,9 +570,8 @@ lang_proc()
     //write:
         fwritesafe(verb, ofp1);
         proc = 0;
-        *(vbtab + verbs - 1) = verb;
-        if ((uintptr_t)(vbtab + verbs - 1) > (uintptr_t)cursor)
-            printf("@! table overtaking s1\n");
+	verbIndex[verb.id] = verbTable.size();
+	verbTable.emplace_back(verb);
     } while (*cursor != 0);
 
     GetContext().terminateOnErrors();
