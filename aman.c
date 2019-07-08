@@ -23,11 +23,11 @@
 
 #define	UINFO	((sizeof(*usr)+sizeof(*lstat))*MAXNODE)+(rooms*sizeof(short))+(sizeof(mob)*mobs)
 
-#include <adv:h/aman.h>
-#include <adv:h/amul.defs.h>
-#include <adv:h/amul.incs.h>
-#include <adv:h/amul.vars.h>
-#include <adv:h/amul.cons.h>
+#include "h/aman.h"
+#include "h/amul.defs.h"
+#include "h/amul.incs.h"
+#include "h/amul.vars.h"
+#include "h/amul.cons.h"
 #include <devices/timer.h>
 #include <time.h>
 

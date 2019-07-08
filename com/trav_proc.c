@@ -4,7 +4,7 @@
   Warning! All source code in this file is copyright (C) KingFisher Software
 */
 
-#include "adv:com/Trav_Func.C"
+#include "com/trav_func.c"
 
 trav_proc()			/*=* Process TRAVEL.TXT *=*/
 {

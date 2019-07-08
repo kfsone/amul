@@ -3,22 +3,22 @@
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 						*/
 
-#include "stdio.h"
-#include "ctype.h"
-#include "fcntl.h"
-#include "proto/exec.h"
-#include "proto/dos.h"
-#include "proto/intuition.h"
-#include "proto/graphics.h"
-#include "exec/types.h"
-#include "exec/io.h"
-#include "exec/memory.h"
-#include "libraries/dos.h"
-#include "intuition/intuition.h"
-#include "itools1l.h"
-#include "inovatools1.h"
-#include "adv:h/amul.defs.h"
-#include "adv:h/amul.stct.h"
+#include <stdio.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <proto/exec.h>
+#include <proto/dos.h>
+#include <proto/intuition.h>
+#include <proto/graphics.h>
+#include <exec/types.h>
+#include <exec/io.h>
+#include <exec/memory.h>
+#include <libraries/dos.h>
+#include <intuition/intuition.h>
+#include <itools1l.h>
+#include <inovatools1.h>
+#include "h/amul.defs.h"
+#include "h/amul.stct.h"
 
 struct Library *ITBase;
 
@@ -67,7 +67,7 @@ USHORT gadnum[] =	/* Tells us what order to go around the gadgets */
 #define	mLAST		9
 #define	mQUIT		11
 
-#include "adv:AMULEd.H"
+#include "amuled.h"
 
 main(int argc, char *argv[])
 {	register int i; register char *p;

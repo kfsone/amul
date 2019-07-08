@@ -1,3 +1,5 @@
+#ifndef H_AMUL_STCT_H
+#define H_AMUL_STCT_H 1
 struct	_PLAYER			/* Player def struct */
 {
 	char	name[NAMEL+1];			/* Player's name	 */
@@ -313,3 +315,4 @@ struct _MOB			/* Mobile Character Entry */
 struct _VBTAB	*cmds;				/* & ptr to cmds	*/
 };
 
+#endif

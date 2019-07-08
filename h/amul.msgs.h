@@ -1,3 +1,5 @@
+#ifndef H_AMUL_MSGS_H
+#define H_AMUL_MSGS_H 1
 /*
               ****    AMUL.MSGS.H.....Adventure Compiler    ****
               ****         system message #defines!         ****
@@ -80,3 +82,5 @@
 #define		NOFIGHT		72	/*Sorry no fighting allowed here. */
 #define		LOWLEVEL	73	/*Sorry you're not high enough to cast that spell. */
 #define		NOMAGIC		74	/*Sorry you have not enough magic points for that spell. */
+
+#endif

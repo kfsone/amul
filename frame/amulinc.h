@@ -14,11 +14,11 @@
 #define	PORTS	1
 #endif
 
-#include <ADV:H/AMUL.Defs.H>		/* Defines in one nice file	*/
-#include <ADV:H/AMUL.Incs.H>		/* Include files tidily stored.	*/
-#include <ADV:H/AMUL.Lnks.H>		/* (external) Linkage symbols	*/
-#include <ADV:H/AMUL.Msgs.H>		/* System Message Flags		*/
-#include "SetJmp.H"
+#include "h/amul.defs.h"		/* Defines in one nice file	*/
+#include "h/amul.incs.h"		/* Include files tidily stored.	*/
+#include "h/amul.lnks.h"		/* (external) Linkage symbols	*/
+#include "h/amul.msgs.h"		/* System Message Flags		*/
+#include <setjmp.h>
 
 #define	dtx(x)	if(debug!=0) tx(x)
 extern short int	debug;				/* Is debug mode on?	 */
@@ -47,7 +47,7 @@ extern struct IOStdReq ReadIo, WriteIo;
 
 /* get the powerwindows file */
 #ifdef	AMUL1
-#include "ADV:H/AMUL.Scrn.h"		/* ParFilEd Window b4 U ask!	 */
+#include "h/amul.scrn.h"		/* ParFilEd Window b4 U ask!	 */
 
 void	end(),sendmessage(),parget();
 #endif

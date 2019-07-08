@@ -1,3 +1,5 @@
+#ifndef H_AMUL_ACTS_H
+#define H_AMUL_ACTS_H 1
 /*
 
 	Actual definitions
@@ -90,4 +92,6 @@ struct ACTUAL actual[NACTUALS]=
 	"lastdir",MEPRM+LASTDIR,WVERB,
 	"lastverb",MEPRM+LASTVB,WVERB
 };
+#endif
+
 #endif

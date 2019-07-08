@@ -23,9 +23,9 @@
 #define	FRAME 1
 #define	PORTS 1
 
-#include <ADV:H/AMUL.Defs.H>
-#include <ADV:H/AMUL.Incs.H>
-#include <ADV:H/AMUL.Vars.H>		/* all INTERNAL variables	*/
+#include "h/amul.defs.h"
+#include "h/amul.incs.h"
+#include "h/amul.vars.h"		/* all INTERNAL variables	*/
 
 #define	dtx(x)	if(debug!=0) tx(x)
 short int debug;				/* Is debug mode on?	 */
@@ -716,7 +716,7 @@ StopFollow()
 	tx("You are no-longer following @mf.\n"); me2->following = -1;
 }
 
-#include "adv:frame/Internal.C"		/* Internal Command processor */
+#include "frame/internal.c"		/* Internal Command processor */
 
 /****** AMUL3.C/LoseFollower ******************************************
 *

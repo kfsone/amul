@@ -1,3 +1,5 @@
+#ifndef H_AMUL_INCS_H
+#define H_AMUL_INCS_H 1
 /*
               ****    AMUL.INCS.H.....Adventure Compiler    ****
               ****              Include Files               ****
@@ -18,4 +20,6 @@
 #include <devices/serial.h>		/* Serial device info	  */
 #include <intuition/intuition.h>	/* Eek! -MORE- Exec	  */
 #endif
-#include <ADV:H/AMUL.Stct.H>		/* AMUL Structures!	  */
+#include "h/amul.stct.h"		/* AMUL Structures!	  */
+
+#endif

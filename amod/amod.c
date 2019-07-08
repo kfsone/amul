@@ -15,7 +15,7 @@
 #include <devices/serial.h>		/* All about Serial.Device*/
 #include <libraries/dos.h>		/* Various DOS thingies   */
 #include <intuition/intuition.h>	/* Intuition includes     */
-#include "X:AMod/AModWin.H"		/* Custom Window details  */
+#include "amod/amodwin.h"		/* Custom Window details  */
 #include <inovatools1l.h>		/* Flashy Intui PRAGMAS   */
 #include <itools1l.h>			/* Inovatools Includes    */
 

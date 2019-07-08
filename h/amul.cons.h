@@ -1,3 +1,5 @@
+#ifndef H_AMUL_CONS_H
+#define H_AMUL_CONS_H 1
 /*
               ****    AMUL.CONS.H.....Adventure Compiler    ****
               ****                constants                 ****
@@ -420,4 +422,6 @@ char	umsgifn[] ="UMI.CMP";			/* UMsgs Index	*/
 char	umsgfn[]  ="UMT.CMP";			/* Umsg text	*/
 char	mobfn[]   ="Mbs.CMP";			/* Mobile data	*/
 char	mobcmdfn[]="Mcm.CMP";			/* Mob cmds	*/
+#endif
+
 #endif

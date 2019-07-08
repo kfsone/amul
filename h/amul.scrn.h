@@ -1,3 +1,5 @@
+#ifndef H_AMUL_SCRN_H
+#define H_AMUL_SCRN_H 1
 
 /* Amul custom screen bits! Pinched from ParFilEd!!!! SNIGGER! */
 
@@ -40,3 +42,5 @@ USHORT Palette[] =
 };
 
 #define PALETTE Palette
+
+#endif

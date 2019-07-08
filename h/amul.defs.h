@@ -1,3 +1,5 @@
+#ifndef H_AMUL_DEFS_H
+#define H_AMUL_DEFS_H 1
 /*
               ****    AMUL.DEFS.H.....Adventure Compiler    ****
               ****                #defines!                 ****
@@ -414,8 +416,8 @@
 #define	LightHere	lit(me2->room)
 #define	unfreeze	Permit(); return
 
-#include <adv:h/AMUL.Msgs.H>		/* System message defines */
-#include <adv:h/AMUL.Acts.H>
+#include "h/amul.msgs.h"		/* System message defines */
+#include "h/amul.acts.h"
 
 #define	CP1	actual(*(tt.pptr))
 #define	CP2	actual(*(tt.pptr+1))
@@ -436,3 +438,5 @@
 #define xHADLIGHT(x)	(lstat+x)->hadlight
 
 #define	acp	(char *)actptr
+
+#endif

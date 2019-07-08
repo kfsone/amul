@@ -1,3 +1,5 @@
+#ifndef H_AMUL_VARS_H
+#define H_AMUL_VARS_H 1
 /*
               ****    AMUL.VARS.H.....Adventure Compiler    ****
               ****           Internal Variables!            ****
@@ -92,4 +94,6 @@ struct	_OBJECT_DESCRIPTIONS
 	char	id[IDL+1];
 	long	descrip;			/* ptr to descrp in file */
 } objdes,*obdesp;
+#endif
+
 #endif
