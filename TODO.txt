@@ -7,3 +7,4 @@ TODO:
 - situate prototypes
 - remove default-ansi encoding
 - replace checkf with stat/access checks
+- msgline: add to messages instead of writing each line
