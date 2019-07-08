@@ -9,6 +9,10 @@
 #include <ctype.h>			/* Character type control */
 #include <fcntl.h>			/* File control stuff	  */
 #include <string.h>			/* String bits and pieces */
+#if !defined(_MSC_VER)
+#include <unistd.h>
+#endif
+#if defined(__AMIGA__)
 #include <proto/exec.h>			/* Exec protos..	  */
 #include <proto/dos.h>
 #include <proto/graphics.h>
@@ -19,6 +23,7 @@
 #ifdef FRAME
 #include <devices/serial.h>		/* Serial device info	  */
 #include <intuition/intuition.h>	/* Eek! -MORE- Exec	  */
+#endif
 #endif
 #include "h/amul.stct.h"		/* AMUL Structures!	  */
 
