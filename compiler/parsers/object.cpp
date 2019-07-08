@@ -42,19 +42,19 @@ void
 text_id(const char *from, char c)
 {
     std::string copy{};
-    const char* end = strchr(from, c);
+    const char *end = strchr(from, c);
     if (end) {
         copy.assign(from, end);
-	strcpy(block, end+1);
+        strcpy(block, end + 1);
     } else {
-	copy.assign(from);
+        copy.assign(from);
         block[0] = 0;
     }
 
     if (copy.back() == '{') {
         copy.pop_back();
     } else {
-	copy += '\n';
+        copy += '\n';
     }
 
     std::string filepath{dir};

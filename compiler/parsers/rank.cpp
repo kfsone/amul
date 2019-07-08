@@ -35,7 +35,7 @@ rank_proc()
 
     do {
         if (fgets(block, 1024, ifp) == nullptr)
-	    break;
+            break;
         if (feof(ifp))
             continue;
         tidy(block);
