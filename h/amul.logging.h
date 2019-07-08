@@ -7,10 +7,12 @@
 
 namespace AMUL::Logging
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-security"
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-security"
+#if !defined(_MSC_VER)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wformat-security"
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wformat-security"
+#endif
 
 struct Logger {
     ~Logger();
@@ -64,8 +66,10 @@ struct Logger {
 
     [[noreturn]] void fatalop(const char *verb, const char *noun) { fatalf("Can't %s %s."); }
 };
-#pragma GCC diagnostic pop
-#pragma clang diagnostic pop
+#if !defined(_MSC_VER)
+#    pragma GCC diagnostic pop
+#    pragma clang diagnostic pop
+#endif
 
 Logger &GetLogger();
 
