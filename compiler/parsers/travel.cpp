@@ -38,8 +38,7 @@ trav_proc()
             goto loop1;
         }
         if (roomtab->tabptr != -1) {
-            GetLogger().errorf(
-                    "Redefinition of room '%s' in travel table.", roomtab->id);
+            GetLogger().errorf("Redefinition of room '%s' in travel table.", roomtab->id);
             skipblock();
             goto loop1;
         }
@@ -50,16 +49,14 @@ trav_proc()
         if (block[0] == 0 || block[0] == '\n') {
             // Only complain if room is not a death room
             if ((roomtab->flags & RF_LETHAL) != RF_LETHAL)
-                GetLogger().warnf(
-                        "Room '%s' has no travel table entries.", roomtab->id);
+                GetLogger().warnf("Room '%s' has no travel table entries.", roomtab->id);
             roomtab->tabptr = -2;
             ntt++;
             continue;
         }
         tidy(block);
         if (!striplead("verb=", block) && !striplead("verbs=", block)) {
-            GetLogger().errorf(
-                    "Room: %s: Expected a verb[s]= entry.", roomtab->id);
+            GetLogger().errorf("Room: %s: Expected a verb[s]= entry.", roomtab->id);
             goto vbloop;
         }
         lines = 0;
@@ -79,8 +76,7 @@ trav_proc()
                 break;
             verbid_t verbId = is_verb(Word);
             if (verbId == -1) {
-                GetLogger().errorf(
-                        "Room: %s: invalid verb: %s", roomtab->id, Word);
+                GetLogger().errorf("Room: %s: invalid verb: %s", roomtab->id, Word);
             }
             verbsUsed.push_back(verbId);
         } while (Word[0] != 0);
@@ -133,8 +129,7 @@ trav_proc()
                     goto write;
                 if ((tt.action = getAction(Word)) == -1) {
                     GetLogger().errorf(
-                            "Room: %s: invalid travel table entry: %s",
-                            roomtab->id, Word);
+                            "Room: %s: invalid travel table entry: %s", roomtab->id, Word);
                     goto xloop;
                 }
                 goto gotohere;
@@ -147,8 +142,7 @@ trav_proc()
             if (r == 1)
                 tt.condition = -1 - tt.condition;
             if (*p == 0) {
-                GetLogger().errorf(
-                        "Room: %s: entry with missing action", roomtab->id);
+                GetLogger().errorf("Room: %s: entry with missing action", roomtab->id);
                 goto xloop;
             }
             p = preact(p);
@@ -157,8 +151,7 @@ trav_proc()
                 goto write;
             if ((tt.action = getAction(Word)) == -1) {
                 GetLogger().errorf(
-                        "Room: %s: Invalid action in travel table: %s",
-                        roomtab->id, Word);
+                        "Room: %s: Invalid action in travel table: %s", roomtab->id, Word);
                 goto xloop;
             }
         gotohere:
@@ -202,14 +195,11 @@ trav_proc()
     // If there have have been no errors, we're not in quiet mode, and the
     // number of travel table entries doesn't match the number of rooms, then
     // report on which room is missing it's travel table entry.
-    if (GetContext().errorCount() == 0 && ntt != rooms &&
-        !GetLogger().m_quiet) {
+    if (GetContext().errorCount() == 0 && ntt != rooms && !GetLogger().m_quiet) {
         roomtab = rmtab;
         for (i = 0; i < rooms; i++, roomtab++)
-            if (roomtab->tabptr == -1 &&
-                (roomtab->flags & RF_LETHAL) != RF_LETHAL)
-                GetLogger().warnf(
-                        "Room: %s: no travel table entry.", roomtab->id);
+            if (roomtab->tabptr == -1 && (roomtab->flags & RF_LETHAL) != RF_LETHAL)
+                GetLogger().warnf("Room: %s: no travel table entry.", roomtab->id);
     }
 
     GetContext().terminateOnErrors();

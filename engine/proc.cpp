@@ -99,9 +99,7 @@ act(int32_t ac, int32_t *pt)
         case AABORTPARSE: aabortparse(); break;
         case AWAIT: fwait(TP1); break;
         case ABLEEP: ableep(TP1); break;
-        case AWHEREAMI:
-            txs("Current room is known as \"%s\".\n", (rmtab + me2->room)->id);
-            break;
+        case AWHEREAMI: txs("Current room is known as \"%s\".\n", (rmtab + me2->room)->id); break;
         case ASEND: send(TP1, TP2); break;
         case AERROR: afailparse();      // Set those flags!
         case ARESPOND: donet = ml + 1;  // Then do reply etc
@@ -115,23 +113,18 @@ act(int32_t ac, int32_t *pt)
             me2->flags = me2->flags | PFSITTING;
             me2->flags = me2->flags & (-1 - PFLYING);
             break;
-        case ASTAND:
-            me2->flags = me2->flags & (-1 - PFSITTING - PFLYING);
-            break;
+        case ASTAND: me2->flags = me2->flags & (-1 - PFSITTING - PFLYING); break;
         case ALIE:
             me2->flags = me2->flags | PFLYING;
             me2->flags = me2->flags & (-1 - PFSITTING);
             break;
         case ARDMODE:
             me->rdmode = TP1;
-            txs("%s mode selected.\n",
-                (me->rdmode == RD_VERBOSE_ONCE)
-                        ? "Roomcount"
-                        : (me->rdmode == RD_VERBOSE) ? "Verbose" : "Brief");
+            txs("%s mode selected.\n", (me->rdmode == RD_VERBOSE_ONCE)
+                                               ? "Roomcount"
+                                               : (me->rdmode == RD_VERBOSE) ? "Verbose" : "Brief");
             break;
-        case ARESET:
-            SendIt(MSG_RESET, 0, NULL);
-            break;  // Tell AMAN that we want a reset!
+        case ARESET: SendIt(MSG_RESET, 0, NULL); break;  // Tell AMAN that we want a reset!
         case AACTION: action(AP2, TP1); break;
         case AMOVE: moveto(TP1); break;
         case AMSGIN: announcein(TP1, AP2); break;
@@ -144,9 +137,7 @@ act(int32_t ac, int32_t *pt)
                 utx(TP1, AP2);
             }
             break;
-        case AADDVAL:
-            aadd(scaled(State(TP1)->value, State(TP1)->flags), STSCORE, Af);
-            break;
+        case AADDVAL: aadd(scaled(State(TP1)->value, State(TP1)->flags), STSCORE, Af); break;
         case AGET: agive(TP1, Af); break;
         case ADROP: adrop(TP1, me2->room, YES); break;
         case AINVENT:
@@ -184,12 +175,8 @@ act(int32_t ac, int32_t *pt)
             me2->helping = -1;
             break;
         case AFIX: afix(TP1, TP2); break;
-        case AOBJINVIS:
-            (obtab + TP1)->flags = (obtab + TP1)->flags | OF_INVIS;
-            break;
-        case AOBJSHOW:
-            (obtab + TP1)->flags = (obtab + TP1)->flags & (-1 - OF_INVIS);
-            break;
+        case AOBJINVIS: (obtab + TP1)->flags = (obtab + TP1)->flags | OF_INVIS; break;
+        case AOBJSHOW: (obtab + TP1)->flags = (obtab + TP1)->flags & (-1 - OF_INVIS); break;
         case AFIGHT: afight(TP1); break;
         case AFLEE:
             dropall((linestat + me2->fighting)->room);
@@ -290,12 +277,10 @@ act(int32_t ac, int32_t *pt)
         if (visible() == YES)
             action(me2->arr, AOTHERS);
         me2->flags = me2->flags & -(1 + PFMOVING);
-        if (me2->followed > -1 && me2->followed != Af && (!IamINVIS) &&
-            (!IamSINVISIBLE)) {
+        if (me2->followed > -1 && me2->followed != Af && (!IamINVIS) && (!IamSINVISIBLE)) {
             /* If we didn't just execute a travel verb, we've lost them.
                If the other player hasn't caught up with us, lose them! */
-            if (((vbtab + overb)->flags & VB_TRAVEL) ||
-                (linestat + me2->followed)->room != lroom ||
+            if (((vbtab + overb)->flags & VB_TRAVEL) || (linestat + me2->followed)->room != lroom ||
                 ((linestat + me2->followed)->flags & PFMOVING))
                 LoseFollower();
             else {
@@ -310,8 +295,7 @@ act(int32_t ac, int32_t *pt)
         if (autoexits != 0)
             exits();
     }
-    if (tt.condition == CANTEP || tt.condition == CALTEP ||
-        tt.condition == CELTEP)
+    if (tt.condition == CANTEP || tt.condition == CALTEP || tt.condition == CELTEP)
         donet = ml + 1;
 }
 
@@ -442,8 +426,7 @@ int cond(int32_t n, int l)  // Execute a condition on me
             ret = -1;
         break;
     case CSOMEONEHAS:
-        if (((*(obtab + CP1)->rmlist) > -5) ||
-            ((*(obtab + CP1)->rmlist) < (-5 - MAXU)))
+        if (((*(obtab + CP1)->rmlist) > -5) || ((*(obtab + CP1)->rmlist) < (-5 - MAXU)))
             ret = -1;
         break;
     case CGOTA:
@@ -573,9 +556,8 @@ int cond(int32_t n, int l)  // Execute a condition on me
             return -1;
         break;
     case CHEALTH:
-        if (numb((((linestat + CP1)->stamina * 100) /
-                  (rktab + (usr + CP1)->rank)->stamina),
-                 CP2) == NO)
+        if (numb((((linestat + CP1)->stamina * 100) / (rktab + (usr + CP1)->rank)->stamina), CP2) ==
+            NO)
             ret = -1;
         break;
     case CMAGIC:
@@ -614,8 +596,7 @@ strip:
     // Check for a players name BEFORE checking for white words!
 
     for (word = 0; word < MAXU; word++)
-        if ((linestat + word)->state == US_CONNECTED &&
-            match((usr + word)->name, p) == NULL) {
+        if ((linestat + word)->state == US_CONNECTED && match((usr + word)->name, p) == NULL) {
             *s += strlen((usr + word)->name);
             return TC_PLAYER;
         }
@@ -717,8 +698,7 @@ strip:
         }
         if ((word =
                      isnoun((obtab + csyn)->id, (inoun1 == -1) ? iadj1 : iadj2,
-                            (inoun1 == -1) ? (vbtab + iverb)->sort
-                                           : (vbtab + iverb)->sort2)) != -1)
+                            (inoun1 == -1) ? (vbtab + iverb)->sort : (vbtab + iverb)->sort2)) != -1)
             return TC_NOUN;
         return -1;
     }
@@ -728,10 +708,9 @@ strip:
             return TC_NOUN;
         }
     } else if (
-            (word =
-                     isnoun(*s, (inoun1 == -1) ? iadj1 : iadj2,
-                            (inoun1 == -1) ? (vbtab + iverb)->sort
-                                           : (vbtab + iverb)->sort2)) != -1) {
+            (word = isnoun(
+                     *s, (inoun1 == -1) ? iadj1 : iadj2,
+                     (inoun1 == -1) ? (vbtab + iverb)->sort : (vbtab + iverb)->sort2)) != -1) {
         *s += strlen((obtab + word)->id);
         return TC_NOUN;
     }

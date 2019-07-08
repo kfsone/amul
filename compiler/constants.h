@@ -14,5 +14,5 @@ int isoflag1(const char *s) noexcept;
 int isoparm() noexcept;
 int isoflag2(const char *s) noexcept;
 
-condid_t getCondition(std::string token) noexcept;
+condid_t   getCondition(std::string token) noexcept;
 actionid_t getAction(std::string token) noexcept;

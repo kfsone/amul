@@ -87,13 +87,11 @@ cangive(int obj, int plyr)
 {
     objtab = obtab + obj;
 
-    if ((linestat + plyr)->weight + STATE->weight >
-        (rktab + (usr + plyr)->rank)->maxweight)
+    if ((linestat + plyr)->weight + STATE->weight > (rktab + (usr + plyr)->rank)->maxweight)
         return NO;
     if ((linestat + plyr)->numobj + 1 > (rktab + (usr + plyr)->rank)->numobj)
         return NO;
-    if ((objtab->flags & OF_SCENERY) || (objtab->flags & OF_COUNTER) ||
-        objtab->nrooms != 1)
+    if ((objtab->flags & OF_SCENERY) || (objtab->flags & OF_COUNTER) || objtab->nrooms != 1)
         return NO;
     return YES;
 }
@@ -447,8 +445,7 @@ canseeobj(int obj, int who)
     if (((obtab + obj)->flags & OF_SMELL) && !((linestat + who)->flags & PFBLIND))
         return NO;
     if ((linestat + who)->flags & PFBLIND &&
-        (!((obtab + obj)->flags & OF_SMELL) ||
-         *(obtab + obj)->rmlist != -(5 + who)))
+        (!((obtab + obj)->flags & OF_SMELL) || *(obtab + obj)->rmlist != -(5 + who)))
         return NO;
     if (!isOINVIS(obj))
         return YES;
@@ -474,8 +471,7 @@ magic(int rnk, int points, int chance)
     }
 
     if (me->rank < rnk)
-        chance = ((me->rank) + 1 - rnk) * ((100 - chance) / (ranks - rnk)) +
-                 chance;
+        chance = ((me->rank) + 1 - rnk) * ((100 - chance) / (ranks - rnk)) + chance;
     if (mod(rnd(), 100) < chance) {
         sys(SPELLFAIL);
         return NO;

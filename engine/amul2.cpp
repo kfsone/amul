@@ -21,8 +21,8 @@
 #include "amulinc.h"
 #include "h/amul.vars.h"
 
-#define dtx(x)      \
-    if (debug != 0) \
+#define dtx(x)                                                                                     \
+    if (debug != 0)                                                                                \
     tx(x)
 short int debug;  // Is debug mode on?
 char      llen;
@@ -37,23 +37,23 @@ Amiga::MsgPort * ReadRep, *WriteRep, *repbk;
 struct IOStdReq  ReadIo, WriteIo;
 
 // Frame specific variables
-char    serop, MyFlag;                          // SerPort open? What am I?
-char *  input;                                  // 400 bytes, 5 lines
-char    str[800], spc[200], mxx[40], mxy[60];   // Output string
-char    wtil[80];                               // Window title
-char    inc, forced, failed, died, addcr, fol;  // For parsers use
-char    actor, last_him, last_her;              // People we talked about
-char    autoexits, needcr;                      // General flags
-int32_t iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir, lroom;
-int32_t wtype[6], word, mins;                // Type of word...
-unsigned short int *rescnt;                  // Reset counter from AMan
-short int           donev, skip;             // No. of vb's/TT's done
-char                exeunt, more, link;      // If we've linked yet
-int32_t             ml, donet, it;           // Maximum lines
-Aport *             ap, *amanp, *intam;      // The message pointers
-Amiga::MsgPort *    amanrep;                 // AMAN reply port
-char *    ob, *gp, *ow, *lastres, *lastcrt;  // Pointer to output buffers etc
-short int rset, rclr, ip, csyn;              // Masks for Room Counter
+char                serop, MyFlag;                          // SerPort open? What am I?
+char *              input;                                  // 400 bytes, 5 lines
+char                str[800], spc[200], mxx[40], mxy[60];   // Output string
+char                wtil[80];                               // Window title
+char                inc, forced, failed, died, addcr, fol;  // For parsers use
+char                actor, last_him, last_her;              // People we talked about
+char                autoexits, needcr;                      // General flags
+int32_t             iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir, lroom;
+int32_t             wtype[6], word, mins;              // Type of word...
+unsigned short int *rescnt;                            // Reset counter from AMan
+short int           donev, skip;                       // No. of vb's/TT's done
+char                exeunt, more, link;                // If we've linked yet
+int32_t             ml, donet, it;                     // Maximum lines
+Aport *             ap, *amanp, *intam;                // The message pointers
+Amiga::MsgPort *    amanrep;                           // AMAN reply port
+char *              ob, *gp, *ow, *lastres, *lastcrt;  // Pointer to output buffers etc
+short int           rset, rclr, ip, csyn;              // Masks for Room Counter
 
 // Various low-level macros/functions for AMUL...
 
@@ -68,8 +68,8 @@ reset()
     fscanf(ifp,
            "%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld "
            "%ld",
-           &rooms, &ranks, &verbs, &syns, &nouns, &adjs, &ttents, &umsgs, &word,
-           &mins, &invis, &invis2, &minsgo, &mobs, &rscale, &tscale, &mobchars);
+           &rooms, &ranks, &verbs, &syns, &nouns, &adjs, &ttents, &umsgs, &word, &mins, &invis,
+           &invis2, &minsgo, &mobs, &rscale, &tscale, &mobchars);
 
     SendIt(MSG_DATA_REQUEST, 1, NULL);  // Get rooms data
     rooms = Ad;
@@ -167,8 +167,7 @@ agive(int obj, int to)
 
     objtab = obtab + obj;
 
-    if ((objtab->flags & OF_SCENERY) || (STATE->flags & SF_ALIVE) ||
-        objtab->nrooms != 1)
+    if ((objtab->flags & OF_SCENERY) || (STATE->flags & SF_ALIVE) || objtab->nrooms != 1)
         return;
     if ((own = owner(obj)) != -1)
         rem_obj(own, obj);
@@ -235,8 +234,7 @@ make_rank(int p, int rankn, int gender)
         strcat(str, (linestat + p)->pre);
         strcat(str, " ");
     }
-    strcat(str,
-           (gender == 0) ? (rktab + rankn)->male : (rktab + rankn)->female);
+    strcat(str, (gender == 0) ? (rktab + rankn)->male : (rktab + rankn)->female);
     if (*(linestat + p)->post != 0) {
         strcat(str, " ");
         strcat(str, (linestat + p)->post);
@@ -330,8 +328,7 @@ acheckget(int obj)
     else
         inc = 1;
     objtab = obtab + obj;
-    if ((objtab->flags & OF_SCENERY) || (STATE->flags & SF_ALIVE) ||
-        objtab->nrooms != 1) {
+    if ((objtab->flags & OF_SCENERY) || (STATE->flags & SF_ALIVE) || objtab->nrooms != 1) {
         tx("You can't move that!\n");
         donet = ml + 1;
         return -1;
@@ -455,8 +452,7 @@ list_what(int r, int i)
         sys(YOURBLIND);
     }
 
-    if (((rmtab + r)->flags & RF_HIDE_OBJECTS) && i != 0 &&
-        me->rank != ranks - 1) {
+    if (((rmtab + r)->flags & RF_HIDE_OBJECTS) && i != 0 && me->rank != ranks - 1) {
         sys(NOWTSPECIAL);  // Wizards can see in hideaways!
     }
     for (o = 0; o < nouns; o++)  // All objects
@@ -465,8 +461,7 @@ list_what(int r, int i)
         if (canseeobj(o, Af) == NO)
             continue;
         if (((rmtab + r)->flags & RF_HIDE_OBJECTS) &&
-            (i == 0 || (i == 1 && me->rank != ranks - 1)) &&
-            !((obtab + o)->flags & OF_SCENERY))
+            (i == 0 || (i == 1 && me->rank != ranks - 1)) && !((obtab + o)->flags & OF_SCENERY))
             continue;
         if (lit(me2->room) == NO && !((obtab + o)->flags & OF_SMELL))
             continue;
@@ -492,16 +487,13 @@ descobj(int Ob)
     obj.states = (obtab + Ob)->states + (int32_t)(obtab + Ob)->state;
     if (obj.states->descrip == 0)
         return;
-    sprintf(str, desctab + obj.states->descrip,
-            adtab + ((obtab + Ob)->adj * (IDL + 1)));
+    sprintf(str, desctab + obj.states->descrip, adtab + ((obtab + Ob)->adj * (IDL + 1)));
     if (((obtab + Ob)->flags & OF_SHOWFIRE) && (obj.states->flags & SF_LIT)) {
-        if (*(str + strlen(str) - 1) == '\n' ||
-            *(str + strlen(str) - 1) == '{') {
+        if (*(str + strlen(str) - 1) == '\n' || *(str + strlen(str) - 1) == '{') {
             *(str + strlen(str) - 1) = 0;
         }
         if ((obtab + Ob)->adj != -1)
-            sprintf(spc, " The %s %s is on fire.\n",
-                    (adtab + ((obtab + Ob)->adj * (IDL + 1))),
+            sprintf(spc, " The %s %s is on fire.\n", (adtab + ((obtab + Ob)->adj * (IDL + 1))),
                     (obtab + Ob)->id);
         else
             sprintf(spc, " The %s is on fire.\n", (obtab + Ob)->id);
@@ -537,9 +529,7 @@ inflict(int x, int s)
     case SPELL_CRIPPLE: you2->flags = you2->flags | PFCRIP; break;
     case SPELL_MUTE: you2->flags = you2->flags | PFDUMB; break;
     case SPELL_SLEEP: you2->flags = you2->flags | PFASLEEP; break;
-    case SPELL_SUPER_INVIS:
-        you2->flags = you2->flags | PFSPELL_INVISIBLE;
-        break;
+    case SPELL_SUPER_INVIS: you2->flags = you2->flags | PFSPELL_INVISIBLE; break;
     }
     calcdext();
     lighting(x, AHERE);
@@ -564,9 +554,7 @@ cure(int x, int s)
     case SPELL_CRIPPLE: you2->flags = you2->flags & -(1 + PFCRIP); break;
     case SPELL_MUTE: you2->flags = you2->flags & -(1 + PFDUMB); break;
     case SPELL_SLEEP: you2->flags = you2->flags & -(1 + PFASLEEP); break;
-    case SPELL_SUPER_INVIS:
-        you2->flags = you2->flags & -(1 + PFSPELL_INVISIBLE);
-        break;
+    case SPELL_SUPER_INVIS: you2->flags = you2->flags & -(1 + PFSPELL_INVISIBLE); break;
     }
     calcdext();
     lighting(x, AHERE);
@@ -837,10 +825,9 @@ afix(int stat, int plyr)
     if (plyr == Af) {
         switch (stat) {
         case STSTR:
-            me2->strength = ((rktab + me->rank)->strength *
-                                     (rktab + me->rank)->maxweight -
-                             me2->weight) /
-                            (rktab + me->rank)->maxweight;
+            me2->strength =
+                    ((rktab + me->rank)->strength * (rktab + me->rank)->maxweight - me2->weight) /
+                    (rktab + me->rank)->maxweight;
             break;
         case STSTAM: me2->stamina = (rktab + me->rank)->stamina; break;
         case STDEX:
@@ -863,8 +850,7 @@ announce(const char *s, int towho)
 
     for (i = 0; i < MAXU; i++) {
         // If the player is deaf, ignore him
-        if (actor == i || ((linestat + i)->state < 2) ||
-            ((linestat + i)->flags & PFDEAF))
+        if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF))
             continue;
         /*
            The next line says:
@@ -908,8 +894,8 @@ announcein(int toroom, const char *s)
     int i;
     for (i = 0; i < MAXU; i++) {
         // If the player is deaf, ignore him
-        if (actor == i || ((linestat + i)->state < 2) ||
-            ((linestat + i)->flags & PFDEAF) || (lstat + i)->room != toroom)
+        if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF) ||
+            (lstat + i)->room != toroom)
             continue;
         setmxy(PC_NOISE, i);
         utx(i, s);
@@ -923,8 +909,8 @@ announcefrom(int obj, const char *s)
     int i, o;
     for (i = 0; i < MAXU; i++) {
         // If the player is deaf or can see me, ignore him
-        if (actor == i || ((linestat + i)->state < 2) ||
-            ((linestat + i)->flags & PFDEAF) || (lstat + i)->room == me2->room)
+        if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF) ||
+            (lstat + i)->room == me2->room)
             continue;
         // Check if the player is NEAR to someone carrying the object
         if ((o = owner(obj)) != -1 && (linestat + o)->room != (lstat + i)->room)
@@ -941,8 +927,7 @@ void objannounce(int obj, char *s)  // Loud noises/events
     int i, o;
     for (i = 0; i < MAXU; i++) {
         // If the player is deaf or can see me, ignore him
-        if (actor == i || ((linestat + i)->state < 2) ||
-            ((linestat + i)->flags & PFDEAF))
+        if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF))
             continue;
         // Check if the player is NEAR to someone carrying the object
         if ((o = owner(obj)) != -1 && (linestat + o)->room != (lstat + i)->room)
@@ -998,8 +983,7 @@ actionin(int toroom, const char *s)
     for (int i = 0; i < MAXU; i++) {
         // If the player is asleep, or blind, skip him
         if (actor == i || ((linestat + i)->state < US_CONNECTED) ||
-            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) ||
-            (linestat + i)->room != toroom)
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) || (linestat + i)->room != toroom)
             continue;
         setmxy(PC_ACTION, i);
         utx(i, s);
@@ -1013,8 +997,7 @@ actionfrom(int obj, const char *s)
     for (int i = 0; i < MAXU; i++) {
         // If the player is asleep, or blind, skip him
         if (actor == i || ((linestat + i)->state < 2) ||
-            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) ||
-            (linestat + i)->room == me2->room)
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) || (linestat + i)->room == me2->room)
             continue;
         // Check if the player is NEAR to someone carrying the object
         int o = owner(obj);
@@ -1198,8 +1181,8 @@ acombat()
 
     calcdext();
 
-    if (me2->fighting == Af || me2->fighting == -1 ||
-        me2->state < US_CONNECTED || me2->stamina <= 0) {
+    if (me2->fighting == Af || me2->fighting == -1 || me2->state < US_CONNECTED ||
+        me2->stamina <= 0) {
         donet = ml + 1;  // End parse
         finishfight(Af);
         return;  // Macro : Permit(); return
@@ -1209,8 +1192,7 @@ acombat()
     you2 = linestat + me2->fighting;
     minpksl = (rktab + you->rank)->minpksl;
 
-    if (you2->state < US_CONNECTED || you2->room != me2->room ||
-        you2->stamina <= 0) {
+    if (you2->state < US_CONNECTED || you2->room != me2->room || you2->stamina <= 0) {
         donet = ml + 1;
         finishfight(Af);
         return;
@@ -1296,7 +1278,7 @@ acombat()
     oldstr -= adam;
     if ((me2->flags & PFATTACKER) && oldstr > 0) {
         //		if(me2->helped != -1 && (linestat+me2->helped)->room==me2->room)
-        //Well?
+        // Well?
 
         sendex(me2->fighting, ACOMBAT, -1, 0, 0);  // Tell them to clear up!
     }
@@ -1362,8 +1344,7 @@ exits()
                 case ARESPOND: maxl = -1; break;
                 case ASKIP: i += TP1;
                 }
-                if (tt.condition == CANTEP || tt.condition == CALTEP ||
-                    tt.condition == CELTEP)
+                if (tt.condition == CANTEP || tt.condition == CALTEP || tt.condition == CELTEP)
                     maxl = -1;
             }
         }
@@ -1437,8 +1418,7 @@ PutARankInto(char *s, int rankNo)
             *(s++) = *(p++);
         *(s++) = ' ';
     }
-    p = (you->sex == 0) ? (rktab + you->rank)->male
-                        : (rktab + you->rank)->female;
+    p = (you->sex == 0) ? (rktab + you->rank)->male : (rktab + you->rank)->female;
     while (*p != 0)
         *(s++) = *(p++);
     if (you2->post[0] != 0) {
@@ -1554,13 +1534,11 @@ ascore(int type)
         tx("Name: @m! Sex  : @gn		Played   : @gp times\n");
         ioproc("@mr");
         txs("Rank: %-20s  Score: @sc points	This game: @sg points\n", ow);
-        sprintf(block,
-                "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity %ld/%ld.\n",
-                (rktab + me->rank)->strength, (rktab + me->rank)->stamina,
-                me2->dext, (rktab + me->rank)->dext);
+        sprintf(block, "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity %ld/%ld.\n",
+                (rktab + me->rank)->strength, (rktab + me->rank)->stamina, me2->dext,
+                (rktab + me->rank)->dext);
         tx(block);
-        sprintf(block, "Magic Points: @mg/%ld. Wisdom:  @wi.\n",
-                (rktab + me->rank)->magicpts);
+        sprintf(block, "Magic Points: @mg/%ld. Wisdom:  @wi.\n", (rktab + me->rank)->magicpts);
         tx(block);
 
         sprintf(block,
@@ -1585,9 +1563,8 @@ ascore(int type)
         sprintf(block,
                 "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity: %ld/%ld. "
                 "Magic: @mg/%ld\n",
-                (rktab + me->rank)->strength, (rktab + me->rank)->stamina,
-                me2->dext, (rktab + me->rank)->dext,
-                (rktab + me->rank)->magicpts);
+                (rktab + me->rank)->strength, (rktab + me->rank)->stamina, me2->dext,
+                (rktab + me->rank)->dext, (rktab + me->rank)->magicpts);
         tx(block);
     }
 }
@@ -1606,8 +1583,7 @@ calcdext()
 
     me2->dext -=
             ((me2->dext / 10) -
-             (((me2->dext / 10) *
-               ((rktab + me->rank)->maxweight - (me2->weight))) /
+             (((me2->dext / 10) * ((rktab + me->rank)->maxweight - (me2->weight))) /
               (rktab + me->rank)->maxweight));
 
     if (me2->flags & PFINVIS)
@@ -1701,14 +1677,12 @@ whohere()
 
     if (lit(me2->room) == NO)
         return;
-    if (((rmtab + me2->room)->flags & RF_HIDE_PLAYERS) != NULL &&
-        me->rank != ranks - 1) {
+    if (((rmtab + me2->room)->flags & RF_HIDE_PLAYERS) != NULL && me->rank != ranks - 1) {
         sys(WHO_HIDE);
         return;
     }
     for (i = 0; i < MAXU; i++) {
-        if (i != Af && cansee(Af, i) == YES &&
-            !((linestat + i)->flags & PFMOVING)) {
+        if (i != Af && cansee(Af, i) == YES && !((linestat + i)->flags & PFMOVING)) {
             PutARankInto(str, i);
             sprintf(block, acp(ISHERE), (usr + i)->name, str);
             if (((linestat + i)->flags & PFSITTING) != 0)
@@ -1789,8 +1763,7 @@ flagbits()
             "'%c', Flags = ANSI: "
             "%s, Add LF: "
             "%s\n\nChange settings (Y/n): ",
-            (me->llen), (me->slen), me->rchar,
-            (me->flags & UF_ANSI) ? "On" : "Off",
+            (me->llen), (me->slen), me->rchar, (me->flags & UF_ANSI) ? "On" : "Off",
             (me->flags & UF_CRLF) ? "On" : "Off");
     tx(spc);
     Inp(str, 2);
@@ -1822,8 +1795,7 @@ void
 getslen()
 {
     sprintf(input, "%ld %s", me->slen, "lines");
-    sprintf(str, "\nEnter %s%s[%s]: ", "screen length",
-            " (0 to disable MORE? prompting) ", input);
+    sprintf(str, "\nEnter %s%s[%s]: ", "screen length", " (0 to disable MORE? prompting) ", input);
     tx(str);
     Inp(str, 3);
     if (str[0] != 0)
@@ -1867,8 +1839,7 @@ getflags()
         tx("[y/N]: ");
     Inp(str, 2);
     if (toupper(str[0]) == 'Y' || toupper(str[0]) == 'N')
-        me->flags =
-                me->flags & (toupper(str[0]) == 'Y') ? UF_CRLF : -(1 + UF_CRLF);
+        me->flags = me->flags & (toupper(str[0]) == 'Y') ? UF_CRLF : -(1 + UF_CRLF);
     tx("Use ANSI control codes?     ");
     if (me->flags & UF_ANSI)
         tx("[Y/n]: ");
@@ -1876,8 +1847,7 @@ getflags()
         tx("[y/N]: ");
     Inp(str, 2);
     if (toupper(str[0]) == 'Y' || toupper(str[0]) == 'N')
-        me->flags =
-                me->flags & (toupper(str[0]) == 'Y') ? UF_ANSI : -(1 + UF_ANSI);
+        me->flags = me->flags & (toupper(str[0]) == 'Y') ? UF_ANSI : -(1 + UF_ANSI);
 }
 
 //============= Please adhere to AutoDoc style docs herewith ================
@@ -2167,9 +2137,8 @@ void add_obj(int to)  //== Add an object into a players inventory
     *objtab->rmlist = -(5 + to);  // It now belongs to them
     (linestat + to)->numobj++;
     (linestat + to)->weight += STATE->weight;
-    (linestat + to)->strength -=
-            ((rktab + (usr + to)->rank)->strength * STATE->weight) /
-            (rktab + (usr + to)->rank)->maxweight;
+    (linestat + to)->strength -= ((rktab + (usr + to)->rank)->strength * STATE->weight) /
+                                 (rktab + (usr + to)->rank)->maxweight;
     if (STATE->flags & SF_LIT)
         (linestat + to)->light++;
 }
@@ -2208,9 +2177,8 @@ void rem_obj(int to, int ob)  //== Remove object from inventory
 {
     (linestat + to)->numobj--;
     (linestat + to)->weight -= STATE->weight;
-    (linestat + to)->strength +=
-            ((rktab + (usr + to)->rank)->strength * STATE->weight) /
-            (rktab + (usr + to)->rank)->maxweight;
+    (linestat + to)->strength += ((rktab + (usr + to)->rank)->strength * STATE->weight) /
+                                 (rktab + (usr + to)->rank)->maxweight;
     if (STATE->flags & SF_LIT)
         (linestat + to)->light--;
     if (me2->wield == ob)
@@ -2375,8 +2343,7 @@ asyntax(int n1, int n2)
             break;
         }
     } else {
-        n2 = isnoun(
-                (obtab + n2)->id, (obtab + n2)->adj, (vbtab + iverb)->sort2);
+        n2 = isnoun((obtab + n2)->id, (obtab + n2)->adj, (vbtab + iverb)->sort2);
         t2 = TC_NOUN;
     }
 
@@ -2505,8 +2472,7 @@ StopFollow()
 {
     {
         Amiga::ScheduleGuard guard;
-        if (fol != 0 || me2->following == -1 ||
-            (vbtab + overb)->flags & VB_TRAVEL) {
+        if (fol != 0 || me2->following == -1 || (vbtab + overb)->flags & VB_TRAVEL) {
             return;
         }
         if ((linestat + me2->following)->state != US_CONNECTED ||
@@ -2594,8 +2560,7 @@ internal(const char *s)
 
     if (*s == 'l') {
         me->flags = me->flags ^ UF_CRLF;
-        txs("LineFeed follows carriage return %sABLED.\n",
-            (me->flags & UF_CRLF) ? "EN" : "DIS");
+        txs("LineFeed follows carriage return %sABLED.\n", (me->flags & UF_CRLF) ? "EN" : "DIS");
         return;
     }
 
@@ -2604,8 +2569,7 @@ internal(const char *s)
         case 'n':
             me->flags = me->flags ^ UF_ANSI;
             ans("1m");
-            txs("ANSI control codes now %sABLED.\n",
-                (me->flags & UF_ANSI) ? "EN" : "DIS");
+            txs("ANSI control codes now %sABLED.\n", (me->flags & UF_ANSI) ? "EN" : "DIS");
             ans("0;37m");
             save_me();
             return;
@@ -2732,8 +2696,7 @@ ShowFile(const char *s)
     sprintf(block, "%s", s);
     if ((ifp = fopen(block, "rb")) != NULL)
         goto show;
-    txs("\n--+ Please inform the dungeon master that file %s is missing.\n\n",
-        s);
+    txs("\n--+ Please inform the dungeon master that file %s is missing.\n\n", s);
     return;
 show:
     fseek(ifp, 0, SEEK_END);
@@ -2788,9 +2751,8 @@ scaled(int32_t value, short int flags)
 {
     if (!(flags & SF_SCALED))
         return value;
-    int32_t scalefactor = ((rscale * me->rank * 100 / ranks) +
-                           (tscale * *rescnt * 100 / (mins * 60))) /
-                          100;
+    int32_t scalefactor =
+            ((rscale * me->rank * 100 / ranks) + (tscale * *rescnt * 100 / (mins * 60))) / 100;
     return value - (value * scalefactor / 100);
 }
 
@@ -2848,8 +2810,7 @@ showin(int o, int mode)
     if ((obtab + o)->putto == 0)
         sprintf(p, "The %s contains ", (obtab + o)->id);
     else
-        sprintf(p, "%s the %s you find: ", obputs[(obtab + o)->putto],
-                (obtab + o)->id);
+        sprintf(p, "%s the %s you find: ", obputs[(obtab + o)->putto], (obtab + o)->id);
     p += strlen(p);
 
     j = 0;

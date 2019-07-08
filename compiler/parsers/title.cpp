@@ -24,14 +24,11 @@ getNo(const char *prefix, const char *from)
 }
 
 static void
-getBlock(
-        const char *                                               linetype,
-        std::function<void(const char *prefix, const char *value)> callback)
+getBlock(const char *linetype, std::function<void(const char *prefix, const char *value)> callback)
 {
     for (;;) {
         if (fgets(block, 1000, ifp) == nullptr) {
-            GetLogger().fatalf(
-                    "Invalid title.txt: Missing '%s' line", linetype);
+            GetLogger().fatalf("Invalid title.txt: Missing '%s' line", linetype);
         }
 
         repspc(block);
@@ -41,8 +38,7 @@ getBlock(
             continue;
 
         if (!skiplead(linetype, &p)) {
-            GetLogger().fatalf(
-                    "Invalid title.txt: Expected '%s' got: %s", linetype, p);
+            GetLogger().fatalf("Invalid title.txt: Expected '%s' got: %s", linetype, p);
         }
 
         callback(linetype, p);
@@ -74,8 +70,7 @@ title_proc()
     getBlockNo("gametime=", &mins);
     if (mins < 15) {
         mins = 15;
-        GetLogger().warnf(
-                "gametime=%d too short: falling back to %d minutes", mins);
+        GetLogger().warnf("gametime=%d too short: falling back to %d minutes", mins);
     }
 
     getBlockNo("invisible=", &invis);

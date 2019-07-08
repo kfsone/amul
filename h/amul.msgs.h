@@ -72,10 +72,10 @@
 #define WBLOCK 64       /*@pl wields a @o2 and blocks your attack! */
 #define MISSED 65       /*You attack @pl but miss! */
 #define HEMISSED 66     /*@me attacks you but misses! */
-#define TOPRANK 67 /*Well done! You have obtained the highest rank possible! \
-                    */
-#define NOTASK \
-    68 /*Sorry you haven't completed adequate tasks for this level. */
+#define TOPRANK                                                                                    \
+    67               /*Well done! You have obtained the highest rank possible!                     \
+                      */
+#define NOTASK 68    /*Sorry you haven't completed adequate tasks for this level. */
 #define YOURBLIND 69 /*You can't see anything, you're blind. */
 #define WHO_HIDE 70  /*You can't be sure if there are other people nearby... */
 #define CERTDEATH 71 /*Exit description of Death room */

@@ -43,8 +43,8 @@ void grab()  // Copy INPUT to BLOCK, taking one sentence at a time, etc
         }
 
         p = d;
-        while (*s != 0 && !isspace(*s) && *s != '!' && *s != ';' && *s != ',' &&
-               *s != '.' && *s != '\"' && *s != '\'')
+        while (*s != 0 && !isspace(*s) && *s != '!' && *s != ';' && *s != ',' && *s != '.' &&
+               *s != '\"' && *s != '\'')
             *(d++) = *(s++);
         *d = 0;
         *(d + 1) = 0;
@@ -70,8 +70,7 @@ void grab()  // Copy INPUT to BLOCK, taking one sentence at a time, etc
         }
         if (parser() == -1)
             return;
-    } while (*s != 0 && more == 0 && exeunt == 0 && forced == 0 &&
-             failed == NO && died == 0);
+    } while (*s != 0 && more == 0 && exeunt == 0 && forced == 0 && failed == NO && died == 0);
     iocheck();
 }
 
@@ -253,8 +252,7 @@ caloop:
         ml = stptr->ents;
         if (stptr->wtype[2] != TC_ANY)
             for (j = 0; j < 5 && m == 0; j++) {
-                if (stptr->wtype[j] == TC_ANY &&
-                    (j == 0 || j == 3 || wtype[j + 1] != TC_NONE))
+                if (stptr->wtype[j] == TC_ANY && (j == 0 || j == 3 || wtype[j + 1] != TC_NONE))
                     continue;
                 if (stptr->wtype[j] != wtype[j + 1]) {
                     m = 1;
@@ -271,16 +269,13 @@ caloop:
                 case 1:
                     if (stptr->slot[j] == TC_NONE && inoun1 == TC_NONE)
                         break;
-                    if (stptr->wtype[j] == TC_PLAYER && inoun1 == Af &&
-                        stptr->slot[j] == -3)
+                    if (stptr->wtype[j] == TC_PLAYER && inoun1 == Af && stptr->slot[j] == -3)
                         break;
                     if (stptr->wtype[j] == TC_TEXT &&
-                        stricmp((char *)inoun1,
-                                umsgp + *(umsgip + stptr->slot[j])) == NULL)
+                        stricmp((char *)inoun1, umsgp + *(umsgip + stptr->slot[j])) == NULL)
                         break;
                     if (stptr->wtype[j] == TC_NOUN &&
-                        stricmp((obtab + inoun1)->id,
-                                (obtab + stptr->slot[j])->id) == NULL)
+                        stricmp((obtab + inoun1)->id, (obtab + stptr->slot[j])->id) == NULL)
                         break;
                     if (inoun1 != stptr->slot[j])
                         m = 1;
@@ -296,16 +291,13 @@ caloop:
                 case 4:
                     if (stptr->slot[j] == TC_NONE && inoun2 == TC_NONE)
                         break;
-                    if (stptr->wtype[j] == TC_PLAYER && inoun2 == Af &&
-                        stptr->slot[j] == -3)
+                    if (stptr->wtype[j] == TC_PLAYER && inoun2 == Af && stptr->slot[j] == -3)
                         break;
                     if (stptr->wtype[j] == TC_TEXT &&
-                        stricmp((char *)inoun2,
-                                umsgp + *(umsgip + stptr->slot[j])) == NULL)
+                        stricmp((char *)inoun2, umsgp + *(umsgip + stptr->slot[j])) == NULL)
                         break;
                     if (stptr->wtype[j] == TC_NOUN &&
-                        stricmp((obtab + inoun2)->id,
-                                (obtab + stptr->slot[j])->id) == NULL)
+                        stricmp((obtab + inoun2)->id, (obtab + stptr->slot[j])->id) == NULL)
                         break;
                     if (inoun2 != stptr->slot[j])
                         m = 1;
@@ -336,8 +328,7 @@ caloop:
                 donet = ml + 1;
                 break;
             }
-            if (ml < 0 || failed != NO || forced != 0 || died != 0 ||
-                exeunt != 0)
+            if (ml < 0 || failed != NO || forced != 0 || died != 0 || exeunt != 0)
                 break;
         }
         if (failed != NO || forced != 0 || died != 0 || exeunt != 0)

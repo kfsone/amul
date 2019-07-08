@@ -43,8 +43,7 @@ fopenr(const char *s)
         fclose(ifp);
     sprintf(block, "%s%s", dir, s);
     if ((ifp = fopen(block, "rb")) == NULL) {
-        sprintf(spc, "\x07** Error: Can't open \"%s\" for %sding!\n\n", block,
-                "rea");
+        sprintf(spc, "\x07** Error: Can't open \"%s\" for %sding!\n\n", block, "rea");
         tx(spc);
         quit();
     }
@@ -57,8 +56,7 @@ fopena(const char *s)
         fclose(afp);
     sprintf(block, "%s%s", dir, s);
     if ((afp = fopen(block, "rb+")) == NULL) {
-        sprintf(spc, "\x07** Error: Can't open \"%s\" for %sding!\n\n", block,
-                "appen");
+        sprintf(spc, "\x07** Error: Can't open \"%s\" for %sding!\n\n", block, "appen");
         tx(spc);
         quit();
     }

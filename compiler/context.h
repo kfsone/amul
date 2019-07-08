@@ -33,8 +33,7 @@ struct Context {
     void checkErrorCount() const
     {
         if (errorCount() > errorLimit()) {
-            AMUL::Logging::GetLogger().fatalf(
-                    "Exceeded maximum number of errors");
+            AMUL::Logging::GetLogger().fatalf("Exceeded maximum number of errors");
         }
     }
 
@@ -42,8 +41,7 @@ struct Context {
     void terminateOnErrors() const
     {
         if (errorCount()) {
-            AMUL::Logging::GetLogger().fatalf(
-                    "Aborting due to %u errors.", errorCount());
+            AMUL::Logging::GetLogger().fatalf("Aborting due to %u errors.", errorCount());
         }
     }
 };

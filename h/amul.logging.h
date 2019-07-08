@@ -5,8 +5,8 @@
 
 [[noreturn]] void quit();
 
-namespace AMUL::Logging {
-
+namespace AMUL::Logging
+{
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
 
@@ -66,4 +66,4 @@ struct Logger {
 
 Logger &GetLogger();
 
-}
+}  // namespace AMUL::Logging

@@ -38,8 +38,7 @@ main(int argc, char *argv[])
     // Look for AMUL Manager Port
     printf("\n[31;1mAWho - [0;33mWho's on [32mAMUL[33m???[0m ");
 
-    if (argc == 2 && strcmp(argv[1], "?") == 0 ||
-        strcmp(argv[1], "-?") == 0) {
+    if (argc == 2 && strcmp(argv[1], "?") == 0 || strcmp(argv[1], "-?") == 0) {
         printf("\n\nUsage: [33m%s [32;1m[FULL][0m\n\n", argv[0]);
         printf("Purpose: Lists current status of AMan/AMUL adventure.\n%9sFULL "
                "option lists all "
@@ -49,8 +48,7 @@ main(int argc, char *argv[])
     }
 
     if (argc == 2 && stricmp(argv[1], "full") != 0) {
-        printf("\n\n\x08Invalid usage! Type \"[32m%s ?[0m\" for help.\n\n",
-               argv[0]);
+        printf("\n\n\x08Invalid usage! Type \"[32m%s ?[0m\" for help.\n\n", argv[0]);
         exit(0);
     }
 
@@ -106,8 +104,7 @@ main(int argc, char *argv[])
     sendmsg(0);
 
     printf("\n[32mStatstics for \"[33m%s[32m\"[0m\n\n", adname);
-    printf("Calls since loaded: [1;32m%6ld[0m	 Online now: [1;32m%4ld[0m\n",
-           calls, online);
+    printf("Calls since loaded: [1;32m%6ld[0m	 Online now: [1;32m%4ld[0m\n", calls, online);
     printf("Rooms: [1;33m%6ld[0m    Objects: [1;33m%6ld[0m    Ranks: "
            "[1;33m%6ld[0m\n\n",
            rooms, nouns, ranks);
@@ -124,15 +121,13 @@ main(int argc, char *argv[])
                 if ((linestat + i)->state <= 0)
                     continue;
                 if ((linestat + i)->state == 2)
-                    printf("%-25.25s|%-25.25s|%-14.14s|%9.9ld\n",
-                           (usr + i)->name,
-                           ((usr + i)->sex == 0)
-                                   ? (rktab + (usr + i)->rank)->male
-                                   : (rktab + (usr + i)->rank)->female,
+                    printf("%-25.25s|%-25.25s|%-14.14s|%9.9ld\n", (usr + i)->name,
+                           ((usr + i)->sex == 0) ? (rktab + (usr + i)->rank)->male
+                                                 : (rktab + (usr + i)->rank)->female,
                            (rmtab + (linestat + i)->room)->id, (usr + i)->score);
                 else
-                    printf("%-25.25s|%-25.25s|%-14.14s|%9.9ld\n",
-                           "   << Logging In! >>", "", "...Nowhere!...", 0);
+                    printf("%-25.25s|%-25.25s|%-14.14s|%9.9ld\n", "   << Logging In! >>", "",
+                           "...Nowhere!...", 0);
             }
             printf("----------%s-----------+----------%s-----------+---%s---+--"
                    "%s--\n\n",
@@ -140,8 +135,8 @@ main(int argc, char *argv[])
         }
     }
     rescnt = (short *)Ap1;
-    printf("Next reset in [33m%ld[0m mins, [33m%ld[0m secs.\n\n",
-           *rescnt / 60, *rescnt - ((*rescnt / 60) * 60));
+    printf("Next reset in [33m%ld[0m mins, [33m%ld[0m secs.\n\n", *rescnt / 60,
+           *rescnt - ((*rescnt / 60) * 60));
     quit();
 }
 

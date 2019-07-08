@@ -5,7 +5,7 @@
 #if defined(WIN32)
 #    include <io.h>
 #else
-#define stricmp strcasecmp
+#    define stricmp strcasecmp
 #endif
 
 // OS-specific helpers

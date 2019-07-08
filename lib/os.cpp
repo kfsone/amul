@@ -3,14 +3,14 @@
 #include "h/amul.incs.h"
 #include "h/amul.logging.h"
 
-#include <fcntl.h>
 #include <cerrno>
 #include <cstdarg>
 #include <cstdlib>
+#include <fcntl.h>
 #include <string>
 
 #if !defined(_MSC_VER)
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 using namespace AMUL::Logging;
@@ -26,9 +26,7 @@ CreateFile(const char *path, const char *filename)
 
     int fd = open(filepath.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
     if (fd == -1) {
-        GetLogger().fatalf(
-                "Failed to create file: %s: %s", filepath.c_str(),
-                strerror(errno));
+        GetLogger().fatalf("Failed to create file: %s: %s", filepath.c_str(), strerror(errno));
     }
     close(fd);
 }

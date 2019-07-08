@@ -59,13 +59,9 @@ processStatus(int connectionNo, const char *prefix, const char *note)
 {
     char buffer[512];
     if (note) {
-        snprintf(
-                buffer, sizeof(buffer), "%s #%2d: %s: %s", vername,
-                connectionNo, prefix, note);
+        snprintf(buffer, sizeof(buffer), "%s #%2d: %s: %s", vername, connectionNo, prefix, note);
     } else {
-        snprintf(
-                buffer,
-                sizeof(buffer, "%s #%2d: %s", vername, connectionNo, prefix));
+        snprintf(buffer, sizeof(buffer, "%s #%2d: %s", vername, connectionNo, prefix));
     }
     /// TODO: Use this value
 }

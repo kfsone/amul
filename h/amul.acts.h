@@ -52,7 +52,7 @@ the box', 'current state of door', 'no. of player carrying' etc...
 
 struct ACTUAL  // Structure for actual data
 {
-    const char* name;   // Name of actual
+    const char *name;   // Name of actual
     int         value;  // The effective no.
     short int   wtype;  // Wtype of word
 };

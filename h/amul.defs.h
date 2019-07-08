@@ -374,8 +374,8 @@ enum Message {
 };
 
 enum TokenClass {  // I originally called these 'wtypes' for "word types"
-	// Some of these have to align with CAP_ equivalents
-	TC_NONE = -1,  // None!
+    // Some of these have to align with CAP_ equivalents
+    TC_NONE = -1,  // None!
     TC_ANY,        // Anything!
     TC_NOUN,       // Word is a noun
     TC_ADJ,        // Word is an adjective

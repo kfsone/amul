@@ -53,18 +53,15 @@ smsg_proc()
         bool valid = true;
 
         if (Word[0] != '$') {
-            GetLogger().errorf(
-                    "Invalid sysmsg id (must start with '$'): %s", Word);
+            GetLogger().errorf("Invalid sysmsg id (must start with '$'): %s", Word);
             valid = false;
         } else {
             auto msgId = atoi(Word + 1);
             if (msgId < 1 || msgId > NSMSGS) {
-                GetLogger().errorf(
-                        "Invalid sysmsg id (out of range): %s", Word);
+                GetLogger().errorf("Invalid sysmsg id (out of range): %s", Word);
                 valid = false;
             } else if (registered.find(msgId) != registered.end()) {
-                GetLogger().errorf(
-                        "Duplicate definition of system message: %s", Word);
+                GetLogger().errorf("Duplicate definition of system message: %s", Word);
                 valid = false;
             }
             if (valid)
@@ -108,8 +105,8 @@ smsg_proc()
         for (int i = 1; i < NSMSGS; ++i) {
             if (registered.find(i) == registered.end()) {
                 GetLogger().fatalf(
-                        "System Message $%d is missing (total of %u missing)\n",
-                        i, NSMSGS - registered.size());
+                        "System Message $%d is missing (total of %u missing)\n", i,
+                        NSMSGS - registered.size());
             }
         }
     }

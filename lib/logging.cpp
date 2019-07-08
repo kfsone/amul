@@ -4,7 +4,7 @@
 
 namespace AMUL::Logging
 {
-Logger&
+Logger &
 GetLogger()
 {
     static Logger logger;

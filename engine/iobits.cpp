@@ -250,28 +250,22 @@ int esc(const char *p, char *s)  // Find @ escape sequences
             return 1;
         }
         if (c == '1' && inoun1 >= 0 && wtype[2] == TC_NOUN) {
-            sprintf(s, "%ld",
-                    scaled(State(inoun1)->value, State(inoun1)->flags));
+            sprintf(s, "%ld", scaled(State(inoun1)->value, State(inoun1)->flags));
             return 1;
         }
         if (c == '2' && inoun2 >= 0 && wtype[5] == TC_NOUN) {
-            sprintf(s, "%ld",
-                    scaled(State(inoun2)->value, State(inoun2)->flags));
+            sprintf(s, "%ld", scaled(State(inoun2)->value, State(inoun2)->flags));
             return 1;
         }
     case 'w':
         if (c == '1' && inoun1 >= 0 && wtype[2] == TC_NOUN) {
             sprintf(s, "%ldg",
-                    ((obtab + inoun1)->states +
-                     (int32_t)(obtab + inoun1)->state)
-                            ->weight);
+                    ((obtab + inoun1)->states + (int32_t)(obtab + inoun1)->state)->weight);
             return 1;
         }
         if (c == '2' && inoun2 >= 0 && wtype[5] == TC_NOUN) {
             sprintf(s, "%ldg",
-                    ((obtab + inoun2)->states +
-                     (int32_t)(obtab + inoun2)->state)
-                            ->weight);
+                    ((obtab + inoun2)->states + (int32_t)(obtab + inoun2)->state)->weight);
             return 1;
         }
         if (c == 'i') {
@@ -456,8 +450,7 @@ tx(const char *s)
             }
             *(p++) = *(s++);
             i++;
-        } while (*s != 0 && *s != '\n' &&
-                 (me->llen < 8 || i < (me->llen - 1)) && *s != 12);
+        } while (*s != 0 && *s != '\n' && (me->llen < 8 || i < (me->llen - 1)) && *s != 12);
 
         if (i > 0)
             needcr = YES;

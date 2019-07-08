@@ -3,12 +3,12 @@
  ****              Include Files               ****
  */
 
-#include <fcntl.h>
 #include <cctype>
 #include <cinttypes>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <fcntl.h>
 
 #if defined(AMIGA)
 #    include <exec/memory.h>  // Memory details........

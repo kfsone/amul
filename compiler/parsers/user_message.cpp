@@ -53,9 +53,7 @@ umsg_proc()
             continue;
 
         if (Word[0] == '$') {
-            GetLogger().errorf(
-                    "Invalid ID: %s: '$' is reserved for System Messages",
-                    Word);
+            GetLogger().errorf("Invalid ID: %s: '$' is reserved for System Messages", Word);
             skipblock();
             continue;
         }

@@ -15,8 +15,8 @@
 #include "h/amul.msgs.h"
 #include "h/os.h"
 
-#define dtx(x)      \
-    if (debug != 0) \
+#define dtx(x)                                                                                     \
+    if (debug != 0)                                                                                \
     tx(x)
 extern short int debug;  // Is debug mode on?
 
@@ -42,23 +42,22 @@ extern Amiga::MsgPort * ReadRep, *WriteRep, *repbk;
 extern struct IOStdReq  ReadIo, WriteIo;
 
 // Frame specific variables
-extern char    serop, MyFlag;               // SerPort open? What am I?
-extern char *  input;                       // 400 bytes, 5 lines
-extern char    str[], spc[], mxx[], mxy[];  // Output string
-extern char    wtil[];                      // Window title
-extern char    inc, forced, failed, died, addcr, fol;  // For parsers use
-extern char    actor, last_him, last_her;              // People we know of
-extern char    autoexits, needcr;                      // Autoexits on/off?
-extern int32_t iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir,
-        lroom;
-extern int32_t         wtype[6], word;          // Type of word...
-extern short int       donev, skip;             // No. of vb's/TT's done
-extern char            link, exeunt, more;      // If we've linked yet
-extern int32_t         ml, donet, it;           // Maximum lines
-extern Aport *         ap, *amanp, *intam;      // The message pointers
-extern Amiga::MsgPort *amanrep;                 // AMAN reply amanPort
-extern char *ob, *gp, *ow, *lastres, *lastcrt;  // Pointer to output buffers etc
-extern short int rset, rclr, ip, csyn;          // Masks for Room Counter
+extern char            serop, MyFlag;                          // SerPort open? What am I?
+extern char *          input;                                  // 400 bytes, 5 lines
+extern char            str[], spc[], mxx[], mxy[];             // Output string
+extern char            wtil[];                                 // Window title
+extern char            inc, forced, failed, died, addcr, fol;  // For parsers use
+extern char            actor, last_him, last_her;              // People we know of
+extern char            autoexits, needcr;                      // Autoexits on/off?
+extern int32_t         iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir, lroom;
+extern int32_t         wtype[6], word;                    // Type of word...
+extern short int       donev, skip;                       // No. of vb's/TT's done
+extern char            link, exeunt, more;                // If we've linked yet
+extern int32_t         ml, donet, it;                     // Maximum lines
+extern Aport *         ap, *amanp, *intam;                // The message pointers
+extern Amiga::MsgPort *amanrep;                           // AMAN reply amanPort
+extern char *          ob, *gp, *ow, *lastres, *lastcrt;  // Pointer to output buffers etc
+extern short int       rset, rclr, ip, csyn;              // Masks for Room Counter
 
 // Integers
 extern int32_t             rooms;     // No. of rooms

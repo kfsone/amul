@@ -5,13 +5,11 @@
 // remember to update amul.defs.h
 
 const char *rflag[NRFLAGS] = {  // room flags
-        "light",     "dmove",    "startloc", "randobjs", "dark",
-        "small",     "death",    "nolook",   "silent",   "hide",
-        "sanctuary", "hideaway", "peaceful", "noexits"};
+        "light",  "dmove",  "startloc", "randobjs",  "dark",     "small",    "death",
+        "nolook", "silent", "hide",     "sanctuary", "hideaway", "peaceful", "noexits"};
 
 const char *obflags1[NOFLAGS] = {  // object flags
-        "opens",  "scenery", "counter", "flammable",
-        "shines", "fire",    "invis",   "smell"};
+        "opens", "scenery", "counter", "flammable", "shines", "fire", "invis", "smell"};
 
 const char *obparms[NOPARMS] = {  // object parameters
         "adj=", "start=", "holds=", "put=", "mobile="};

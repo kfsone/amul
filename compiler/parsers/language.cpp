@@ -273,9 +273,9 @@ lang_proc()
         } while (*cursor != 0 && isCommentChar(block[0]));
         if (*cursor == 0 || block[0] == 0) {
             if (verb.ents == 0 && (verb.flags & VB_TRAVEL))
-		    GetLogger().errorf("Verb has no entries: %s", verb.id);
-	    ///TODO: This used to do 'goto write'
-	    continue;
+                GetLogger().errorf("Verb has no entries: %s", verb.id);
+            /// TODO: This used to do 'goto write'
+            continue;
         }
 
         tidy(block);

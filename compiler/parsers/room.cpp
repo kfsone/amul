@@ -62,8 +62,7 @@ room_proc()
                     continue;
                 }
                 if ((n = isrflag(p)) == -1) {
-                    GetLogger().errorf(
-                            "Room: %s: Invalid room flag: %s", room.id, p);
+                    GetLogger().errorf("Room: %s: Invalid room flag: %s", room.id, p);
                 }
                 n -= NRNULL;
                 if (n >= 0)
