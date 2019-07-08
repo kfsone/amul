@@ -8,15 +8,15 @@ namespace Amiga
 {
 static Task myTask;
 
-// For the sake of putting something roughly approximating Amiga's "Forbid" and "Permit",
-// we use a simple mutex. This should ultimately go away.
+// For the sake of putting something roughly approximating Amiga's "Forbid" and
+// "Permit", we use a simple mutex. This should ultimately go away.
 static std::mutex scheduleMutex;
 
 Task *
 FindTask(const char *name)
 {
-    // Look for a task called "name", unless name is null, in which case we're looking for our own
-    // task.
+    // Look for a task called "name", unless name is null, in which case we're
+    // looking for our own task.
     if (name == nullptr) {
         return &myTask;
     } else {

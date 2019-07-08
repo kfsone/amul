@@ -203,7 +203,8 @@ newid()
     crsys(ASK4ANSI);
     block[0] = 0;
     Inp(block, 4);
-    me->flags = (toupper(block[0]) == 'Y') ? me->flags | UF_ANSI : me->flags & -(1 + UF_ANSI);
+    me->flags = (toupper(block[0]) == 'Y') ? me->flags | UF_ANSI
+                                           : me->flags & -(1 + UF_ANSI);
 
     flagbits();
 

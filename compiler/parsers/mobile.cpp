@@ -31,7 +31,8 @@ loop:
         px = skipline(px);
     }
     if (*px == 0 || *px == 13 || *px == 10) {
-        GetLogger().errorf("Mobile: %s: Unexpected end of mobile definition", mob.id);
+        GetLogger().errorf(
+                "Mobile: %s: Unexpected end of mobile definition", mob.id);
         return -1;
     }
     px = skipspc(px);
@@ -96,7 +97,9 @@ mob_proc1()
                 cur = getword(cur);
                 mob.dmove = isroom(Word);
                 if (mob.dmove == -1) {
-                    GetLogger().errorf("Mobile: %s: Invalid dmove destination: '%s'", mob.id, Word);
+                    GetLogger().errorf(
+                            "Mobile: %s: Invalid dmove destination: '%s'",
+                            mob.id, Word);
                 }
                 continue;
             }
@@ -143,7 +146,9 @@ mob_proc1()
         mob.wait = atoi(Word);
 
         if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
-            GetLogger().errorf("Mobile: %s, Total of action ratios not equal to 100%", mob.id);
+            GetLogger().errorf(
+                    "Mobile: %s, Total of action ratios not equal to 100%",
+                    mob.id);
         }
         if (!skiplead("fear=", &cur)) {
             mobmis("fear=");
@@ -191,7 +196,8 @@ mob_proc1()
     GetContext().terminateOnErrors();
     close_ofps();
     if (mobchars != 0) {
-        if ((mobp = (struct _MOB_ENT *)OS::Allocate(sizeof(mob) * mobchars)) == NULL) {
+        if ((mobp = (struct _MOB_ENT *)OS::Allocate(sizeof(mob) * mobchars)) ==
+            NULL) {
             GetLogger().fatal("OUT OF MEMORY");
         }
         fopena(Resources::Compiled::mobData());

@@ -30,7 +30,8 @@ isEol(char c) noexcept
     return c == '\n';
 }
 
-// Lines end when we reach the nul terminator, an eol character or a comment character.
+// Lines end when we reach the nul terminator, an eol character or a comment
+// character.
 constexpr bool
 isLineEnding(char c) noexcept
 {

@@ -5,7 +5,7 @@ using namespace AMUL::Logging;
 
 namespace Compiler
 {
-Compiler::Context &
+Compiler::Context&
 GetContext()
 {
     static Context context;

@@ -19,27 +19,30 @@
 #define AMAN 1
 #define TRQ timerequest
 
-#define UINFO ((sizeof(*usr) + sizeof(*lstat)) * MAXNODE) + (rooms * sizeof(short)) + (sizeof(mob) * mobs)
+#define UINFO                                                               \
+    ((sizeof(*usr) + sizeof(*lstat)) * MAXNODE) + (rooms * sizeof(short)) + \
+            (sizeof(mob) * mobs)
 
 #include "h/aman.h"
+#include <time.h>
 #include "h/amul.cons.h"
 #include "h/amul.defs.h"
 #include "h/amul.incs.h"
 #include "h/amul.vars.h"
 #include "h/os.h"
-#include <time.h>
 
-char *    ttxt, lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE], *xread(), *now();
+char *ttxt, lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE], *xread(),
+        *now();
 char      globflg[MAXD];                 // Is daemon global?
 int32_t   reslp, TDBase, daemons, mins;  // Daemons to process!
 short int count[MAXD], num[MAXD];        // Daemon counters in minutes! & No.s
 char      own[MAXD];                     // And their owners...
 int32_t   val[MAXD][2], typ[MAXD][2];    // Values and types...
 Aport *   am;
-struct TRQResReq;                       // Reset request & Incoming from timer
-Amiga::MsgPort *timerPort;              // Timer port
-int32_t         invis, invis2, calls;   // Invisibility Stuff & # of calls
-int32_t         obtlen, nextdaem, ded;  // nextdaem = time to next daemon, ded = deduct
+struct TRQResReq;                      // Reset request & Incoming from timer
+Amiga::MsgPort *timerPort;             // Timer port
+int32_t         invis, invis2, calls;  // Invisibility Stuff & # of calls
+int32_t obtlen, nextdaem, ded;  // nextdaem = time to next daemon, ded = deduct
 
 static bool quiet{false};
 int32_t     online, clock, cclock;
@@ -88,7 +91,8 @@ fsize(char *s)
 void
 usage(const char *argv[], int err = EINVAL)
 {
-    fprintf(stderr, "Usage: %s [<-kill | -reset | -xtend> time] [-q] [gamepath]\n");
+    fprintf(stderr,
+            "Usage: %s [<-kill | -reset | -xtend> time] [-q] [gamepath]\n");
     exit(err);
 }
 
@@ -113,7 +117,10 @@ parseArguments(int argc, const char *argv[])
             case 'r':  // restart
             case 'x':  // extend
                 if (cmd) {
-                    fprintf(stderr, "ERROR: Command '%s' conflicts with previous command '-%c'.\n", arg, cmd);
+                    fprintf(stderr,
+                            "ERROR: Command '%s' conflicts with previous "
+                            "command '-%c'.\n",
+                            arg, cmd);
                     usage(argv);
                 }
                 cmd = tolower(arg[1]);
@@ -130,7 +137,8 @@ parseArguments(int argc, const char *argv[])
             }
             cmdTime = atoi(arg);
             if (cmdTime < 0) {
-                fprintf(stderr, "ERROR: Invalid -%c time value: '%s'\n", cmd, arg);
+                fprintf(stderr, "ERROR: Invalid -%c time value: '%s'\n", cmd,
+                        arg);
                 usage(argv);
             }
         } else {
@@ -146,7 +154,8 @@ parseArguments(int argc, const char *argv[])
     amanPort = FindPort(managerName);
     if (cmd) {
         if (!amanPort) {
-            fprintf(stderr, "ERROR: Could not find a running manage to control.\n");
+            fprintf(stderr,
+                    "ERROR: Could not find a running manage to control.\n");
             exit(ESRCH);
         }
 
@@ -199,7 +208,8 @@ main(int argc, char *argv[])
         quit();
     }
 
-    if (OpenDevice(TIMERNAME, UNIT_VBLANK, (struct IORequest *)&ResReq, 0L) != NULL) {
+    if (OpenDevice(TIMERNAME, UNIT_VBLANK, (struct IORequest *)&ResReq, 0L) !=
+        NULL) {
         printf("Can't open timer.device!\n");
         quit();
     }
@@ -227,7 +237,8 @@ kernel()
     int   i;
     FILE *fp;
 
-    strcpy(block, "--------------------------------------------------------------\n");
+    strcpy(block,
+           "--------------------------------------------------------------\n");
     log(block);
     online = resety = forcereset = 0;
     for (i = 0; i < MAXD; i++) {
@@ -326,7 +337,8 @@ kernel()
         case MSG_GDAEMON_START: gstart(); break;  // Global daemon
         default:
             At = -1;
-            sprintf(block, "$$ (X) %s: *INVALID Message Type, %ld!*\n", now(), At);
+            sprintf(block, "$$ (X) %s: *INVALID Message Type, %ld!*\n", now(),
+                    At);
             log(block);
             break;
         }
@@ -366,7 +378,8 @@ void kill()  // Shutdown receiver
     } else
         log("the void!\n");
     if (online != 0) {
-        sprintf(block, "&&%25s: Request denied, %ld users on-line!\n", " ", online);
+        sprintf(block, "&&%25s: Request denied, %ld users on-line!\n", " ",
+                online);
         log(block);
         Ad = At = 'X';
     } else {
@@ -489,7 +502,8 @@ data()
 void
 login()
 {
-    sprintf(block, "-> (%d) %s: \"%s\" logged in.\n", Af, now(), (usr + Af)->name);
+    sprintf(block, "-> (%d) %s: \"%s\" logged in.\n", Af, now(),
+            (usr + Af)->name);
     (lstat + Af)->state = US_CONNECTED;
     log(block);
 }
@@ -538,7 +552,9 @@ asend(int type, int data)
         case -'X': printf("... Reset set for %ld seconds ...\n", Ap1); break;
         case -'R': printf("... Reset in progress ...\n"); break;
         case 'E': printf("... Game extended by %ld seconds ...\n", Ap1); break;
-        default: printf("** Internal AMUL error ** (Returned '%c')\n", Ad); break;
+        default:
+            printf("** Internal AMUL error ** (Returned '%c')\n", Ad);
+            break;
         }
     OS::Free(amul, sizeof(*amul));
     DeletePort(replyPort);
@@ -554,7 +570,8 @@ rest()
     if (Ad > 0) {
         Ap1 = Ad;
         count[0] = Ad + 1;
-        sprintf(block, "** System reset invoked - %ld seconds remaining...\n", Ad);
+        sprintf(block, "** System reset invoked - %ld seconds remaining...\n",
+                Ad);
         warn(block);
         Ad = At = -'X';
         return;
@@ -575,10 +592,14 @@ extend(short int tics)
 
     newtime = count[0] + tics + 1;
     if (count[0] > 120)
-        sprintf(block, "...Game time extended - reset will now occur in %ld %s and %ld %s...\n", newtime / 60,
-                "minutes", newtime - ((newtime / 60) * 60), "seconds");
+        sprintf(block,
+                "...Game time extended - reset will now occur in %ld %s and "
+                "%ld %s...\n",
+                newtime / 60, "minutes", newtime - ((newtime / 60) * 60),
+                "seconds");
     else
-        sprintf(block, "...Reset postponed - it will now occur in %ld %s...\n", newtime, "seconds");
+        sprintf(block, "...Reset postponed - it will now occur in %ld %s...\n",
+                newtime, "seconds");
     warn(block);
     Ap1 = tics;
     count[0] = newtime;
@@ -590,8 +611,8 @@ void
 res()
 {
     int onwas;
-    sprintf(block, "][ (%c) %s: Reset requested! %ld user(s) online...\n", (Af >= 0 && Af < 11) ? '0' + Af : '#', now(),
-            online);
+    sprintf(block, "][ (%c) %s: Reset requested! %ld user(s) online...\n",
+            (Af >= 0 && Af < 11) ? '0' + Af : '#', now(), online);
     log(block);
     onwas = online;
     reset_users();
@@ -663,9 +684,12 @@ setup()
     fopenr(Resources::Compiled::gameProfile());
     fgets(adname, sizeof(adname), ifp);
     nulTerminate(adname);
-    fscanf(ifp, "%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld", &rooms, &ranks, &verbs, &syns,
-            &nouns, &adjs, &ttents, &umsgs, &cclock, &mins, &invis, &invis2, &minsgo, &mobs, &rscale, &tscale,
-            &mobchars);
+    fscanf(ifp,
+           "%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld "
+           "%ld",
+           &rooms, &ranks, &verbs, &syns, &nouns, &adjs, &ttents, &umsgs,
+           &cclock, &mins, &invis, &invis2, &minsgo, &mobs, &rscale, &tscale,
+           &mobchars);
     if ((p = OS::AllocateClear(UINFO)) == NULL)
         memfail("User tables");
     usr = (struct _PLAYER *)p;
@@ -702,7 +726,8 @@ setup()
     obtab = (struct obj *)readf(Resources::Compiled::objData(), p);
     desctab = (char *)readf(Resources::Compiled::objDesc(), (p = p + obtlen));
     ormtab = (int32_t)readf(Resources::Compiled::objLoc(), (p = p + desctlen));
-    statab = (struct state *)readf(Resources::Compiled::objState(), p + ormtablen);
+    statab = (struct state *)readf(
+            Resources::Compiled::objState(), p + ormtablen);
 
     // Update the object room list ptrs and the state ptrs
     statep = statab;
@@ -724,10 +749,12 @@ setup()
     umsgp = (char *)readf(Resources::Compiled::umsgData(), p + umsgil);
 
     // 9: Read the travel table
-    ttp = (struct tt *)xread(Resources::Compiled::travelTable(), &ttlen, "travel table");
+    ttp = (struct tt *)xread(
+            Resources::Compiled::travelTable(), &ttlen, "travel table");
 
     // 12: Read parameters
-    ttpp = (int32_t *)xread(Resources::Compiled::travelParams(), &ttplen, "TT parameter table");
+    ttpp = (int32_t *)xread(
+            Resources::Compiled::travelParams(), &ttplen, "TT parameter table");
     ttents = ttlen / sizeof(tt);
     ttabp = ttp;
     pt = ttpp;
@@ -740,11 +767,11 @@ setup()
         act = ttabp->condition;
         if (act < 0)
             act = -1 - act;
-        pt += ncop[act];
+        pt += conditions[act].parameterCount;
         act = ttabp->action;
         if (act < 0) {
             act = -1 - act;
-            pt += nacp[act];
+            pt += actions[act].parameterCount;
         }
     }
 
@@ -765,7 +792,8 @@ setup()
     if ((p = OS::Allocate(synlen + synilen + adtablen)) == NULL)
         memfail("synonym data");
     synp = (char *)readf(Resources::Compiled::synonymData(), p);
-    synip = (short int *)readf(Resources::Compiled::synonymIndex(), (p = p + synlen));
+    synip = (short int *)readf(
+            Resources::Compiled::synonymIndex(), (p = p + synlen));
     adtab = (char *)readf(Resources::Compiled::adjTable(), p + synilen);
 
     // 18: Get last reset time
@@ -787,11 +815,11 @@ setup()
                 act = vtabp->condition;
                 if (act < 0)
                     act = -1 - act;
-                l += ncop[act];
+                l += conditions[act].parameterCount;
                 act = vtabp->action;
                 if (act < 0) {
                     act = -1 - act;
-                    l += nacp[act];
+                    l += actions[act].parameterCount;
                 }
             }
         }
@@ -918,7 +946,8 @@ void
 lock()
 {
     bid[Af] = Ad;
-    if ((lstat + Ad)->IOlock != -1 || (busy[Ad] != 0 && Ad != Af && bid[Ad] != Af)) {
+    if ((lstat + Ad)->IOlock != -1 ||
+        (busy[Ad] != 0 && Ad != Af && bid[Ad] != Af)) {
         Ad = -1;
         return;
     }
@@ -974,7 +1003,8 @@ dkill(short int d)
 
     nextdaem = mins * 60;
     for (i = 1; i < daemons; i++) {
-        if (((d != -1 && globflg[i] == TRUE) || own[i] == Af) && (num[i] == d || d == -1))
+        if (((d != -1 && globflg[i] == TRUE) || own[i] == Af) &&
+            (num[i] == d || d == -1))
             pack(i);
         if (i != daemons && count[i] < nextdaem)
             nextdaem = count[i];
@@ -1043,8 +1073,8 @@ setam()
 void
 logwiz(int who)
 {
-    sprintf(block, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)!!!\n", Af + '0', now(), (usr + Af)->name,
-            (usr + Af)->rank + 1);
+    sprintf(block, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)!!!\n",
+            Af + '0', now(), (usr + Af)->name, (usr + Af)->rank + 1);
     log(block);
 }
 

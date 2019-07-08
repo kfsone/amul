@@ -8,7 +8,9 @@ using namespace Compiler;
 static void
 rank_error(const char *what)
 {
-    GetLogger().errorf("rank:%d (%s/%s): Invalid %s %s: \"%s\"", ranks, rank.male, rank.female, what, Word);
+    GetLogger().errorf(
+            "rank:%d (%s/%s): Invalid %s %s: \"%s\"", ranks, rank.male,
+            rank.female, what, Word);
 }
 
 static bool
@@ -59,7 +61,8 @@ rank_proc()
         p = getword(p);
         if (!chkline(p))
             continue;
-        if (strcmp(Word, "=") != NULL && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
+        if (strcmp(Word, "=") != NULL &&
+            (strlen(Word) < 3 || strlen(Word) > RANKL)) {
             GetLogger().errorf("Invalid female rank: %s", Word);
         }
         if (Word[0] != '=') {
@@ -157,7 +160,8 @@ rank_proc()
         strcpy(block, p);
         char *endprompt = strstop(block, '"');
         *endprompt = '\0';
-        if (endprompt - block > sizeof(rank.prompt))  // Greater than prompt length?
+        if (endprompt - block >
+            sizeof(rank.prompt))  // Greater than prompt length?
         {
             rank_error("prompt string (too long)");
             continue;

@@ -58,7 +58,8 @@ static void
 parseArguments(int argc, const char *argv[])
 {
     if (argc > 6) {
-        GetLogger().errorf("Usage:\n  %s [-d] [-q] [-r] [<game path>]\n", argv[0]);
+        GetLogger().errorf(
+                "Usage:\n  %s [-d] [-q] [-r] [<game path>]\n", argv[0]);
         exit(0);
     }
     for (int n = 1; n < argc; n++) {
@@ -194,11 +195,16 @@ void
 reportStatistics()
 {
     GetLogger().infof("Statistics for %s:\n\n", adname);
-    GetLogger().infof("		Rooms: %6u	Ranks: %6u	Nouns: %6u", rooms, ranks, nouns);
-    GetLogger().infof("		Adj's: %6u	Verbs: %6u	Syns : %6u", adjs, verbs, syns);
-    GetLogger().infof("		T.T's: %6u	Umsgs: %6u	SMsgs: %6u", ttents, umsgs, NSMSGS);
-    GetLogger().infof("		Total items processed: %u",
-            rooms + ranks + adjs + verbs + nouns + syns + ttents + umsgs + NSMSGS + mobs + mobchars);
+    GetLogger().infof(
+            "		Rooms: %6u	Ranks: %6u	Nouns: %6u", rooms, ranks, nouns);
+    GetLogger().infof(
+            "		Adj's: %6u	Verbs: %6u	Syns : %6u", adjs, verbs, syns);
+    GetLogger().infof(
+            "		T.T's: %6u	Umsgs: %6u	SMsgs: %6u", ttents, umsgs, NSMSGS);
+    GetLogger().infof(
+            "		Total items processed: %u",
+            rooms + ranks + adjs + verbs + nouns + syns + ttents + umsgs +
+                    NSMSGS + mobs + mobchars);
 }
 
 void
@@ -208,8 +214,9 @@ writeProfile()
     {
         std::ofstream profile(Resources::Compiled::gameProfile());
         profile << adname << "\n";
-        profile << rooms << ranks << verbs << syns << nouns << adjs << ttents << umsgs << time(nullptr) << mins << invis
-                << invis2 << minsgo << mobs << rscale << tscale << mobchars;
+        profile << rooms << ranks << verbs << syns << nouns << adjs << ttents
+                << umsgs << time(nullptr) << mins << invis << invis2 << minsgo
+                << mobs << rscale << tscale << mobchars;
         profile << "\n";
         profile << titleText;
     }
@@ -219,10 +226,13 @@ int
 main(int argc, const char *argv[])
 {
     // capture game compile time
-    snprintf(vername, sizeof(vername), "amulcom v%d.%03d (%8s)", VERSION, REVISION, DATE);
+    snprintf(
+            vername, sizeof(vername), "amulcom v%d.%03d (%8s)", VERSION,
+            REVISION, DATE);
     OS::SetProcessName(vername);
 
-    puts("AMUL  Multi-User Games Language Copyright (C) KingFisher Software, 1991-2019\n");
+    puts("AMUL  Multi-User Games Language Copyright (C) KingFisher Software, "
+         "1991-2019\n");
     printf("AMUL Compiler: %s\n\n", vername);
 
     // Parse command-line

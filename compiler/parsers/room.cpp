@@ -62,7 +62,8 @@ room_proc()
                     continue;
                 }
                 if ((n = isrflag(p)) == -1) {
-                    GetLogger().errorf("Room: %s: Invalid room flag: %s", room.id, p);
+                    GetLogger().errorf(
+                            "Room: %s: Invalid room flag: %s", room.id, p);
                 }
                 n -= NRNULL;
                 if (n >= 0)
@@ -76,7 +77,8 @@ room_proc()
         room.desptr = ftell(ofp2);
         n = 0;
         if (!cemeteryId.empty())
-            fwrite(cemeteryId.c_str(), IDL, 1, ofp2);  // save dmove	///ISSUE: IDL+1?
+            fwrite(cemeteryId.c_str(), IDL, 1,
+                   ofp2);  // save dmove	///ISSUE: IDL+1?
         while ((c = fgetc(ifp)) != EOF && !(isEol(c) && isEol(lastc))) {
             if (isEol(lastc) && c == '\t')
                 continue;

@@ -3,12 +3,12 @@
  ****              Include Files               ****
  */
 
+#include <fcntl.h>
 #include <cctype>
 #include <cinttypes>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <fcntl.h>
 
 #if defined(AMIGA)
 #    include <exec/memory.h>  // Memory details........
@@ -23,5 +23,5 @@
 #include "h/os.h"
 
 #include "h/amul.defs.h"
-#include "h/amul.types.h"
 #include "h/amul.stct.h"  // AMUL Structures
+#include "h/amul.types.h"

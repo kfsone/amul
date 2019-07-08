@@ -72,11 +72,13 @@
 #define WBLOCK 64       /*@pl wields a @o2 and blocks your attack! */
 #define MISSED 65       /*You attack @pl but miss! */
 #define HEMISSED 66     /*@me attacks you but misses! */
-#define TOPRANK 67      /*Well done! You have obtained the highest rank possible! */
-#define NOTASK 68       /*Sorry you haven't completed adequate tasks for this level. */
-#define YOURBLIND 69    /*You can't see anything, you're blind. */
-#define WHO_HIDE 70     /*You can't be sure if there are other people nearby... */
-#define CERTDEATH 71    /*Exit description of Death room */
-#define NOFIGHT 72      /*Sorry no fighting allowed here. */
-#define LOWLEVEL 73     /*Sorry you're not high enough to cast that spell. */
-#define NOMAGIC 74      /*Sorry you have not enough magic points for that spell. */
+#define TOPRANK 67 /*Well done! You have obtained the highest rank possible! \
+                    */
+#define NOTASK \
+    68 /*Sorry you haven't completed adequate tasks for this level. */
+#define YOURBLIND 69 /*You can't see anything, you're blind. */
+#define WHO_HIDE 70  /*You can't be sure if there are other people nearby... */
+#define CERTDEATH 71 /*Exit description of Death room */
+#define NOFIGHT 72   /*Sorry no fighting allowed here. */
+#define LOWLEVEL 73  /*Sorry you're not high enough to cast that spell. */
+#define NOMAGIC 74   /*Sorry you have not enough magic points for that spell. */

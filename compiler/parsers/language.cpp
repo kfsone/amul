@@ -1,13 +1,16 @@
 // Lang.TXT processor
 #include "amulcom.includes.h"
 
+#include "h/amul.instructions.h"
+
 using namespace AMUL::Logging;
 using namespace Compiler;
 
 static void
 chae_err()
 {
-    GetLogger().errorf("Invalid '#CHAE' flags, \"%s\" in verb \"%s\".\n", Word, verb.id);
+    GetLogger().errorf(
+            "Invalid '#CHAE' flags, \"%s\" in verb \"%s\".\n", Word, verb.id);
 }
 
 // verb error report
@@ -68,7 +71,8 @@ setslots(unsigned char i)
     vbslot.wtype[2] = i;
     vbslot.wtype[3] = TC_ANY;
     vbslot.wtype[4] = i;
-    vbslot.slot[0] = vbslot.slot[1] = vbslot.slot[2] = vbslot.slot[3] = vbslot.slot[4] = TC_ANY;
+    vbslot.slot[0] = vbslot.slot[1] = vbslot.slot[2] = vbslot.slot[3] =
+            vbslot.slot[4] = TC_ANY;
 }
 
 // Is 'text' a ptype
@@ -102,14 +106,15 @@ So, if the syntax line is 'verb text player' the command 'tell noun2 text'
 will call isactual with *s=noun2, n=TC_PLAYER.... is you read the 'actual'
 structure definition, 'noun2' is type 'TC_NOUN'. TC_NOUN != TC_PLAYER, HOWEVER
 the slot for noun2 (vbslot.wtype[4]) is TC_PLAYER, and this is REALLY what the
-user is refering too.							     */
+user is referring too.							     */
 // Get actual value
 int
 actualval(const char *s, int n)
 {
     int i;
 
-    if (n != -70 && (*s == '?' || *s == '%' || *s == '^' || *s == '~' || *s == '`')) {
+    if (n != -70 &&
+        (*s == '?' || *s == '%' || *s == '^' || *s == '~' || *s == '`')) {
         if (n != WC_NUMBER)
             return -1;
         if (*s == '~')
@@ -164,8 +169,10 @@ actualval(const char *s, int n)
             if (n == CAP_REAL)
                 return actual[i].value;
             return -1;
-        case IADJ2: return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
-        case INOUN2: return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
+        case IADJ2:
+            return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
+        case INOUN2:
+            return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
         default: return -1;  // Nah... Guru instead 8-)
         }
     }
@@ -212,7 +219,7 @@ lang_proc()
         GetContext().checkErrorCount();
 
         do {
-            curline = cursor;                     // remember the start of the line
+            curline = cursor;  // remember the start of the line
             cursor = extractLine(cursor, block);  // consume the next line
         } while (isCommentChar(block[0]) || isEol(block[0]));
         if (block[0] == 0)
@@ -326,12 +333,14 @@ lang_proc()
         }
 
         // First of all, eliminate illegal combinations
-        if (n == TC_NONE || n == TC_ANY) {  // you cannot say none=fred any=fred etc
+        if (n == TC_NONE ||
+            n == TC_ANY) {  // you cannot say none=fred any=fred etc
             sprintf(block, "Tried to defined %s= on syntax line", syntax[n]);
             vbprob(block, curline);
             goto endsynt;
         }
-        if (n == TC_PLAYER && strcmp(Word, "me") != NULL && strcmp(Word, "myself") != NULL) {
+        if (n == TC_PLAYER && strcmp(Word, "me") != NULL &&
+            strcmp(Word, "myself") != NULL) {
             vbprob("Tried to specify player other than self", curline);
             goto endsynt;
         }
@@ -349,7 +358,9 @@ lang_proc()
                 s = -3;
             break;
         case TC_ROOM: s = isroom(Word); break;
-        case TC_SYN: printf("!! Syn's not supported at this time!\n"); s = TC_ANY;
+        case TC_SYN:
+            printf("!! Syn's not supported at this time!\n");
+            s = TC_ANY;
         case TC_TEXT: s = isumsg(Word); break;
         case TC_VERB: s = is_verb(Word); break;
         case TC_CLASS: s = TC_ANY;
@@ -366,7 +377,8 @@ lang_proc()
             vbprob(fnm, curline);
         }
         if (s == -1 && n != WC_NUMBER) {
-            sprintf(fnm, "Invalid setting, '%s' after %s=", Word, syntax[n + 1]);
+            sprintf(fnm, "Invalid setting, '%s' after %s=", Word,
+                    syntax[n + 1]);
             vbprob(fnm, curline);
         }
         if (s == -3 && n == TC_NOUN)
@@ -422,7 +434,8 @@ lang_proc()
         case TC_CLASS:
         case WC_NUMBER:
             if (vbslot.wtype[1] != TC_NONE && vbslot.wtype[4] != TC_NONE) {
-                sprintf(block, "No free noun slot for '%s' entry", syntax[n + 1]);
+                sprintf(block, "No free noun slot for '%s' entry",
+                        syntax[n + 1]);
                 vbprob(block, curline);
                 n = -5;
                 break;
@@ -490,9 +503,9 @@ lang_proc()
             goto notlp2;
         }
 
-        if ((vt.condition = iscond(Word)) == -1) {
+        if ((vt.condition = getCondition(Word)) == -1) {
             proc = 1;
-            if ((vt.action = isact(Word)) == -1) {
+            if ((vt.action = getAction(Word)) == -1) {
                 if ((vt.action = isroom(Word)) != -1) {
                     vt.condition = CALWAYS;
                     goto writecna;
@@ -512,7 +525,7 @@ lang_proc()
             goto commands;
         }
         if (*p == 0) {
-            if ((vt.action = isact(conds[vt.condition])) == -1) {
+            if ((vt.action = getAction(conditions[vt.condition].name)) == -1) {
                 vbprob("Missing action", curline);
                 goto commands;
             }
@@ -524,7 +537,7 @@ lang_proc()
             vt.condition = -1 - vt.condition;
         p = preact(p);
         p = getword(p);
-        if ((vt.action = isact(Word)) == -1) {
+        if ((vt.action = getAction(Word)) == -1) {
             if ((vt.action = isroom(Word)) != -1)
                 goto writecna;
             sprintf(block, "Invalid action, '%s'", Word);

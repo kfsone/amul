@@ -8,7 +8,9 @@ using namespace Compiler;
 static void
 statinv(const char *s)
 {
-    GetLogger().fatalf("Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s, block);
+    GetLogger().fatalf(
+            "Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s,
+            block);
 }
 
 void
@@ -161,7 +163,9 @@ isloc(const char *subject)
         if (isnoun(subject) == -1)
             GetLogger().errorf("Invalid object start location: %s", subject);
         else
-            GetLogger().errorf("Tried to start '%s' in non-container: %s", obj2.id, subject);
+            GetLogger().errorf(
+                    "Tried to start '%s' in non-container: %s", obj2.id,
+                    subject);
         return -1;
     }
 
@@ -242,7 +246,10 @@ objs_proc()
                     set_mob();
                     mobs++;
                     break;
-                default: printf("** Internal: Code for object-parameter '%s' missing!\n", obparms[roomno]);
+                default:
+                    printf("** Internal: Code for object-parameter '%s' "
+                           "missing!\n",
+                           obparms[roomno]);
                 }
             }
         } while (Word[0] != 0);
@@ -277,7 +284,8 @@ objs_proc()
             obj2.nrooms++;
         } while (Word[0] != 0);
         if (obj2.nrooms == 0 && roomno == 0) {
-            GetLogger().errorf("No locations specified for object: %s", obj2.id);
+            GetLogger().errorf(
+                    "No locations specified for object: %s", obj2.id);
         }
         obj2.nstates = 0;
         do {
@@ -343,7 +351,8 @@ sort_objs()
     rmtab = (int32_t *)data2;
     for (i = 0; i < nouns; i++) {
         if (*(objtab2 = (obtab2 + i))->id == 0) {
-            printf("@! skipping %ld states, %ld rooms.\n", objtab2->nstates, objtab2->nrooms);
+            printf("@! skipping %ld states, %ld rooms.\n", objtab2->nstates,
+                   objtab2->nrooms);
             statab += objtab2->nstates;
             rmtab += objtab2->nrooms;
             continue;

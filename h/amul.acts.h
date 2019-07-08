@@ -49,11 +49,10 @@ the box', 'current state of door', 'no. of player carrying' etc...
 // Numbers
 #define LESS 0x40000000  // <Beyond max lim>
 #define MORE 0x80000000  // <Beyond max lim>
-#define NONE 0, 0, 0
 
-struct ACTUAL            // Structure for actual data
+struct ACTUAL  // Structure for actual data
 {
-    char *    name;   // Name of actual
+    char*     name;   // Name of actual
     int       value;  // The effective no.
     short int wtype;  // Wtype of word
 };

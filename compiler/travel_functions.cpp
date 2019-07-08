@@ -79,8 +79,9 @@ chknum(const char *p) noexcept
     return n;
 }
 
-static const std::unordered_set<std::string> optionalPrefixes = {"the", "of", "are", "is", "has", "next", "with", "to",
-        "set", "from", "for", "by", "and", "was", "i", "am", "as"};
+static const std::unordered_set<std::string> optionalPrefixes = {
+        "the",  "of",  "are", "is",  "has", "next", "with", "to", "set",
+        "from", "for", "by",  "and", "was", "i",    "am",   "as"};
 
 static const char *
 skipOptionalPrefixes(const char *p) noexcept
@@ -106,8 +107,11 @@ chkp(const char *p, char t, int c, int z, FILE *fp) noexcept
     // skip optional prefixes
     p = skipOptionalPrefixes(p);
     if (*p == 0) {
-        GetLogger().fatalf("%s: %s: incomplete condition/action line: %s='%s'", (proc == 1) ? "Verb" : "Room",
-                (proc == 1) ? verb.id : roomtab->id, (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c]);
+        GetLogger().fatalf(
+                "%s: %s: incomplete condition/action line: %s='%s'", (proc == 1) ? "Verb" : "Room",
+                (proc == 1) ? verb.id : roomtab->id, (z == 1) ? "condition" : "action",
+                (z == 1) ? conditions[c].name.c_str()
+                         : actions[c].name.c_str());  /// TODO: take this as a parameter
     }
     std::string token{};
     if (*p != '\"' && *p != '\'') {
@@ -124,8 +128,10 @@ chkp(const char *p, char t, int c, int z, FILE *fp) noexcept
     if ((t >= 0 && t <= 10) || t == -70) {  // processing language table?
         x = actualval(token.c_str(), t);
         if (x == -1) {  // If it was an actual, but wrong type
-            GetLogger().errorf("Invalid slot label, '%s', after %s '%s' in verb '%s'.\n", start,
-                    (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c], verb.id);
+            GetLogger().errorf(
+                    "Invalid slot label, '%s', after %s '%s' in verb '%s'.\n", start,
+                    (z == 1) ? "condition" : "action",
+                    (z == 1) ? conditions[c].name.c_str() : actions[c].name.c_str(), verb.id);
             return NULL;
         }
         if (x != -2)
@@ -156,18 +162,22 @@ chkp(const char *p, char t, int c, int z, FILE *fp) noexcept
         break;
     default: {
         if (!(proc == 1 && t >= 0 && t <= 10)) {
-            GetLogger().fatalf("Internal error, invalid PTYPE (val: %d) in %s %s: %s = %s", t,
+            GetLogger().fatalf(
+                    "Internal error, invalid PTYPE (val: %d) in %s %s: %s = %s", t,
                     (proc == 1) ? "verb" : "room", (proc == 1) ? verb.id : (rmtab + rmn)->id,
-                    (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c]);
+                    (z == 1) ? "condition" : "action",
+                    (z == 1) ? conditions[c].name.c_str() : actions[c].name.c_str());
         }
     }
     }
     if (t == -70 && x == -2)
         x = -1;
     else if (((x == -1 || x == -2) && t != CAP_NUM) || x == -1000001) {
-        GetLogger().errorf("\x07\nInvalid parameter, '%s', after %s '%s' in %s '%s'.\n", start,
-                (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c], (proc == 1) ? "verb" : "room",
-                (proc == 1) ? (verb.id) : (rmtab + rmn)->id);
+        GetLogger().errorf(
+                "\x07\nInvalid parameter, '%s', after %s '%s' in %s '%s'.\n", start,
+                (z == 1) ? "condition" : "action",
+                (z == 1) ? conditions[c].name.c_str() : actions[c].name.c_str(),
+                (proc == 1) ? "verb" : "room", (proc == 1) ? (verb.id) : (rmtab + rmn)->id);
         return NULL;
     }
 write:
@@ -307,27 +317,21 @@ bvmode(char c)
 }
 
 const char *
-chkaparms(const char *p, int c, FILE *fp)
+chkaparms(const char *p, int actionNo, FILE *fp)
 {
-    int i;
-
-    if (nacp[c] == 0)
-        return p;
-    for (i = 0; i < nacp[c]; i++)
-        if ((p = chkp(p, tacp[c][i], c, 0, fp)) == NULL)
+    auto &instruction = actions[actionNo];
+    for (int i = 0; i < instruction.parameterCount; i++)
+        if ((p = chkp(p, instruction.parameters[i], actionNo, 0, fp)) == NULL)
             return NULL;
     return p;
 }
 
 const char *
-chkcparms(const char *p, int c, FILE *fp)
+chkcparms(const char *p, int conditionNo, FILE *fp)
 {
-    int i;
-
-    if (ncop[c] == 0)
-        return p;
-    for (i = 0; i < ncop[c]; i++)
-        if ((p = chkp(p, tcop[c][i], c, 1, fp)) == NULL)
+    auto &instruction = conditions[conditionNo];
+    for (int i = 0; i < instruction.parameterCount; i++)
+        if ((p = chkp(p, instruction.parameters[i], conditionNo, 1, fp)) == NULL)
             return NULL;
     return p;
 }

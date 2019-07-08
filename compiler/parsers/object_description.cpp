@@ -39,19 +39,22 @@ obds_proc()
         tidy(block);
         getWordAfter("desc=", block);
         if (strlen(Word) < 3 || strlen(Word) > IDL) {
-            GetLogger().errorf("Invalid object description ID: %s: bad length", Word);
+            GetLogger().errorf(
+                    "Invalid object description ID: %s: bad length", Word);
             skipblock();
             continue;
         }
         if (stricmp(Word, "none") == 0) {
-            GetLogger().errorf("Invalid object description ID: %s: reserved name", Word);
+            GetLogger().errorf(
+                    "Invalid object description ID: %s: reserved name", Word);
             skipblock();
             continue;
         }
         std::string id = Word;
         std::transform(id.cbegin(), id.cend(), id.begin(), ::tolower);
         if (obdescIDs.find(id) != obdescIDs.end()) {
-            GetLogger().errorf("Multiple definitions of obj. description id: %s", Word);
+            GetLogger().errorf(
+                    "Multiple definitions of obj. description id: %s", Word);
             skipblock();
             continue;
         }

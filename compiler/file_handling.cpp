@@ -125,11 +125,12 @@ fopena(const char *s)
 static size_t
 getFileSize(const char *filepath)
 {
-    struct stat sb {};
+    struct stat sb {
+    };
     int err = stat(filepath, &sb);
     if (err == -1) {
         GetLogger().fatalop("stat", filepath);
-	}
+    }
     return sb.st_size;
 }
 
@@ -145,11 +146,11 @@ fopenr(const char *s)
         strcpy(fnm, s + 1);
 
     ifpFileSize = getFileSize(fnm);
-    
-	if (ifp = fopen(fnm, "rb"); !ifp)
+
+    if (ifp = fopen(fnm, "rb"); !ifp)
         GetLogger().fatalop("open", fnm);
 
-	return ifp;
+    return ifp;
 }
 
 // Open file for reading
@@ -186,9 +187,9 @@ opentxt(const char *filename)
 
     ifpFileSize = getFileSize(filepath.c_str());
 
-	ifp = fopen(filepath.c_str(), "r");
-    
-	if (!ifp) {
+    ifp = fopen(filepath.c_str(), "r");
+
+    if (!ifp) {
         GetLogger().fatalf("Unable to open file: %s", filepath.c_str());
     }
 }
@@ -239,8 +240,6 @@ is_verb(const char *s)
     }
     return -1;
 }
-
-#include <cassert>
 
 void
 Buffer::open(size_t offset)

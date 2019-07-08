@@ -73,7 +73,8 @@ set_adj()
 void
 object(const char *s)
 {
-    GetLogger().fatalf("Object #%d '%s' has invalid %s: %s", nouns + 1, obj2.id, s, Word);
+    GetLogger().fatalf(
+            "Object #%d '%s' has invalid %s: %s", nouns + 1, obj2.id, s, Word);
 }
 
 void
@@ -135,7 +136,8 @@ checkdmoves()
             fseek(ifp, roomptr->desptr, 0);
             fread(dmove, IDL, 1, ifp);  // Read the RF_CEMETERY name
             if (isroom(dmove) == -1) {  // Is it a valid room?
-                GetLogger().errorf("%-9s - invalid dmove: %s", roomptr->id, dmove);
+                GetLogger().errorf(
+                        "%-9s - invalid dmove: %s", roomptr->id, dmove);
             }
         }
         roomptr++;

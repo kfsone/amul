@@ -14,9 +14,7 @@ enum {
 };
 
 // Old hard-coded value replacement. Conversion in-progress.
-enum {
-	OBJ_DESC_NONE = -2
-};
+enum { OBJ_DESC_NONE = -2 };
 
 enum {
     NPUTS = 4,
@@ -29,7 +27,7 @@ enum {
     NCONDS = 64,
     NACTS = 96,
     NSYNTS = 12,
-	NACTUALS = 33,
+    NACTUALS = 33,
 };
 
 enum Truth { NO, YES };
@@ -470,25 +468,25 @@ enum UserDefault {
 #define mySCORE me->score
 #define myROOM me2->room
 #define LightHere lit(me2->room)
-#define unfreeze                                                                                                       \
-    Permit();                                                                                                          \
+#define unfreeze                                                                                   \
+    Permit();                                                                                      \
     return
 
-#include "h/AMUL.Acts.h"
+#include "h/amul.acts.h"
 #include "h/amul.msgs.h"  // System message defines
 
 #define CP1 actual(*(tt.pptr))
 #define CP2 actual(*(tt.pptr + 1))
 #define CP3 actual(*(tt.pptr + 2))
 #define CP4 actual(*(tt.pptr + 3))
-#define TP1 actual(*(tt.pptr + ncop[tt.condition]))
-#define TP2 actual(*(tt.pptr + ncop[tt.condition] + 1))
-#define TP3 actual(*(tt.pptr + ncop[tt.condition] + 2))
-#define TP4 actual(*(tt.pptr + ncop[tt.condition] + 3))
-#define AP1 (char *)actptr(*(tt.pptr + ncop[tt.condition]))
-#define AP2 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 1))
-#define AP3 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 2))
-#define AP4 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 3))
+#define TP1 actual(*(tt.pptr + conditions[tt.condition].parameterCount))
+#define TP2 actual(*(tt.pptr + conditions[tt.condition].parameterCount + 1))
+#define TP3 actual(*(tt.pptr + conditions[tt.condition].parameterCount + 2))
+#define TP4 actual(*(tt.pptr + conditions[tt.condition].parameterCount + 3))
+#define AP1 (char *)actptr(*(tt.pptr + conditions[tt.condition].parameterCount))
+#define AP2 (char *)actptr(*(tt.pptr + conditions[tt.condition].parameterCount + 1))
+#define AP3 (char *)actptr(*(tt.pptr + conditions[tt.condition].parameterCount + 2))
+#define AP4 (char *)actptr(*(tt.pptr + conditions[tt.condition].parameterCount + 3))
 #define STATE (objtab->states + (int32_t)objtab->state)
 #define State(i) ((obtab + i)->states + (int32_t)(obtab + i)->state)
 #define ItsState (it->states + (int32_t)it->state)
