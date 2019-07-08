@@ -8,3 +8,5 @@ TODO:
 - remove default-ansi encoding
 - replace checkf with stat/access checks
 - msgline: add to messages instead of writing each line
+- eliminate reads in "isnounh"
+- recreate "travel=" functionality
