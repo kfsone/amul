@@ -6,7 +6,11 @@
 #if defined(AMIGA)
 #    include <devices/timer.h>
 #else
+# if !defined(_MSC_VER)
+#	define stricmp strcasecmp
+# endif
 
+#include <stdlib.h>
 #include <stdint.h>
 
 typedef uint16_t UWORD;
@@ -128,6 +132,17 @@ void     PutMsg(MsgPort *port, Message *msg);
 Message *GetMsg(MsgPort *port);
 void     ReplyMsg(Message *msg);
 Message *WaitPort(MsgPort *port);
+
+#define MEMF_PUBLIC 0
+static inline void* AllocMem(size_t bytes, int flags) {
+	(void)flags;
+	return calloc(bytes, 1);
+}
+
+static inline void FreeMem(void* ptr, int size) {
+	free(ptr);
+}
+
 
 // Wait this many 20ths of a second
 void Delay(int ticks);

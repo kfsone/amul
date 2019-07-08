@@ -102,6 +102,15 @@ CXBRK()
 
 	/*---------------------------------------------------------*/
 
+bool
+com(const char* text)
+{
+	if (!*text && !isCommentChar(*text)) {
+		return false;
+	}
+	printf("%s", text);
+	return true;
+}
 
 const char *
 getword(const char *from)
@@ -318,7 +327,7 @@ blkget(long *s,char **p,long off)
 		tx("\x07\n** Out of memory!\n\n"); close_ofps(); quit();
 	}
 	fread((*p)+off,1,*s,ifp); *((*p+*s)-2)=0; *((*p+*s)-1)=0;
-	repcrlf((*p)+off);
+	//repcrlf((*p)+off);	///TODO: HANDLE \r
 }
 
 int
@@ -346,7 +355,7 @@ isoflag1(const char *s)		/* Is it a FIXED object flag? */
 {
 	int i;
 	for(i=0;i<NOFLAGS;i++)
-		if(strcmp(obflags1[i],s)==NULL) return i;
+		if(strcmp(obflags1[i],s)==0) return i;
 	return -1;
 }
 
@@ -364,7 +373,7 @@ isoflag2(const char *s)		/* Is it a state flag? */
 {
 	int i;
 	for(i=0;i<NSFLAGS;i++)
-		if(strcmp(obflags2[i],s)==NULL) return i;
+		if(strcmp(obflags2[i],s)==0) return i;
 	return -1;
 }
 
@@ -387,7 +396,7 @@ set_adj()
 	do
 	{
 		if(fread(dmove,IDL+1,1,afp)!=1) continue;/* Read adj! */
-		if(strcmp(Word,dmove)==NULL) { obj2.adj=i; return; }
+		if(strcmp(Word,dmove)==0) { obj2.adj=i; return; }
 		i++;
 	} while(!feof(afp));
 	for(i=0;i<IDL+1;i++) dmove[i]=0; strcpy(dmove,Word);
@@ -424,14 +433,14 @@ set_put()
 {	int i;
 
 	for(i=0;i<NPUTS;i++)
-		if(stricmp(obputs[i],Word)==NULL) { obj2.putto=i; return; }
+		if(stricmp(obputs[i],Word)==0) { obj2.putto=i; return; }
 	object("put= flag");
 }
 
 void
 set_mob()
 {	int i;
-	for(i=0; i<mobchars; i++) if(stricmp(Word,(mobp+i)->id)==NULL) { obj2.mobile=i; return; }
+	for(i=0; i<mobchars; i++) if(stricmp(Word,(mobp+i)->id)==0) { obj2.mobile=i; return; }
 	object("mobile= flag");
 }
 
@@ -553,7 +562,22 @@ checkdmoves()
 		}
 		roomptr++;
 	}
-	if(dchk==-1) quit(0*tx("\nCompile failed due to invalid DMOVE flags!\n"));
+	if(dchk==-1) {
+		tx("\nCompile failed due to invalid DMOVE flags!\n");
+		quit();
+	}
+}
+
+bool
+chkline(char *p)
+{
+	if(*p==0)
+	{
+		printf("## Rank line %ld incomplete!!!\n",ranks);
+		err++;
+		return false;
+	}
+	return true;
 }
 
 void
@@ -589,7 +613,7 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 		} while(Word[n-1]!=0);
 
 		p=getword(p); if(chkline(p)!=0) continue;
-		if(strcmp(Word,"=")!=NULL && strlen(Word)<3 || strlen(Word)>RANKL)
+		if(strcmp(Word,"=")!=0 && (strlen(Word)<3 || strlen(Word)>RANKL))
 		{
 			printf("\n!! \x07 Invalid Female Rank: \"%s\"\x07 !!\n",Word);
 			quit();
@@ -716,18 +740,6 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 	close_ofps();
 }
 
-bool
-chkline(char *p)
-{
-	if(*p==0)
-	{
-		printf("## Rank line %ld incomplete!!!\n",ranks);
-		err++;
-		return false;
-	}
-	return true;
-}
-
 void
 obds_proc()
 {	char	lastc;
@@ -764,6 +776,583 @@ obds_proc()
 		quit();
 	}
 	close_ofps();
+}
+
+/*
+void
+sort_objs()
+{	int i,j,k,nts; long *rmtab,*rmptr;
+
+	if(ifp!=NULL) fclose(ifp); ifp=NULL;
+	close_ofps(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
+	close_ofps(); fopenr(objrmsfn); blkget(&datal2,&data2,NULL); fclose(ifp); ifp=NULL;
+	close_ofps(); fopenw(objsfn);	fopenw(statfn); fopenw(objrmsfn); fopenw(ntabfn);
+	ifp=NULL;
+
+	printf("Sorting Objects...:\r"); objtab2=obtab2; nts=0; k=0;
+
+	statab=(struct _OBJ_STATE *)data; rmtab=(long *)data2;
+	for(i=0; i<nouns; i++)
+	{
+		if(*(objtab2=(obtab2+i))->id==0)
+		{
+			printf("@! skipping %ld states, %ld rooms.\n",objtab2->nstates,objtab2->nrooms);
+			statab += objtab2->nstates;
+			rmtab  += objtab2->nrooms;
+			continue;
+		}
+		strcpy(nountab.id,objtab2->id); nts++;
+		nountab.num_of=0; osrch=objtab2; statep=statab; rmptr=rmtab;
+		for(j=i; j<nouns; j++, osrch++)
+		{
+			if(*(osrch->id)!=0 && stricmp(nountab.id,osrch->id)==0)
+			{
+				fwrite((char *)osrch,  sizeof(obj),   1,               ofp1);
+				fwrite((char *)statep, sizeof(state), osrch->nstates,  ofp2);
+				fwrite((char *)rmptr,  sizeof(long),  osrch->nrooms,   ofp3);
+				nountab.num_of++; *osrch->id=0; if(osrch!=objtab) k++;
+				statep+=osrch->nstates; rmptr+=osrch->nrooms;
+				if(osrch==objtab2) { statab=statep; rmtab=rmptr; objtab2++; i++; }
+			}
+			else statep+=osrch->nstates; rmptr+=osrch->nrooms;
+		}
+		
+		fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
+	}
+	printf("%20s\r%ld objects moved.\n"," ",k);
+	close_ofps();
+	FreeMem(data, datal); FreeMem(data2, datal2); data=data2=NULL;
+	fopenr(objsfn); fread((char *)obtab2, sizeof(obj), nouns, ifp);
+}
+*/
+
+void
+statinv(char *s)
+{
+	printf("\nObject #%d \"%s\" has invalid %s state line!\n",nouns+1,obj2.id,s,block);
+	quit();
+}
+
+void
+is_desid()
+{	int i; FILE *fp;
+	if(stricmp(Word,"none")==0) {
+		state.descrip=-2;
+		return;
+	}
+	if((fp=fopen("ram:ODIDs","rb+"))==NULL) Err("open","ram:ODIDs");
+	for(i=0;i<obdes;i++)
+	{
+		fread(objdes.id,sizeof(objdes),1,fp); state.descrip=objdes.descrip;
+		if(stricmp(Word,objdes.id)==0)
+		{
+			fclose(fp); return;
+		}
+	}
+	fclose(fp); state.descrip=-1;
+}
+
+void
+text_id(char *p,char c)
+{	char *ptr; FILE *fp;
+
+	strcpy(block,p); p=block;
+	while(*p!=c && *p!=0) p++;
+	if(*p==0) *(p+1)=0;
+	*(p++)='\n';
+	if(*(p-2) == '{') ptr=p-1; else ptr=p;
+
+	sprintf(temp,"%s%s",dir,obdsfn);	/* Open output file */
+	if((fp=fopen(temp,"rb+"))==NULL) Err("open",temp);
+	fseek(fp,0,2L); state.descrip=ftell(fp); /* Get pos */
+	if(fwrite(block,ptr-block,1,fp)!=1) { fclose(fp); Err("write",temp); }
+	fputc(0,fp); strcpy(block,p); fclose(fp);
+}
+
+void
+state_proc()
+{	int flag; char *p;
+
+	state.weight=state.value=state.flags=0; state.descrip=-1;
+
+	tidy(block); if(block[0]==0) return;
+
+	/* Get the weight of the object */
+	striplead("weight=",block);
+	p=getword(block); if(*p==0) statinv("incomplete");
+	if(!isdigit(Word[0]) && Word[0]!='-') statinv("weight value on");
+	state.weight=atoi(Word);
+	if(obj2.flags & OF_SCENERY) state.weight = wizstr+1;
+
+	/* Get the value of it */
+	p=skipspc(p); striplead("value=",p);
+	p=getword(p); if(*p==0) statinv("incomplete");
+	if(!isdigit(Word[0]) && Word[0]!='-') statinv("value entry on");
+	state.value=atoi(Word);
+
+	/* Get the strength of it (hit points)*/
+	p=skipspc(p); striplead("str=",p);
+	p=getword(p); if(*p==0) statinv("incomplete");
+	if(!isdigit(Word[0]) && Word[0]!='-') statinv("strength entry on");
+	state.strength=atoi(Word);
+
+	/* Get the damage it does as a weapon*/
+	p=skipspc(p); striplead("dam=",p);
+	p=getword(p); if(*p==0) statinv("incomplete");
+	if(!isdigit(Word[0]) && Word[0]!='-') statinv("damage entry on");
+	state.damage=atoi(Word);
+
+	/* Description */
+	p=skipspc(p); striplead("desc=",p);
+	if(*p==0) statinv("incomplete");
+	if(*p=='\"' || *p=='\'') { text_id(p+1,*p); p=block; }
+	else
+	{
+		p=getword(p); is_desid();	/* Is it valid? */
+	}
+	if(state.descrip==-1)
+	{
+		sprintf(temp,"desc= ID (%s) on",Word); statinv(temp);
+	}
+	while(*p!=0)
+	{
+		p=getword(p); if(Word[0]==0) break;
+		if((flag=isoflag2(Word))==-1) statinv("flag on");
+		state.flags=(state.flags | bitset(flag));
+	}
+	fwrite((char *)&state.weight,sizeof(state),1,ofp2);
+	obj2.nstates++;
+}
+
+int
+isnoun(char *s)
+{	int i;
+
+	objtab2=obtab2;
+	if(stricmp(s,"none")==0) return -2;
+	for(i=0; i<nouns; i++,objtab2++)
+		if(stricmp(s,objtab2->id)==0) return i;
+	return -1;
+}
+
+int
+iscont(char *s)
+{	int i;
+
+	objtab2=obtab2;
+	for(i=0; i<nouns; i++,objtab2++)
+		if(stricmp(s,objtab2->id)==0 && objtab2->contains>0) return i;
+	return -1;
+}
+
+int
+isloc(char *s)		/* Room or container */
+{	int i;
+
+	if((i = isroom(s)) != -1) return i;
+	if((i = iscont(s)) == -1)
+	{
+		if(isnoun(s) == -1)
+			printf("\x07## Invalid object start location, '%s'...\n",s);
+		else
+			printf("\x07## Tried to start '%s' in non-container '%s'!\n",obj2.id,s);
+		err++; return -1;
+	}
+
+	return -(INS+i);
+}
+
+int
+getno(const char *s)
+{	char *p = skipspc(block);
+	p = skiplead(s, block);
+	if(!p)
+	{
+		printf("## Missing %s entry!\n",s); err++; return -1;
+	}
+	p=getword(p); strcpy(block, p); ///ISSUE: overlap
+	if(!isdigit(Word[0]))
+	{
+		printf("## Invalid %s entry...\n",s); err++; return -1;
+	}
+	return atoi(Word);
+}
+
+char *
+precon(char *s)
+{	char *s2;
+
+	s2=s;
+
+	if((s=skiplead("if ",s))!=s2) { s=skipspc(s); s2=s; }
+	if((s=skiplead("the ",s))!=s2) { s=skipspc(s); s2=s; }
+	if((s=skiplead("i ",s))!=s2) { s=skipspc(s); s2=s; }
+	s=skiplead("am ",s);
+	return s;
+}
+
+char *
+preact(char *s)
+{	char *s2;
+
+	s2=s;
+	if((s=skiplead("then ",s))!=s2) { s=skipspc(s); s2=s; }
+	if((s=skiplead("goto ",s))!=s2) { s=skipspc(s); s2=s; }
+	if((s=skiplead("go to ",s))!=s2) { s=skipspc(s); s2=s; }
+	s=skiplead("set ",s);
+	return s;
+}
+
+long
+chknum(char *p)
+{	long n;
+
+	if(!isdigit(*p) && !isdigit(*(p+1))) return -1000001;
+	if(*p=='>' || *p=='<' || *p=='-' || *p=='=') n=atoi(p+1);
+	else n=atoi(p);
+	if(n>=1000000)
+	{
+		printf("\x07\n*** Number %d exceeds limits!",n);
+		return -1000001;
+	}
+	if(*p=='-') return (long) -n;
+	if(*p=='>') return (long) (n+LESS);
+	if(*p=='<') return (long) (n+MORE);
+	return n;
+}
+
+char *
+optis(char *p)
+{	char *p2;
+	p2=p;
+
+	p=skiplead("the ",p); p=skiplead("of ",p); p=skiplead("are ",p);
+	p=skiplead("is ",p); p=skiplead("has ",p); p=skiplead("next ",p);
+	p=skiplead("with ",p); p=skiplead("to ",p); p=skiplead("set ",p);
+	p=skiplead("from ",p); p=skiplead("for ",p); p=skiplead("by ",p);
+	p=skiplead("and ",p); p=skiplead("was ",p); p=skiplead("i ",p);
+	p=skiplead("am ",p); p=skiplead("as ",p); p=skipspc(p);
+	return p;
+}
+
+int
+isgen(char c)
+{
+	if(c=='M') return 0;
+	if(c=='F') return 1;
+	return -1;
+}
+
+int
+antype(char *s)
+{
+	if(strcmp(s,"global")==0) return AGLOBAL;
+	if(strcmp(s,"everyone")==0) return AEVERY1;
+	if(strcmp(s,"outside")==0) return AOUTSIDE;
+	if(strcmp(s,"here")==0) return AHERE;
+	if(strcmp(s,"others")==0) return AOTHERS;
+	if(strcmp(s,"all")==0) return AALL;
+	printf("\x07\nInvalid anouncement-group, '%s'...\n",s);
+	return -1;
+}
+
+int
+isnounh(char *s)	/* Test noun state, checking rooms */
+{	int i,l,j; FILE *fp; long orm;
+
+	if(stricmp(s,"none")==0) return -2;
+	fp=(FILE *)rfopen(objrmsfn); l=-1; objtab2=obtab2;
+	
+	for(i=0; i<nouns; i++,objtab2++)
+	{
+		if(stricmp(s,objtab2->id)!=0) continue;
+		fseek(fp,(long)objtab2->rmlist,0L);
+		for(j=0;j<objtab2->nrooms;j++)
+		{
+			fread((char *)&orm,4,1,fp);
+			if(orm == rmn)
+			{
+				l=i; i=nouns+1; j=objtab2->nrooms;
+				break;
+			}
+		}
+		if(i < nouns) l=i;
+	}
+	fclose(fp); return l;
+}
+
+int
+rdmode(char c)
+{
+	if(c == 'R') return RDRC;
+	if(c == 'V') return RDVB;
+	if(c == 'B') return RDBF;
+	return -1;
+}
+
+int
+spell(char *s)
+{
+	if(strcmp(s,"glow")==0) return SGLOW;
+	if(strcmp(s,"invis")==0)return SINVIS;
+	if(strcmp(s,"deaf")==0) return SDEAF;
+	if(strcmp(s,"dumb")==0) return SDUMB;
+	if(strcmp(s,"blind")==0)return SBLIND;
+	if(strcmp(s,"cripple")==0)return SCRIPPLE;
+	if(strcmp(s,"sleep")==0)return SSLEEP;
+	if(strcmp(s,"sinvis")==0)return SSINVIS;
+	return -1;
+}
+
+int
+stat(char *s)
+{
+	if(strcmp(s,"sctg")==0) return STSCTG;
+	if(strncmp(s,"sc",2)==0) return STSCORE;
+	if(strncmp(s,"poi",3)==0) return STSCORE;
+	if(strncmp(s,"str",3)==0) return STSTR;
+	if(strncmp(s,"stam",4)==0) return STSTAM;
+	if(strncmp(s,"dext",4)==0) return STDEX;
+	if(strncmp(s,"wis",3)==0) return STWIS;
+	if(strncmp(s,"exp",3)==0) return STEXP;
+	if(strcmp(s,"magic")==0) return STMAGIC;
+	return -1;
+}
+
+int
+bvmode(char c)
+{
+	if(c=='V') return TYPEV;
+	if(c=='B') return TYPEB;
+	return -1;
+}
+
+/* Note about matching actuals...
+
+Before agreeing a match, remember to check that the relevant slot isn't
+set to NONE.
+Variable N is a wtype... If the phrases 'noun', 'noun1' or 'noun2' are used,
+instead of matching the phrases WTYPE with n, match the relevant SLOT with
+n...
+
+So, if the syntax line is 'verb text player' the command 'tell noun2 text'
+will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
+structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
+the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
+user is refering too.							     */
+int
+actualval(char *s,int n)	/* Get actual value! */
+{	int i;
+
+	if(n!=-70 && (*s=='?' || *s=='%' || *s=='^' || *s=='~' || *s=='`'))
+	{
+		if(n!=WNUMBER) return -1;
+		if(*s=='~') return RAND0+atoi(s+1);
+		if(*s=='`') return RAND1+atoi(s+1);
+		i=actualval(s+1,-70); if(i==-1) return -1;
+		if((i&IWORD)==0) return -1;
+		if(*s=='?') return OBVAL+i;
+		if(*s=='%') return OBDAM+i;
+		if(*s=='^') return OBWHT+i;
+		if(*s=='*') return OBLOC+i;
+		if(*s=='#') return PRANK+i;
+		return -1;
+	}
+	if(!isalpha(*s)) return -2;
+	for(i=0; i<NACTUALS; i++)
+	{
+		if(stricmp(s,actual[i].name)!=0) continue;
+		/* If its not a slot label, and the wtypes match, we's okay! */
+		if(!(actual[i].value&IWORD))
+			return (actual[i].wtype==n || n==-70) ? actual[i].value:-1;
+
+		/* Now we know its a slot label... check which: */
+		switch(actual[i].value-IWORD)
+		{
+			case IVERB:		/* Verb */
+				if(n==PVERB || n==PREAL) return actual[i].value;
+				return -1;
+			case IADJ1:		/* Adjective #1 */
+				if(vbslot.wtype[0]==n) return actual[i].value;
+				if(*(s+strlen(s)-1) != '1' && vbslot.wtype[3]==n) return IWORD+IADJ2;
+				if(n==PREAL) return actual[i].value;
+				return -1;
+			case INOUN1:		/* noun 1 */
+				if(vbslot.wtype[1]==n) return actual[i].value;
+				if(*(s+strlen(s)-1) != '1' && vbslot.wtype[4]==n) return IWORD+INOUN2;
+				if(n==PREAL) return actual[i].value;
+				return -1;
+			case IADJ2:
+				return (vbslot.wtype[3]==n || n==-70) ? actual[i].value:-1;
+			case INOUN2:
+				return (vbslot.wtype[4]==n || n==-70) ? actual[i].value:-1;
+			default:
+				return -1;	/* Nah... Guru instead 8-) */
+		}
+	}
+	return -2;		/* It was no actual! */
+}
+
+int
+msgline(char *s)
+{
+	FILE *fp; long pos; char c;
+	fp=afp; afp=NULL; fopena(umsgfn); fseek(afp,0,2L); pos=ftell(afp);
+
+	fwrite(s,strlen(s)-1,1,afp);
+	if((c=*(s+strlen(s)-1))!='{') { fputc(c,afp); fputc('\n',afp); }
+	fputc(0,afp);
+	fopena(umsgifn); fseek(afp,0,2L); fwrite((char *)&pos,sizeof(long),1,afp);
+	fclose(afp); afp=fp;
+	return NSMSGS+(umsgs++);
+}
+
+int
+isumsg(char *s, FILE *fp)	/* Check FP for umsg id! */
+{	int i;
+
+	if(*s=='$')
+	{
+		i=atoi(s+1);
+		if(i<1 || i>NSMSGS)
+		{
+			printf("\x07\n!! Invalid System Message ID, '%s'!\n\n",s);
+			quit();
+		}
+		return i-1;
+	}
+	if(umsgs==0) return -1;
+	fseek(fp,0,0L);		/* Rewind file */
+	for(i=0; i<umsgs; i++)
+	{
+		fread(umsg.id,sizeof(umsg),1,fp);
+		if(stricmp(umsg.id,s)==0) return i+NSMSGS;
+	}
+	return -1;
+}
+
+int
+chkumsg(char *s)
+{	int r; FILE *fp;
+
+	if(*s!='$' && umsgs==0) return -1;
+
+	if((fp=fopen("ram:umsg.tmp","rb+"))==NULL)
+	{
+		printf("Unable to re-access ram:umsg.tmp!\n"); quit();
+	}
+	r=isumsg(s,fp);
+	fclose(fp);
+	return r;
+}
+
+int
+ttumsgchk(char *s)
+{
+	s=skiplead("msgid=",s); s=skiplead("msgtext=",s); s=skipspc(s);
+	if(*s=='\"' || *s=='\'') return msgline(s+1);
+	return chkumsg(s);
+}
+
+int
+onoff(char *p)
+{
+	if(stricmp(p,"on")==0 || stricmp(p,"yes")==0) return 1;
+	return 0;
+}
+
+char *
+chkp(char *p,char t,int c,int z,FILE *fp)
+{	char qc,*p2; long x;
+
+	p=optis(p); p2=(p=skipspc(p));	/*=* Strip crap out *=*/
+	if(*p==0)
+	{
+		printf("\x07\%s \"%s\" has incomplete C&A line! (%s='%s')\n\n",
+			(proc==1)?"Verb":"Room",(proc==1)?verb.id:roomtab->id,
+			(z==1)?"condition":"action",(z==1)?conds[c]:acts[c]);
+		quit();
+	}
+	if(*p!='\"' && *p!='\'') while(*p!=32 && *p!=0) p++;
+	else
+	{
+		qc=*(p++);		/* Search for same CLOSE quote */
+		while(*p!=0 && *p!=qc) p++;
+	}
+	if(*p!=0) *p=0; else *(p+1)=0;
+	if((t>=0 && t<=10) || t==-70)		/* Processing lang tab? */
+	{
+		x=actualval(p2,t);
+		if(x==-1)	/* If it was an actual, but wrong type */
+		{
+			printf("\x07\nInvalid slot label, '%s', after %s '%s' in verb '%s'.\n",
+				p2,(z==1)?"condition":"action",(z==1)?conds[c]:acts[c],
+				verb.id);
+			return NULL;
+		}
+		if(x!=-2) goto write;
+	}
+	switch(t)
+	{
+		case -6:	x=onoff(p2); break;
+		case -5:	x=bvmode(toupper(*p2)); break;
+		case -4:	x=stat(p2); break;
+		case -3:	x=spell(p2); break;
+		case -2:	x=rdmode(toupper(*p2)); break;
+		case -1:	x=antype(p2); break;
+		case PROOM:	x=isroom(p2); break;
+		case PVERB:	x=is_verb(p2); break;
+		case PADJ:	break;
+		case -70:
+		case PNOUN:	x=isnounh(p2); break;
+		case PUMSG:	x=ttumsgchk(p2); break;
+		case PNUM:	x=chknum(p2); break;
+		case PRFLAG:	x=isrflag(p2); break;
+		case POFLAG: 	x=isoflag1(p2); break;
+		case PSFLAG: 	x=isoflag2(p2); break;
+		case PSEX:	x=isgen(toupper(*p2)); break;
+		case PDAEMON:	if((x=is_verb(p2))==-1 || *p2!='.') x=-1; break;
+		default:
+		{
+			if(!(proc==1 && t>=0 && t<=10))
+			{
+				printf("\n\n\x07!! Internal error, invalid PTYPE (val: %d) in %s %s!\n\n",
+					t,(proc==1)?"verb":"room",(proc==1)?verb.id:(rmtab+rmn)->id);
+				printf("%s = %s.\n", (z==1)?"condition":"action",(z==1)?conds[c]:acts[c]);
+				quit();
+			}
+		}
+	}
+	if(t==-70 && x==-2) x=-1;
+	else if(((x==-1 || x==-2) && t!=PNUM) || x==-1000001)
+	{
+		printf("\x07\nInvalid parameter, '%s', after %s '%s' in %s '%s'.\n",
+			p2,(z==1)?"condition":"action",(z==1)?conds[c]:acts[c],
+			(proc==1)?"verb":"room",(proc==1)?(verb.id):(rmtab+rmn)->id);
+		return NULL;
+	}
+write:	fwrite((char *)&x,4,1,fp); FPos+=4;	/* Writes a LONG */
+	*p=32; return skipspc(p);
+}
+
+char *
+chkaparms(char *p,int c,FILE *fp)
+{	int i;
+
+	if(nacp[c]==0) return p;
+	for(i=0; i<nacp[c]; i++)
+		if((p=chkp(p,tacp[c][i],c,0,fp))==NULL) return NULL;
+	return p;
+}
+
+char *
+chkcparms(char *p,int c,FILE *fp)
+{	int i;
+
+	if(ncop[c]==0) return p;
+	for(i=0; i<ncop[c]; i++)
+		if((p=chkp(p,tcop[c][i],c,1,fp))==NULL) return NULL;
+	return p;
 }
 
 bool
@@ -878,200 +1467,21 @@ objs_proc()
 	return false;
 }
 
-/*
-void
-sort_objs()
-{	int i,j,k,nts; long *rmtab,*rmptr;
-
-	if(ifp!=NULL) fclose(ifp); ifp=NULL;
-	close_ofps(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
-	close_ofps(); fopenr(objrmsfn); blkget(&datal2,&data2,NULL); fclose(ifp); ifp=NULL;
-	close_ofps(); fopenw(objsfn);	fopenw(statfn); fopenw(objrmsfn); fopenw(ntabfn);
-	ifp=NULL;
-
-	printf("Sorting Objects...:\r"); objtab2=obtab2; nts=0; k=0;
-
-	statab=(struct _OBJ_STATE *)data; rmtab=(long *)data2;
-	for(i=0; i<nouns; i++)
-	{
-		if(*(objtab2=(obtab2+i))->id==0)
-		{
-			printf("@! skipping %ld states, %ld rooms.\n",objtab2->nstates,objtab2->nrooms);
-			statab += objtab2->nstates;
-			rmtab  += objtab2->nrooms;
-			continue;
-		}
-		strcpy(nountab.id,objtab2->id); nts++;
-		nountab.num_of=0; osrch=objtab2; statep=statab; rmptr=rmtab;
-		for(j=i; j<nouns; j++, osrch++)
-		{
-			if(*(osrch->id)!=0 && stricmp(nountab.id,osrch->id)==NULL)
-			{
-				fwrite((char *)osrch,  sizeof(obj),   1,               ofp1);
-				fwrite((char *)statep, sizeof(state), osrch->nstates,  ofp2);
-				fwrite((char *)rmptr,  sizeof(long),  osrch->nrooms,   ofp3);
-				nountab.num_of++; *osrch->id=0; if(osrch!=objtab) k++;
-				statep+=osrch->nstates; rmptr+=osrch->nrooms;
-				if(osrch==objtab2) { statab=statep; rmtab=rmptr; objtab2++; i++; }
-			}
-			else statep+=osrch->nstates; rmptr+=osrch->nrooms;
-		}
-		
-		fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
-	}
-	printf("%20s\r%ld objects moved.\n"," ",k);
-	close_ofps();
-	FreeMem(data, datal); FreeMem(data2, datal2); data=data2=NULL;
-	fopenr(objsfn); fread((char *)obtab2, sizeof(obj), nouns, ifp);
-}
-*/
-
-void
-statinv(char *s)
-{
-	printf("\nObject #%d \"%s\" has invalid %s state line!\n",nouns+1,obj2.id,s,block);
-	quit();
-}
-
-void
-state_proc()
-{	int flag; char *p;
-
-	state.weight=state.value=state.flags=0; state.descrip=-1;
-
-	tidy(block); if(block[0]==0) return;
-
-	/* Get the weight of the object */
-	striplead("weight=",block);
-	p=getword(block); if(*p==0) statinv("incomplete");
-	if(!isdigit(Word[0]) && Word[0]!='-') statinv("weight value on");
-	state.weight=atoi(Word);
-	if(obj2.flags & OF_SCENERY) state.weight = wizstr+1;
-
-	/* Get the value of it */
-	p=skipspc(p); striplead("value=",p);
-	p=getword(p); if(*p==0) statinv("incomplete");
-	if(!isdigit(Word[0]) && Word[0]!='-') statinv("value entry on");
-	state.value=atoi(Word);
-
-	/* Get the strength of it (hit points)*/
-	p=skipspc(p); striplead("str=",p);
-	p=getword(p); if(*p==0) statinv("incomplete");
-	if(!isdigit(Word[0]) && Word[0]!='-') statinv("strength entry on");
-	state.strength=atoi(Word);
-
-	/* Get the damage it does as a weapon*/
-	p=skipspc(p); striplead("dam=",p);
-	p=getword(p); if(*p==0) statinv("incomplete");
-	if(!isdigit(Word[0]) && Word[0]!='-') statinv("damage entry on");
-	state.damage=atoi(Word);
-
-	/* Description */
-	p=skipspc(p); striplead("desc=",p);
-	if(*p==0) statinv("incomplete");
-	if(*p=='\"' || *p=='\'') { text_id(p+1,*p); p=block; }
-	else
-	{
-		p=getword(p); is_desid();	/* Is it valid? */
-	}
-	if(state.descrip==-1)
-	{
-		sprintf(temp,"desc= ID (%s) on",Word); statinv(temp);
-	}
-	while(*p!=0)
-	{
-		p=getword(p); if(Word[0]==0) break;
-		if((flag=isoflag2(Word))==-1) statinv("flag on");
-		state.flags=(state.flags | bitset(flag));
-	}
-	fwrite((char *)&state.weight,sizeof(state),1,ofp2);
-	obj2.nstates++;
-}
-
-void
-is_desid()
-{	int i; FILE *fp;
-	if(stricmp(Word,"none")==NULL) return state.descrip=-2;
-	if((fp=fopen("ram:ODIDs","rb+"))==NULL) Err("open","ram:ODIDs");
-	for(i=0;i<obdes;i++)
-	{
-		fread(objdes.id,sizeof(objdes),1,fp); state.descrip=objdes.descrip;
-		if(stricmp(Word,objdes.id)==0)
-		{
-			fclose(fp); return;
-		}
-	}
-	fclose(fp); state.descrip=-1;
-}
-
-void
-text_id(char *p,char c)
-{	char *ptr; FILE *fp;
-
-	strcpy(block,p); p=block;
-	while(*p!=c && *p!=0) p++;
-	if(*p==0) *(p+1)=0;
-	*(p++)='\n';
-	if(*(p-2) == '{') ptr=p-1; else ptr=p;
-
-	sprintf(temp,"%s%s",dir,obdsfn);	/* Open output file */
-	if((fp=fopen(temp,"rb+"))==NULL) Err("open",temp);
-	fseek(fp,0,2L); state.descrip=ftell(fp); /* Get pos */
-	if(fwrite(block,ptr-block,1,fp)!=1) { fclose(fp); Err("write",temp); }
-	fputc(0,fp); strcpy(block,p); fclose(fp);
-}
-
-int
-isnoun(char *s)
-{	int i;
-
-	objtab2=obtab2;
-	if(stricmp(s,"none")==NULL) return -2;
-	for(i=0; i<nouns; i++,objtab2++)
-		if(stricmp(s,objtab2->id)==NULL) return i;
-	return -1;
-}
-
-int
-iscont(char *s)
-{	int i;
-
-	objtab2=obtab2;
-	for(i=0; i<nouns; i++,objtab2++)
-		if(stricmp(s,objtab2->id)==NULL && objtab2->contains>0) return i;
-	return -1;
-}
-
-int
-isloc(char *s)		/* Room or container */
-{	int i;
-
-	if((i = isroom(s)) != -1) return i;
-	if((i = iscont(s)) == -1)
-	{
-		if(isnoun(s) == -1)
-			printf("\x07## Invalid object start location, '%s'...\n",s);
-		else
-			printf("\x07## Tried to start '%s' in non-container '%s'!\n",obj2.id,s);
-		err++; return -1;
-	}
-
-	return -(INS+i);
-}
-
 void
 title_proc()
 {
-	nextc(1);	fgets(block,1000,ifp); repspc(block); remspc(block);
-	if(!striplead("name=",block))
+	nextc(1);	fgets(block,1000,ifp); repspc(block);
+	char* p = block;
+	if(!canSkipLead("name=", &p))
 	{
 		tx("Invalid title.txt; missing 'name=' line!\n");
 		quit();
 	}
-	block[strlen(block)-1]=0;	/* Remove \n */
-	if(strlen(block)>40)
+	int length = strlen(p);
+	*(p + length - 1) = 0;  // remove newline
+	if(length > 40)
 	{
-		block[40]=0;
+		*(p + 40) = 0;
 		printf("Adventure name too long!            \nTruncated to %40s...\n",block);
 	}
 	strcpy(adname,block);
@@ -1080,7 +1490,7 @@ title_proc()
 	if(mins<15) { tx("!! Minimum game time of 15 minutes inforced!\n"); mins=15; }
 
 	fgets(block,1000,ifp); repspc(block);
-	invis=getno("invisible="); remspc(block); getword(block);
+	invis=getno("invisible="); getword(block);
 	if(!isdigit(Word[0]))
 	{
 		printf("## Invalid rank for visible players to see other invisible players/objects.\n");
@@ -1104,273 +1514,6 @@ title_proc()
 		quit();
 	}
 }
-
-int
-getno(char *s)
-{	char *p;
-	remspc(block);
-	if(!striplead(s,block))
-	{
-		printf("## Missing %s entry!\n",s); err++; return -1;
-	}
-	p=getword(block); strcpy(block,p);
-	if(!isdigit(Word[0]))
-	{
-		printf("## Invalid %s entry...\n",s); err++; return -1;
-	}
-	return atoi(Word);
-}
-
-char *
-precon(char *s)
-{	char *s2;
-
-	s2=s;
-
-	if((s=skiplead("if ",s))!=s2) { s=skipspc(s); s2=s; }
-	if((s=skiplead("the ",s))!=s2) { s=skipspc(s); s2=s; }
-	if((s=skiplead("i ",s))!=s2) { s=skipspc(s); s2=s; }
-	s=skiplead("am ",s);
-	return s;
-}
-
-char *
-preact(char *s)
-{	char *s2;
-
-	s2=s;
-	if((s=skiplead("then ",s))!=s2) { s=skipspc(s); s2=s; }
-	if((s=skiplead("goto ",s))!=s2) { s=skipspc(s); s2=s; }
-	if((s=skiplead("go to ",s))!=s2) { s=skipspc(s); s2=s; }
-	s=skiplead("set ",s);
-	return s;
-}
-
-long
-chknum(char *p)
-{	long n;
-
-	if(!isdigit(*p) && !isdigit(*(p+1))) return -1000001;
-	if(*p=='>' || *p=='<' || *p=='-' || *p=='=') n=atoi(p+1);
-	else n=atoi(p);
-	if(n>=1000000)
-	{
-		printf("\x07\n*** Number %d exceeds limits!",n);
-		return -1000001;
-	}
-	if(*p=='-') return (long) -n;
-	if(*p=='>') return (long) (n+LESS);
-	if(*p=='<') return (long) (n+MORE);
-	return n;
-}
-
-char *
-optis(char *p)
-{	char *p2;
-	p2=p;
-
-	p=skiplead("the ",p); p=skiplead("of ",p); p=skiplead("are ",p);
-	p=skiplead("is ",p); p=skiplead("has ",p); p=skiplead("next ",p);
-	p=skiplead("with ",p); p=skiplead("to ",p); p=skiplead("set ",p);
-	p=skiplead("from ",p); p=skiplead("for ",p); p=skiplead("by ",p);
-	p=skiplead("and ",p); p=skiplead("was ",p); p=skiplead("i ",p);
-	p=skiplead("am ",p); p=skiplead("as ",p); p=skipspc(p);
-	return p;
-}
-
-char *
-chkp(char *p,char t,int c,int z,FILE *fp)
-{	char qc,*p2; long x;
-
-	p=optis(p); p2=(p=skipspc(p));	/*=* Strip crap out *=*/
-	if(*p==0)
-	{
-		printf("\x07\%s \"%s\" has incomplete C&A line! (%s='%s')\n\n",
-			(proc==1)?"Verb":"Room",(proc==1)?verb.id:roomtab->id,
-			(z==1)?"condition":"action",(z==1)?conds[c]:acts[c]);
-		quit();
-	}
-	if(*p!='\"' && *p!='\'') while(*p!=32 && *p!=0) p++;
-	else
-	{
-		qc=*(p++);		/* Search for same CLOSE quote */
-		while(*p!=0 && *p!=qc) p++;
-	}
-	if(*p!=0) *p=0; else *(p+1)=0;
-	if((t>=0 && t<=10) || t==-70)		/* Processing lang tab? */
-	{
-		x=actualval(p2,t);
-		if(x==-1)	/* If it was an actual, but wrong type */
-		{
-			printf("\x07\nInvalid slot label, '%s', after %s '%s' in verb '%s'.\n",
-				p2,(z==1)?"condition":"action",(z==1)?conds[c]:acts[c],
-				verb.id);
-			return NULL;
-		}
-		if(x!=-2) goto write;
-	}
-	switch(t)
-	{
-		case -6:	x=onoff(p2); break;
-		case -5:	x=bvmode(toupper(*p2)); break;
-		case -4:	x=stat(p2); break;
-		case -3:	x=spell(p2); break;
-		case -2:	x=rdmode(toupper(*p2)); break;
-		case -1:	x=antype(p2); break;
-		case PROOM:	x=isroom(p2); break;
-		case PVERB:	x=is_verb(p2); break;
-		case PADJ:	break;
-		case -70:
-		case PNOUN:	x=isnounh(p2); break;
-		case PUMSG:	x=ttumsgchk(p2); break;
-		case PNUM:	x=chknum(p2); break;
-		case PRFLAG:	x=isrflag(p2); break;
-		case POFLAG: 	x=isoflag1(p2); break;
-		case PSFLAG: 	x=isoflag2(p2); break;
-		case PSEX:	x=isgen(toupper(*p2)); break;
-		case PDAEMON:	if((x=is_verb(p2))==-1 || *p2!='.') x=-1; break;
-		default:
-		{
-			if(!(proc==1 && t>=0 && t<=10))
-			{
-				printf("\n\n\x07!! Internal error, invalid PTYPE (val: %d) in %s %s!\n\n",
-					t,(proc==1)?"verb":"room",(proc==1)?verb.id:(rmtab+rmn)->id);
-				printf("%s = %s.\n", (z==1)?"condition":"action",(z==1)?conds[c]:acts[c]);
-				quit();
-			}
-		}
-	}
-	if(t==-70 && x==-2) x=-1;
-	else if(((x==-1 || x==-2) && t!=PNUM) || x==-1000001)
-	{
-		printf("\x07\nInvalid parameter, '%s', after %s '%s' in %s '%s'.\n",
-			p2,(z==1)?"condition":"action",(z==1)?conds[c]:acts[c],
-			(proc==1)?"verb":"room",(proc==1)?(verb.id):(rmtab+rmn)->id);
-		return NULL;
-	}
-write:	fwrite((char *)&x,4,1,fp); FPos+=4;	/* Writes a LONG */
-	*p=32; return skipspc(p);
-}
-
-int
-isgen(char c)
-{
-	if(c=='M') return 0;
-	if(c=='F') return 1;
-	return -1;
-}
-
-int
-antype(char *s)
-{
-	if(strcmp(s,"global")==NULL) return AGLOBAL;
-	if(strcmp(s,"everyone")==NULL) return AEVERY1;
-	if(strcmp(s,"outside")==NULL) return AOUTSIDE;
-	if(strcmp(s,"here")==NULL) return AHERE;
-	if(strcmp(s,"others")==NULL) return AOTHERS;
-	if(strcmp(s,"all")==NULL) return AALL;
-	printf("\x07\nInvalid anouncement-group, '%s'...\n",s);
-	return -1;
-}
-
-int
-isnounh(char *s)	/* Test noun state, checking rooms */
-{	int i,l,j; FILE *fp; long orm;
-
-	if(stricmp(s,"none")==NULL) return -2;
-	fp=(FILE *)rfopen(objrmsfn); l=-1; objtab2=obtab2;
-	
-	for(i=0; i<nouns; i++,objtab2++)
-	{
-		if(stricmp(s,objtab2->id)!=NULL) continue;
-		fseek(fp,(long)objtab2->rmlist,0L);
-		for(j=0;j<objtab2->nrooms;j++)
-		{
-			fread((char *)&orm,4,1,fp);
-			if(orm == rmn)
-			{
-				l=i; i=nouns+1; j=objtab2->nrooms;
-				break;
-			}
-		}
-		if(i < nouns) l=i;
-	}
-	fclose(fp); return l;
-}
-
-int
-rdmode(char c)
-{
-	if(c == 'R') return RDRC;
-	if(c == 'V') return RDVB;
-	if(c == 'B') return RDBF;
-	return -1;
-}
-
-int
-spell(char *s)
-{
-	if(strcmp(s,"glow")==NULL) return SGLOW;
-	if(strcmp(s,"invis")==NULL)return SINVIS;
-	if(strcmp(s,"deaf")==NULL) return SDEAF;
-	if(strcmp(s,"dumb")==NULL) return SDUMB;
-	if(strcmp(s,"blind")==NULL)return SBLIND;
-	if(strcmp(s,"cripple")==NULL)return SCRIPPLE;
-	if(strcmp(s,"sleep")==NULL)return SSLEEP;
-	if(strcmp(s,"sinvis")==NULL)return SSINVIS;
-	return -1;
-}
-
-int
-stat(char *s)
-{
-	if(strcmp(s,"sctg")==NULL) return STSCTG;
-	if(strncmp(s,"sc",2)==NULL) return STSCORE;
-	if(strncmp(s,"poi",3)==NULL) return STSCORE;
-	if(strncmp(s,"str",3)==NULL) return STSTR;
-	if(strncmp(s,"stam",4)==NULL) return STSTAM;
-	if(strncmp(s,"dext",4)==NULL) return STDEX;
-	if(strncmp(s,"wis",3)==NULL) return STWIS;
-	if(strncmp(s,"exp",3)==NULL) return STEXP;
-	if(strcmp(s,"magic")==NULL) return STMAGIC;
-	return -1;
-}
-
-int
-bvmode(char c)
-{
-	if(c=='V') return TYPEV;
-	if(c=='B') return TYPEB;
-	return -1;
-}
-
-char *
-chkaparms(char *p,int c,FILE *fp)
-{	int i;
-
-	if(nacp[c]==0) return p;
-	for(i=0; i<nacp[c]; i++)
-		if((p=chkp(p,tacp[c][i],c,0,fp))==NULL) return NULL;
-	return p;
-}
-
-char *
-chkcparms(char *p,int c,FILE *fp)
-{	int i;
-
-	if(ncop[c]==0) return p;
-	for(i=0; i<ncop[c]; i++)
-		if((p=chkp(p,tcop[c][i],c,1,fp))==NULL) return NULL;
-	return p;
-}
-
-int
-onoff(char *p)
-{
-	if(stricmp(p,"on")==NULL || stricmp(p,"yes")==NULL) return 1;
-	return 0;
-}
-
 /*
      Travel Processing Routines for AMUL, Copyright (C) Oliver Smith, '90
      --------------------------------------------------------------------
@@ -1459,12 +1602,12 @@ xloop:			strip=0; r=-1;
 			}
 			p=precon(block);	/* Strip pre-condition opts */
 notloop:		p=getword(p);
-			if(strcmp(Word,ALWAYSEP)==NULL)
+			if(strcmp(Word,ALWAYSEP)==0)
 			{
 				tt.condition=CALWAYS; tt.action=-(1+AENDPARSE);
 				goto write;
 			}
-			if(strcmp(Word,"not")==NULL || strcmp(Word,"!")==NULL)
+			if(strcmp(Word,"not")==0 || strcmp(Word,"!")==0)
 			{
 				r=-1*r; goto notloop;
 			}
@@ -1539,6 +1682,63 @@ next:			strip=0;
 /* Lang.TXT processor */
 
 void
+chae_err()
+{
+	printf("\x07## Invalid '#CHAE' flags, \"%s\" in verb %s.\n",Word,verb.id);
+	err++;
+}
+
+int
+chae_proc(char *f,char *t)	/* From and To */
+{	int n;
+
+	if((*f<'0' || *f>'9') && *f!='?') { chae_err(); return -1; }
+
+	if(*f=='?') { *(t++)=-1; f++; }
+	else
+	{
+		n=atoi(f); while(isdigit(*f) && *f!=0) f++;
+		if(*f==0) { chae_err(); return -1; }
+		*(t++)=(char) n;
+	}
+
+	for(n=1; n<5; n++)
+	{
+		if(*f=='c' || *f=='h' || *f=='a' || *f=='e') { *(t++)=toupper(*f); f++; }
+		else { chae_err(); return -1; }
+	}
+
+	return 0;
+}
+
+void
+setslots(unsigned char i)		/* Set the VT slots */
+{
+	vbslot.wtype[0]=WANY; vbslot.wtype[1]=i; vbslot.wtype[2]=i; vbslot.wtype[3]=WANY; vbslot.wtype[4]=i;
+	vbslot.slot[0]=vbslot.slot[1]=vbslot.slot[2]=vbslot.slot[3]=vbslot.slot[4]=WANY;
+}
+
+int
+iswtype(char *s)		/* Is 'text' a ptype */
+{	int i;
+
+	for(i=0; i<nsynts; i++)
+	{
+		if(strcmp(s,syntax[i])==0) { *s=0; return i-1; }
+		if(strncmp(s,syntax[i],syntl[i])!=0) continue;
+		if(*(s+syntl[i])!='=') continue;
+		strcpy(s,s+syntl[i]+1); return i-1;
+	}
+	return -3;
+}
+
+void
+vbprob(char *s,char *s2)	/* Declare a PROBLEM, and which verb its in! */
+{
+	printf("## Verb %s: line '%s'\n%s!\n",verb.id,s2,s); err++;
+}
+
+void
 lang_proc()			/*=* Process LANG.TXT *=*/
 {
 	char	lastc,*p,*p2,*s1,*s2;
@@ -1586,11 +1786,11 @@ loop:		do { s1=extractLine((s2=s1),block); *(s1-1)=0; } while(com(block)==-1 && 
 
 		verb.flags=VB_TRAVEL; if(*p==0 || *p==';' || *p=='*') goto noflags;
 		p=getword(p);
-		if(strcmp("travel",Word)==NULL)
+		if(strcmp("travel",Word)==0)
 		{
 			verb.flags=0; p=getword(p);
 		}
-		if(strcmp("dream",Word)==NULL)
+		if(strcmp("dream",Word)==0)
 		{
 			verb.flags+=VB_DREAM; p=getword(p);
 		}
@@ -1620,11 +1820,11 @@ synloop:	setslots(WNONE); verb.ents++; p=skiplead("verb",p);
 		p2=getword(p); p2=skipspc(p2);
 
 		/* If syntax line is 'syntax=verb any' or 'syntax=none' */
-		if(*p2==0 && strcmp("any",Word)==NULL)
+		if(*p2==0 && strcmp("any",Word)==0)
 		{
 			setslots(WANY); goto endsynt;
 		}
-		if(*p2==0 && strcmp("none",Word)==NULL)
+		if(*p2==0 && strcmp("none",Word)==0)
 		{
 			setslots(WNONE); goto endsynt;
 		}
@@ -1647,7 +1847,7 @@ sp2:		/*=* Syntax line processing *=*/
 			vbprob(block,s2);
 			goto endsynt;
 		}
-		if(n==WPLAYER && strcmp(Word,"me")!=NULL && strcmp(Word,"myself")!=NULL)
+		if(n==WPLAYER && strcmp(Word,"me")!=0 && strcmp(Word,"myself")!=0)
 		{
 			vbprob("Tried to specify player other than self",s2);
 			goto endsynt;
@@ -1663,7 +1863,7 @@ sp2:		/*=* Syntax line processing *=*/
 		    case WNOUN: s=isnoun(Word); break;
 		    case WPREP: s=isprep(Word); break;
 		    case WPLAYER:
-			if(strcmp(Word,"me")==NULL || strcmp(Word,"myself")==NULL) s=-3; break;
+			if(strcmp(Word,"me")==0 || strcmp(Word,"myself")==0) s=-3; break;
 		    case WROOM:	s=isroom(Word); break;
 		    case WSYN:	printf("!! Syn's not supported at this time!\n"); s=WANY;
 		    case WTEXT:	s=chkumsg(Word); break;
@@ -1675,7 +1875,7 @@ sp2:		/*=* Syntax line processing *=*/
 		    default:	 printf("** Internal error! Invalid W-type!\n");
 		}
 
-		if(n==WNUMBER && s>100000 || -s>100000)
+		if(n==WNUMBER && (s>100000 || -s>100000))
 		{
 			sprintf(fnm,"Invalid number, %ld",s); vbprob(fnm,s2);
 		}
@@ -1763,12 +1963,12 @@ commands:	lastc='x'; proc=0;
 notloop:	p=precon(p); p=getword(p);
 
 		/*=* always endparse *=*/
-		if(strcmp(Word,ALWAYSEP)==NULL)
+		if(strcmp(Word,ALWAYSEP)==0)
 		{
 			vt.condition=CALWAYS; vt.action=-(1+AENDPARSE);
 			goto writecna;
 		}
-		if(strcmp(Word,"not")==NULL || (Word[0]=='!' && Word[1]==0))
+		if(strcmp(Word,"not")==0 || (Word[0]=='!' && Word[1]==0))
 		{
 			r=-1*r; goto notloop;
 		}
@@ -1831,128 +2031,6 @@ write:		fwrite(verb.id,sizeof(verb),1,ofp1); proc=0;
 	close_ofps();
 }
 
-int
-chae_proc(char *f,char *t)	/* From and To */
-{	int n;
-
-	if(*f<'0' || *f>'9' && *f!='?') { chae_err(); return -1; }
-
-	if(*f=='?') { *(t++)=-1; f++; }
-	else
-	{
-		n=atoi(f); while(isdigit(*f) && *f!=0) f++;
-		if(*f==0) { chae_err(); return -1; }
-		*(t++)=(char) n;
-	}
-
-	for(n=1; n<5; n++)
-	{
-		if(*f=='c' || *f=='h' || *f=='a' || *f=='e') { *(t++)=toupper(*f); f++; }
-		else { chae_err(); return -1; }
-	}
-
-	return 0;
-}
-
-void
-chae_err(char *p)
-{
-	printf("\x07## Invalid '#CHAE' flags, \"%s\" in verb %s.\n",Word,verb.id); err++;
-}
-
-void
-setslots(unsigned char i)		/* Set the VT slots */
-{
-	vbslot.wtype[0]=WANY; vbslot.wtype[1]=i; vbslot.wtype[2]=i; vbslot.wtype[3]=WANY; vbslot.wtype[4]=i;
-	vbslot.slot[0]=vbslot.slot[1]=vbslot.slot[2]=vbslot.slot[3]=vbslot.slot[4]=WANY;
-}
-
-int
-iswtype(char *s)		/* Is 'text' a ptype */
-{	int i;
-
-	for(i=0; i<nsynts; i++)
-	{
-		if(strcmp(s,syntax[i])==NULL) { *s=0; return i-1; }
-		if(strncmp(s,syntax[i],syntl[i])!=NULL) continue;
-		if(*(s+syntl[i])!='=') continue;
-		strcpy(s,s+syntl[i]+1); return i-1;
-	}
-	return -3;
-}
-
-void
-vbprob(char *s,char *s2)	/* Declare a PROBLEM, and which verb its in! */
-{
-	printf("## Verb %s: line '%s'\n%s!\n",verb.id,s2,s); err++;
-}
-
-/* Note about matching actuals...
-
-Before agreeing a match, remember to check that the relevant slot isn't
-set to NONE.
-Variable N is a wtype... If the phrases 'noun', 'noun1' or 'noun2' are used,
-instead of matching the phrases WTYPE with n, match the relevant SLOT with
-n...
-
-So, if the syntax line is 'verb text player' the command 'tell noun2 text'
-will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
-structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
-the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
-user is refering too.							     */
-int
-actualval(char *s,int n)	/* Get actual value! */
-{	int i;
-
-	if(n!=-70 && (*s=='?' || *s=='%' || *s=='^' || *s=='~' || *s=='\`'))
-	{
-		if(n!=WNUMBER) return -1;
-		if(*s=='~') return RAND0+atoi(s+1);
-		if(*s=='\`') return RAND1+atoi(s+1);
-		i=actualval(s+1,-70); if(i==-1) return -1;
-		if((i&IWORD)==0) return -1;
-		if(*s=='?') return OBVAL+i;
-		if(*s=='%') return OBDAM+i;
-		if(*s=='^') return OBWHT+i;
-		if(*s=='*') return OBLOC+i;
-		if(*s=='#') return PRANK+i;
-		return -1;
-	}
-	if(!isalpha(*s)) return -2;
-	for(i=0; i<NACTUALS; i++)
-	{
-		if(stricmp(s,actual[i].name)!=NULL) continue;
-		/* If its not a slot label, and the wtypes match, we's okay! */
-		if(!(actual[i].value&IWORD))
-			return (actual[i].wtype==n || n==-70) ? actual[i].value:-1;
-
-		/* Now we know its a slot label... check which: */
-		switch(actual[i].value-IWORD)
-		{
-			case IVERB:		/* Verb */
-				if(n==PVERB || n==PREAL) return actual[i].value;
-				return -1;
-			case IADJ1:		/* Adjective #1 */
-				if(vbslot.wtype[0]==n) return actual[i].value;
-				if(*(s+strlen(s)-1) != '1' && vbslot.wtype[3]==n) return IWORD+IADJ2;
-				if(n==PREAL) return actual[i].value;
-				return -1;
-			case INOUN1:		/* noun 1 */
-				if(vbslot.wtype[1]==n) return actual[i].value;
-				if(*(s+strlen(s)-1) != '1' && vbslot.wtype[4]==n) return IWORD+INOUN2;
-				if(n==PREAL) return actual[i].value;
-				return -1;
-			case IADJ2:
-				return (vbslot.wtype[3]==n || n==-70) ? actual[i].value:-1;
-			case INOUN2:
-				return (vbslot.wtype[4]==n || n==-70) ? actual[i].value:-1;
-			default:
-				return -1;	/* Nah... Guru instead 8-) */
-		}
-	}
-	return -2;		/* It was no actual! */
-}
-
 bool
 umsg_proc()
 {	char *s;
@@ -2010,67 +2088,6 @@ loop:		do s=extractLine(s,block); while(com(block)==-1 && *s!=0);
 	}
 
 	return true;
-}
-
-int
-isumsg(char *s, FILE *fp)	/* Check FP for umsg id! */
-{	int i;
-
-	if(*s=='$')
-	{
-		i=atoi(s+1);
-		if(i<1 || i>NSMSGS)
-		{
-			printf("\x07\n!! Invalid System Message ID, '%s'!\n\n",s);
-			quit();
-		}
-		return i-1;
-	}
-	if(umsgs==0) return -1;
-	fseek(fp,0,0L);		/* Rewind file */
-	for(i=0; i<umsgs; i++)
-	{
-		fread(umsg.id,sizeof(umsg),1,fp);
-		if(stricmp(umsg.id,s)==NULL) return i+NSMSGS;
-	}
-	return -1;
-}
-
-int
-ttumsgchk(char *s)
-{
-	s=skiplead("msgid=",s); s=skiplead("msgtext=",s); s=skipspc(s);
-	if(*s=='\"' || *s=='\'') return msgline(s+1);
-	return chkumsg(s);
-}
-
-int
-chkumsg(char *s)
-{	int r; FILE *fp;
-
-	if(*s!='$' && umsgs==0) return -1;
-
-	if((fp=fopen("ram:umsg.tmp","rb+"))==NULL)
-	{
-		printf("Unable to re-access ram:umsg.tmp!\n"); quit();
-	}
-	r=isumsg(s,fp);
-	fclose(fp);
-	return r;
-}
-
-int
-msgline(char *s)
-{
-	FILE *fp; long pos; char c;
-	fp=afp; afp=NULL; fopena(umsgfn); fseek(afp,0,2L); pos=ftell(afp);
-
-	fwrite(s,strlen(s)-1,1,afp);
-	if((c=*(s+strlen(s)-1))!='{') { fputc(c,afp); fputc('\n',afp); }
-	fputc(0,afp);
-	fopena(umsgifn); fseek(afp,0,2L); fwrite((char *)&pos,sizeof(long),1,afp);
-	fclose(afp); afp=fp;
-	return NSMSGS+(umsgs++);
 }
 /*
      System Message processing routines for AMUL, (C) KingFisher Software
@@ -2229,7 +2246,7 @@ mob_proc1()
 
 	do
 	{
-ldo:		while(*p!=0 && *p!='!') p=skipline(p); if(*p==0) break;
+		while(*p!=0 && *p!='!') p=skipline(p); if(*p==0) break;
 		p=extractLine(p,block);
 		mobchars++; s1=getword(block+1);
 		strcpy(mob.id,Word);
@@ -2383,7 +2400,7 @@ main(int argc, const char**argv)			/*=* Main Program *=*/
 	{
 		fseek(ifp,0,2L); rooms=ftell(ifp)/sizeof(room); rewind(ifp);
 	}
-	if((rmtab=(struct room *) AllocMem(sizeof(room)*rooms,MEMF_PUBLIC))==NULL)
+	if((rmtab=(struct _ROOM_STRUCT*)AllocMem(sizeof(room)*rooms,MEMF_PUBLIC))==NULL)
 	{
 		puts("No memory for ROOM ID table!\n"); quit();
 	}

@@ -79,26 +79,23 @@ skipline(const char *s)
 static inline const char *
 skiplead(const char *lead, const char *from)
 {
-    const char *beginning = from;
-    while (*lead && *from) {
-        if (tolower(*from) != tolower(*lead))
-            return beginning;
-        ++lead, ++from;
+    const char *cur = skipspc(from);
+    while (*lead && *cur) {
+        if (tolower(*cur) != tolower(*cur))
+            return from;
+        ++lead, ++cur;
     }
-    return (*lead == 0) ? from : beginning;
+    return (*lead == 0) ? cur : from;
 }
 
 static inline bool
 canSkipLead(const char *lead, const char **from)
 {
-    const char *origin = *from;
-    const char *start = skipspc(origin);
-    const char *cur = start;
-    cur = skiplead(lead, cur);
-    if (cur == start) {
+    const char *end = skiplead(lead, *from);
+    if (end == *from) {
         return false;
     }
-    *from = cur;
+    *from = end;
     return true;
 }
 

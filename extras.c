@@ -1,7 +1,9 @@
 #include "h/amul.incs.h"
 #include "h/amul.xtra.h"
 
+///////////////////////////////////////////////////////////////////////////////
 // converted from extras.i
+//
 const char *
 extractLine(const char *from, char *to)
 {
@@ -45,3 +47,17 @@ striplead(const char *lead, char *from)
     return true;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Platform specific stubs
+//
+
+static struct Task myTask;
+
+Task *
+FindTask(const char *name)
+{
+	if (name != NULL)
+		return NULL;
+	return &myTask;
+}
