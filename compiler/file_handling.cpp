@@ -139,7 +139,7 @@ fopenr(std::string filename)
         fclose(ifp);
 
     std::string filepath = dir + filename;
-    ifpFileSize = getFileSize(filename);
+    ifpFileSize = getFileSize(filepath);
 
     if (ifp = fopen(filepath.c_str(), "rb"); !ifp)
         GetLogger().fatalop("open", filepath.c_str());

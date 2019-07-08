@@ -115,6 +115,7 @@ compileGame()
     opentxt("TITLE");
     title_proc();
     fclose(ifp);
+    ifp = nullptr;
     dmoves = 0;
 
     // Now load the rooms data.
@@ -123,6 +124,7 @@ compileGame()
         opentxt("ROOMS");
         room_proc();
         fclose(ifp);
+	ifp = nullptr;
     }
     fopenr(Resources::Compiled::roomData());
     if (GetContext().m_skipRoomRead) {
@@ -140,54 +142,63 @@ compileGame()
         GetLogger().info("-- cemetery check");
         checkdmoves();
         fclose(ifp);
+	ifp = nullptr;
     }
     GetLogger().info("-- ranks");
     opentxt("RANKS");
     rank_proc();
     fclose(ifp);
+    ifp = nullptr;
 
     GetLogger().info("-- system messages");
     opentxt("SysMsg");
     smsg_proc();
     fclose(ifp);
+    ifp = nullptr;
 
     GetLogger().info("-- user messages");
     opentxt("UMSG");
     if (!umsg_proc())
         quit();
-    else
-        fclose(ifp);
+    fclose(ifp);
+    ifp = nullptr;
 
     GetLogger().info("-- mobiles");
     opentxt("MOBILES");
     mob_proc1();
     fclose(ifp);
+    ifp = nullptr;
 
     GetLogger().info("-- object descriptions");
     opentxt("OBDESCS");
     obds_proc();
     fclose(ifp);
+    ifp = nullptr;
 
     GetLogger().info("-- objects");
     opentxt("OBJECTS");
     objs_proc();
     fclose(ifp);
+    ifp = nullptr;
 
     GetLogger().info("-- language table");
     opentxt("LANG");
     lang_proc();
     fclose(ifp);
+    ifp = nullptr;
 
     proc = 0;
     GetLogger().info("-- travel table");
     opentxt("TRAVEL");
     trav_proc();
     fclose(ifp);
+    ifp = nullptr;
 
     GetLogger().info("-- synonyms");
     opentxt("SYNS");
     syn_proc();
     fclose(ifp);
+    ifp = nullptr;
 }
 
 void
