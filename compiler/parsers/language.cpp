@@ -9,8 +9,7 @@ using namespace Compiler;
 static void
 chae_err()
 {
-    GetLogger().errorf(
-            "Invalid '#CHAE' flags, \"%s\" in verb \"%s\".\n", Word, verb.id);
+    GetLogger().errorf("Invalid '#CHAE' flags, \"%s\" in verb \"%s\".\n", Word, verb.id);
 }
 
 // verb error report
@@ -71,8 +70,7 @@ setslots(unsigned char i)
     vbslot.wtype[2] = i;
     vbslot.wtype[3] = TC_ANY;
     vbslot.wtype[4] = i;
-    vbslot.slot[0] = vbslot.slot[1] = vbslot.slot[2] = vbslot.slot[3] =
-            vbslot.slot[4] = TC_ANY;
+    vbslot.slot[0] = vbslot.slot[1] = vbslot.slot[2] = vbslot.slot[3] = vbslot.slot[4] = TC_ANY;
 }
 
 // Is 'text' a ptype
@@ -111,17 +109,14 @@ user is referring too.							     */
 int
 actualval(const char *s, int n)
 {
-    int i;
-
-    if (n != -70 &&
-        (*s == '?' || *s == '%' || *s == '^' || *s == '~' || *s == '`')) {
+    if (n != -70 && (*s == '?' || *s == '%' || *s == '^' || *s == '~' || *s == '`')) {
         if (n != WC_NUMBER)
             return -1;
         if (*s == '~')
             return RAND0 + atoi(s + 1);
         if (*s == '`')
             return RAND1 + atoi(s + 1);
-        i = actualval(s + 1, -70);
+        int i = actualval(s + 1, -70);
         if (i == -1)
             return -1;
         if ((i & IWORD) == 0)
@@ -140,7 +135,7 @@ actualval(const char *s, int n)
     }
     if (!isalpha(*s))
         return -2;
-    for (i = 0; i < NACTUALS; i++) {
+    for (int i = 0; i < NACTUALS; i++) {
         if (stricmp(s, actual[i].name) != NULL)
             continue;
         // If its not a slot label, and the wtypes match, we's okay!
@@ -169,10 +164,8 @@ actualval(const char *s, int n)
             if (n == CAP_REAL)
                 return actual[i].value;
             return -1;
-        case IADJ2:
-            return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
-        case INOUN2:
-            return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
+        case IADJ2: return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
+        case INOUN2: return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
         default: return -1;  // Nah... Guru instead 8-)
         }
     }
@@ -219,7 +212,7 @@ lang_proc()
         GetContext().checkErrorCount();
 
         do {
-            curline = cursor;  // remember the start of the line
+            curline = cursor;                     // remember the start of the line
             cursor = extractLine(cursor, block);  // consume the next line
         } while (isCommentChar(block[0]) || isEol(block[0]));
         if (block[0] == 0)
@@ -296,8 +289,7 @@ lang_proc()
             goto stuffloop;
         }
 
-        // Syntax line loop
-    synloop:
+    synloop:  // Syntax line loop
         setslots(TC_NONE);
         verb.ents++;
         p = skiplead("verb", p);
@@ -333,20 +325,17 @@ lang_proc()
         }
 
         // First of all, eliminate illegal combinations
-        if (n == TC_NONE ||
-            n == TC_ANY) {  // you cannot say none=fred any=fred etc
+        if (n == TC_NONE || n == TC_ANY) {  // you cannot say none=fred any=fred etc
             sprintf(block, "Tried to defined %s= on syntax line", syntax[n]);
             vbprob(block, curline);
             goto endsynt;
         }
-        if (n == TC_PLAYER && strcmp(Word, "me") != NULL &&
-            strcmp(Word, "myself") != NULL) {
+        if (n == TC_PLAYER && strcmp(Word, "me") != 0 && strcmp(Word, "myself") != 0) {
             vbprob("Tried to specify player other than self", curline);
             goto endsynt;
         }
 
         // Now check that the 'tag' is the correct type of word
-
         s = -1;
         switch (n) {
         case TC_ADJ:
@@ -354,13 +343,11 @@ lang_proc()
         case TC_NOUN: s = isnoun(Word); break;
         case TC_PREP: s = isprep(Word); break;
         case TC_PLAYER:
-            if (strcmp(Word, "me") == NULL || strcmp(Word, "myself") == NULL)
+            if (strcmp(Word, "me") == 0 || strcmp(Word, "myself") == 0)
                 s = -3;
             break;
         case TC_ROOM: s = isroom(Word); break;
-        case TC_SYN:
-            printf("!! Syn's not supported at this time!\n");
-            s = TC_ANY;
+        case TC_SYN: printf("!! Syn's not supported at this time!\n"); s = TC_ANY;
         case TC_TEXT: s = isumsg(Word); break;
         case TC_VERB: s = is_verb(Word); break;
         case TC_CLASS: s = TC_ANY;
@@ -372,13 +359,12 @@ lang_proc()
         default: printf("** Internal error! Invalid W-type!\n");
         }
 
-        if (n == WC_NUMBER && s > 100000 || -s > 100000) {
+        if (n == WC_NUMBER && (s > 100000 || -s > 100000)) {
             sprintf(fnm, "Invalid number, %ld", s);
             vbprob(fnm, curline);
         }
         if (s == -1 && n != WC_NUMBER) {
-            sprintf(fnm, "Invalid setting, '%s' after %s=", Word,
-                    syntax[n + 1]);
+            sprintf(fnm, "Invalid setting, '%s' after %s=", Word, syntax[n + 1]);
             vbprob(fnm, curline);
         }
         if (s == -3 && n == TC_NOUN)
@@ -434,8 +420,7 @@ lang_proc()
         case TC_CLASS:
         case WC_NUMBER:
             if (vbslot.wtype[1] != TC_NONE && vbslot.wtype[4] != TC_NONE) {
-                sprintf(block, "No free noun slot for '%s' entry",
-                        syntax[n + 1]);
+                sprintf(block, "No free noun slot for '%s' entry", syntax[n + 1]);
                 vbprob(block, curline);
                 n = -5;
                 break;

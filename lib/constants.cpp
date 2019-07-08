@@ -3,7 +3,7 @@
 
 #include "h/amul.instructions.h"
 
-#define NO_ARGS                                                                \
+#define NO_ARGS                                                                                    \
     0, { 0, 0, 0 }
 
 /*
@@ -363,39 +363,24 @@ const Instruction actions[NACTS] = {
         {"gstart", 2, {CAP_DAEMON_ID, CAP_NUM, 0}},
 };
 
-struct ACTUAL actual[NACTUALS] = {{"verb", IWORD + IVERB, TC_VERB},
-                                  {"adj", IWORD + IADJ1, TC_ADJ},
-                                  {"adj1", IWORD + IADJ1, TC_ADJ},
-                                  {"noun", IWORD + INOUN1, TC_NOUN},
-                                  {"noun1", IWORD + INOUN1, TC_NOUN},
-                                  {"player", IWORD + INOUN1, TC_PLAYER},
-                                  {"player1", IWORD + INOUN1, TC_PLAYER},
-                                  {"text", IWORD + INOUN1, TC_TEXT},
-                                  {"text1", IWORD + INOUN1, TC_TEXT},
-                                  {"room", IWORD + INOUN1, TC_ROOM},
-                                  {"room1", IWORD + INOUN1, TC_ROOM},
-                                  {"number", IWORD + INOUN1, WC_NUMBER},
-                                  {"number1", IWORD + INOUN1, WC_NUMBER},
-                                  {"prep", IWORD + IPREP, TC_PREP},
-                                  {"adj2", IWORD + IADJ2, TC_ADJ},
-                                  {"noun2", IWORD + INOUN2, TC_NOUN},
-                                  {"player2", IWORD + INOUN2, TC_PLAYER},
-                                  {"text2", IWORD + INOUN2, TC_TEXT},
-                                  {"room2", IWORD + INOUN2, TC_ROOM},
-                                  {"locate", MEPRM + LOCATE, TC_NOUN},
-                                  {"me", MEPRM + SELF, TC_PLAYER},
-                                  {"here", MEPRM + HERE, TC_ROOM},
-                                  {"myrank", MEPRM + RANK, WC_NUMBER},
-                                  {"friend", MEPRM + FRIEND, TC_PLAYER},
-                                  {"helper", MEPRM + HELPER, TC_PLAYER},
-                                  {"enemy", MEPRM + ENEMY, TC_PLAYER},
-                                  {"weapon", MEPRM + WEAPON, TC_NOUN},
-                                  {"myscore", MEPRM + SCORE, WC_NUMBER},
-                                  {"mysctg", MEPRM + SCTG, WC_NUMBER},
-                                  {"mystr", MEPRM + STR, WC_NUMBER},
-                                  {"lastroom", MEPRM + LASTROOM, TC_ROOM},
-                                  {"lastdir", MEPRM + LASTDIR, TC_VERB},
-                                  {"lastverb", MEPRM + LASTVB, TC_VERB}};
+struct ACTUAL actual[NACTUALS] = {  // placeholders fo "actual" runtime things
+        {"verb", IWORD + IVERB, TC_VERB},        {"adj", IWORD + IADJ1, TC_ADJ},
+        {"adj1", IWORD + IADJ1, TC_ADJ},         {"noun", IWORD + INOUN1, TC_NOUN},
+        {"noun1", IWORD + INOUN1, TC_NOUN},      {"player", IWORD + INOUN1, TC_PLAYER},
+        {"player1", IWORD + INOUN1, TC_PLAYER},  {"text", IWORD + INOUN1, TC_TEXT},
+        {"text1", IWORD + INOUN1, TC_TEXT},      {"room", IWORD + INOUN1, TC_ROOM},
+        {"room1", IWORD + INOUN1, TC_ROOM},      {"number", IWORD + INOUN1, WC_NUMBER},
+        {"number1", IWORD + INOUN1, WC_NUMBER},  {"prep", IWORD + IPREP, TC_PREP},
+        {"adj2", IWORD + IADJ2, TC_ADJ},         {"noun2", IWORD + INOUN2, TC_NOUN},
+        {"player2", IWORD + INOUN2, TC_PLAYER},  {"text2", IWORD + INOUN2, TC_TEXT},
+        {"room2", IWORD + INOUN2, TC_ROOM},      {"locate", MEPRM + LOCATE, TC_NOUN},
+        {"me", MEPRM + SELF, TC_PLAYER},         {"here", MEPRM + HERE, TC_ROOM},
+        {"myrank", MEPRM + RANK, WC_NUMBER},     {"friend", MEPRM + FRIEND, TC_PLAYER},
+        {"helper", MEPRM + HELPER, TC_PLAYER},   {"enemy", MEPRM + ENEMY, TC_PLAYER},
+        {"weapon", MEPRM + WEAPON, TC_NOUN},     {"myscore", MEPRM + SCORE, WC_NUMBER},
+        {"mysctg", MEPRM + SCTG, WC_NUMBER},     {"mystr", MEPRM + STR, WC_NUMBER},
+        {"lastroom", MEPRM + LASTROOM, TC_ROOM}, {"lastdir", MEPRM + LASTDIR, TC_VERB},
+        {"lastverb", MEPRM + LASTVB, TC_VERB}};
 
 const char *obputs[NPUTS] = {
         "In",
