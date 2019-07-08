@@ -120,8 +120,10 @@ chkp(const char *p, char t, int c, int z, FILE *fp) noexcept
         p = end;
     } else {
         const char *endquote = strstop(p + 1, *p);  // look for matching close quote
-        token.assign(p + 1, endquote);
-        p = endquote + 1;
+        if (*endquote == *p)
+            ++endquote;
+        token.assign(p, endquote);
+        p = endquote;
     }
 
     const char *start = token.c_str();
