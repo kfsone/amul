@@ -85,6 +85,40 @@ CXBRK()
 
 	/*---------------------------------------------------------*/
 
+
+const char *
+getword(const char *from)
+{
+    char *to = Word;
+    *to = 0;
+    from = skipspc(from);
+    for (const char* end = Word + sizeof(Word) - 1; to < end; ++to, ++from) {
+        char c = *to = tolower(*from);
+        if (c == ' ' || c == '\t') {
+            c = *to = 0;
+        }
+        if (c == 0) {
+            goto broke;
+        }
+    }
+
+    // overflowed 'Word', add a trailing '\0' and drain remaining characters.
+    *to = 0;
+    for (;;) {
+        switch (*from) {
+        case 0:
+        case ';':
+        case ' ':
+        case '\t': goto broke;
+        default: ++from;
+        }
+    }
+
+broke:
+    return from;
+}
+
+
 close_ofps()
 {
 	if(ofp1!=NULL)fclose(ofp1);

@@ -1,5 +1,7 @@
 #ifndef H_AMUL_STCT_H
 #define H_AMUL_STCT_H 1
+#include "h/amul.defs.h"
+
 struct	_PLAYER			/* Player def struct */
 {
 	char	name[NAMEL+1];			/* Player's name	 */
