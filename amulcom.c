@@ -36,6 +36,10 @@
 #include "h/amul.vars.h"		/* all INTERNAL variables       */
 #include "h/amul.lnks.h"		/* (external) Linkage symbols   */
 #include "h/amul.cons.h"		/* Predefined Constants etc     */
+#include "h/amul.xtra.h"
+
+#include <stdlib.h>
+#include <time.h>
 
 /* Compiler specific variables... */
 
@@ -49,8 +53,7 @@ int	warn=1;				/* Display warnings?		*/
 char	Word[64],c;			/* For internal use only <grin>	*/
 int	err;				/* Error count			*/
 int	proc;				/* What we are processing	*/
-long	clock;				/* Bits for time etc		*/
-long	ohd;				/* Output handle for direct dos	*/
+long	startTime;			/* Bits for time etc		*/
 char	*data;				/* Pointer to data buffer	*/
 char	*data2;				/* Secondary buffer area	*/
 char	*syntab;			/* Synonym table, re-read	*/
@@ -58,7 +61,7 @@ char	idt[IDL+1];			/* Temporary ID store		*/
 long	datal,datal2,mins;		/* Length of data! & gametime	*/
 long	obmem;				/* Size of Objects.TXT		*/
 long	vbmem;				/* Size of Lang.Txt		*/
-long	invis, invis2;			/* Invisibility Stuff		*/
+int	invis, invis2;			/* Invisibility Stuff		*/
 long	wizstr;				/* Wizards strength		*/
 char	*mobdat,*px;			/* Mobile data			*/
 long	moblen;				/* Length			*/
@@ -71,12 +74,26 @@ struct UMSG
 	long	fpos;
 }umsg;
 
-char	fnm[150],was[128],*getword(char *),*skipspc(char *),*sgetl(char *,char *),*skiplead(char *,char *);
-char	*skipline(char *);
+char	fnm[150],was[128];
 FILE	*ofp5;
 
 struct _OBJ_STRUCT2 *obtab2,*objtab2,obj2,*osrch,*osrch2;
 
+#if defined(_AMIGA_)
+long	ohd;				/* Output handle for direct dos	*/
+#endif
+
+void quit();
+
+///////////////////////////////////////////////////////////////////////////////
+
+static inline void
+tx(const char* text)
+{
+	printf("%s", text);
+}
+
+void
 CXBRK()
 {
 	tx("\n[42m** Break pressed - memory released, files closed! Tata!\n\n[0m");
@@ -119,6 +136,7 @@ broke:
 }
 
 
+void
 close_ofps()
 {
 	if(ofp1!=NULL)fclose(ofp1);
@@ -130,6 +148,7 @@ close_ofps()
 	ofp1=ofp2=ofp3=ofp4=ofp5=afp=NULL;
 }
 
+char
 nextc(int f)			/* Find the next real stuff in file */
 {
 	do
@@ -148,6 +167,7 @@ nextc(int f)			/* Find the next real stuff in file */
 	return 0;
 }
 
+void
 quit()
 {
 	if(exi!=1)
@@ -158,18 +178,33 @@ quit()
 	unlink("ram:ODIDs");
 	unlink("ram:umsg.tmp");
 	unlink("ram:objh.tmp");
-	if(mobdat)   FreeMem(mobdat,moblen); mobdat=NULL;
-	if(mobp)     FreeMem(mobp,sizeof(mob)*mobchars); mobp=NULL;
-	if(rmtab!=0) FreeMem(rmtab,sizeof(room)*rooms); rmtab=NULL;
-	if(data!=0)  FreeMem(data, datal); data=NULL;
-	if(data2!=0) FreeMem(data2,datal2);data2=NULL;
-	if(obtab2!=0) FreeMem(obtab2,obmem); obtab2=NULL;
-	if(vbtab!=0) FreeMem(vbtab,vbmem); vbtab=NULL;
-	if(ifp!=NULL)fclose(ifp); ifp=NULL;
+	if(mobdat)   FreeMem(mobdat,moblen);
+	mobdat=NULL;
+	if(mobp)     FreeMem(mobp,sizeof(mob)*mobchars);
+	mobp=NULL;
+	if(rmtab!=0) FreeMem(rmtab,sizeof(room)*rooms);
+	rmtab=NULL;
+	if(data!=0)  FreeMem(data, datal);
+	data=NULL;
+	if(data2!=0) FreeMem(data2,datal2);
+	data2=NULL;
+	if(obtab2!=0) FreeMem(obtab2,obmem);
+	obtab2=NULL;
+	if(vbtab!=0) FreeMem(vbtab,vbmem);
+	vbtab=NULL;
+	if(ifp!=NULL)fclose(ifp);
+	ifp=NULL;
 	close_ofps();
 	exit(0);
 }
 
+void
+Err(char *s,char *t)
+{
+	printf("## Error!\x07\nCan't %s %s!\n\n",s,t); quit();
+}
+
+void
 fopenw(char *s)		/* Open file for reading */
 {
 	FILE *tfp;
@@ -177,18 +212,18 @@ fopenw(char *s)		/* Open file for reading */
 	else sprintf(fnm,"%s%s",dir,s);
 	if((tfp=fopen(fnm,"wb"))==NULL) Err("write",fnm);
 	if(ofp1==NULL)ofp1=tfp; else if(ofp2==NULL)ofp2=tfp; else if(ofp3==NULL) ofp3=tfp; else if(ofp4==NULL) ofp4=tfp; else ofp5=tfp;
-	return NULL;
 }
 
+void
 fopena(char *s)		/* Open file for appending */
 {
 	if(afp!=NULL) fclose(afp);
 	if(*s=='-') strcpy(fnm,s+1);
 	else sprintf(fnm,"%s%s",dir,s);
 	if((afp=fopen(fnm,"rb+"))==NULL) Err("create",fnm);
-	return NULL;
 }
 
+void
 fopenr(char *s)		/* Open file for reading */
 {
 	if(ifp!=NULL) fclose(ifp);
@@ -197,37 +232,24 @@ fopenr(char *s)		/* Open file for reading */
 	if((ifp=fopen(fnm,"rb"))==NULL) Err("open",fnm);
 }
 
-Err(char *s,char *t)
-{
-	printf("## Error!\x07\nCan't %s %s!\n\n",s,t); quit();
-}
-
-rfopen(s)		/* Open file for reading */
-char *s;
+FILE*
+rfopen(const char *s)		/* Open file for reading */
 {	FILE *fp;
 
 	if(*s!='-') sprintf(fnm,"%s%s",dir,s);
 	else strcpy(fnm,s+1);
 	if((fp=fopen(fnm,"rb"))==NULL) Err("open",fnm);
-	return (long)fp;
+	return fp;
 }
 
+void
 ttroomupdate()		/* Update room entries after TT */
 {
 	fseek(afp,0,0L);
 	fwrite(rmtab->id,sizeof(room),rooms,afp);
 }
 
-oneword(char *s)		/* Cut one word out of a string */
-{
-	char *p;
-	p=s;
-	while(isspace(*s) && *s!=0) s++;
-	*p=0; if(*s==0) return 0;
-	while(!isspace(*s) && *s!=0) *(p++)=*(s++);
-	*p=0;
-}
-
+void
 opentxt(char *s)
 {
 	sprintf(block,"%s%s.TXT",dir,s);
@@ -238,21 +260,33 @@ opentxt(char *s)
 	}
 }
 
+void
 skipblock()
 {	char c,lc;
 
 	lc=0; c='\n';
-	while(c!=EOF && !(c==lc=='\n')) { lc=c; c=fgetc(ifp); }
+	while(c!=EOF && !(c==lc && lc=='\n')) { lc=c; c=fgetc(ifp); }
 }
 
-tidy(char *s)
+void
+tidy(char *ptr)
 {
-	repspc(s); remspc(s);
-loop:	if(isspace(*(s+strlen(s)-1))) {*(s+strlen(s)-1)=0; goto loop;}
+    char *lastNonSpace = NULL;
+    while (*ptr) {
+        if (*ptr == '\t' || *ptr == '\r')
+            *ptr = ' ';
+        if (!isspace(*ptr))
+            lastNonSpace = ptr;
+        ++ptr;
+    }
+    if (lastNonSpace)
+        *(lastNonSpace + 1) = 0;
 }
 
+
+int
 is_verb(char *s)
-{	register int i;
+{	int i;
 
 	if(verbs==0 || strlen(s) > IDL) { printf("@! illegal verb.\n"); return -1; }
 
@@ -266,6 +300,16 @@ is_verb(char *s)
 	return -1;
 }
 
+long
+filesize()			/* Return size of current file */
+{	long now,s;
+
+	now=ftell(ifp); fseek(ifp,0,2L); s=ftell(ifp)-now;
+	fseek(ifp,now,0L);
+	return s+2;			/* Just for luck! */
+}
+
+void
 blkget(long *s,char **p,long off)
 {
 	*s=filesize()+off;
@@ -277,14 +321,147 @@ blkget(long *s,char **p,long off)
 	repcrlf((*p)+off);
 }
 
-long filesize()			/* Return size of current file */
-{	register long now,s;
-
-	now=ftell(ifp); fseek(ifp,0,2L); s=ftell(ifp)-now;
-	fseek(ifp,now,0L);
-	return s+2;			/* Just for luck! */
+int
+isrflag(const char *s)			/* Check to see if s is a room flag */
+{
+	int	_x;
+	for(_x=0;_x<NRFLAGS;_x++)
+		if(strcmp(s,rflag[_x])==0) return _x;
+	return -1;
 }
 
+int
+isroom(const char *s)
+{
+	int r;
+	roomtab=rmtab;
+	for(r=0;r<rooms;r++)
+		if(strcmp(roomtab->id,s)==0) return r;
+		else roomtab++;
+	return -1;
+}
+
+int
+isoflag1(const char *s)		/* Is it a FIXED object flag? */
+{
+	int i;
+	for(i=0;i<NOFLAGS;i++)
+		if(strcmp(obflags1[i],s)==NULL) return i;
+	return -1;
+}
+
+int
+isoparm()			/* Is it an object parameter? */
+{
+	int i;
+	for(i=0;i<NOPARMS;i++)
+		if(striplead(obparms[i],Word)) return i;
+	return -1;
+}
+
+int
+isoflag2(const char *s)		/* Is it a state flag? */
+{
+	int i;
+	for(i=0;i<NSFLAGS;i++)
+		if(strcmp(obflags2[i],s)==NULL) return i;
+	return -1;
+}
+
+void
+set_adj()
+{	int i;
+
+	if(strlen(Word)>IDL || strlen(Word)<3)
+	{
+		printf("\nInvalid adjective '%s'!\n\n\x07",Word);
+		quit();
+	}
+	if(adjs==0)
+	{
+		for(i=0;i<IDL+1;i++) dmove[i]=0; strcpy(dmove,Word);
+		obj2.adj=0; fwrite(dmove,IDL+1,1,afp); adjs++; return;
+	}
+	fseek(afp,0L,0);	/* Move to beginning */
+	i=0;
+	do
+	{
+		if(fread(dmove,IDL+1,1,afp)!=1) continue;/* Read adj! */
+		if(strcmp(Word,dmove)==NULL) { obj2.adj=i; return; }
+		i++;
+	} while(!feof(afp));
+	for(i=0;i<IDL+1;i++) dmove[i]=0; strcpy(dmove,Word);
+	fseek(afp,0L,2);	/* Move to end! */
+	fwrite(dmove,IDL+1,1,afp);	/* Add this adjective */
+	obj2.adj=adjs++;
+}
+
+void
+object(char *s)
+{
+	printf("\nObject #%d \"%s\" has invalid %s, '%s'!\n",nouns+1,obj2.id,s,Word);
+	quit();
+}
+
+void
+set_start()
+{
+	if(!isdigit(Word[0])) object("start state");
+	obj2.state=atoi(Word);
+	if(obj2.state<0 || obj2.state>100) object("start state");
+}
+
+void
+set_holds()
+{
+	if(!isdigit(Word[0])) object("holds= value");
+	obj2.contains=atoi(Word);
+	if(obj2.contains<0 || obj2.contains>1000000) object("holds= state");
+}
+
+void
+set_put()
+{	int i;
+
+	for(i=0;i<NPUTS;i++)
+		if(stricmp(obputs[i],Word)==NULL) { obj2.putto=i; return; }
+	object("put= flag");
+}
+
+void
+set_mob()
+{	int i;
+	for(i=0; i<mobchars; i++) if(stricmp(Word,(mobp+i)->id)==NULL) { obj2.mobile=i; return; }
+	object("mobile= flag");
+}
+
+int
+iscond(char *s)
+{	int i;
+	for(i=0; i<NCONDS; i++)
+		if(strcmp(conds[i],s)==0) return i;
+	return -1;
+}
+
+int
+isact(char *s)
+{	int i;
+	for(i=0; i<NACTS; i++)
+		if(strcmp(acts[i],s)==0) return i;
+	return -1;
+}
+
+int
+isprep(char *s)
+{	int i;
+	for(i=0; i<NPREP; i++)
+		if(strcmp(s,prep[i])==0) return i;
+	return -1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void
 room_proc()			/*=* Process ROOMS.TXT *=*/
 {
 	char	lastc,*p,*p2;
@@ -352,7 +529,7 @@ room_proc()			/*=* Process ROOMS.TXT *=*/
 	close_ofps();
 }
 
-
+void
 checkdmoves()
 {
 	int n;
@@ -379,6 +556,7 @@ checkdmoves()
 	if(dchk==-1) quit(0*tx("\nCompile failed due to invalid DMOVE flags!\n"));
 }
 
+void
 rank_proc()			/*=* Process RANKS.TXT *=*/
 {
 	char	*p; int	n;
@@ -393,7 +571,8 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 	{
 		fgets(block,1024,ifp); if(feof(ifp)) continue;
 		if(com(block)==-1 || block[0]=='\n') continue;
-		tidy(block); if(block[0]==0) continue;
+		tidy(block);
+		if(block[0]==0) continue;
 		p=getword(block); if(chkline(p)!=0) continue;
 		ranks++; rank.male[0]=0; rank.female[0]=0;
 		if(strlen(Word)<3 || strlen(Word)>RANKL)
@@ -537,15 +716,19 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 	close_ofps();
 }
 
+bool
 chkline(char *p)
 {
 	if(*p==0)
 	{
 		printf("## Rank line %ld incomplete!!!\n",ranks);
-		err++; return 1;
+		err++;
+		return false;
 	}
-	return 0;
+	return true;
 }
+
+void
 obds_proc()
 {	char	lastc;
 
@@ -582,8 +765,10 @@ obds_proc()
 	}
 	close_ofps();
 }
+
+bool
 objs_proc()
-{	register char *p,*s; int roomno;
+{	char *p,*s; int roomno;
 
 	nouns=adjs=err=0;
 
@@ -591,7 +776,7 @@ objs_proc()
 	fopenw(adjfn); close_ofps();
 	fopenw(objsfn); fopenw(statfn); fopenw(objrmsfn); fopena(adjfn);
 
-	if(nextc(0)==-1) { close_ofps(); return 0; } /* Nothing to process */
+	if(nextc(0)==-1) { close_ofps(); return false; } /* Nothing to process */
 	blkget(&obmem,(char **)&obtab2,32*sizeof(obj2)); objtab2=obtab2+32;
 	s=(char *)objtab2;
 
@@ -602,7 +787,7 @@ objs_proc()
 			printf("\x07** Maximum number of errors exceeded!\n");
 			quit();
 		}
-		do p=s=sgetl(s,block); while(*s!=0 && (com(block)==-1 || block[0]==0));
+		do p=s=extractLine(s,block); while(*s!=0 && (com(block)==-1 || block[0]==0));
 		if(*s==0 || block[0]==0) continue;
 		tidy(block); if(block[0]==0) continue;
 		striplead("noun=",block); p=getword(block);
@@ -649,7 +834,7 @@ objs_proc()
 			p=getword(p);
 			if(Word[0] == '+')
 			{
-				do s=sgetl(s,block); while(*s!=0 && block[0]!=0 && com(block)==-1);
+				do s=extractLine(s,block); while(*s!=0 && block[0]!=0 && com(block)==-1);
 				if(*s==0)
 				{
 					printf("** Unexpected end of file in Objects.TXT!\n");
@@ -670,7 +855,7 @@ objs_proc()
 		obj2.nstates=0;
 		do
 		{
-			do s=sgetl(s,block); while(block[0]!=0 && com(block)==-1 && block[0]!='\n');
+			do s=extractLine(s,block); while(block[0]!=0 && com(block)==-1 && block[0]!='\n');
 			if(block[0] == 0 || block[0]=='\n') break;
 			state_proc(); block[0]='-';
 		} while(block[0]!=0 && block[0]!='\n');
@@ -690,11 +875,13 @@ objs_proc()
 	*/
 	fwrite((char *)obtab2,sizeof(obj2),nouns,ofp1);
 	close_ofps();
+	return false;
 }
 
 /*
+void
 sort_objs()
-{	register int i,j,k,nts; long *rmtab,*rmptr;
+{	int i,j,k,nts; long *rmtab,*rmptr;
 
 	if(ifp!=NULL) fclose(ifp); ifp=NULL;
 	close_ofps(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
@@ -739,14 +926,16 @@ sort_objs()
 }
 */
 
-statinv(register char *s)
+void
+statinv(char *s)
 {
 	printf("\nObject #%d \"%s\" has invalid %s state line!\n",nouns+1,obj2.id,s,block);
 	quit();
 }
 
+void
 state_proc()
-{	register int flag; register char *p;
+{	int flag; char *p;
 
 	state.weight=state.value=state.flags=0; state.descrip=-1;
 
@@ -799,8 +988,9 @@ state_proc()
 	obj2.nstates++;
 }
 
+void
 is_desid()
-{	register int i; register FILE *fp;
+{	int i; FILE *fp;
 	if(stricmp(Word,"none")==NULL) return state.descrip=-2;
 	if((fp=fopen("ram:ODIDs","rb+"))==NULL) Err("open","ram:ODIDs");
 	for(i=0;i<obdes;i++)
@@ -814,7 +1004,8 @@ is_desid()
 	fclose(fp); state.descrip=-1;
 }
 
-text_id(register char *p,register char c)
+void
+text_id(char *p,char c)
 {	char *ptr; FILE *fp;
 
 	strcpy(block,p); p=block;
@@ -830,8 +1021,9 @@ text_id(register char *p,register char c)
 	fputc(0,fp); strcpy(block,p); fclose(fp);
 }
 
-isnoun(register char *s)
-{	register int i;
+int
+isnoun(char *s)
+{	int i;
 
 	objtab2=obtab2;
 	if(stricmp(s,"none")==NULL) return -2;
@@ -840,8 +1032,9 @@ isnoun(register char *s)
 	return -1;
 }
 
-iscont(register char *s)
-{	register int i;
+int
+iscont(char *s)
+{	int i;
 
 	objtab2=obtab2;
 	for(i=0; i<nouns; i++,objtab2++)
@@ -849,8 +1042,9 @@ iscont(register char *s)
 	return -1;
 }
 
-isloc(register char *s)		/* Room or container */
-{	register int i;
+int
+isloc(char *s)		/* Room or container */
+{	int i;
 
 	if((i = isroom(s)) != -1) return i;
 	if((i = iscont(s)) == -1)
@@ -864,6 +1058,8 @@ isloc(register char *s)		/* Room or container */
 
 	return -(INS+i);
 }
+
+void
 title_proc()
 {
 	nextc(1);	fgets(block,1000,ifp); repspc(block); remspc(block);
@@ -909,6 +1105,7 @@ title_proc()
 	}
 }
 
+int
 getno(char *s)
 {	char *p;
 	remspc(block);
@@ -923,8 +1120,10 @@ getno(char *s)
 	}
 	return atoi(Word);
 }
-char *precon(register char *s)
-{	register char *s2;
+
+char *
+precon(char *s)
+{	char *s2;
 
 	s2=s;
 
@@ -935,7 +1134,8 @@ char *precon(register char *s)
 	return s;
 }
 
-char *preact(register char *s)
+char *
+preact(char *s)
 {	char *s2;
 
 	s2=s;
@@ -946,8 +1146,9 @@ char *preact(register char *s)
 	return s;
 }
 
-long chknum(char *p)
-{	register long n;
+long
+chknum(char *p)
+{	long n;
 
 	if(!isdigit(*p) && !isdigit(*(p+1))) return -1000001;
 	if(*p=='>' || *p=='<' || *p=='-' || *p=='=') n=atoi(p+1);
@@ -963,8 +1164,9 @@ long chknum(char *p)
 	return n;
 }
 
-char *optis(char *p)
-{	register char *p2;
+char *
+optis(char *p)
+{	char *p2;
 	p2=p;
 
 	p=skiplead("the ",p); p=skiplead("of ",p); p=skiplead("are ",p);
@@ -976,7 +1178,8 @@ char *optis(char *p)
 	return p;
 }
 
-char *chkp(char *p,char t,int c,int z,FILE *fp)
+char *
+chkp(char *p,char t,int c,int z,FILE *fp)
 {	char qc,*p2; long x;
 
 	p=optis(p); p2=(p=skipspc(p));	/*=* Strip crap out *=*/
@@ -1049,6 +1252,7 @@ write:	fwrite((char *)&x,4,1,fp); FPos+=4;	/* Writes a LONG */
 	*p=32; return skipspc(p);
 }
 
+int
 isgen(char c)
 {
 	if(c=='M') return 0;
@@ -1056,6 +1260,7 @@ isgen(char c)
 	return -1;
 }
 
+int
 antype(char *s)
 {
 	if(strcmp(s,"global")==NULL) return AGLOBAL;
@@ -1068,8 +1273,9 @@ antype(char *s)
 	return -1;
 }
 
+int
 isnounh(char *s)	/* Test noun state, checking rooms */
-{	register int i,l,j; FILE *fp; long orm;
+{	int i,l,j; FILE *fp; long orm;
 
 	if(stricmp(s,"none")==NULL) return -2;
 	fp=(FILE *)rfopen(objrmsfn); l=-1; objtab2=obtab2;
@@ -1092,6 +1298,7 @@ isnounh(char *s)	/* Test noun state, checking rooms */
 	fclose(fp); return l;
 }
 
+int
 rdmode(char c)
 {
 	if(c == 'R') return RDRC;
@@ -1100,7 +1307,8 @@ rdmode(char c)
 	return -1;
 }
 
-spell(register char *s)
+int
+spell(char *s)
 {
 	if(strcmp(s,"glow")==NULL) return SGLOW;
 	if(strcmp(s,"invis")==NULL)return SINVIS;
@@ -1113,7 +1321,8 @@ spell(register char *s)
 	return -1;
 }
 
-stat(register char *s)
+int
+stat(char *s)
 {
 	if(strcmp(s,"sctg")==NULL) return STSCTG;
 	if(strncmp(s,"sc",2)==NULL) return STSCORE;
@@ -1127,6 +1336,7 @@ stat(register char *s)
 	return -1;
 }
 
+int
 bvmode(char c)
 {
 	if(c=='V') return TYPEV;
@@ -1134,7 +1344,8 @@ bvmode(char c)
 	return -1;
 }
 
-char *chkaparms(char *p,int c,FILE *fp)
+char *
+chkaparms(char *p,int c,FILE *fp)
 {	int i;
 
 	if(nacp[c]==0) return p;
@@ -1143,7 +1354,8 @@ char *chkaparms(char *p,int c,FILE *fp)
 	return p;
 }
 
-char *chkcparms(char *p,int c,FILE *fp)
+char *
+chkcparms(char *p,int c,FILE *fp)
 {	int i;
 
 	if(ncop[c]==0) return p;
@@ -1152,11 +1364,13 @@ char *chkcparms(char *p,int c,FILE *fp)
 	return p;
 }
 
+int
 onoff(char *p)
 {
 	if(stricmp(p,"on")==NULL || stricmp(p,"yes")==NULL) return 1;
 	return 0;
 }
+
 /*
      Travel Processing Routines for AMUL, Copyright (C) Oliver Smith, '90
      --------------------------------------------------------------------
@@ -1164,10 +1378,11 @@ onoff(char *p)
 */
 
 
+void
 trav_proc()			/*=* Process TRAVEL.TXT *=*/
 {
-	register int strip,lines,nvbs,i,ntt,t,r;
-	register char *p; register long *l;
+	int strip,lines,nvbs,i,ntt,t,r;
+	char *p; long *l;
 
 	nextc(1);		/* Move to first text */
 	fopenw(ttfn); fopenw(ttpfn); fopena(rooms1fn);
@@ -1323,11 +1538,12 @@ next:			strip=0;
 }
 /* Lang.TXT processor */
 
+void
 lang_proc()			/*=* Process LANG.TXT *=*/
 {
-	register char	lastc,*p,*p2,*s1,*s2;
+	char	lastc,*p,*p2,*s1,*s2;
 	/* n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2) */
-	register int	n,cs,s,r;
+	int	n,cs,s,r;
 	unsigned long	of2p,of3p;
 
 	err=0; verbs=0; nextc(1);
@@ -1346,7 +1562,7 @@ lang_proc()			/*=* Process LANG.TXT *=*/
 			quit();
 		}
 		verbs++; p=block;
-loop:		do { s1=sgetl((s2=s1),block); *(s1-1)=0; } while(com(block)==-1 && *s1!=0);
+loop:		do { s1=extractLine((s2=s1),block); *(s1-1)=0; } while(com(block)==-1 && *s1!=0);
 		if(*s1==0) { verbs--; break; }
 		tidy(block); if(block[0]==0) goto loop;
 		p=skiplead("verb=",block); p=getword(p);
@@ -1357,7 +1573,7 @@ loop:		do { s1=sgetl((s2=s1),block); *(s1-1)=0; } while(com(block)==-1 && *s1!=0
 		if(strlen(Word)>IDL)
 		{
 			printf("\x07 Invalid verb ID: \"%s\"",Word); err++;
-			do { s1=sgetl((s2=s1),block); *(s1-1)=0; } while(*s1!=0 && block[0]!=0);
+			do { s1=extractLine((s2=s1),block); *(s1-1)=0; } while(*s1!=0 && block[0]!=0);
 			if(*s1==0) break;
 			goto loop;
 		}
@@ -1385,7 +1601,7 @@ loop:		do { s1=sgetl((s2=s1),block); *(s1-1)=0; } while(com(block)==-1 && *s1!=0
 
 noflags:	verb.ents=0; verb.ptr=(struct _SLOTTAB *)of2p;
 
-stuffloop:	do { s2=s1; s1=sgetl(s1,block); *(s1-1)=0; } while(*s1!=0 && block[0]!=0 && com(block)==-1);
+stuffloop:	do { s2=s1; s1=extractLine(s1,block); *(s1-1)=0; } while(*s1!=0 && block[0]!=0 && com(block)==-1);
 		if(*s1==0 || block[0]==0)
 		{
 			if(verb.ents==0 && (verb.flags & VB_TRAVEL)) printf("!! \x07Verb \"%s\" has no entries!\n",verb.id);
@@ -1535,7 +1751,7 @@ endsynt:	vbslot.ents=0; vbslot.ptr=(struct _VBTAB *)of3p;
 
 commands:	lastc='x'; proc=0;
 
-		do { s2=s1; s1=sgetl(s1,block); *(s1-1)=0; } while(*s1!=0 && block[0]!=0 && com(block)==-1);
+		do { s2=s1; s1=extractLine(s1,block); *(s1-1)=0; } while(*s1!=0 && block[0]!=0 && com(block)==-1);
 		if(block[0]==0 || *s1==0) { lastc=1; goto writeslot; }
 		tidy(block);
 		if((p=skiplead("syntax=",block))!=block) { lastc=0; goto writeslot; }
@@ -1615,8 +1831,9 @@ write:		fwrite(verb.id,sizeof(verb),1,ofp1); proc=0;
 	close_ofps();
 }
 
-chae_proc(register char *f,register char *t)	/* From and To */
-{	register int n;
+int
+chae_proc(char *f,char *t)	/* From and To */
+{	int n;
 
 	if(*f<'0' || *f>'9' && *f!='?') { chae_err(); return -1; }
 
@@ -1636,18 +1853,21 @@ chae_proc(register char *f,register char *t)	/* From and To */
 
 	return 0;
 }
-	
+
+void
 chae_err(char *p)
 {
 	printf("\x07## Invalid '#CHAE' flags, \"%s\" in verb %s.\n",Word,verb.id); err++;
 }
 
+void
 setslots(unsigned char i)		/* Set the VT slots */
 {
 	vbslot.wtype[0]=WANY; vbslot.wtype[1]=i; vbslot.wtype[2]=i; vbslot.wtype[3]=WANY; vbslot.wtype[4]=i;
 	vbslot.slot[0]=vbslot.slot[1]=vbslot.slot[2]=vbslot.slot[3]=vbslot.slot[4]=WANY;
 }
 
+int
 iswtype(char *s)		/* Is 'text' a ptype */
 {	int i;
 
@@ -1661,6 +1881,7 @@ iswtype(char *s)		/* Is 'text' a ptype */
 	return -3;
 }
 
+void
 vbprob(char *s,char *s2)	/* Declare a PROBLEM, and which verb its in! */
 {
 	printf("## Verb %s: line '%s'\n%s!\n",verb.id,s2,s); err++;
@@ -1679,8 +1900,9 @@ will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
 structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
 the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
 user is refering too.							     */
+int
 actualval(char *s,int n)	/* Get actual value! */
-{	register int i;
+{	int i;
 
 	if(n!=-70 && (*s=='?' || *s=='%' || *s=='^' || *s=='~' || *s=='\`'))
 	{
@@ -1730,20 +1952,22 @@ actualval(char *s,int n)	/* Get actual value! */
 	}
 	return -2;		/* It was no actual! */
 }
+
+bool
 umsg_proc()
-{	register char *s;
+{	char *s;
 
 	err=umsgs=0;
 	fopenw("-ram:umsg.tmp"); close_ofps();
 	fopena(umsgifn); ofp1=afp; afp=NULL; fseek(ofp1,0,2L);
 	fopena(umsgfn);  ofp2=afp; afp=NULL; fseek(ofp2,0,2L);
 	fopena("-ram:umsg.tmp");
-	if(nextc(0)==-1) { close_ofps(); return 0; }	/* None to process */
+	if(nextc(0)==-1) { close_ofps(); return false; }	/* None to process */
 	blkget(&datal,&data,0L); s=data;
 
 	do
 	{
-loop:		do s=sgetl(s,block); while(com(block)==-1 && *s!=0);
+loop:		do s=extractLine(s,block); while(com(block)==-1 && *s!=0);
 		if(*s==0) break;
 		tidy(block); if(block[0]==0) goto loop;
 		striplead("msgid=",block); getword(block);
@@ -1769,7 +1993,7 @@ loop:		do s=sgetl(s,block); while(com(block)==-1 && *s!=0);
 			while(*s!=0 && com(s)==-1) s=skipline(s);
 			if(*s==0 || *s==13) { *s=0; break; }
 			if(*s==9) s++; if(*s==13) { block[0]=13; continue; }
-			s=sgetl(s,block); if(block[0]==0) break;
+			s=extractLine(s,block); if(block[0]==0) break;
 			umsg.fpos=strlen(block);
 			if(block[umsg.fpos-1]=='{') block[--umsg.fpos]=0;
 			else strcat(block+(umsg.fpos++)-1,"\n");
@@ -1784,10 +2008,13 @@ loop:		do s=sgetl(s,block); while(com(block)==-1 && *s!=0);
 		printf("\n\n!! Aborting due to %ld errors !!\n\n",err);
 		quit();
 	}
+
+	return true;
 }
 
+int
 isumsg(char *s, FILE *fp)	/* Check FP for umsg id! */
-{	register int i;
+{	int i;
 
 	if(*s=='$')
 	{
@@ -1809,13 +2036,15 @@ isumsg(char *s, FILE *fp)	/* Check FP for umsg id! */
 	return -1;
 }
 
-ttumsgchk(register char *s)
+int
+ttumsgchk(char *s)
 {
 	s=skiplead("msgid=",s); s=skiplead("msgtext=",s); s=skipspc(s);
 	if(*s=='\"' || *s=='\'') return msgline(s+1);
 	return chkumsg(s);
 }
 
+int
 chkumsg(char *s)
 {	int r; FILE *fp;
 
@@ -1830,6 +2059,7 @@ chkumsg(char *s)
 	return r;
 }
 
+int
 msgline(char *s)
 {
 	FILE *fp; long pos; char c;
@@ -1855,8 +2085,9 @@ msgline(char *s)
 
 */
 
+void
 smsg_proc()
-{	register char	*s;	register long id; long pos;
+{	char	*s;	long id; long pos;
 
 	err=smsgs=0;
 
@@ -1867,7 +2098,7 @@ smsg_proc()
 
 	do
 	{
-loop:		s=sgetl(s,block);
+loop:		s=extractLine(s,block);
 		if(com(block)==-1) goto loop;
 		tidy(block); if(block[0]==0) continue;
 		striplead("msgid=",block); getword(block);
@@ -1895,7 +2126,7 @@ loop:		s=sgetl(s,block);
 			while(*s!=0 && com(s)==-1) s=skipline(s);
 			if(*s==0 || *s==13) { *s=0; break; }
 			if(*s==9) s++; if(*s==13) { block[0]=13; continue; }
-			s=sgetl(s,block); if(block[0]==0) break;
+			s=extractLine(s,block); if(block[0]==0) break;
 			pos=strlen(block);
 			if(block[pos-1]=='{') block[--pos]=0;
 			else strcat(block+(pos++)-1,"\n");
@@ -1912,8 +2143,9 @@ loop:		s=sgetl(s,block);
 	Routines to process/handle Synonyms
 						*/
 
+void
 syn_proc()
-{	register char *s,*t; short int no; register short int x;
+{	char *s,*t; short int no; short int x;
 
 	err=syns=0;	if(nextc(0)==-1) return;
 	fopenw(synsfn); fopenw(synsifn);
@@ -1922,7 +2154,7 @@ syn_proc()
 
 	do
 	{
-		do s=sgetl(s,block); while(com(block)==-1);
+		do s=extractLine(s,block); while(com(block)==-1);
 
 		tidy(block); if(block[0]==0) continue;
 		t=getword(block); t=skipspc(t);
@@ -1956,8 +2188,39 @@ syn_proc()
 
 	/*=* Pass 1: Indexes mobile names *=*/
 
+void
+mobmis(char *s)
+{
+	printf("## Mobile '%s': missing %s field.\n",mob.id,s); err++;
+	skipblock();
+}
+
+int
+badmobend()
+{
+	return -1;
+}
+
+/*=* Fetch mobile message line *=*/
+int
+getmobmsg(char *s)
+{	char *q; int n;
+
+loop:	if(com(px)==-1) { px=skipline(px); goto loop; }
+	if(*px==0 || *px==13 || *px==10) { err++; printf("## Mobile '%s': Unexpected end of mobile!\n"); return -1; }
+	px=skipspc(px); if(*px==0 || *px==13 || *px==10) goto loop;
+
+	if((q=skiplead(s,px))==px) { mobmis(s); err++; return -1; }
+	if(toupper(*q)=='N') { px=skipline(px); return -2; }
+	n=ttumsgchk(q); px=skipline(px); if(n==-1) { printf("## Mobile '%s': Bad text on '%s' line!\n",mob.id,s); err++; }
+	return n;
+}
+	/*=* Pass 2: Indexes commands mobiles have access to *=*/
+
+
+void
 mob_proc1()
-{	register char	*p,*s1,*s2; register long n;
+{	char	*p,*s1,*s2; long n;
 
 	err=0; mobchars=0;
 	fopenw(mobfn); if(nextc(0)==-1) return;
@@ -1967,7 +2230,7 @@ mob_proc1()
 	do
 	{
 ldo:		while(*p!=0 && *p!='!') p=skipline(p); if(*p==0) break;
-		p=sgetl(p,block);
+		p=extractLine(p,block);
 		mobchars++; s1=getword(block+1);
 		strcpy(mob.id,Word);
 		do
@@ -1989,7 +2252,7 @@ ldo:		while(*p!=0 && *p!='!') p=skipline(p); if(*p==0) break;
 			}
 		} while(*s1!=0 && *s1!=';' && Word[0]!=0);
 
-		p=sgetl(p,block); tidy(block); s1=block; mob.dmove=-1;
+		p=extractLine(p,block); tidy(block); s1=block; mob.dmove=-1;
 
 		if((s2=skiplead("speed=",s1))==s1) { mobmis("speed="); continue; }
 		s1=getword(s2); s1=skipspc(s1); mob.speed = atoi(Word);
@@ -2039,41 +2302,42 @@ ldo:		while(*p!=0 && *p!='!') p=skipline(p); if(*p==0) break;
 		fopena(mobfn); fread((char *)mobp,sizeof(mob)*mobchars,1,afp); close_ofps();
 	}
 }
-
-mobmis(register char *s)
-{
-	printf("## Mobile '%s': missing %s field.\n",mob.id,s); err++;
-	skipblock();
-}
-
-badmobend()
-{
-	return -1;
-}
-
-/*=* Fetch mobile message line *=*/
-getmobmsg(register char *s)
-{	register char *q; register int n;
-
-loop:	if(com(px)==-1) { px=skipline(px); goto loop; }
-	if(*px==0 || *px==13 || *px==10) { err++; printf("## Mobile '%s': Unexpected end of mobile!\n"); return -1; }
-	px=skipspc(px); if(*px==0 || *px==13 || *px==10) goto loop;
-
-	if((q=skiplead(s,px))==px) { mobmis(s); err++; return -1; }
-	if(toupper(*q)=='N') { px=skipline(px); return -2; }
-	n=ttumsgchk(q); px=skipline(px); if(n==-1) { printf("## Mobile '%s': Bad text on '%s' line!\n",mob.id,s); err++; }
-	return n;
-}
-	/*=* Pass 2: Indexes commands mobiles have access to *=*/
-
 /*mob_proc2()
 {*/
 
+void
+checkf(char *s)
+{
+	sprintf(block,"%s%s",dir,s);
+	if((ifp=fopen(block,"rb"))==NULL)
+	{
+		printf("Missing: file \x1B[33;1m%s!!!\x1B[0m\n\n",block);
+		exit(202);
+	}
+	fclose(ifp);ifp=NULL;
+}
+
+void
+argue(int argc, const char **argv)
+{
+	int n;
+	for(n=2;n<=argc;n++)
+	{
+		if(strcmp("-d",argv[n-1])==0){dchk=0; continue;}
+		if(strcmp("-q",argv[n-1])==0){warn=0; continue;}
+		if(strcmp("-r",argv[n-1])==0){rmrd=0; continue;}
+		strcpy(dir,argv[n-1]);
+		if((c=dir[strlen(dir)-1])!='/' && c!=':') strcat(dir,"/");
+	}
+}
+
+
 	/*---------------------------------------------------------*/
 
-main(argc,argv)			/*=* Main Program *=*/
-int argc;
-char *argv[];
+/*---------------------------------------------------------*/
+
+int
+main(int argc, const char**argv)			/*=* Main Program *=*/
 {
 	sprintf(vername,"AMULCom v%d.%03d (%8s)",VERSION,REVISION,DATE);
 	mytask=FindTask(0L); mytask->tc_Node.ln_Name = vername;
@@ -2082,7 +2346,11 @@ char *argv[];
 	printf("                 [4mAMUL Compiler; %s[0m\n\n",vername);
 
 	ofp1=NULL;	ofp2=NULL;	ofp3=NULL;	dir[0]=0;
-	dchk=rmrd=1;	ohd=Output();
+	dchk=rmrd=1;
+
+#if defined(_AMIGA_)
+	ohd=Output();
+#endif
 
 	/* Check we have correct no. of parameters */
 
@@ -2138,7 +2406,7 @@ char *argv[];
 		quit();
 	}
 	tx("%% UMSG.....:\x0d");
-	opentxt("UMSG");	if(umsg_proc()==-1) quit(); else fclose(ifp);
+	opentxt("UMSG");	if(!umsg_proc()) quit(); else fclose(ifp);
 	tx("%% MOBILES..:\x0d");
 	opentxt("MOBILES");	mob_proc1();	fclose(ifp);
 	tx("%% OBDESCS..:\x0d");
@@ -2158,8 +2426,8 @@ char *argv[];
 	printf("		Adj's: %6d	Verbs: %6d	Syns : %6d\n",adjs,verbs,syns);
 	printf("		T.T's: %6d	Umsgs: %6d	SMsgs: %6d\n",ttents,umsgs,NSMSGS);
 	printf("		 [33mTotal items processed:[0;1m%7d\n\n[0m",rooms+ranks+adjs+verbs+nouns+syns+ttents+umsgs+NSMSGS+mobs+mobchars);
-	fopenw(advfn); time(&clock);
-	fprintf(ofp1,"%s\n%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld",adname,rooms,ranks,verbs,syns,nouns,adjs,ttents,umsgs,clock,mins,invis,invis2,minsgo,mobs,rscale,tscale,mobchars);
+	fopenw(advfn); time(&startTime);
+	fprintf(ofp1,"%s\n%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld",adname,rooms,ranks,verbs,syns,nouns,adjs,ttents,umsgs,startTime,mins,invis,invis2,minsgo,mobs,rscale,tscale,mobchars);
 	opentxt("TITLE"); fseek(ifp,readgot,0);
 	do
 	{
@@ -2167,156 +2435,4 @@ char *argv[];
 	}while(readgot==1020);
 	exi=1;
 	quit();
-}
-
-	/*---------------------------------------------------------*/
-
-isrflag(s)			/* Check to see if s is a room flag */
-char *s;
-{
-	int	_x;
-	for(_x=0;_x<NRFLAGS;_x++)
-		if(strcmp(s,rflag[_x])==0) return _x;
-	return -1;
-}
-
-isroom(char *s)
-{
-	int r;
-	roomtab=rmtab;
-	for(r=0;r<rooms;r++)
-		if(strcmp(roomtab->id,s)==0) return r;
-		else roomtab++;
-	return -1;
-}
-
-isoflag1(char *s)		/* Is it a FIXED object flag? */
-{
-	int i;
-	for(i=0;i<NOFLAGS;i++)
-		if(strcmp(obflags1[i],s)==NULL) return i;
-	return -1;
-}
-
-isoparm()			/* Is it an object parameter? */
-{
-	int i;
-	for(i=0;i<NOPARMS;i++)
-		if(striplead(obparms[i],Word)) return i;
-	return -1;
-}
-
-isoflag2(char *s)		/* Is it a state flag? */
-{
-	int i;
-	for(i=0;i<NSFLAGS;i++)
-		if(strcmp(obflags2[i],s)==NULL) return i;
-	return -1;
-}
-
-set_adj()
-{	register int i;
-
-	if(strlen(Word)>IDL || strlen(Word)<3)
-	{
-		printf("\nInvalid adjective '%s'!\n\n\x07",Word);
-		quit();
-	}
-	if(adjs==0)
-	{
-		for(i=0;i<IDL+1;i++) dmove[i]=0; strcpy(dmove,Word);
-		obj2.adj=0; fwrite(dmove,IDL+1,1,afp); adjs++; return;
-	}
-	fseek(afp,0L,0);	/* Move to beginning */
-	i=0;
-	do
-	{
-		if(fread(dmove,IDL+1,1,afp)!=1) continue;/* Read adj! */
-		if(strcmp(Word,dmove)==NULL) { obj2.adj=i; return; }
-		i++;
-	} while(!feof(afp));
-	for(i=0;i<IDL+1;i++) dmove[i]=0; strcpy(dmove,Word);
-	fseek(afp,0L,2);	/* Move to end! */
-	fwrite(dmove,IDL+1,1,afp);	/* Add this adjective */
-	obj2.adj=adjs++;
-}
-
-object(char *s)
-{
-	printf("\nObject #%d \"%s\" has invalid %s, '%s'!\n",nouns+1,obj2.id,s,Word);
-	quit();
-}
-
-set_start()
-{
-	if(!isdigit(Word[0])) object("start state");
-	obj2.state=atoi(Word);
-	if(obj2.state<0 || obj2.state>100) object("start state");
-}
-
-set_holds()
-{
-	if(!isdigit(Word[0])) object("holds= value");
-	obj2.contains=atoi(Word);
-	if(obj2.contains<0 || obj2.contains>1000000) object("holds= state");
-}
-
-set_put()
-{	register int i;
-
-	for(i=0;i<NPUTS;i++)
-		if(stricmp(obputs[i],Word)==NULL) { obj2.putto=i; return; }
-	object("put= flag");
-}
-
-set_mob()
-{	register int i;
-	for(i=0; i<mobchars; i++) if(stricmp(Word,(mobp+i)->id)==NULL) { obj2.mobile=i; return; }
-	object("mobile= flag");
-}
-
-argue(argc,argv)
-int argc; char *argv[];
-{
-	int n;
-	for(n=2;n<=argc;n++)
-	{
-		if(strcmp("-d",argv[n-1])==0){dchk=0; continue;}
-		if(strcmp("-q",argv[n-1])==0){warn=0; continue;}
-		if(strcmp("-r",argv[n-1])==0){rmrd=0; continue;}
-		strcpy(dir,argv[n-1]);
-		if((c=dir[strlen(dir)-1])!='/' && c!=':') strcat(dir,"/");
-	}
-}
-
-checkf(char *s)
-{
-	sprintf(block,"%s%s",dir,s);
-	if((ifp=fopen(block,"rb"))==NULL)
-	{
-		printf("Missing: file \x1B[33;1m%s!!!\x1B[0m\n\n",block);
-		exit(202);
-	}
-	fclose(ifp);ifp=NULL;
-}
-
-iscond(register char *s)
-{	int i;
-	for(i=0; i<NCONDS; i++)
-		if(strcmp(conds[i],s)==0) return i;
-	return -1;
-}
-
-isact(register char *s)
-{	int i;
-	for(i=0; i<NACTS; i++)
-		if(strcmp(acts[i],s)==0) return i;
-	return -1;
-}
-
-isprep(register char *s)
-{	int i;
-	for(i=0; i<NPREP; i++)
-		if(strcmp(s,prep[i])==0) return i;
-	return -1;
 }

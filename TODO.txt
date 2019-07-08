@@ -1,0 +1,12 @@
+- close ifps
+- amiga stubs
+- memory allocation
+- stricmp => strcasecmp
+- str[in]cmp.*NULL -> 0
+- opentxt -> text, not binary
+- use skip functions instead of replace
+- nacp/ncop -> structures like C++
+- bools
+- const
+- eliminate warnings
+
