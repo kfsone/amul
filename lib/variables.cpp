@@ -4,7 +4,6 @@
 int32_t rooms;           // No. of rooms
 int32_t ranks;           // No. of ranks
 int32_t ttents;          // No. of TT entries
-int32_t verbs;           // No. of verbs
 int32_t syns;            // No. of synonyms
 int32_t msgs;            // No. of user def. msgs
 int32_t nouns;           // No. of nouns

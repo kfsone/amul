@@ -15,7 +15,8 @@ void              ttroomupdate();
 void              opentxt(std::string filename);
 void              skipblock();
 void              tidy(char *s);
-int               is_verb(const char *s);
+int               is_verb(std::string token);
+int               verbCount() noexcept;
 
 struct Buffer final {
     Buffer() {}

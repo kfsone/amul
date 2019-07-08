@@ -206,10 +206,10 @@ reportStatistics()
 {
     GetLogger().infof("Statistics for %s:\n\n", adname);
     GetLogger().infof("		Rooms: %6u	Ranks: %6u	Nouns: %6u", rooms, ranks, nouns);
-    GetLogger().infof("		Adj's: %6u	Verbs: %6u	Syns : %6u", adjs, verbs, syns);
+    GetLogger().infof("		Adj's: %6u	Verbs: %6u	Syns : %6u", adjs, verbCount(), syns);
     GetLogger().infof("		T.T's: %6u	Umsgs: %6u	SMsgs: %6u", ttents, umsgs, NSMSGS);
     GetLogger().infof(
-            "		Total items processed: %u", rooms + ranks + adjs + verbs + nouns + syns +
+            "		Total items processed: %u", rooms + ranks + adjs + verbCount() + nouns + syns +
                                                         ttents + umsgs + NSMSGS + mobs + mobchars);
 }
 
@@ -220,7 +220,7 @@ writeProfile()
     {
         std::ofstream profile(Resources::Compiled::gameProfile());
         profile << adname << "\n";
-        profile << rooms << ranks << verbs << syns << nouns << adjs << ttents << umsgs
+        profile << rooms << ranks << verbCount() << syns << nouns << adjs << ttents << umsgs
                 << time(nullptr) << mins << invis << invis2 << minsgo << mobs << rscale << tscale
                 << mobchars;
         profile << "\n";

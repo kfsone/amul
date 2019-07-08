@@ -91,7 +91,7 @@ FILE *
 fopenw(std::string filename)
 {
     std::string filepath = dir + filename;
-    FILE* fp = fopen(filepath.c_str(), "wb");
+    FILE *      fp = fopen(filepath.c_str(), "wb");
     if (!fp)
         GetLogger().fatalop("write", filepath.c_str());
     if (ofp1 == NULL)
@@ -123,7 +123,8 @@ fopena(std::string filename)
 static size_t
 getFileSize(std::string filepath)
 {
-    struct stat sb {};
+    struct stat sb {
+    };
     int err = stat(filepath.c_str(), &sb);
     if (err == -1) {
         GetLogger().fatalop("stat", filepath.c_str());
@@ -210,26 +211,6 @@ tidy(char *ptr)
     }
     if (lastNonSpace)
         *(lastNonSpace + 1) = 0;
-}
-
-extern int lookup_verb(std::string token);
-
-int
-is_verb(const char *token)
-{
-    if (verbs == 0) {
-        GetLogger().errorf("Tried to look up verb '%s' with 0 verbs", token);
-        return -1;
-    }
-    if (strlen(token) > IDL) {
-        GetLogger().errorf("Invalid verb (too long): %s", token);
-        return -1;
-    }
-
-    if (stricmp(token, verb.id) == 0)
-        return (verbs - 1);
-
-    return lookup_verb(token);
 }
 
 void

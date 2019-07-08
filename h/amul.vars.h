@@ -9,7 +9,6 @@
 extern int32_t rooms;           // No. of rooms
 extern int32_t ranks;           // No. of ranks
 extern int32_t ttents;          // No. of TT entries
-extern int32_t verbs;           // No. of verbs
 extern int32_t syns;            // No. of synonyms
 extern int32_t msgs;            // No. of user def. msgs
 extern int32_t nouns;           // No. of nouns

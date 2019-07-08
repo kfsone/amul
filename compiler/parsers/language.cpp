@@ -4,20 +4,34 @@
 #include "h/amul.instructions.h"
 
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 using namespace AMUL::Logging;
 using namespace Compiler;
 
-std::vector<_VERB_STRUCT> verbTable;
+std::vector<_VERB_STRUCT>                 verbTable;
 std::unordered_map<std::string, verbid_t> verbIndex;
 
 int
-lookup_verb(std::string token) noexcept
+verbCount() noexcept
 {
+    return verbIndex.size();
+}
+
+int
+is_verb(std::string token)
+{
+    if (verbIndex.size() == 0) {
+        GetLogger().errorf("Tried to look up verb '%s' with 0 verbs", token.c_str());
+        return -1;
+    }
+    if (token.size() > IDL) {
+        GetLogger().errorf("Invalid verb (too long): %s", token.c_str());
+        return -1;
+    }
     if (auto it = verbIndex.find(token); it != verbIndex.end()) {
-	return it->second;
+        return it->second;
     }
     return -1;
 }
@@ -200,7 +214,6 @@ lang_proc()
     int      n, cs, s, r;
     uint32_t of2p, of3p;
 
-    verbs = 0;
     nextc(true);
     fopenw(Resources::Compiled::lang1());
     fopenw(Resources::Compiled::lang2());
@@ -213,7 +226,7 @@ lang_proc()
 
     // Load the entire file into memory
     verbBuffer.open(0);
-    cursor = static_cast<const char*>(verbBuffer.m_data);
+    cursor = static_cast<const char *>(verbBuffer.m_data);
     of2p = ftell(ofp2);
     of3p = ftell(ofp3);
     FPos = ftell(ofp4);
@@ -225,9 +238,6 @@ lang_proc()
             curline = cursor;                     // remember the start of the line
             cursor = extractLine(cursor, block);  // consume the next line
         } while (isCommentChar(block[0]) || isEol(block[0]));
-        if (block[0] == 0)
-            break;
-
         tidy(block);
         if (block[0] == 0)
             continue;
@@ -371,13 +381,13 @@ lang_proc()
         }
 
         if (n == WC_NUMBER && (s > 100000 || -s > 100000)) {
-	    char issue[64];
-	    snprintf(issue, sizeof(issue), "Invalid number: %d", s);
+            char issue[64];
+            snprintf(issue, sizeof(issue), "Invalid number: %d", s);
             vbprob(issue, curline);
         }
         if (s == -1 && n != WC_NUMBER) {
-	    char issue[256];
-	    snprintf(issue, sizeof(issue), "Invalid setting, '%s', after %s=", Word, syntax[n + 1]);
+            char issue[256];
+            snprintf(issue, sizeof(issue), "Invalid setting, '%s', after %s=", Word, syntax[n + 1]);
             vbprob(issue, curline);
         }
         if (s == -3 && n == TC_NOUN)
@@ -496,7 +506,7 @@ lang_proc()
         // If they forgot space between !<condition>, eg !toprank
     notlp2:
         if (Word[0] == '!') {
-            strcpy(Word, Word + 1);  ///ISSUE: overlap strcpy
+            strcpy(Word, Word + 1);  /// ISSUE: overlap strcpy
             r = -1 * r;
             goto notlp2;
         }
@@ -567,11 +577,11 @@ lang_proc()
 
         lastc = '\n';
 
-    //write:
+        // write:
         fwritesafe(verb, ofp1);
         proc = 0;
-	verbIndex[verb.id] = verbTable.size();
-	verbTable.emplace_back(verb);
+        verbIndex[verb.id] = verbTable.size();
+        verbTable.emplace_back(verb);
     } while (*cursor != 0);
 
     GetContext().terminateOnErrors();
