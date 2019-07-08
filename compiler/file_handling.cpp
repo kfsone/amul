@@ -221,21 +221,23 @@ tidy(char *ptr)
 }
 
 int
-is_verb(const char *s)
+is_verb(const char *token)
 {
-    int i;
-
-    if (verbs == 0 || strlen(s) > IDL) {
-        printf("@! illegal verb.\n");
+    if (verbs == 0) {
+        GetLogger().errorf("Tried to look up verb '%s' with 0 verbs", token);
+        return -1;
+    }
+    if (strlen(token) > IDL) {
+        GetLogger().errorf("Invalid verb (too long): %s", token);
         return -1;
     }
 
-    if (stricmp(s, verb.id) == 0)
+    if (stricmp(token, verb.id) == 0)
         return (verbs - 1);
 
     vbptr = vbtab;
-    for (i = 0; i < verbs; i++, vbptr++) {
-        if (stricmp(vbptr->id, s) == 0)
+    for (int i = 0; i < verbs; i++, vbptr++) {
+        if (stricmp(vbptr->id, token) == 0)
             return i;
     }
     return -1;
