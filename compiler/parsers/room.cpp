@@ -72,12 +72,14 @@ room_proc()
         }
 
         lastc = '\n';
-        fseek(ofp2, 0, 1);
         room.desptr = ftell(ofp2);
         n = 0;
-        if (!cemeteryId.empty())
-            fwrite(cemeteryId.c_str(), IDL, 1,
-                   ofp2);  // save dmove	///ISSUE: IDL+1?
+        if (!cemeteryId.empty()) {
+	    char cemetery[IDL+1] {};
+	    strcpy(cemetery, cemeteryId.c_str());
+	    // save dmove
+            fwrite(cemetery, IDL, 1, ofp2);  ///ISSUE: IDL+1?
+	}
         while ((c = fgetc(ifp)) != EOF && !(isEol(c) && isEol(lastc))) {
             if (isEol(lastc) && c == '\t')
                 continue;

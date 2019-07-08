@@ -20,7 +20,6 @@ char *  mobdat;  // Mobile data
 
 char Word[WORD_LEN];
 
-char  fnm[150], was[128];
 FILE *ofp5;
 
 struct _OBJ_STRUCT2 *obtab2, *objtab2, obj2, *osrch, *osrch2;

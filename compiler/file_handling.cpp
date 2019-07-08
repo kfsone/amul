@@ -88,86 +88,76 @@ quit()
 
 // Open file for reading
 FILE *
-fopenw(const char *s)
+fopenw(std::string filename)
 {
-    FILE *tfp;
-    if (*s == '-')
-        strcpy(fnm, s + 1);
-    else
-        sprintf(fnm, "%s%s", dir, s);
-    if ((tfp = fopen(fnm, "wb")) == NULL)
-        GetLogger().fatalop("write", fnm);
+    std::string filepath = dir + filename;
+    FILE* fp = fopen(filepath.c_str(), "wb");
+    if (!fp)
+        GetLogger().fatalop("write", filepath.c_str());
     if (ofp1 == NULL)
-        ofp1 = tfp;
+        ofp1 = fp;
     else if (ofp2 == NULL)
-        ofp2 = tfp;
+        ofp2 = fp;
     else if (ofp3 == NULL)
-        ofp3 = tfp;
+        ofp3 = fp;
     else if (ofp4 == NULL)
-        ofp4 = tfp;
+        ofp4 = fp;
     else
-        ofp5 = tfp;
+        ofp5 = fp;
     return NULL;
 }
 
 // Open file for appending
 FILE *
-fopena(const char *s)
+fopena(std::string filename)
 {
     if (afp != NULL)
         fclose(afp);
-    if (*s == '-')
-        strcpy(fnm, s + 1);
-    else
-        sprintf(fnm, "%s%s", dir, s);
-    if ((afp = fopen(fnm, "rb+")) == NULL)
-        GetLogger().fatalop("create", fnm);
+    std::string filepath = dir + filename;
+    afp = fopen(filepath.c_str(), "rb+");
+    if (!afp)
+        GetLogger().fatalop("create", filepath.c_str());
     return NULL;
 }
 
 static size_t
-getFileSize(const char *filepath)
+getFileSize(std::string filepath)
 {
-    struct stat sb {
-    };
-    int err = stat(filepath, &sb);
+    struct stat sb {};
+    int err = stat(filepath.c_str(), &sb);
     if (err == -1) {
-        GetLogger().fatalop("stat", filepath);
+        GetLogger().fatalop("stat", filepath.c_str());
     }
     return sb.st_size;
 }
 
 // Open file for reading
 FILE *
-fopenr(const char *s)
+fopenr(std::string filename)
 {
     if (ifp != NULL)
         fclose(ifp);
-    if (*s != '-')
-        sprintf(fnm, "%s%s", dir, s);
-    else
-        strcpy(fnm, s + 1);
 
-    ifpFileSize = getFileSize(fnm);
+    std::string filepath = dir + filename;
+    ifpFileSize = getFileSize(filename);
 
-    if (ifp = fopen(fnm, "rb"); !ifp)
-        GetLogger().fatalop("open", fnm);
+    if (ifp = fopen(filepath.c_str(), "rb"); !ifp)
+        GetLogger().fatalop("open", filepath.c_str());
 
     return ifp;
 }
 
 // Open file for reading
 FILE *
-rfopen(const char *filename)
+rfopen(std::string filename)
 {
-    if (FILE *fp = fopen(filename, "rb"); fp) {
-        strcpy(fnm, filename);
+    if (FILE *fp = fopen(filename.c_str(), "rb"); fp) {
         return fp;
     }
-    snprintf(fnm, sizeof(fnm), "%s%s", dir, filename);
-    if (FILE *fp = fopen(fnm, "rb"); fp)
+    std::string filepath = dir + filename;
+    if (FILE *fp = fopen(filename.c_str(), "rb"); fp)
         return fp;
-    GetLogger().fatalop("open", fnm);
+    GetLogger().fatalop("open", filename.c_str());
 }
 
 // Update room entries after TT
@@ -179,13 +169,12 @@ ttroomupdate()
 }
 
 void
-opentxt(const char *filename)
+opentxt(std::string filename)
 {
     // One a source file (.txt) for reading, and because it's a text file,
     // open it in non-binary mode so that the OS will potentially do eol
     // conversion for us.
-    std::string filepath = dir;
-    filepath += filename;
+    std::string filepath = dir + filename;
     filepath += ".txt";
 
     ifpFileSize = getFileSize(filepath.c_str());

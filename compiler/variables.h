@@ -15,8 +15,6 @@ extern char *  mobdat;        // Mobile data
 enum { WORD_LEN = 64 };
 extern char Word[WORD_LEN];
 
-extern char  fnm[150];
-extern char  was[128];
 extern FILE *ofp5;
 
 extern struct _OBJ_STRUCT2 *obtab2, *objtab2, obj2, *osrch, *osrch2;

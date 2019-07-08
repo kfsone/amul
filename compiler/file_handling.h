@@ -2,16 +2,17 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <string>
 
 void              close_ofps();
 char              nextc(bool required);
 [[noreturn]] void quit();
-FILE *            fopenw(const char *s);
-FILE *            fopena(const char *s);
-FILE *            fopenr(const char *s);
-FILE *            rfopen(const char *s);
+FILE *            fopenw(std::string filename);
+FILE *            fopena(std::string filename);
+FILE *            fopenr(std::string filename);
+FILE *            rfopen(std::string filename);
 void              ttroomupdate();
-void              opentxt(const char *s);
+void              opentxt(std::string filename);
 void              skipblock();
 void              tidy(char *s);
 int               is_verb(const char *s);

@@ -24,7 +24,7 @@ CreateFile(const char *path, const char *filename)
     filepath += "/";
     filepath += filename;
 
-    int fd = open(filepath.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
+    int fd = open(filepath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0660);
     if (fd == -1) {
         GetLogger().fatalf("Failed to create file: %s: %s", filepath.c_str(), strerror(errno));
     }

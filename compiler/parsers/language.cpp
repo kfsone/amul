@@ -358,12 +358,14 @@ lang_proc()
         }
 
         if (n == WC_NUMBER && (s > 100000 || -s > 100000)) {
-            sprintf(fnm, "Invalid number, %d", s);
-            vbprob(fnm, curline);
+	    char issue[64];
+	    snprintf(issue, sizeof(issue), "Invalid number: %d", s);
+            vbprob(issue, curline);
         }
         if (s == -1 && n != WC_NUMBER) {
-            sprintf(fnm, "Invalid setting, '%s' after %s=", Word, syntax[n + 1]);
-            vbprob(fnm, curline);
+	    char issue[256];
+	    snprintf(issue, sizeof(issue), "Invalid setting, '%s', after %s=", Word, syntax[n + 1]);
+            vbprob(issue, curline);
         }
         if (s == -3 && n == TC_NOUN)
             s = -1;
@@ -552,7 +554,7 @@ lang_proc()
 
         lastc = '\n';
 
-    write:
+    //write:
         fwritesafe(verb, ofp1);
         proc = 0;
         *(vbtab + verbs - 1) = verb;
