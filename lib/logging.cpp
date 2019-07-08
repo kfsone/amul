@@ -1,7 +1,5 @@
 #include "h/amul.logging.h"
 
-[[noreturn]] void quit();
-
 namespace AMUL::Logging
 {
 Logger &
