@@ -1,27 +1,12 @@
 ; Lang.Txt for Precious Days
 ; ~~~~~~~~~~~~~~~~~~~~~~~~~~
-; Copyright (c) 1991 by Oliver Smith / KingFisher Software
-; 70 Legsby Avenue,
-; Grimsby,
-; S. Humberside. DN32 0NE
-; England.
-;
 ; This software is furnished on the understanding that it may be used and or
 ; copied  only  with the inclusion of this notice.  No title or ownership of
 ; this  software is hearby transferred.  The information in this software is
 ; subject  to  change  without notice.  No responsibility is assumed for the
 ; use or reliability of this software.
 
-;
-; --- Commentary ---
-;
-; Note, I have written most of the C&A lines out verbosely, but after
-; a while I start drifting into short compact code...
-;
-; --- Commentary ---
-;
-
-; --------------------------- Special Verbs! ------------------------------- ;
+; --------------------------- Special Verbs ------------------------------- ;
 ;
 ; Verbs which perform special functions (note - "start is at the end of the
 ; file, because it requires several Daemons...)
@@ -29,13 +14,13 @@
 "travel			; Check if player can move before processing TT..
 syntax=verb any
 	infl me cripple error Crippled		; Can't move if crippled.
-	fighting me error "You can't leave in the middle of a fight! Use FLEE if you want to leave..."
+	fighting me error "You can't leave in the middle of a fight. Use FLEE if you want to leave..."
 	sitting error StandUp
 	lying error StandUp
 
 verb="speech
 syntax=verb any
-	infl me dumb respond "You can't speak a word, you're dumbed!"
+	infl me dumb respond "You can't speak a word, you're dumbed."
 syntax=verb player=me text
 	respond talkself
 syntax=verb text player
@@ -43,7 +28,7 @@ syntax=verb text player
 syntax=verb player text
 	toprank skip 2
 	!inroom limbo skip 1
-	!sameroom player respond "You can't talk to ANYONE - you're in limbo!"
+	!sameroom player respond "You can't talk to ANYONE - you're in limbo."
 	tell player '@xy @vbs you "@n2"'
 	respond 'You @vb @n1 "@n2"'
 syntax=verb text
@@ -57,7 +42,7 @@ syntax=verb text
 ;  list the FULL names are given, which looks MUCH tidier.
 ;
 
-travel=north south east west northeast southeast southwest northwest up down in out jump
+;travel=north south east west northeast southeast southwest northwest up down in out jump
 
 left
 syntax=verb any
@@ -83,13 +68,13 @@ syntax=verb any
 verb=.bumpshute			; Go over a bump in the shute
 syntax=verb any
 	!inroom shute endparse
-	tell me "You suddenly go over a bump in the tunnel and begin to go even faster!"
+	tell me "You suddenly go over a bump in the tunnel and begin to go even faster."
 	announceto tvroom "There is a dull THUD which seems to come from inside the chimney breast..."
 	start .downshute `10
 
 verb=.cons			; Console the user after abusing them...
 syntax=verb any
-	respond "Actually, I was only kidding - I don't REALLY detest you!"
+	respond "Actually, I was only kidding - I don't REALLY detest you."
 
 verb=.deepsleep	; Deep sleep - used to prevent players waking immediately.
 syntax=verb any
@@ -136,7 +121,7 @@ syntax=verb any
 
 verb="magsleep
 syntax=verb any
-	infl me sleep error "You can't do anything, you're asleep!"
+	infl me sleep error "You can't do anything, you're asleep."
 	active .deepsleep cancel .deepsleep
 	start .deepsleep `10
 	inflict me sleep
@@ -214,11 +199,11 @@ syntax=verb any
 
 "pre-magic
 syntax=verb noun
-	error "The spell only works on people!"
+	error "The spell only works on people."
 syntax=player=me
 	syntax none none
 syntax=verb player
-	stat magic me <1 error "You don't have enough magic points to perform the spell!"
+	stat magic me <1 error "You don't have enough magic points to perform the spell."
 
 verb="get			; pick something up...
 syntax=verb noun noun
@@ -232,7 +217,7 @@ syntax=verb noun
 
 verb="burnme
 syntax=verb noun any noun
-	lit noun reply "OUCH! It's on fire and your burn yourself fiddling with it!"
+	lit noun reply "OUCH! It's on fire and your burn yourself fiddling with it."
 	& sub 2 stam me
 	& failparse
 
@@ -240,8 +225,8 @@ verb="needtwo
 syntax=verb any
 	if toprank then respond "You easily manage to @vb the @n1."
 	if not gothelp then error "It's too much for you; you'll have to get someone to help you..."
-	if not cansee helper then error "You'll need someone to help you with it!"
-	if not visibleto helper then error "@he can't see you to help you!"
+	if not cansee helper then error "You'll need someone to help you with it."
+	if not visibleto helper then error "@he can't see you to help you."
 	gothelp interact helper
 	& reply "Together with @he you manage to @vb the @n1."
 	& tell helper "Together with @xx you manage to @vb the @n1."
@@ -258,18 +243,18 @@ syntax=verb any
 
 
 verb=look			; look around (or at something)
-syntax=verb any		; Blind players can't look at anything!
+syntax=verb any		; Blind players can't look at anything.
 	infl me blind error YourBlind
 syntax=verb none	; "look" on its own describes current room
 	-> look			; call 'look' and then endparse.
-syntax=verb noun=wall	; It's different to others!
+syntax=verb noun=wall	; It's different to others.
 	inroom tvroom respond ExamWPaper
 	inroom store respond NoWallEre
 	inroom limbo respond NoWallEre
 	inroom heaven respond NoWallEre
-syntax=verb noun	; Looking AT something!
+syntax=verb noun	; Looking AT something.
 	noun1 all error NoAllYet
-	noun1 breeze respond CantExam	; Can't examine a breeze!
+	noun1 breeze respond CantExam	; Can't examine a breeze.
 	checknear noun			; gotta be near the thing
 	noun1 doorway respond ExamDWAY
 	noun1 forcefield respond ExamFField
@@ -317,19 +302,19 @@ syntax=verb
 
 verb=autoexits
 syntax=verb none
-	autoexits respond "Auto exits are already on!"
+	autoexits respond "Auto exits are already on."
 	else autoexits on
 	reply "Each time you move from one room to another, the exits will be listed. Use UNAUTO to disable this."
 
 verb=unauto
 syntax=verb none
-	!autoexits respond "Auto exits aren't on anyway!"
+	!autoexits respond "Auto exits aren't on anyway."
 	else autoexits off
 	reply "'Auto Exits' is now off."
 
 verb=inventory	; List players inventory
 syntax=verb
-	infl me blind respond "Your blind - so you can't tell what you're carrying!"
+	infl me blind respond "You're blind - so you can't tell what you're carrying."
 	invent
 
 ; -- Room description mode commands
@@ -378,10 +363,10 @@ syntax=verb none
 	error verbWhat
 syntax=verb player
 	error DontBeDaft
-syntax=verb noun noun	; Want to use a container!
+syntax=verb noun noun	; Want to use a container.
 	checknear noun2
 	checknear noun1
-	error "Sorry - container routines aren't finished yet!"
+	error "Sorry - container routines aren't finished yet."
 syntax=verb noun
 	noun1 all error NoAllYet
 	checknear noun
@@ -402,10 +387,10 @@ syntax=verb none
 	error verbWhat
 syntax=verb player
 	error DontBeDaft
-syntax=verb noun noun	; Want to use a container!
+syntax=verb noun noun	; Want to use a container.
 	checknear noun2
 	checknear noun1
-	error "Sorry - container routines aren't finished yet!"
+	error "Sorry - container routines aren't finished yet."
 syntax=verb noun
 	noun1 all error NoAllYet
 	!carrying noun error NotGotNoun
@@ -450,7 +435,7 @@ syntax=verb noun
 	do "burnme
 	!opens noun error "You can't open that!"
 	state noun 2 error "The @n1 is locked shut, you'll need to unlock it first."
-	state noun 0 error "The @n1 is already open!"
+	state noun 0 error "The @n1 is already open."
 	noun1 gates do "needtwo
 	else reply ItsNow
 	action cansee IDidItE
@@ -461,7 +446,7 @@ syntax=verb noun noun
 	checknear noun1
 	!carrying noun2 error NotGotTool
 	!opens noun1 error CantVbThat
-	state noun1 0 error "The @n1 is already open!"
+	state noun1 0 error "The @n1 is already open."
 	error UseHands
 
 ; - - - - - - - - - -
@@ -474,7 +459,7 @@ syntax=verb noun=door
 syntax=verb noun
 	checknear noun
 	do "burnme
-	!opens noun error "It isn't openable, so you can't close it!"
+	!opens noun error "It isn't openable, so you can't close it."
 	!state noun 0 error "The @n1 is already closed."
 	reply ItsNow
 	else action cansee IDidIt
@@ -516,10 +501,10 @@ syntax=verb noun
 syntax=verb noun noun
 	checknear noun
 	checknear noun2
-	lit noun1	respond "The @n1 is already alight!"
-	!lit noun2	error "The @n2 isn't burning, so you can't light anything else from it, dunderhead!"
-	!burns noun1	respond "You can't light that!"
-	reply "The @n1 catches the flame and is now alight!"
+	lit noun1	respond "The @n1 is already alight."
+	!lit noun2	error "The @n2 isn't burning, so you can't light anything else from it."
+	!burns noun1	respond "You can't light that."
+	reply "The @n1 catches the flame and is now alight."
 	fire noun	burn noun
 	else		state noun 0
 	!carrying noun1 action others "@xx has set the @n1 alight."
@@ -595,14 +580,14 @@ verb=summon
 syntax=verb
 	respond "Summon WHO?"
 syntax=verb noun
-	carrying noun	respond "You've already got one! Imbercile!"
-	nearto noun	error "It's already here, plonker!"
-	error "Go fetch it yourself! Lazy bones!"
+	carrying noun	respond "You've already got one."
+	nearto noun	error "It's already here."
+	error "Go fetch it yourself! Lazy bones."
 syntax=verb player=me
-	error "You'll have to ASK someone else to do that!"
+	error "You'll have to ASK someone else to do that."
 syntax=verb player
 	inroom shute respond "You are moving too fast to perform the spell!"
-	cansee player	respond "@n1 is already here!"
+	cansee player	respond "@n1 is already here."
 	action cansee MakeMag
 	do "rank6
 	tell player "The scene around you begins to fade... {"
@@ -637,7 +622,7 @@ syntax=verb player
 	reply success
 	senddaemon player .msleep 0
 syntax=verb none
-	infl me sleep respond "You already ARE asleep!"
+	infl me sleep respond "You already ARE asleep."
 	inroom shute respond "What? And miss the excitement???"
 ;	roomis small respond "There isn't enough room to sleep in here."
 	do .sleep
@@ -645,7 +630,7 @@ syntax=verb none
 
 ; - - - - -
 
-verb=.wake dream			; Wake me up!
+verb=.wake dream			; Wake me up.
 syntax=verb any
 	!infl me sleep endparse
 	reply "Your mind is suddenly filled with chaotic visions and manic chantings. {"
@@ -662,7 +647,7 @@ syntax=verb player
 	reply success
 	infl player sleep senddaemon player .wake 0
 syntax=verb none
-	!infl me sleep respond "You aren't asleep anyway!"
+	!infl me sleep respond "You aren't asleep anyway."
 	active .deepsleep respond "You can't wake up yet..."
 	cure me sleep
 	reply "You are now awake."
@@ -674,7 +659,7 @@ verb=.glow
 syntax=verb any
 	infl me glow respond "A sudden tingling feeling runs through your body..."
 	reply "You have magically started glowing."
-	inflict me glow		; they are now aglow!
+	inflict me glow		; they are now aglow.
 
 verb=glow
 syntax=verb noun
@@ -691,7 +676,7 @@ syntax=player
 	reply success			; your spell worked.
 	-> senddaemon player .glow 0	; make him start glowing
 syntax=verb none
-	infl me glow respond "You are already glowing!"
+	infl me glow respond "You are already glowing."
 	action cansee MakeMag
 	do "rank4
 	reply success
@@ -716,7 +701,7 @@ syntax=player
 	reply success			; your spell worked.
 	-> senddaemon player .unglow 0	; make him start glowing
 syntax=verb none
-	!infl me glow respond "You aren't glowing anyway!"
+	!infl me glow respond "You aren't glowing anyway."
 	action cansee MakeMag
 	do "rank4
 	reply success
@@ -753,7 +738,7 @@ syntax=verb
 verb=.sinvis
 syntax=verb any
 	infl me sinvis respond "A sudden tingling feeling runs through your body..."
-	reply "You have magically become super-invisible!"
+	reply "You have magically become super-invisible."
 	action global $23		; Use existing SysMsg
 	inflict me sinvis
 
@@ -766,7 +751,7 @@ syntax=player
 	reply success
 	-> senddaemon player .sinvis 0
 syntax=verb none
-	infl me sinvis respond "You are already super-invisible!"
+	infl me sinvis respond "You are already super-invisible."
 	action cansee MakeMag
 	do "rank9
 	reply success
@@ -779,7 +764,7 @@ syntax=verb any
 	!infl me sinvis respond "A sudden tingling feeling runs through your body..."
 	reply "You are no-longer super-invisible."
 	cure me sinvis
-	action outside "@me has entered The Land!"
+	action outside "@me has joined the world."
 	action cansee "Out of nowhere, @me suddenly appears."
 	action notsee "Inexplicably, you suddenly feel an awesome presence nearby..."
 
@@ -792,7 +777,7 @@ syntax=player
 	reply success
 	-> senddaemon player .unsinvis 0
 syntax=verb none
-	!infl me sinvis respond "You aren't super-invisible anyway!"
+	!infl me sinvis respond "You aren't super-invisible anyway."
 	action cansee MakeMag
 	do "rank7
 	reply success
@@ -803,8 +788,8 @@ syntax=verb none
 verb=.invis
 syntax=verb any
 	infl me invis respond "A sudden tingling feeling runs through your body..."
-	reply "You have magically become invisible!"
-	action cansee "Before your very eyes, @me fades away into nothing!"
+	reply "You have magically become invisible."
+	action cansee "Before your very eyes, @me fades away into nothing."
 	inflict me invis
 
 verb=invis
@@ -816,7 +801,7 @@ syntax=player
 	reply success
 	-> senddaemon player .invis 0
 syntax=verb none
-	infl me invis respond "You are already invisible!"
+	infl me invis respond "You are already invisible."
 	action cansee MakeMag
 	do "rank5
 	reply success
@@ -840,7 +825,7 @@ syntax=player
 	reply success
 	-> senddaemon player .uninvis 0
 syntax=verb none
-	!infl me invis respond "You aren't invisible anyway!"
+	!infl me invis respond "You aren't invisible anyway."
 	action cansee MakeMag
 	do "rank5
 	reply success
@@ -851,7 +836,7 @@ syntax=verb none
 verb=wield
 syntax=verb noun
 	checknear noun
-	!carrying noun respond "You'll have to pick it up first!"
+	!carrying noun respond "You'll have to pick it up first."
 	reply "OK, you are now wielding the @n1."
 	fighting me tell enemy "@me is now using @go @n1 to fight."
 	wield noun
@@ -860,9 +845,9 @@ verb=fight
 syntax=verb player=me
 	error "Keep your depressive tendencies to yourself, thankyou very much..."
 syntax=verb player
-	!cansee player error "You aren't within fighting distance!"
-	fighting me error "You are already fighting @pl!"
-	infl me cripple error "You can't attack anyone, you're crippled!"
+	!cansee player error "You aren't within fighting distance."
+	fighting me error "You are already fighting @pl."
+	infl me cripple error "You can't attack anyone, you're crippled."
 	fight player
 	tell player "@xx has started to attack you..."
 	reply "You begin to attack @n1..."
@@ -880,8 +865,8 @@ syntax=verb noun
 
 verb=flee
 syntax=verb any
-	!fighting me respond "You aren't fighting anyone anyway!"
-	infl me cripple respond "You aren't going ANYWHERE - you're crippled, dim wit!"
+	!fighting me respond "You aren't fighting anyone anyway."
+	infl me cripple respond "You aren't going ANYWHERE - you're crippled."
 syntax=verb verb
 	cancel .combat
 	visibleto enemy tell enemy "@me has fled."
@@ -922,7 +907,7 @@ syntax=verb
 verb=blow
 syntax=verb noun
 	checknear noun
-	! noun1 whistle respond "Blow all you like - nothing happens!"
+	! noun1 whistle respond "Blow all you like - nothing happens."
 	! carrying noun respond NotGotNoun
 	announce cansee "!PEEEEEEEEEEEP! @me blows hard on @go whistle."
 	announce notsee "!PEEEEEEEEEEEP! Someone nearby whilstles loud and hard."
@@ -1022,8 +1007,8 @@ syntax=verb player player=me
 syntax=verb player=me player
 	respond "Why not just WELCOME @n2?"
 syntax=verb player player
-	!cansee player1 error "@n1 isn't here!"
-	!cansee player2 error "@n2 isn't here!"
+	!cansee player1 error "@n1 isn't here."
+	!cansee player2 error "@n2 isn't here."
 	reply "OK, you introduce @n1 to @n2."
 	tell player1 "@me introduces you to @n2."
 	tell player2 "@me introduces you to @n1."
@@ -1035,9 +1020,9 @@ syntax=verb player player
 
 verb=hi
 syntax=verb none
-	respond "Awwh, you noticed me!"
+	respond "Awwh, you noticed me."
 syntax=verb noun=all
-	action global "@me bids everyone '@ve'!"
+	action global "@me bids everyone '@ve'."
 	respond YouBidAll
 syntax=verb player
 	tell player IBidYou
@@ -1072,9 +1057,9 @@ syntax=verb any
 
 verb=follow
 syntax=verb noun
-	error "We don't do mobiles yet, so its inanimate, berk!"
+	error "We don't do mobiles yet, so its inanimate, berk."
 syntax=verb player=me
-	respond "But I do! Just try and get rid of me!"
+	respond "But I do! Just try and get rid of me."
 syntax=verb player
 	interact player
 	!cansee player respond "I can't see @n1 here."
@@ -1118,10 +1103,10 @@ syntax=verb noun
 verb=sit
 syntax=verb noun
 	checknear noun
-	error "Sorry, this stuff wasn't provided as a rest for your backside, pal!"
+	error "Sorry, this stuff wasn't provided as a rest for your backside, pal."
 syntax=verb any
-	sitting error "You already are!"
-	lying error "You're already lying down!"
+	sitting error "You already are."
+	lying error "You're already lying down."
 	sit
 	action cansee "@me has just sat down."
 	reply "Amazing, you're now sitting down."
@@ -1130,7 +1115,7 @@ verb=lie
 syntax=verb noun
 	treatas sit
 syntax=verb any
-	lying error "You're already horizontal!"
+	lying error "You're already horizontal."
 	sitting error "What for? You're obviously quite happy sitting down."
 	lie
 	action cansee "@me has just laid down."
@@ -1139,16 +1124,16 @@ syntax=verb any
 verb=stand
 syntax=verb noun
 	checknear noun
-	error "Look here, pal, find yourself a soap box in someone elses world!"
+	error "Look here, pal, find yourself a soap box in someone elses world."
 syntax=verb any
 	sitting skip 2
 	lying skip 1
-	error "You're already stood up!"
-	infl me cripple respond "You can't move an inch - you're crippled!"
-	asleep respond "You'll have to wake up first!"
+	error "You're already standing up."
+	infl me cripple respond "You can't move an inch - you're crippled."
+	asleep respond "You'll have to wake up first."
 	stand
 	action cansee "@me is now stood up."
-	reply "Righto! You're now stood up!"
+	reply "Righto! You're now standing up."
 
 verb=answer
 syntax=verb noun
@@ -1168,7 +1153,7 @@ verb=use
 syntax=verb noun
 	checknear noun
 syntax=verb noun=phone
-	state noun 2 respond "You'd better answer it first!"
+	state noun 2 respond "You'd better answer it first."
 	respond "It's useless... There's no dialing tone or anything... Perhaps the cave-men weren't in when BT called?"
 syntax=verb noun
 	respond "You have to figure out how to."
@@ -1179,7 +1164,7 @@ syntax=verb any
 syntax=verb noun=phone
 	state phone 2 skip 2
 	nearto phone respond "It makes not the slightest noise."
-	respond "You can't hear one!"
+	respond "You can't hear one."
 	nearto phone respond "It's ringing - maybe you ought to answer it?"
 	respond "Somewhere in the distance you hear one ringing..."
 syntax=verb any
@@ -1187,7 +1172,7 @@ syntax=verb any
 	nearto phone respond "The phone is ringing - ANSWER IT!"
 	nearto phonering respond "Somewhere nearby there's a phone ringing..."
 	nearto phonedist respond "You can hear a phone ringing quite clearly somewhere in the distance..."
-	respond "There is a wonderful quietness spoiled only by the distant ringing of a phone!"
+	respond "There is a wonderful quietness spoiled only by the distant ringing of a phone."
 
 ; -------------------------- Emotion Commands ----------------------------- ;
 ;
@@ -1199,7 +1184,7 @@ syntax=verb none
 	reply "OK, @me the @mr rolls on the floor with laughter."
 	action cansee Rofl
 
-verb=act		; The almight command!
+verb=act		; The almighty command.
 syntax=verb text		; The main command
 	action cansee "@xy @n1"
 	respond "OK, @me the @mr @n1"
@@ -1207,7 +1192,7 @@ syntax=verb any
 	respond 'No, no, no, not like that... Try something like: @vb "has realised how to use act." - other people see the same as you without the "OK".'
 
 ; The two basic emotion commands are 'nod' which performs an action and
-; 'laugh' which makes a noise.. There IS a difference!
+; 'laugh' which makes a noise.. There IS a difference.
 
 verb=nod
 syntax=verb none		; ie: nod
@@ -1225,7 +1210,7 @@ syntax=verb text
 	reply IEmoteX
 	-> announce others UEmoteX
 
-;- Now for the similies!
+;- Now for the similies.
 
 verb=wave
 syntax=verb noun
@@ -1327,7 +1312,7 @@ verb=smell
 syntax=verb noun
 	carrying noun skip 1
 	!ishere noun respond "Barry Manilow, perhaps, but your nose ain't smello-pathic!"
-	noun1 breeze respond "Sniff sniff ... Just smells musty!"
+	noun1 breeze respond "Sniff sniff ... Just smells musty."
 syntax=verb noun=cat
 	state noun 0 respond CantGetClose
 	respond SniffDC1
@@ -1454,7 +1439,7 @@ syntax=verb any
 
 ; ------------------------- Help Text Commands ---------------------------- ;
 ;
-;  These commands are all basically simple, they just display a single UMsg!
+;  These commands are all basically simple, they just display a single UMsg.
 ;
 
 ; help text #1
@@ -1554,14 +1539,14 @@ verb=obgo
 syntax=verb any
 	!toprank error $38
 syntax=verb noun
-	nearto noun error "You're already here! Type 'what' for a list of nearby objects..."
+	nearto noun error "You're already here. Type 'what' for a list of nearby objects..."
 	reply $41			; SuperGo response (eg Kappoowww!)
 	action cansee $42		; SuperGo depart message
 	move *noun			; Go to the noun's room
 	action cansee $43		; SuperGo ARRIVE message
 
 ; ------------------------------ Trailers --------------------------------- ;
-; Those verbs which call SO many others theres only one place for them!
+; Those verbs which call SO many others theres only one place for them.
 
 verb=.tremmor			; occasional earth tremmors
 syntax=verb any
@@ -1607,7 +1592,7 @@ syntax=verb any
 verb=.pring
 syntax=verb any
 	state phone 2
-	objaction phone "Suddenly, without warning, the phone starts to ring!"
+	objaction phone "Suddenly, without warning, the phone starts to ring."
 	objaction phonering "Somewhere nearby a phone starts to ring..."
 	objaction phonedist "Somewhere in the distance you hear a phone ringing..."
 	gstart .pringing 12
@@ -1626,7 +1611,7 @@ syntax=verb noun=phone
 	cancel .pring1
 	gstart .pring1 `1200
 	gstart .pring  ~6
-	respond "--|> Done!"
+	respond "--|> Done."
 syntax=verb any
 	error "Nothing happens."
 
@@ -1642,7 +1627,7 @@ syntax=verb any
 
 verb=.bingo
 syntax=verb any
-	announce all 'In the distance a powerful voice shouts "Theres no doughnuts left, again!"'
+	announce all 'In the distance a powerful voice shouts "There's no doughnuts left, again."'
 
 verb="boot			; set-up the initial daemons.
 syntax=verb any
@@ -1659,7 +1644,7 @@ syntax=verb any
 
 verb=.timelim3
 syntax=verb any
-	reply "*** 30 minute time-limit exceeded! Saving & quitting -- BYE! ***"
+	reply "*** 30 minute time-limit exceeded! Saving & quitting -- BYE ***"
 	save
 	killme
 
@@ -1677,7 +1662,7 @@ verb=.ptfeel2
 syntax=verb any
 	rand 100 >75	reply "--|> The ruling powers have decided to award you a bonus 20 points. <|--"
 	&>		add 20 points me
-	stat score me <40 skip 2	; Don't be TOO cruel!
+	stat score me <40 skip 2	; Don't be TOO cruel.
 	rand 100 <25	reply "--|> The ruling powers have decided to deduct 15 points from you, just to be nasty. <|--"
 	&>		sub 15 points me
 	reply "The tingling sensation in your ears stops, suddenly, and you feel mentally wet."
