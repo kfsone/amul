@@ -36,13 +36,13 @@ SET(AMUL_COMPILER_HEADERS
 )
 
 include_directories(".")
-add_compile_definitions(COMPILER=1)
 
 add_library(
 	"${AMUL_COMPILER_NAME}-lib"
 
 	${AMUL_COMPILER_SOURCES}
 )
+target_compile_definitions("${AMUL_COMPILER_NAME}-lib" PRIVATE COMPILER=1)
 
 add_executable(
 	${AMUL_COMPILER_NAME}
@@ -51,3 +51,4 @@ add_executable(
 	${AMUL_COMPILER_HEADERS}
 )
 target_link_libraries(${AMUL_COMPILER_NAME} ${AMUL_LIB_NAME} ${AMUL_COMPILER_NAME}-lib)
+target_compile_definitions("${AMUL_COMPILER_NAME}" PRIVATE COMPILER=1)

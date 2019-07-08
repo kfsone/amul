@@ -112,12 +112,12 @@ trav_proc()
             p = precon(block);  // Strip pre-condition opts
         notloop:
             p = getword(p);
-            if (strcmp(Word, ALWAYSEP) == NULL) {
+            if (strcmp(Word, ALWAYSEP) == 0) {
                 tt.condition = CALWAYS;
                 tt.action = -(1 + AENDPARSE);
                 goto write;
             }
-            if (strcmp(Word, "not") == NULL || strcmp(Word, "!") == NULL) {
+            if (strcmp(Word, "not") == 0 || strcmp(Word, "!") == 0) {
                 r = -1 * r;
                 goto notloop;
             }

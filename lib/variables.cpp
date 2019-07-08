@@ -61,7 +61,7 @@ Aport *         amul;
 
 // Structures:
 _PLAYER *    usr, *me, him, *you;
-LS *         lstat, *me2, *you2;
+LS *         linestat, *me2, *you2;
 _ROOM_STRUCT room, *roomtab, *rmtab;  // ptr->table, ptr->a room
 _VERB_STRUCT verb, *vbtab, *vbptr;
 _SLOTTAB     vbslot, *slottab, *stptr;

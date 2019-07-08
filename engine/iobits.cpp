@@ -89,7 +89,7 @@ loopit:
     if (t == MSG_FORCE)
         strcpy(input, ap->ptr);
     SendIt(MSG_BUSY, NULL, NULL);
-    if (f != -1 && (lstat + f)->state == US_CONNECTED)
+    if (f != -1 && (linestat + f)->state == US_CONNECTED)
         Amiga::ReplyMsg(ap);
     else
         OS::Free((char *)ap, (int32_t)sizeof(*amul));
@@ -358,8 +358,8 @@ int esc(const char *p, char *s)  // Find @ escape sequences
             strcpy(s, (obtab + (me2->wield))->id);
             return 1;
         }
-        if (c == '2' && (lstat + (me2->fighting))->wield != -1) {
-            strcpy(s, (obtab + ((lstat + (me2->fighting))->wield))->id);
+        if (c == '2' && (linestat + (me2->fighting))->wield != -1) {
+            strcpy(s, (obtab + ((linestat + (me2->fighting))->wield))->id);
             return 1;
         }
         strcpy(s, "bare hands");
@@ -377,11 +377,11 @@ int esc(const char *p, char *s)  // Find @ escape sequences
 void
 interact(int msg, int n, int d)
 {
-    if ((lstat + n)->state < US_CONNECTED)
+    if ((linestat + n)->state < US_CONNECTED)
         return;
     lockusr(n);
     if (msg == MSG_MESSAGE)
-        strcat((lstat + n)->buf, ow);
+        strcat((linestat + n)->buf, ow);
     if ((intam = (Aport *)OS::AllocateClear(sizeof(*amul))) == NULL)
         memfail("comms port");
     IAm->mn_Length = (UWORD)sizeof(*amul);
@@ -390,14 +390,14 @@ interact(int msg, int n, int d)
     IAm->mn_ReplyPort = repbk;
     IAt = msg;
     IAd = d;
-    (lstat + n)->IOlock = -1;
-    Amiga::PutMsg((lstat + n)->rep, intam);
+    (linestat + n)->IOlock = -1;
+    Amiga::PutMsg((linestat + n)->rep, intam);
 }
 
 void
 sendex(int n, int d, int p1, int p2, int p3, int p4)
 {
-    if ((lstat + n)->state < US_CONNECTED)
+    if ((linestat + n)->state < US_CONNECTED)
         return;
     lockusr(n);
     if ((intam = (Aport *)OS::AllocateClear(sizeof(*amul))) == NULL)
@@ -412,8 +412,8 @@ sendex(int n, int d, int p1, int p2, int p3, int p4)
     intam->p2 = p2;
     intam->p3 = p3;
     intam->p4 = p4;
-    (lstat + n)->IOlock = -1;
-    Amiga::PutMsg((lstat + n)->rep, intam);
+    (linestat + n)->IOlock = -1;
+    Amiga::PutMsg((linestat + n)->rep, intam);
 }
 
 void

@@ -16,7 +16,7 @@ lit(int r)
 
     Amiga::ScheduleGuard guard;
 
-    you2 = lstat;
+    you2 = linestat;
     for (i = 0; i < MAXU; i++, you2++)
         if (you2->room == r && you2->hadlight != 0) {
             Amiga::Permit();
@@ -44,7 +44,7 @@ loc(int o)
     if (*(obtab + o)->rmlist >= -1)
         return *(obtab + o)->rmlist;
     if (*(obtab + o)->rmlist >= -5 && *(obtab + o)->rmlist <= -(5 + MAXU))
-        return (int)(lstat + owner(o))->room;
+        return (int)(linestat + owner(o))->room;
     // Else its in a container
 }
 
@@ -87,10 +87,10 @@ cangive(int obj, int plyr)
 {
     objtab = obtab + obj;
 
-    if ((lstat + plyr)->weight + STATE->weight >
+    if ((linestat + plyr)->weight + STATE->weight >
         (rktab + (usr + plyr)->rank)->maxweight)
         return NO;
-    if ((lstat + plyr)->numobj + 1 > (rktab + (usr + plyr)->rank)->numobj)
+    if ((linestat + plyr)->numobj + 1 > (rktab + (usr + plyr)->rank)->numobj)
         return NO;
     if ((objtab->flags & OF_SCENERY) || (objtab->flags & OF_COUNTER) ||
         objtab->nrooms != 1)
@@ -261,7 +261,7 @@ isanoun(const char *s)
 
     obpt = obtab;
     for (i = 0; i < nouns; i++, obpt++)
-        if (!(obpt->flags & OF_COUNTER) && stricmp(s, obpt->id) == NULL)
+        if (!(obpt->flags & OF_COUNTER) && stricmp(s, obpt->id) == 0)
             return i;
     return -1;
 }
@@ -300,7 +300,7 @@ CHAEtype(int obj)
         return 'C';
     if (isin(obj, me2->room) == YES)
         return 'H';
-    if ((i = owner(obj)) != -1 && (lstat + i)->room == me2->room)
+    if ((i = owner(obj)) != -1 && (linestat + i)->room == me2->room)
         return 'A';
     return 'E';
 }
@@ -323,7 +323,7 @@ isprep(const char *s)
 {
     int i;
     for (i = 0; i < NPREP; i++)
-        if (stricmp(s, prep[i]) == NULL)
+        if (stricmp(s, prep[i]) == 0)
             return i;
     return -1;
 }
@@ -352,7 +352,7 @@ isroom(const char *s)
 int
 infl(int plyr, int spell)
 {
-    you2 = lstat + plyr;
+    you2 = linestat + plyr;
     switch (spell) {
     case SPELL_GLOW:
         if (you2->flags & PFGLOW)
@@ -394,13 +394,13 @@ int
 stat(int plyr, int st, int x)
 {
     switch (st) {
-    case STSTR: return numb((lstat + plyr)->strength, x);
-    case STSTAM: return numb((lstat + plyr)->stamina, x);
+    case STSTR: return numb((linestat + plyr)->strength, x);
+    case STSTAM: return numb((linestat + plyr)->stamina, x);
     case STEXP: return numb((usr + plyr)->experience, x);
-    case STWIS: return numb((lstat + plyr)->wisdom, x);
-    case STDEX: return numb((lstat + plyr)->dext, x);
-    case STMAGIC: return numb((lstat + plyr)->magicpts, x);
-    case STSCTG: return numb((lstat + plyr)->sctg, x);
+    case STWIS: return numb((linestat + plyr)->wisdom, x);
+    case STDEX: return numb((linestat + plyr)->dext, x);
+    case STMAGIC: return numb((linestat + plyr)->magicpts, x);
+    case STSCTG: return numb((linestat + plyr)->sctg, x);
     }
 }
 
@@ -411,16 +411,16 @@ cansee(int p1, int p2)
     // You can't see YOURSELF, and check for various other things...
     if (*(usr + p2)->name == 0 || p1 == p2)
         return NO;
-    if ((lstat + p2)->state != US_CONNECTED)
+    if ((linestat + p2)->state != US_CONNECTED)
         return NO;
     // If different rooms, or current room is dark
     if (pROOM(p1) != pROOM(p2))
         return NO;
     // If p2 is Super Invis, he can't be seen!
-    if ((lstat + p2)->flags & PFSPELL_INVISIBLE)
+    if ((linestat + p2)->flags & PFSPELL_INVISIBLE)
         return NO;
     // If player is blind, obviously can't see p2!
-    if ((lstat + p1)->flags & PFBLIND)
+    if ((linestat + p1)->flags & PFBLIND)
         return NO;
     if (lit(pROOM(p1)) == NO)
         return NO;
@@ -444,9 +444,9 @@ cansee(int p1, int p2)
 int
 canseeobj(int obj, int who)
 {
-    if (((obtab + obj)->flags & OF_SMELL) && !((lstat + who)->flags & PFBLIND))
+    if (((obtab + obj)->flags & OF_SMELL) && !((linestat + who)->flags & PFBLIND))
         return NO;
-    if ((lstat + who)->flags & PFBLIND &&
+    if ((linestat + who)->flags & PFBLIND &&
         (!((obtab + obj)->flags & OF_SMELL) ||
          *(obtab + obj)->rmlist != -(5 + who)))
         return NO;

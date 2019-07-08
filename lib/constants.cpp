@@ -363,7 +363,7 @@ const Instruction actions[NACTS] = {
         {"gstart", 2, {CAP_DAEMON_ID, CAP_NUM, 0}},
 };
 
-struct ACTUAL actual[NACTUALS] = {  // placeholders fo "actual" runtime things
+const ACTUAL actual[NACTUALS] = {  // placeholders fo "actual" runtime things
         {"verb", IWORD + IVERB, TC_VERB},        {"adj", IWORD + IADJ1, TC_ADJ},
         {"adj1", IWORD + IADJ1, TC_ADJ},         {"noun", IWORD + INOUN1, TC_NOUN},
         {"noun1", IWORD + INOUN1, TC_NOUN},      {"player", IWORD + INOUN1, TC_PLAYER},

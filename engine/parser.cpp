@@ -48,7 +48,7 @@ void grab()  // Copy INPUT to BLOCK, taking one sentence at a time, etc
             *(d++) = *(s++);
         *d = 0;
         *(d + 1) = 0;
-        if (stricmp(p, "then") == NULL || stricmp(p, "and") == NULL) {
+        if (stricmp(p, "then") == 0 || stricmp(p, "and") == 0) {
             *p = 0;
             goto proc;
         }

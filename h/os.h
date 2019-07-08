@@ -3,8 +3,9 @@
 #include <cstdlib>
 
 #if defined(WIN32)
-
 #    include <io.h>
+#else
+#define stricmp strcasecmp
 #endif
 
 // OS-specific helpers

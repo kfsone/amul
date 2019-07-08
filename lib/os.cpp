@@ -9,6 +9,10 @@
 #include <cstdlib>
 #include <string>
 
+#if !defined(_MSC_VER)
+#include <unistd.h>
+#endif
+
 using namespace AMUL::Logging;
 
 namespace OS

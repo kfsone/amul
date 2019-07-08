@@ -61,7 +61,7 @@ rank_proc()
         p = getword(p);
         if (!chkline(p))
             continue;
-        if (strcmp(Word, "=") != NULL &&
+        if (strcmp(Word, "=") != 0 &&
             (strlen(Word) < 3 || strlen(Word) > RANKL)) {
             GetLogger().errorf("Invalid female rank: %s", Word);
         }

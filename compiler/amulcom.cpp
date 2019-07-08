@@ -67,7 +67,7 @@ void
 set_put()
 {
     for (int i = 0; i < NPUTS; i++) {
-        if (stricmp(obputs[i], Word) == NULL) {
+        if (stricmp(obputs[i], Word) == 0) {
             obj2.putto = i;
             return;
         }
@@ -79,7 +79,7 @@ void
 set_mob()
 {
     for (int i = 0; i < mobchars; i++) {
-        if (stricmp(Word, (mobp + i)->id) == NULL) {
+        if (stricmp(Word, (mobp + i)->id) == 0) {
             obj2.mobile = i;
             return;
         }

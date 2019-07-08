@@ -29,7 +29,7 @@ chae_proc(const char *f, char *t)
 {
     int n;
 
-    if (*f < '0' || *f > '9' && *f != '?') {
+    if ((*f < '0' || *f > '9') && *f != '?') {
         chae_err();
         return -1;
     }
@@ -78,11 +78,11 @@ int
 iswtype(char *s)
 {
     for (int i = 0; i < NSYNTS; i++) {
-        if (strcmp(s, syntax[i]) == NULL) {
+        if (strcmp(s, syntax[i]) == 0) {
             *s = 0;
             return i - 1;
         }
-        if (strncmp(s, syntax[i], syntl[i]) != NULL)
+        if (strncmp(s, syntax[i], syntl[i]) != 0)
             continue;
         if (*(s + syntl[i]) != '=')
             continue;
@@ -136,7 +136,7 @@ actualval(const char *s, int n)
     if (!isalpha(*s))
         return -2;
     for (int i = 0; i < NACTUALS; i++) {
-        if (stricmp(s, actual[i].name) != NULL)
+        if (stricmp(s, actual[i].name) != 0)
             continue;
         // If its not a slot label, and the wtypes match, we's okay!
         if (!(actual[i].value & IWORD))
@@ -245,11 +245,11 @@ lang_proc()
         if (isLineBreak(*p))
             goto noflags;
         p = getword(p);
-        if (strcmp("travel", Word) == NULL) {
+        if (strcmp("travel", Word) == 0) {
             verb.flags = 0;
             p = getword(p);
         }
-        if (strcmp("dream", Word) == NULL) {
+        if (strcmp("dream", Word) == 0) {
             verb.flags += VB_DREAM;
             p = getword(p);
         }
@@ -273,8 +273,9 @@ lang_proc()
         } while (*cursor != 0 && isCommentChar(block[0]));
         if (*cursor == 0 || block[0] == 0) {
             if (verb.ents == 0 && (verb.flags & VB_TRAVEL))
-                printf("!! \x07Verb \"%s\" has no entries!\n", verb.id);
-            goto write;
+		    GetLogger().errorf("Verb has no entries: %s", verb.id);
+	    ///TODO: This used to do 'goto write'
+	    continue;
         }
 
         tidy(block);
@@ -294,11 +295,11 @@ lang_proc()
         p2 = skipspc(p2);
 
         // If syntax line is 'syntax=verb any' or 'syntax=none'
-        if (*p2 == 0 && strcmp("any", Word) == NULL) {
+        if (*p2 == 0 && strcmp("any", Word) == 0) {
             setslots(TC_ANY);
             goto endsynt;
         }
-        if (*p2 == 0 && strcmp("none", Word) == NULL) {
+        if (*p2 == 0 && strcmp("none", Word) == 0) {
             setslots(TC_NONE);
             goto endsynt;
         }
@@ -357,7 +358,7 @@ lang_proc()
         }
 
         if (n == WC_NUMBER && (s > 100000 || -s > 100000)) {
-            sprintf(fnm, "Invalid number, %ld", s);
+            sprintf(fnm, "Invalid number, %d", s);
             vbprob(fnm, curline);
         }
         if (s == -1 && n != WC_NUMBER) {
@@ -467,12 +468,12 @@ lang_proc()
         p = getword(p);
 
         // always endparse
-        if (strcmp(Word, ALWAYSEP) == NULL) {
+        if (strcmp(Word, ALWAYSEP) == 0) {
             vt.condition = CALWAYS;
             vt.action = -(1 + AENDPARSE);
             goto writecna;
         }
-        if (strcmp(Word, "not") == NULL || (Word[0] == '!' && Word[1] == 0)) {
+        if (strcmp(Word, "not") == 0 || (Word[0] == '!' && Word[1] == 0)) {
             r = -1 * r;
             goto notloop;
         }
@@ -550,6 +551,7 @@ lang_proc()
             goto synloop;
 
         lastc = '\n';
+
     write:
         fwritesafe(verb, ofp1);
         proc = 0;

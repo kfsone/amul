@@ -183,7 +183,7 @@ struct _MOB_ENT  // Mobile Character Entry
     char           speed, travel, fight, act, wait;  // speed & %ages
     char           fear, attack;                     // others
     char           flags;                            // (padding really)
-    uint16_t       dmove;
+    int16_t        dmove;
     short int      hitpower;                          // Hit power
     int32_t        arr, dep, flee, hit, miss, death;  // Various UMsgs
     short int      knows;                             // Number of &
@@ -303,7 +303,7 @@ struct _OBJ  // Object definition
 
 struct _MOB  // Mobile Character Entry
 {
-    uint16_t       dmove;                             // Move to when it dies
+    int16_t        dmove;                             // Move to when it dies
     char           deadstate;                         // State flags
     char           speed, travel, fight, act, wait;   // speed & %ages
     char           fear, attack;                      // others

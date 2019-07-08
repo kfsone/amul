@@ -5,10 +5,11 @@
 
 [[noreturn]] void quit();
 
-namespace AMUL
-{
-namespace Logging
-{
+namespace AMUL::Logging {
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-security"
+
 struct Logger {
     ~Logger();
 
@@ -61,8 +62,8 @@ struct Logger {
 
     [[noreturn]] void fatalop(const char *verb, const char *noun) { fatalf("Can't %s %s."); }
 };
+#pragma clang diagnostic pop
 
 Logger &GetLogger();
 
-}  // namespace Logging
-}  // namespace AMUL
+}

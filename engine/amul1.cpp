@@ -134,8 +134,8 @@ main(int argc, char *argv[])
     *amanp = *amul;
     link = 1;
     SendIt(MSG_CONNECT, -10, NULL);  // Go for a connection!
-    lstat = (struct LS *)Ad;
-    me2 = lstat + Af;
+    linestat = (struct LS *)Ad;
+    me2 = linestat + Af;
     me2->IOlock = Af;
     ip = 0;
     usr = (struct _PLAYER *)Ap;
@@ -194,9 +194,9 @@ main(int argc, char *argv[])
         fol = 0;
         needcr = NO;
         addcr = NO;
-        if (last_him != -1 && (lstat + last_him)->state != US_CONNECTED)
+        if (last_him != -1 && (linestat + last_him)->state != US_CONNECTED)
             last_him = -1;
-        if (last_her != -1 && (lstat + last_her)->state != US_CONNECTED)
+        if (last_her != -1 && (linestat + last_her)->state != US_CONNECTED)
             last_her = -1;
         iocheck();
         tx((rktab + me->rank)->prompt);
@@ -205,7 +205,7 @@ main(int argc, char *argv[])
         Inp(input, 390);
         if (exeunt != 0)
             break;
-        if (stricmp(input, "help") == NULL) {
+        if (stricmp(input, "help") == 0) {
             sys(HELP);
             continue;
         }
@@ -213,7 +213,7 @@ main(int argc, char *argv[])
             internal(input + 1);
             continue;
         }
-        if (stricmp(input, "***debug") == NULL) {
+        if (stricmp(input, "***debug") == 0) {
             debug = debug ^ 1;
             continue;
         }

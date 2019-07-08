@@ -70,7 +70,7 @@ extern Aport *         amul;
 
 // Structures:
 extern struct _PLAYER *    usr, *me, him, *you;
-extern struct LS *         lstat, *me2, *you2;
+extern struct LS *         linestat, *me2, *you2;
 extern struct _ROOM_STRUCT room, *roomtab, *rmtab;  // ptr->table, ptr->a room
 extern struct _VERB_STRUCT verb, *vbtab, *vbptr;
 extern struct _SLOTTAB     vbslot, *slottab, *stptr;

@@ -2,6 +2,9 @@
 #include "h/amul.vars.h"
 
 #include <sys/stat.h>
+#if !defined(_MSC_VER)
+#include <unistd.h>
+#endif
 
 #include <string>
 

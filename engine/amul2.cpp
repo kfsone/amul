@@ -180,10 +180,10 @@ agive(int obj, int to)
     if (STATE->flags & SF_LIT) {
         if (own == -1)  //== Did I just pick and was it from here?
         {
-            if (orm == (lstat + own)->room)
+            if (orm == (linestat + own)->room)
                 return;
         } else {  //== If I got it from someone, and he is near me...
-            if ((lstat + own)->room == (lstat + to)->room)
+            if ((linestat + own)->room == (lstat + to)->room)
                 return;
             lighting(own, AHERE);  //== Else check his lights!
         }
@@ -231,15 +231,15 @@ make_rank(int p, int rankn, int gender)
 {
     strcat(str, " the ");
     p += 5;
-    if (*(lstat + p)->pre != 0) {
-        strcat(str, (lstat + p)->pre);
+    if (*(linestat + p)->pre != 0) {
+        strcat(str, (linestat + p)->pre);
         strcat(str, " ");
     }
     strcat(str,
            (gender == 0) ? (rktab + rankn)->male : (rktab + rankn)->female);
-    if (*(lstat + p)->post != 0) {
+    if (*(linestat + p)->post != 0) {
         strcat(str, " ");
-        strcat(str, (lstat + p)->post);
+        strcat(str, (linestat + p)->post);
     }
 }
 
@@ -295,7 +295,7 @@ bool
 gotin(int obj, int st)
 {
     for (int i = 0; i < nouns; i++) {
-        if (stricmp((obtab + i)->id, (obtab + obj)->id) == NULL &&
+        if (stricmp((obtab + i)->id, (obtab + obj)->id) == 0 &&
             ((obtab + i)->state == st || st == -1) && owner(i) == Af)
             return true;
     }
@@ -521,7 +521,7 @@ descobj(int Ob)
 void
 inflict(int x, int s)
 {
-    you2 = lstat + x;
+    you2 = linestat + x;
     if (you2->state != US_CONNECTED)
         return;
     switch (s) {
@@ -548,7 +548,7 @@ inflict(int x, int s)
 void
 cure(int x, int s)
 {
-    you2 = lstat + x;
+    you2 = linestat + x;
     if (you2->state != US_CONNECTED)
         return;
     switch (s) {
@@ -575,7 +575,7 @@ cure(int x, int s)
 void
 summon(int plyr)
 {
-    if ((lstat + plyr)->room == me2->room) {
+    if ((linestat + plyr)->room == me2->room) {
         txs(acp(CANTSUMN), (usr + plyr)->name);
         return;
     }
@@ -863,16 +863,16 @@ announce(const char *s, int towho)
 
     for (i = 0; i < MAXU; i++) {
         // If the player is deaf, ignore him
-        if (actor == i || ((lstat + i)->state < 2) ||
-            ((lstat + i)->flags & PFDEAF))
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & PFDEAF))
             continue;
         /*
            The next line says:
             if this is another player, and he's in another room,
             and the room is a silent room, ignore him.
         */
-        if (i != Af && (lstat + i)->room != me2->room &&  // --v
-            ((rmtab + (lstat + i)->room)->flags & RF_SILENT))
+        if (i != Af && (linestat + i)->room != me2->room &&  // --v
+            ((rmtab + (linestat + i)->room)->flags & RF_SILENT))
             continue;
         x = 0;
         switch (towho) {
@@ -886,11 +886,11 @@ announce(const char *s, int towho)
             if (i == Af)
                 break;
         case AHERE:
-            if ((lstat + i)->room == me2->room)
+            if ((linestat + i)->room == me2->room)
                 x = 1;
             break;
         case AOUTSIDE:
-            if ((lstat + i)->room != me2->room)
+            if ((linestat + i)->room != me2->room)
                 x = 1;
             break;
         }
@@ -908,8 +908,8 @@ announcein(int toroom, const char *s)
     int i;
     for (i = 0; i < MAXU; i++) {
         // If the player is deaf, ignore him
-        if (actor == i || ((lstat + i)->state < 2) ||
-            ((lstat + i)->flags & PFDEAF) || (lstat + i)->room != toroom)
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & PFDEAF) || (lstat + i)->room != toroom)
             continue;
         setmxy(PC_NOISE, i);
         utx(i, s);
@@ -923,13 +923,13 @@ announcefrom(int obj, const char *s)
     int i, o;
     for (i = 0; i < MAXU; i++) {
         // If the player is deaf or can see me, ignore him
-        if (actor == i || ((lstat + i)->state < 2) ||
-            ((lstat + i)->flags & PFDEAF) || (lstat + i)->room == me2->room)
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & PFDEAF) || (lstat + i)->room == me2->room)
             continue;
         // Check if the player is NEAR to someone carrying the object
-        if ((o = owner(obj)) != -1 && (lstat + o)->room != (lstat + i)->room)
+        if ((o = owner(obj)) != -1 && (linestat + o)->room != (lstat + i)->room)
             continue;
-        if (o == -1 && isin(obj, (lstat + o)->room) == NO)
+        if (o == -1 && isin(obj, (linestat + o)->room) == NO)
             continue;
         setmxy(PC_NOISE, i);
         utx(i, s);
@@ -941,13 +941,13 @@ void objannounce(int obj, char *s)  // Loud noises/events
     int i, o;
     for (i = 0; i < MAXU; i++) {
         // If the player is deaf or can see me, ignore him
-        if (actor == i || ((lstat + i)->state < 2) ||
-            ((lstat + i)->flags & PFDEAF))
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & PFDEAF))
             continue;
         // Check if the player is NEAR to someone carrying the object
-        if ((o = owner(obj)) != -1 && (lstat + o)->room != (lstat + i)->room)
+        if ((o = owner(obj)) != -1 && (linestat + o)->room != (lstat + i)->room)
             continue;
-        if (o == -1 && isin(obj, (lstat + o)->room) == NO)
+        if (o == -1 && isin(obj, (linestat + o)->room) == NO)
             continue;
         setmxy(PC_NOISE, i);
         utx(i, s);
@@ -961,8 +961,8 @@ action(const char *s, int towho)
     int i, x;
     for (i = 0; i < MAXU; i++) {
         // If the player is asleep, or blind, skip him
-        if (actor == i || ((lstat + i)->state < 2) ||
-            ((lstat + i)->flags & (PFBLIND + PFASLEEP)) != 0)
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) != 0)
             continue;
         x = 0;
         switch (towho) {
@@ -976,11 +976,11 @@ action(const char *s, int towho)
             if (i == Af)
                 break;
         case AHERE:
-            if ((lstat + i)->room == me2->room && cansee(i, Af) == YES)
+            if ((linestat + i)->room == me2->room && cansee(i, Af) == YES)
                 x = 1;
             break;
         case AOUTSIDE:
-            if ((lstat + i)->room != me2->room)
+            if ((linestat + i)->room != me2->room)
                 x = 1;
             break;
         }
@@ -997,9 +997,9 @@ actionin(int toroom, const char *s)
 {
     for (int i = 0; i < MAXU; i++) {
         // If the player is asleep, or blind, skip him
-        if (actor == i || ((lstat + i)->state < US_CONNECTED) ||
-            ((lstat + i)->flags & (PFBLIND + PFASLEEP)) ||
-            (lstat + i)->room != toroom)
+        if (actor == i || ((linestat + i)->state < US_CONNECTED) ||
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) ||
+            (linestat + i)->room != toroom)
             continue;
         setmxy(PC_ACTION, i);
         utx(i, s);
@@ -1012,16 +1012,16 @@ actionfrom(int obj, const char *s)
 {
     for (int i = 0; i < MAXU; i++) {
         // If the player is asleep, or blind, skip him
-        if (actor == i || ((lstat + i)->state < 2) ||
-            ((lstat + i)->flags & (PFBLIND + PFASLEEP)) ||
-            (lstat + i)->room == me2->room)
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) ||
+            (linestat + i)->room == me2->room)
             continue;
         // Check if the player is NEAR to someone carrying the object
         int o = owner(obj);
         if (o != -1)
-            if ((lstat + o)->room != (lstat + i)->room)
+            if ((linestat + o)->room != (lstat + i)->room)
                 continue;
-        if (o == -1 && isin(obj, (lstat + i)->room) == NO)
+        if (o == -1 && isin(obj, (linestat + i)->room) == NO)
             continue;
         setmxy(PC_ACTION, i);
         utx(i, s);
@@ -1035,14 +1035,14 @@ objaction(int obj, const char *s)
     int i, o;
     for (i = 0; i < MAXU; i++) {
         // If the player is asleep, or blind, skip him
-        if (actor == i || ((lstat + i)->state < 2) ||
-            ((lstat + i)->flags & (PFBLIND + PFASLEEP)))
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)))
             continue;
         // Check if the player is NEAR to someone carrying the object
         if ((o = owner(obj)) != -1)
-            if ((lstat + o)->room != (lstat + i)->room)
+            if ((linestat + o)->room != (lstat + i)->room)
                 continue;
-        if (o == -1 && isin(obj, (lstat + i)->room) == NO)
+        if (o == -1 && isin(obj, (linestat + i)->room) == NO)
             continue;
         setmxy(PC_ACTION, i);
         utx(i, s);
@@ -1076,21 +1076,21 @@ ableep(int n)
 void
 lighting(int x, int twho)
 {
-    if ((lstat + x)->light == (lstat + x)->hadlight ||
-        !((rmtab + (lstat + x)->room)->flags & RF_DARK))
+    if ((linestat + x)->light == (lstat + x)->hadlight ||
+        !((rmtab + (linestat + x)->room)->flags & RF_DARK))
         return;
-    if ((lstat + x)->light <= 0) {
-        if ((lstat + x)->hadlight <= 0)
+    if ((linestat + x)->light <= 0) {
+        if ((linestat + x)->hadlight <= 0)
             return;
-        (lstat + x)->hadlight = (lstat + x)->light = 0;
-        if (lit((lstat + x)->room) == NO)
+        (linestat + x)->hadlight = (lstat + x)->light = 0;
+        if (lit((linestat + x)->room) == NO)
             action(acp(NOWTOODARK), twho);
     } else {
-        if ((lstat + x)->hadlight != 0)
+        if ((linestat + x)->hadlight != 0)
             return;
-        if (lit((lstat + x)->room) == NO)
+        if (lit((linestat + x)->room) == NO)
             action(acp(NOWLIGHT), twho);
-        (lstat + x)->hadlight = (lstat + x)->light;
+        (linestat + x)->hadlight = (lstat + x)->light;
     }
 }
 
@@ -1117,9 +1117,9 @@ nohelp()
 
     if (me2->helping != -1)
         utx(me2->helping, "@me is no-longer able to help you...\n");
-    (lstat + me2->helping)->helped--;
+    (linestat + me2->helping)->helped--;
     me2->helping = -1;
-    you2 = lstat;
+    you2 = linestat;
     for (i = 0; i < MAXU; i++, you2++)
         if (you2->helping == Af) {
             utx(i, "You are no longer able to help @me.\n");
@@ -1143,17 +1143,17 @@ afight(int plyr)
         sys(NOFIGHT);
         return;
     }
-    if ((lstat + plyr)->fighting == Af) {
+    if ((linestat + plyr)->fighting == Af) {
         txs("You are already fighting %s!\n", (usr + plyr)->name);
         donet = ml + 1;
         return;
     }
-    if ((lstat + plyr)->fighting != -1) {
+    if ((linestat + plyr)->fighting != -1) {
         txs("%s is already in a fight!\n", (usr + plyr)->name);
         donet = ml + 1;
         return;
     }
-    you2 = lstat + plyr;
+    you2 = linestat + plyr;
     you2->flags = you2->flags | PFFIGHT;
     me2->flags = me2->flags | PFFIGHT | PFATTACKER;
     you2->fighting = Af;
@@ -1174,7 +1174,7 @@ clearfight()
 void
 finishfight(int plyr)
 {
-    you2 = lstat + plyr;
+    you2 = linestat + plyr;
     you2->flags = you2->flags & (-1 - (PFFIGHT | PFATTACKER));
     you2->fighting = -1;
 }
@@ -1206,7 +1206,7 @@ acombat()
     }
 
     you = usr + me2->fighting;
-    you2 = lstat + me2->fighting;
+    you2 = linestat + me2->fighting;
     minpksl = (rktab + you->rank)->minpksl;
 
     if (you2->state < US_CONNECTED || you2->room != me2->room ||
@@ -1295,7 +1295,7 @@ acombat()
     }
     oldstr -= adam;
     if ((me2->flags & PFATTACKER) && oldstr > 0) {
-        //		if(me2->helped != -1 && (lstat+me2->helped)->room==me2->room)
+        //		if(me2->helped != -1 && (linestat+me2->helped)->room==me2->room)
         //Well?
 
         sendex(me2->fighting, ACOMBAT, -1, 0, 0);  // Tell them to clear up!
@@ -1399,8 +1399,8 @@ follow(int subject, const char *cmd)
     IAt = MSG_FORCE;
     IAd = 1;
     IAp = cmd;
-    Amiga::PutMsg((lstat + subject)->rep, intam);
-    (lstat + subject)->IOlock = -1;
+    Amiga::PutMsg((linestat + subject)->rep, intam);
+    (linestat + subject)->IOlock = -1;
 }
 
 void
@@ -1429,7 +1429,7 @@ PutARankInto(char *s, int rankNo)
     char *p;
 
     you = (usr + rankNo);
-    you2 = (lstat + rankNo);
+    you2 = (linestat + rankNo);
 
     if (you2->pre[0] != 0) {
         p = you2->pre;
@@ -1520,7 +1520,7 @@ invent(int plyr)
 
     strcpy(p, "carrying ");
     *(p += 9) = 0;
-    if ((lstat + plyr)->numobj == 0) {
+    if ((linestat + plyr)->numobj == 0) {
         strcat(p, "nothing.\n");
         tx(block);
         return;
@@ -1708,16 +1708,16 @@ whohere()
     }
     for (i = 0; i < MAXU; i++) {
         if (i != Af && cansee(Af, i) == YES &&
-            !((lstat + i)->flags & PFMOVING)) {
+            !((linestat + i)->flags & PFMOVING)) {
             PutARankInto(str, i);
             sprintf(block, acp(ISHERE), (usr + i)->name, str);
-            if (((lstat + i)->flags & PFSITTING) != 0)
+            if (((linestat + i)->flags & PFSITTING) != 0)
                 strcat(block, ", sitting down");
-            if (((lstat + i)->flags & PFLYING) != 0)
+            if (((linestat + i)->flags & PFLYING) != 0)
                 strcat(block, ", lying down");
-            if (((lstat + i)->flags & PFASLEEP) != 0)
+            if (((linestat + i)->flags & PFASLEEP) != 0)
                 strcat(block, ", asleep");
-            if ((lstat + i)->numobj == 0) {
+            if ((linestat + i)->numobj == 0) {
                 strcat(block, ".\n");
                 tx(block);
             } else {
@@ -1735,8 +1735,8 @@ awho(int type)
 
     if (type == VERBOSE) {
         for (i = 0; i < MAXU; i++)
-            if ((usr + i)->name[0] != 0 && (lstat + i)->state > 1 &&
-                (!((lstat + i)->flags & PFSPELL_INVISIBLE))) {
+            if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1 &&
+                (!((linestat + i)->flags & PFSPELL_INVISIBLE))) {
                 str[0] = 0;
                 if (isPINVIS(i)) {
                     str[0] = '(';
@@ -1758,8 +1758,8 @@ awho(int type)
         j = 0;
         str[0] = 0;
         for (i = 0; i < MAXU; i++)
-            if ((usr + i)->name[0] != 0 && (lstat + i)->state > 1 &&
-                (!((lstat + i)->flags & PFSPELL_INVISIBLE))) {
+            if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1 &&
+                (!((linestat + i)->flags & PFSPELL_INVISIBLE))) {
                 if (i != Af) {
                     if (j++ != 0)
                         strcat(str, ", ");
@@ -2165,13 +2165,13 @@ ado(int verb)
 void add_obj(int to)  //== Add an object into a players inventory
 {
     *objtab->rmlist = -(5 + to);  // It now belongs to them
-    (lstat + to)->numobj++;
-    (lstat + to)->weight += STATE->weight;
-    (lstat + to)->strength -=
+    (linestat + to)->numobj++;
+    (linestat + to)->weight += STATE->weight;
+    (linestat + to)->strength -=
             ((rktab + (usr + to)->rank)->strength * STATE->weight) /
             (rktab + (usr + to)->rank)->maxweight;
     if (STATE->flags & SF_LIT)
-        (lstat + to)->light++;
+        (linestat + to)->light++;
 }
 
 /****** AMUL3.C/rem_obj ******************************************
@@ -2206,13 +2206,13 @@ void add_obj(int to)  //== Add an object into a players inventory
  */
 void rem_obj(int to, int ob)  //== Remove object from inventory
 {
-    (lstat + to)->numobj--;
-    (lstat + to)->weight -= STATE->weight;
-    (lstat + to)->strength +=
+    (linestat + to)->numobj--;
+    (linestat + to)->weight -= STATE->weight;
+    (linestat + to)->strength +=
             ((rktab + (usr + to)->rank)->strength * STATE->weight) /
             (rktab + (usr + to)->rank)->maxweight;
     if (STATE->flags & SF_LIT)
-        (lstat + to)->light--;
+        (linestat + to)->light--;
     if (me2->wield == ob)
         me2->wield = -1;  //== Don't let me wield it
 }
@@ -2253,7 +2253,7 @@ void
 ainteract(int who)
 {
     actor = -1;
-    if ((lstat + who)->state == US_CONNECTED)
+    if ((linestat + who)->state == US_CONNECTED)
         actor = who;
 }
 
@@ -2477,8 +2477,8 @@ DoThis(int x, const char *cmd, short int type)
     IAt = MSG_FORCE;
     IAd = type;
     IAp = cmd;
-    Amiga::PutMsg((lstat + x)->rep, intam);
-    (lstat + x)->IOlock = -1;
+    Amiga::PutMsg((linestat + x)->rep, intam);
+    (linestat + x)->IOlock = -1;
 }
 
 /****** AMUL3.C/StopFollow ******************************************
@@ -2509,12 +2509,12 @@ StopFollow()
             (vbtab + overb)->flags & VB_TRAVEL) {
             return;
         }
-        if ((lstat + me2->following)->state != US_CONNECTED ||
-            (lstat + me2->following)->followed != Af) {
+        if ((linestat + me2->following)->state != US_CONNECTED ||
+            (linestat + me2->following)->followed != Af) {
             me2->following = -1;
             return;
         }
-        (lstat + me2->following)->followed = -1;
+        (linestat + me2->following)->followed = -1;
     }
 
     tx("You are no-longer following @mf.\n");
@@ -2619,7 +2619,7 @@ internal(const char *s)
             tx("Cancelled.\n");
             return;
         }
-        if (stricmp(input, me->passwd) != NULL) {
+        if (stricmp(input, me->passwd) != 0) {
             tx("Invalid password.\n");
             return;
         }
@@ -2629,13 +2629,13 @@ internal(const char *s)
             tx("Cancelled.\n");
             return;
         }
-        if (stricmp(input, me->passwd) == NULL) {
+        if (stricmp(input, me->passwd) == 0) {
             tx("Passwords are the same.\n");
             return;
         }
         tx("Confirm new password: ");
         Inp(block, 250);
-        if (stricmp(input, block) != NULL) {
+        if (stricmp(input, block) != 0) {
             tx("Passwords did not match.\n");
             return;
         }
@@ -2672,7 +2672,7 @@ LoseFollower()
 {
     if (me2->followed == -1)
         return;
-    (lstat + (me2->followed))->following = -1;  // Unhook them
+    (linestat + (me2->followed))->following = -1;  // Unhook them
     utx(me2->followed, "You are no-longer able to follow @me.\n");
     me2->followed = -1;  // Unhook me
 }
@@ -2902,7 +2902,7 @@ showin(int o, int mode)
 int stfull(int st, int p)  // full <st> <player>
 {
     you = (usr + p);
-    you2 = (lstat + p);
+    you2 = (linestat + p);
     switch (st) {
     case STSCORE: return NO;
     case STSCTG: return NO;
@@ -2967,7 +2967,7 @@ asetstat(int obj, int stat)
     i = lit(loc(obj));  // WAS the room lit?
     // Remove from owners inventory
     if (x != -1) {
-        w = (lstat + x)->wield;
+        w = (linestat + x)->wield;
         rem_obj(x, obj);
     }
     f = STATE->flags & SF_LIT;
@@ -2986,7 +2986,7 @@ asetstat(int obj, int stat)
         add_obj(x);  // And put it back again
         //== Should check to see if its too heavy now
         lighting(x, AHERE);
-        (lstat + x)->wield = w;
+        (linestat + x)->wield = w;
     }
 
     if ((j = lit(loc(obj))) == i)
@@ -3009,11 +3009,11 @@ awhere(int obj)
     found = -1;
     for (i = 0; i < nouns; i++)  // Check all
     {
-        if (stricmp((obtab + obj)->id, (obtab + i)->id) == NULL) {
+        if (stricmp((obtab + obj)->id, (obtab + i)->id) == 0) {
             if (canseeobj(i, Af) == NO)
                 continue;
             if ((j = owner(i)) != -1) {
-                if (lit((lstat + j)->room) == YES) {
+                if (lit((linestat + j)->room) == YES) {
                     if (j != Af) {
                         tx("You see ");
                         ans("1m");

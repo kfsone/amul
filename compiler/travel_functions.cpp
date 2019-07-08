@@ -199,17 +199,17 @@ isgender(char c) noexcept
 int
 antype(const char *s) noexcept
 {
-    if (strcmp(s, "global") == NULL)
+    if (strcmp(s, "global") == 0)
         return AGLOBAL;
-    if (strcmp(s, "everyone") == NULL)
+    if (strcmp(s, "everyone") == 0)
         return AEVERY1;
-    if (strcmp(s, "outside") == NULL)
+    if (strcmp(s, "outside") == 0)
         return AOUTSIDE;
-    if (strcmp(s, "here") == NULL)
+    if (strcmp(s, "here") == 0)
         return AHERE;
-    if (strcmp(s, "others") == NULL)
+    if (strcmp(s, "others") == 0)
         return AOTHERS;
-    if (strcmp(s, "all") == NULL)
+    if (strcmp(s, "all") == 0)
         return AALL;
     printf("\x07\nInvalid anouncement-group, '%s'...\n", s);
     return -1;
@@ -222,14 +222,14 @@ isnounh(const char *s)
     int     i, l, j;
     int32_t orm;
 
-    if (stricmp(s, "none") == NULL)
+    if (stricmp(s, "none") == 0)
         return -2;
     FILE *fp = rfopen(Resources::Compiled::objLoc());
     l = -1;
     objtab2 = obtab2;
 
     for (i = 0; i < nouns; i++, objtab2++) {
-        if (stricmp(s, objtab2->id) != NULL)
+        if (stricmp(s, objtab2->id) != 0)
             continue;
         fseek(fp, (long)(uintptr_t)(objtab2->rmlist), 0L);
         for (j = 0; j < objtab2->nrooms; j++) {
@@ -263,21 +263,21 @@ rdmode(char c)
 int
 isspell(const char *s)
 {
-    if (strcmp(s, "glow") == NULL)
+    if (strcmp(s, "glow") == 0)
         return SPELL_GLOW;
-    if (strcmp(s, "invis") == NULL)
+    if (strcmp(s, "invis") == 0)
         return SPELL_INVISIBLE;
-    if (strcmp(s, "deaf") == NULL)
+    if (strcmp(s, "deaf") == 0)
         return SPELL_DEAFEN;
-    if (strcmp(s, "dumb") == NULL)
+    if (strcmp(s, "dumb") == 0)
         return SPELL_MUTE;
-    if (strcmp(s, "blind") == NULL)
+    if (strcmp(s, "blind") == 0)
         return SPELL_BLIND;
-    if (strcmp(s, "cripple") == NULL)
+    if (strcmp(s, "cripple") == 0)
         return SPELL_CRIPPLE;
-    if (strcmp(s, "sleep") == NULL)
+    if (strcmp(s, "sleep") == 0)
         return SPELL_SLEEP;
-    if (strcmp(s, "sinvis") == NULL)
+    if (strcmp(s, "sinvis") == 0)
         return SPELL_SUPER_INVIS;
     return -1;
 }
@@ -285,23 +285,23 @@ isspell(const char *s)
 int
 isstat(const char *s)
 {
-    if (strcmp(s, "sctg") == NULL)
+    if (strcmp(s, "sctg") == 0)
         return STSCTG;
-    if (strncmp(s, "sc", 2) == NULL)
+    if (strncmp(s, "sc", 2) == 0)
         return STSCORE;
-    if (strncmp(s, "poi", 3) == NULL)
+    if (strncmp(s, "poi", 3) == 0)
         return STSCORE;
-    if (strncmp(s, "str", 3) == NULL)
+    if (strncmp(s, "str", 3) == 0)
         return STSTR;
-    if (strncmp(s, "stam", 4) == NULL)
+    if (strncmp(s, "stam", 4) == 0)
         return STSTAM;
-    if (strncmp(s, "dext", 4) == NULL)
+    if (strncmp(s, "dext", 4) == 0)
         return STDEX;
-    if (strncmp(s, "wis", 3) == NULL)
+    if (strncmp(s, "wis", 3) == 0)
         return STWIS;
-    if (strncmp(s, "exp", 3) == NULL)
+    if (strncmp(s, "exp", 3) == 0)
         return STEXP;
-    if (strcmp(s, "magic") == NULL)
+    if (strcmp(s, "magic") == 0)
         return STMAGIC;
     return -1;
 }
@@ -339,7 +339,7 @@ chkcparms(const char *p, int conditionNo, FILE *fp)
 int
 onoff(const char *p)
 {
-    if (stricmp(p, "on") == NULL || stricmp(p, "yes") == NULL)
+    if (stricmp(p, "on") == 0 || stricmp(p, "yes") == 0)
         return 1;
     return 0;
 }

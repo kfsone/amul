@@ -40,7 +40,7 @@ int
 isoflag1(const char *s) noexcept
 {
     for (int i = 0; i < NOFLAGS; i++) {
-        if (strcmp(obflags1[i], s) == NULL)
+        if (strcmp(obflags1[i], s) == 0)
             return i;
     }
     return -1;
@@ -62,7 +62,7 @@ int
 isoflag2(const char *s) noexcept
 {
     for (int i = 0; i < NSFLAGS; i++) {
-        if (strcmp(obflags2[i], s) == NULL)
+        if (strcmp(obflags2[i], s) == 0)
             return i;
     }
     return -1;

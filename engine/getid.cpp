@@ -42,12 +42,12 @@ getid()
         fopena(plyrfn);  // See if user is already in file
         while (!feof(afp)) {
             freadsafe(*me, afp);
-            if (stricmp(me->name, him.name) == NULL)
+            if (stricmp(me->name, him.name) == 0)
                 break;
         }
         me2->rec = ftell(afp) / sizeof(him);
 
-        if (stricmp(me->name, him.name) != NULL)
+        if (stricmp(me->name, him.name) != 0)
             ok = newid();
         else
             ok = getpasswd();
@@ -237,7 +237,7 @@ getpasswd()
         sys(ENTERPASSWD);
         block[0] = 0;
         Inp(block, 10);
-        if (stricmp(block, me->passwd) == NULL)
+        if (stricmp(block, me->passwd) == 0)
             break;
     }
     me->plays++;

@@ -20,7 +20,7 @@
 #define TRQ timerequest
 
 #define UINFO                                                               \
-    ((sizeof(*usr) + sizeof(*lstat)) * MAXNODE) + (rooms * sizeof(short)) + \
+    ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (rooms * sizeof(short)) + \
             (sizeof(mob) * mobs)
 
 #include "h/aman.h"
@@ -250,11 +250,11 @@ kernel()
     daemons = 1;
     nextdaem = count[0] = mins * 60;
     for (i = 0; i < MAXNODE; i++) {
-        (lstat + i)->IOlock = -1;
-        (lstat + i)->room = bid[i] = -1;
+        (linestat + i)->IOlock = -1;
+        (linestat + i)->room = bid[i] = -1;
         busy[i] = 0;
-        (lstat + i)->helping = -1;
-        (lstat + i)->following = -1;
+        (linestat + i)->helping = -1;
+        (linestat + i)->following = -1;
     }
     ResReq.tr_time.tv_secs = 1;
     ResReq.tr_time.tv_micro = XR;
@@ -287,7 +287,7 @@ kernel()
                     am->p3 = typ[i][0];
                     am->p4 = typ[i][1];
                     am->type = MSG_DAEMON;
-                    Amiga::PutMsg((lstat + own[i])->rep, am);
+                    Amiga::PutMsg((linestat + own[i])->rep, am);
                     pack(i);
                     i--;
                 }
@@ -395,24 +395,24 @@ cnct()
 {
     int i;
 
-    Ad = (int32_t)lstat;
+    Ad = (int32_t)linestat;
     Ap = (char *)usr;
     if (Af >= MAXU) {
         if (Af == MAXU + 1)
             printf("** Mobile processor connected.\n");
-        if ((lstat + Af)->state != 0)
+        if ((linestat + Af)->state != 0)
             Af = -1;
         else
-            (lstat + Af)->state = US_CONNECTED;
+            (linestat + Af)->state = US_CONNECTED;
         return;
     }
     Af = -1;
     for (i = 0; i < MAXU; i++)  // Allow for daemons & mobiles
     {
-        if ((lstat + i)->state != 0)
+        if ((linestat + i)->state != 0)
             continue;
         Af = i;
-        (lstat + i)->state = US_LOGGING_IN;
+        (linestat + i)->state = US_LOGGING_IN;
         online++;
         calls++;
         break;
@@ -423,18 +423,18 @@ cnct()
 void
 discnct()
 {
-    if (Af < MAXU && (lstat + Af)->state == US_CONNECTED) {
+    if (Af < MAXU && (linestat + Af)->state == US_CONNECTED) {
         sprintf(block, "<- (%d) %s: user disconnected.\n", Af, now());
         log(block);
     }
     if (Af < MAXU)
         online--;
     (usr + Af)->name[0] = 0;
-    (lstat + Af)->room = -1;
-    (lstat + Af)->helping = -1;
-    (lstat + Af)->following = -1;
+    (linestat + Af)->room = -1;
+    (linestat + Af)->helping = -1;
+    (linestat + Af)->following = -1;
     dkill(-1);
-    (lstat + Af)->state = 0;
+    (linestat + Af)->state = 0;
     Af = -1;
     Ad = -1;
 }
@@ -451,7 +451,7 @@ data()
         Ap1 = calls;
         Ap2 = (int32_t)vername;
         Ap3 = (int32_t)adname;
-        Ap4 = (int32_t)lstat;
+        Ap4 = (int32_t)linestat;
         break;
     case 0:
         strcpy(Ap, dir);
@@ -504,7 +504,7 @@ login()
 {
     sprintf(block, "-> (%d) %s: \"%s\" logged in.\n", Af, now(),
             (usr + Af)->name);
-    (lstat + Af)->state = US_CONNECTED;
+    (linestat + Af)->state = US_CONNECTED;
     log(block);
 }
 
@@ -633,13 +633,13 @@ reset_users()
 
     online = 0;  // Allows for daemons & mobiles
     for (i = 0; i < MAXNODE; i++) {
-        if ((lstat + i)->state <= 0)
+        if ((linestat + i)->state <= 0)
             continue;
         online++;
         setam();
         am->type = MSG_CLOSEING;
         am->msg.mn_ReplyPort = amanPort;
-        PutMsg((lstat + i)->rep, am);
+        PutMsg((linestat + i)->rep, am);
     }
     while (online > 0) {
         Amiga::WaitPort(amanPort);
@@ -694,8 +694,8 @@ setup()
         memfail("User tables");
     usr = (struct _PLAYER *)p;
     p += sizeof(*usr) * MAXNODE;
-    lstat = (struct LS *)p;
-    p += sizeof(*lstat) * MAXNODE;
+    linestat = (struct LS *)p;
+    p += sizeof(*linestat) * MAXNODE;
     rctab = (short *)p;
 
     fopenr(Resources::Compiled::roomData());  // 1: Open room block file
@@ -870,7 +870,7 @@ givebackmemory()
     OS::Free(slottab, stlen + vtlen + vtplen);
     OS::Free(synp, synlen + synilen + adtablen);
 
-    lstat = NULL;
+    linestat = NULL;
     umsgp = NULL;
     vtp = NULL;
     vtpp = NULL;
@@ -946,12 +946,12 @@ void
 lock()
 {
     bid[Af] = Ad;
-    if ((lstat + Ad)->IOlock != -1 ||
+    if ((linestat + Ad)->IOlock != -1 ||
         (busy[Ad] != 0 && Ad != Af && bid[Ad] != Af)) {
         Ad = -1;
         return;
     }
-    (lstat + Ad)->IOlock = Af;
+    (linestat + Ad)->IOlock = Af;
     bid[Af] = -1;
 }
 
@@ -1089,11 +1089,11 @@ void
 warn(char *s)
 {
     for (int i = 0; i < MAXU; i++) {
-        if ((lstat + i)->state != US_OFFLINE) {
+        if ((linestat + i)->state != US_OFFLINE) {
             setam();
             am->ptr = s;
             am->type = MSG_RESET_WARNING;
-            PutMsg((lstat + i)->rep, am);
+            PutMsg((linestat + i)->rep, am);
         }
     }
 }

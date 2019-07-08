@@ -139,7 +139,7 @@ act(int32_t ac, int32_t *pt)
         case AMSGFROM: announcefrom(TP1, AP2); break;
         case AACTFROM: actionfrom(TP1, AP2); break;
         case ATELL:
-            if (!((lstat + TP1)->flags & PFDEAF)) {
+            if (!((linestat + TP1)->flags & PFDEAF)) {
                 setmxy(PC_NOISE, TP1);
                 utx(TP1, AP2);
             }
@@ -177,10 +177,10 @@ act(int32_t ac, int32_t *pt)
         case AFORCE: aforce(TP1, TP2); break;
         case AHELP:
             me2->helping = TP1;
-            (lstat + TP1)->helped = Af;
+            (linestat + TP1)->helped = Af;
             break;
         case ASTOPHELP:
-            (lstat + me2->helping)->helped = -1;
+            (linestat + me2->helping)->helped = -1;
             me2->helping = -1;
             break;
         case AFIX: afix(TP1, TP2); break;
@@ -192,7 +192,7 @@ act(int32_t ac, int32_t *pt)
             break;
         case AFIGHT: afight(TP1); break;
         case AFLEE:
-            dropall((lstat + me2->fighting)->room);
+            dropall((linestat + me2->fighting)->room);
             clearfight();
             break;
         case ALOG: log(AP1); break;
@@ -201,7 +201,7 @@ act(int32_t ac, int32_t *pt)
             me2->wield = TP1;
             break;
             // -  case AFOLLOW:
-            (lstat + TP1)->followed = me2->unum;
+            (linestat + TP1)->followed = me2->unum;
             me2->following = TP1;
             break;
             // -  case ALOSE:
@@ -217,15 +217,15 @@ act(int32_t ac, int32_t *pt)
             asyntax(*(tt.pptr + conditions[tt.condition].parameterCount),
                     *(tt.pptr + conditions[tt.condition].parameterCount + 1));
             break;
-        case ASETPRE: iocopy((lstat + TP1)->pre, AP2, 79); break;
-        case ASETPOST: iocopy((lstat + TP1)->post, AP2, 79); break;
+        case ASETPRE: iocopy((linestat + TP1)->pre, AP2, 79); break;
+        case ASETPOST: iocopy((linestat + TP1)->post, AP2, 79); break;
         case ASETARR:
-            qcopy((lstat + TP1)->arr, AP2, 79);
-            strcat((lstat + TP1)->arr, "\n");
+            qcopy((linestat + TP1)->arr, AP2, 79);
+            strcat((linestat + TP1)->arr, "\n");
             break;
         case ASETDEP:
-            qcopy((lstat + TP1)->dep, AP2, 79);
-            strcat((lstat + TP1)->dep, "\n");
+            qcopy((linestat + TP1)->dep, AP2, 79);
+            strcat((linestat + TP1)->dep, "\n");
             break;
         case ASENDDAEMON: dsend(TP1, TP2, TP3); break;
         case ADO: ado(TP1); break;
@@ -261,7 +261,7 @@ act(int32_t ac, int32_t *pt)
         if ((rmtab + ac)->flags & RF_TINY)  // Allow for losing follower!
         {
             for (i = 0; i < MAXU; i++)
-                if ((lstat + i)->room == ac) {
+                if ((linestat + i)->room == ac) {
                     Amiga::Permit();
                     sys(NOROOM);
                     actionin(ac, acp(NOROOMIN));
@@ -295,8 +295,8 @@ act(int32_t ac, int32_t *pt)
             /* If we didn't just execute a travel verb, we've lost them.
                If the other player hasn't caught up with us, lose them! */
             if (((vbtab + overb)->flags & VB_TRAVEL) ||
-                (lstat + me2->followed)->room != lroom ||
-                ((lstat + me2->followed)->flags & PFMOVING))
+                (linestat + me2->followed)->room != lroom ||
+                ((linestat + me2->followed)->flags & PFMOVING))
                 LoseFollower();
             else {
                 DoThis(me2->followed, (vbtab + overb)->id, 1);
@@ -392,12 +392,12 @@ int cond(int32_t n, int l)  // Execute a condition on me
         break;
     case CONLYUSER:
         for (i = 0; i < MAXU; i++)
-            if ((usr + i)->name[0] != 0 && (lstat + i)->state > 1)
+            if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1)
                 ret = -1;
         break;
     case CALONE:
         for (i = 0; i < MAXU; i++)
-            if (((lstat + i)->room == me2->room) && i != Af)
+            if (((linestat + i)->room == me2->room) && i != Af)
                 ret = -1;
         break;
     case CINROOM:
@@ -434,7 +434,7 @@ int cond(int32_t n, int l)  // Execute a condition on me
             ret = -1;
         break;
     case CSAMEROOM:
-        if ((lstat + CP1)->room != me2->room)
+        if ((linestat + CP1)->room != me2->room)
             ret = -1;
         break;
     case CTOPRANK:
@@ -497,7 +497,7 @@ int cond(int32_t n, int l)  // Execute a condition on me
             ret = -1;
         break;
     case CFIGHTING:
-        if (!((lstat + CP1)->flags & PFFIGHT))
+        if (!((linestat + CP1)->flags & PFFIGHT))
             ret = -1;
         break;
     case CTASKSET:
@@ -523,7 +523,7 @@ int cond(int32_t n, int l)  // Execute a condition on me
             ret = -1;
             break;
         }
-        if (stricmp((obtab + CP1)->id, (obtab + inoun1)->id) != NULL)
+        if (stricmp((obtab + CP1)->id, (obtab + inoun1)->id) != 0)
             ret = -1;
         break;
     case CNOUN2:
@@ -535,7 +535,7 @@ int cond(int32_t n, int l)  // Execute a condition on me
             ret = -1;
             break;
         }
-        if (stricmp((obtab + CP1)->id, (obtab + inoun2)->id) != NULL)
+        if (stricmp((obtab + CP1)->id, (obtab + inoun2)->id) != 0)
             ret = -1;
         break;
     case CAUTOEXITS:
@@ -573,7 +573,7 @@ int cond(int32_t n, int l)  // Execute a condition on me
             return -1;
         break;
     case CHEALTH:
-        if (numb((((lstat + CP1)->stamina * 100) /
+        if (numb((((linestat + CP1)->stamina * 100) /
                   (rktab + (usr + CP1)->rank)->stamina),
                  CP2) == NO)
             ret = -1;
@@ -583,7 +583,7 @@ int cond(int32_t n, int l)  // Execute a condition on me
             return -1;
         break;
     case CSPELL:
-        if (numb((lstat + CP1)->wisdom, mod(rnd(), CP2)) == NO)
+        if (numb((linestat + CP1)->wisdom, mod(rnd(), CP2)) == NO)
             ret = -1;
         break;
     case CIN:
@@ -614,7 +614,7 @@ strip:
     // Check for a players name BEFORE checking for white words!
 
     for (word = 0; word < MAXU; word++)
-        if ((lstat + word)->state == US_CONNECTED &&
+        if ((linestat + word)->state == US_CONNECTED &&
             match((usr + word)->name, p) == NULL) {
             *s += strlen((usr + word)->name);
             return TC_PLAYER;

@@ -23,7 +23,7 @@ Amiga::Task *   mytask;
 Aport *         amul;
 
 struct _PLAYER *     usr;
-struct LS *          lstat;
+struct LS *          linestat;
 struct _ROOM_STRUCT *rmtab;
 struct _RANK_STRUCT *rktab;
 struct _OBJ_STRUCT * obtab;
@@ -38,8 +38,8 @@ main(int argc, char *argv[])
     // Look for AMUL Manager Port
     printf("\n[31;1mAWho - [0;33mWho's on [32mAMUL[33m???[0m ");
 
-    if (argc == 2 && strcmp(argv[1], "?") == NULL ||
-        strcmp(argv[1], "-?") == NULL) {
+    if (argc == 2 && strcmp(argv[1], "?") == 0 ||
+        strcmp(argv[1], "-?") == 0) {
         printf("\n\nUsage: [33m%s [32;1m[FULL][0m\n\n", argv[0]);
         printf("Purpose: Lists current status of AMan/AMUL adventure.\n%9sFULL "
                "option lists all "
@@ -48,7 +48,7 @@ main(int argc, char *argv[])
         exit(0);
     }
 
-    if (argc == 2 && stricmp(argv[1], "full") != NULL) {
+    if (argc == 2 && stricmp(argv[1], "full") != 0) {
         printf("\n\n\x08Invalid usage! Type \"[32m%s ?[0m\" for help.\n\n",
                argv[0]);
         exit(0);
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
     // Get user structure and # online.
     sendmsg(-1);
     usr = (struct _PLAYER *)Ap;
-    lstat = (struct LS *)Ap4;
+    linestat = (struct LS *)Ap4;
     online = Ad;
     calls = Ap1;
     adname = (char *)Ap3;
@@ -121,15 +121,15 @@ main(int argc, char *argv[])
                    "%s--\n",
                    "name", "rank", "location", "score");
             for (i = 0; i < MAXU; i++) {
-                if ((lstat + i)->state <= 0)
+                if ((linestat + i)->state <= 0)
                     continue;
-                if ((lstat + i)->state == 2)
+                if ((linestat + i)->state == 2)
                     printf("%-25.25s|%-25.25s|%-14.14s|%9.9ld\n",
                            (usr + i)->name,
                            ((usr + i)->sex == 0)
                                    ? (rktab + (usr + i)->rank)->male
                                    : (rktab + (usr + i)->rank)->female,
-                           (rmtab + (lstat + i)->room)->id, (usr + i)->score);
+                           (rmtab + (linestat + i)->room)->id, (usr + i)->score);
                 else
                     printf("%-25.25s|%-25.25s|%-14.14s|%9.9ld\n",
                            "   << Logging In! >>", "", "...Nowhere!...", 0);

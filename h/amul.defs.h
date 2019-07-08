@@ -460,10 +460,10 @@ enum UserDefault {
 
 // Helper macros and wannabe member functions
 #define isOINVIS(x) ((obtab + x)->flags & OF_INVIS)
-#define isPINVIS(x) ((lstat + x)->flags & PFINVIS)
+#define isPINVIS(x) ((linestat + x)->flags & PFINVIS)
 #define IamINVIS (me2->flags & PFINVIS)
 #define IamSINVISIBLE (me2->flags & PFSPELL_INVISIBLE)
-#define pROOM(x) ((lstat + x)->room)
+#define pROOM(x) ((linestat + x)->room)
 #define pRANK(x) ((usr + x)->rank)
 #define myRANK me->rank
 #define mySCORE me->score
@@ -491,7 +491,7 @@ enum UserDefault {
 #define STATE (objtab->states + (int32_t)objtab->state)
 #define State(i) ((obtab + i)->states + (int32_t)(obtab + i)->state)
 #define ItsState (it->states + (int32_t)it->state)
-#define xLIGHT(x) (lstat + x)->light
-#define xHADLIGHT(x) (lstat + x)->hadlight
+#define xLIGHT(x) (linestat + x)->light
+#define xHADLIGHT(x) (linestat + x)->hadlight
 
 #define acp (char *)actptr

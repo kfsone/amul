@@ -156,10 +156,10 @@ isnoun(const char *s)
     int i;
 
     objtab2 = obtab2;
-    if (stricmp(s, "none") == NULL)
+    if (stricmp(s, "none") == 0)
         return -2;
     for (i = 0; i < nouns; i++, objtab2++)
-        if (stricmp(s, objtab2->id) == NULL)
+        if (stricmp(s, objtab2->id) == 0)
             return i;
     return -1;
 }
@@ -171,7 +171,7 @@ iscont(const char *s)
 
     objtab2 = obtab2;
     for (i = 0; i < nouns; i++, objtab2++)
-        if (stricmp(s, objtab2->id) == NULL && objtab2->contains > 0)
+        if (stricmp(s, objtab2->id) == 0 && objtab2->contains > 0)
             return i;
     return -1;
 }
@@ -388,7 +388,7 @@ sort_objs()
         statep = statab;
         rmptr = rmtab;
         for (j = i; j < nouns; j++, osrch++) {
-            if (*(osrch->id) != 0 && stricmp(nountab.id, osrch->id) == NULL) {
+            if (*(osrch->id) != 0 && stricmp(nountab.id, osrch->id) == 0) {
                 fwritesafe(*osrch, ofp1);
                 fwrite(statep, sizeof(state), osrch->nstates, ofp2);
                 fwrite(rmptr, sizeof(int32_t), osrch->nrooms, ofp3);
