@@ -42,6 +42,7 @@ add_library(
 
 	${AMUL_COMPILER_SOURCES}
 )
+target_link_libraries("${AMUL_COMPILER_NAME}-lib" PUBLIC "${AMUL_LIB_NAME}")
 target_compile_definitions("${AMUL_COMPILER_NAME}-lib" PRIVATE COMPILER=1)
 
 add_executable(
@@ -50,5 +51,5 @@ add_executable(
 	main.cpp
 	${AMUL_COMPILER_HEADERS}
 )
-target_link_libraries(${AMUL_COMPILER_NAME} ${AMUL_LIB_NAME} ${AMUL_COMPILER_NAME}-lib)
+target_link_libraries(${AMUL_COMPILER_NAME} ${AMUL_COMPILER_NAME}-lib)
 target_compile_definitions("${AMUL_COMPILER_NAME}" PRIVATE COMPILER=1)
