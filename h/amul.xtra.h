@@ -80,10 +80,12 @@ skiplead(const char *lead, const char *from)
 {
     const char *cur = skipspc(from);
     while (*lead && *cur) {
-        if (tolower(*cur) != tolower(*cur))
+        if (tolower(*lead) != tolower(*cur))
             return from;
         ++lead, ++cur;
     }
+	// if lead == 0, we reached the end of the prefix, which
+	// means 'from' matched as much as it needed to
     return (*lead == 0) ? cur : from;
 }
 
