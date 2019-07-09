@@ -29,7 +29,7 @@ stripNewline(char *text)
     int len = strlen(text);
     if (len > 0 && text[len - 1] == '\n') {
         text[--len] = 0;
-		return true;
+        return true;
     }
     return false;
 }
@@ -47,7 +47,6 @@ striplead(const char *lead, char *from)
     return true;
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // Platform specific stubs
 //
@@ -57,7 +56,7 @@ static struct Task myTask;
 Task *
 FindTask(const char *name)
 {
-	if (name != NULL)
-		return NULL;
-	return &myTask;
+    if (name != NULL)
+        return NULL;
+    return &myTask;
 }
