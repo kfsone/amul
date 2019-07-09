@@ -1,6 +1,6 @@
 amulcom::
 	cc -std=c11 -I. -Wall -Wno-format -Wno-missing-braces -Wno-int-conversion -Wno-incompatible-pointer-types-discards-qualifiers -Wno-tautological-constant-out-of-range-compare \
-			-o amulcom amulcom.c lib/extras.c lib/logging.c \
+			-o amulcom src/amulcom.c src/extras.c src/logging.c \
 			-O0 -g3 \
 			-fsanitize=address,undefined \
 			-fno-omit-frame-pointer
