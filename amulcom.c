@@ -200,7 +200,9 @@ broke:
     return from;
 }
 
-bool nextc(bool required) /* Find the next real stuff in file */
+/* Find the next real stuff in file */
+bool
+nextc(bool required)
 {
     char c;
     do {
@@ -226,7 +228,9 @@ fatalOp(char *s, char *t)
     alog(AL_ERROR, "Can't %s %s", s, t);
 }
 
-void fopenw(char *s) /* Open file for reading */
+/* Open file for reading */
+void
+fopenw(char *s)
 {
     if (*s == '-')
         strcpy(fnm, s + 1);
@@ -249,7 +253,9 @@ void fopenw(char *s) /* Open file for reading */
         fatalOp("select", "file descriptor");
 }
 
-void fopena(char *s) /* Open file for appending */
+/* Open file for appending */
+void
+fopena(char *s)
 {
     if (afp != NULL)
         fclose(afp);
@@ -261,7 +267,9 @@ void fopena(char *s) /* Open file for appending */
         fatalOp("create", fnm);
 }
 
-void fopenr(char *s) /* Open file for reading */
+/* Open file for reading */
+void
+fopenr(char *s)
 {
     if (ifp != NULL)
         fclose(ifp);
@@ -273,7 +281,9 @@ void fopenr(char *s) /* Open file for reading */
         fatalOp("open", fnm);
 }
 
-FILE *rfopen(const char *s) /* Open file for reading */
+/* Open file for reading */
+FILE *
+rfopen(const char *s)
 {
     FILE *fp;
 
@@ -286,7 +296,9 @@ FILE *rfopen(const char *s) /* Open file for reading */
     return fp;
 }
 
-void ttroomupdate() /* Update room entries after TT */
+/* Update room entries after TT */
+void
+ttroomupdate()
 {
     fseek(afp, 0, 0L);
     fwrite(rmtab->id, sizeof(room), rooms, afp);
@@ -296,7 +308,7 @@ void
 opentxt(char *s)
 {
     sprintf(block, "%s%s.TXT", dir, s);
-    if ((ifp = fopen(block, "rb")) == NULL) {
+    if ((ifp = fopen(block, "r")) == NULL) {
         alog(AL_FATAL, "Missing file: %s", block);
     }
 }
@@ -350,7 +362,9 @@ is_verb(const char *s)
     return -1;
 }
 
-long filesize() /* Return size of current file */
+/* Return size of current file */
+long
+filesize()
 {
     long now, s;
 
@@ -358,7 +372,7 @@ long filesize() /* Return size of current file */
     fseek(ifp, 0, 2L);
     s = ftell(ifp) - now;
     fseek(ifp, now, 0L);
-    return s + 2; /* Just for luck! */
+    return s;
 }
 
 void
@@ -374,7 +388,9 @@ blkget(long *s, char **p, long off)
     // repcrlf((*p)+off);	///TODO: HANDLE \r
 }
 
-int isrflag(const char *s) /* Check to see if s is a room flag */
+/* Check to see if s is a room flag */
+int
+isrflag(const char *s)
 {
     int _x;
     for (_x = 0; _x < NRFLAGS; _x++)
@@ -396,7 +412,9 @@ isroom(const char *s)
     return -1;
 }
 
-int isoflag1(const char *s) /* Is it a FIXED object flag? */
+/* Is it a FIXED object flag? */
+int
+isoflag1(const char *s)
 {
     int i;
     for (i = 0; i < NOFLAGS; i++)
@@ -405,7 +423,9 @@ int isoflag1(const char *s) /* Is it a FIXED object flag? */
     return -1;
 }
 
-int isoparm() /* Is it an object parameter? */
+/* Is it an object parameter? */
+int
+isoparm()
 {
     int i;
     for (i = 0; i < NOPARMS; i++)
@@ -414,7 +434,9 @@ int isoparm() /* Is it an object parameter? */
     return -1;
 }
 
-int isoflag2(const char *s) /* Is it a state flag? */
+/* Is it a state flag? */
+int
+isoflag2(const char *s)
 {
     int i;
     for (i = 0; i < NSFLAGS; i++)
@@ -542,23 +564,28 @@ isprep(char *s)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void room_proc() /* Process ROOMS.TXT */
+/* Process ROOMS.TXT */
+void
+room_proc()
 {
     char c, lastc, *p, *p2;
     int  n;
 
-    rooms = 0;
     nextc(true);
 
     fopenw(rooms1fn);
     fopenw(rooms2fn);
 
     do {
-        rooms++;
         p = block;
         while ((c = fgetc(ifp)) != EOF && !isspace(c))
             *(p++) = c;
+		if (c == EOF)
+			break;
         *p = 0; /* Set null byte */
+		p = skipspc(block);
+		if (*p == 0)
+			continue;
         striplead("room=", block);
         if (strlen(block) < 3 || strlen(block) > IDL) {
             alog(AL_FATAL, "Invalid ID (length): %s", block);
@@ -581,8 +608,8 @@ void room_proc() /* Process ROOMS.TXT */
                 while (!isspace(*p2) && *p2 != 0)
                     p2++;
                 *p2 = 0;
-                if (n == 0) /* Get dmove param */
-                {
+                if (n == 0) {
+                    /* Get dmove param */
                     strcpy(temp, p);
                     dmoves++;
                     p = p2 + 1;
@@ -613,6 +640,7 @@ void room_proc() /* Process ROOMS.TXT */
         };
         fputc(0, ofp2);
         fwrite(room.id, sizeof(room), 1, ofp1);
+		++rooms;
         nextc(false);
     } while (c != EOF);
 }
@@ -620,19 +648,17 @@ void room_proc() /* Process ROOMS.TXT */
 void
 checkdmoves()
 {
-    int                  n;
     struct _ROOM_STRUCT *roomptr;
 
     /* Check DMOVE ptrs */
     fopenr(rooms2fn); /* Open desc. file */
     roomptr = rmtab;
-    for (n = 0; n < rooms; n++) {
+    for (int n = 0; n < rooms; n++) {
         if (roomptr->flags & DMOVE) {
             printf("%-9s\r", roomptr->id);
             fseek(ifp, roomptr->desptr, 0);
             fread(dmove, IDL, 1, ifp); /* Read the DMOVE name */
-            if (isroom(dmove) == -1)   /* Is it a valid room? */
-            {
+            if (isroom(dmove) == -1) {
                 alog(AL_ERROR, "%-9s: invalid dmove: %s", roomptr->id, dmove);
             }
         }
@@ -650,7 +676,9 @@ chkline(char *p)
     return true;
 }
 
-void rank_proc() /* Process RANKS.TXT */
+/* Process RANKS.TXT */
+void
+rank_proc()
 {
     char *p;
     int   n;
@@ -790,8 +818,8 @@ void rank_proc() /* Process RANKS.TXT */
         while (*p != 0 && *p != '\"')
             p++;
         *(p++) = 0;
-        if (p - block > 10) /* Greater than prompt length? */
-        {
+        /* Greater than prompt length? */
+        if (p - block > 10) {
             alog(AL_ERROR, "Rank %d prompt too long: %s", ranks, block);
             continue;
         }
@@ -1063,7 +1091,9 @@ iscont(char *s)
     return -1;
 }
 
-int isloc(char *s) /* Room or container */
+/* Room or container */
+int
+isloc(char *s)
 {
     int i;
 
@@ -1222,7 +1252,9 @@ antype(char *s)
     return -1;
 }
 
-int isnounh(char *s) /* Test noun state, checking rooms */
+/* Test noun state, checking rooms */
+int
+isnounh(char *s)
 {
     int   i, l, j;
     FILE *fp;
@@ -1335,7 +1367,10 @@ will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
 structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
 the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
 user is refering too.							     */
-int actualval(char *s, int n) /* Get actual value! */
+
+/* Get actual value! */
+int
+actualval(char *s, int n)
 {
     int i;
 
@@ -1428,7 +1463,9 @@ msgline(char *s)
     return NSMSGS + (umsgs++);
 }
 
-int isumsg(char *s, FILE *fp) /* Check FP for umsg id! */
+/* Check FP for umsg id! */
+int
+isumsg(char *s, FILE *fp)
 {
     int i;
 
@@ -1511,11 +1548,11 @@ chkp(char *p, char t, int c, int z, FILE *fp)
         *p = 0;
     else
         *(p + 1) = 0;
-    if ((t >= 0 && t <= 10) || t == -70) /* Processing lang tab? */
-    {
+    /* Processing lang tab? */
+    if ((t >= 0 && t <= 10) || t == -70) {
         x = actualval(p2, t);
-        if (x == -1) /* If it was an actual, but wrong type */
-        {
+        if (x == -1) {
+            /* it was an actual, but wrong type */
             alog(AL_ERROR, "Invalid slot label, '%s', after %s '%s' in verb '%s'", p2,
                  (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c], verb.id);
             return NULL;
@@ -1779,7 +1816,9 @@ title_proc()
   Warning! All source code in this file is copyright (C) KingFisher Software
 */
 
-void trav_proc() /* Process TRAVEL.TXT */
+/* Process TRAVEL.TXT */
+void
+trav_proc()
 {
     int   strip, lines, nvbs, i, ntt, t, r;
     char *p;
@@ -1964,7 +2003,6 @@ void trav_proc() /* Process TRAVEL.TXT */
     }
     ttroomupdate();
 }
-/* Lang.TXT processor */
 
 void
 chae_err()
@@ -1972,7 +2010,9 @@ chae_err()
     alog(AL_ERROR, "Verb: %s: Invalid '#CHAE' flag: %s", verb.id, Word);
 }
 
-int chae_proc(char *f, char *t) /* From and To */
+/* From and To */
+int
+chae_proc(char *f, char *t)
 {
     int n;
 
@@ -2008,7 +2048,9 @@ int chae_proc(char *f, char *t) /* From and To */
     return 0;
 }
 
-void setslots(unsigned char i) /* Set the VT slots */
+/* Set the VT slots */
+void
+setslots(unsigned char i)
 {
     vbslot.wtype[0] = WANY;
     vbslot.wtype[1] = i;
@@ -2018,7 +2060,9 @@ void setslots(unsigned char i) /* Set the VT slots */
     vbslot.slot[0] = vbslot.slot[1] = vbslot.slot[2] = vbslot.slot[3] = vbslot.slot[4] = WANY;
 }
 
-int iswtype(char *s) /* Is 'text' a ptype */
+/* Is 'text' a ptype */
+int
+iswtype(char *s)
 {
     int i;
 
@@ -2037,12 +2081,16 @@ int iswtype(char *s) /* Is 'text' a ptype */
     return -3;
 }
 
-void vbprob(char *s, char *s2) /* Declare a PROBLEM, and which verb its in! */
+/* Declare a PROBLEM, and which verb its in! */
+void
+vbprob(char *s, char *s2)
 {
     alog(AL_FATAL, "Verb: %s line: '%s': %s", verb.id, s2, s);
 }
 
-void lang_proc() /* Process LANG.TXT */
+/* Process LANG.TXT */
+void
+lang_proc()
 {
     char lastc, *p, *p2, *s1, *s2;
     /* n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2) */
@@ -2528,6 +2576,7 @@ umsg_proc()
     data = NULL;
     datal = NULL;
 }
+
 /*
      System Message processing routines for AMUL, (C) KingFisher Software
      --------------------------------------------------------------------
@@ -2665,10 +2714,10 @@ syn_proc()
     data = NULL;
     datal = NULL;
 }
+
 /* Mobiles.Txt Processor */
 
 /* Pass 1: Indexes mobile names */
-
 void
 mobmis(char *s)
 {
@@ -2717,8 +2766,8 @@ loop:
     }
     return n;
 }
-/* Pass 2: Indexes commands mobiles have access to */
 
+/* Pass 2: Indexes commands mobiles have access to */
 void
 mob_proc1()
 {
@@ -2947,14 +2996,17 @@ compileGame()
 
     fopenr(rooms1fn); /* Check DMOVE ptrs */
     if (reuseRoomData) {
-        fseek(ifp, 0, 2L);
-        rooms = ftell(ifp) / sizeof(room);
+		fseek(ifp, 0, SEEK_END);
+        rooms = ftell(ifp) / sizeof(*rmtab);
+		fseek(ifp, 0, SEEK_SET);
         rewind(ifp);
     }
     if ((rmtab = (struct _ROOM_STRUCT *)AllocMem(sizeof(room) * rooms, MEMF_PUBLIC)) == NULL) {
         alog(AL_FATAL, "Out of memory for room id table");
     }
-    if (fread((char *)rmtab, sizeof(room), rooms, ifp) != rooms) {
+
+	int roomsInFile = fread(rmtab, sizeof(*rmtab), rooms, ifp);
+    if (roomsInFile != rooms) {
         alog(AL_FATAL, "Roomtable appears to be corrupted. Recompile.");
     }
     if (checkDmoves && dmoves != 0) {
@@ -2977,7 +3029,8 @@ compileGame()
 
 /*---------------------------------------------------------*/
 
-int main(int argc, const char **argv) /* Main Program */
+int
+main(int argc, const char **argv)
 {
     sprintf(vername, "AMULCom v%d.%03d (%8s)", VERSION, REVISION, DATE);
     mytask = FindTask(0L);
