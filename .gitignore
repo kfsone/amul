@@ -1,5 +1,6 @@
 .vs
 .vscode
+bin
 out
 **/*.amulc
 CMake*.json
