@@ -161,9 +161,9 @@ CXBRK()
 bool
 com(const char *text)
 {
-	if (*text == '*')
-		alog(AL_INFO, "%s", text);
-	return isCommentChar(*text);
+    if (*text == '*')
+        alog(AL_INFO, "%s", text);
+    return isCommentChar(*text);
 }
 
 const char *
@@ -174,11 +174,9 @@ getword(const char *from)
     from = skipspc(from);
     for (const char *end = Word + sizeof(Word) - 1; to < end; ++to, ++from) {
         char c = *to = tolower(*from);
-        if (c == ' ' || c == '\t') {
+        if (c == ' ' || c == '\t' || c == ' ') {
             c = *to = 0;
-        }
-        if (c == 0) {
-            goto broke;
+            break;
         }
     }
 
@@ -578,12 +576,12 @@ room_proc()
         p = block;
         while ((c = fgetc(ifp)) != EOF && !isspace(c))
             *(p++) = c;
-		if (c == EOF)
-			break;
+        if (c == EOF)
+            break;
         *p = 0; /* Set null byte */
-		p = skipspc(block);
-		if (*p == 0)
-			continue;
+        p = skipspc(block);
+        if (*p == 0)
+            continue;
         striplead("room=", block);
         if (strlen(block) < 3 || strlen(block) > IDL) {
             alog(AL_FATAL, "Invalid ID (length): %s", block);
@@ -638,7 +636,7 @@ room_proc()
         };
         fputc(0, ofp2);
         fwrite(room.id, sizeof(room), 1, ofp1);
-		++rooms;
+        ++rooms;
         nextc(false);
     } while (c != EOF);
 }
@@ -691,7 +689,7 @@ rank_proc()
         tidy(block);
         if (block[0] == 0)
             continue;
-        char* p = getword(block);
+        char *p = getword(block);
         if (chkline(p) != 0)
             continue;
         rank.male[0] = 0;
@@ -2587,9 +2585,7 @@ void
 smsg_proc()
 {
     char *s;
-    long  id;
-    long  pos;
-
+    long  id, pos;
     smsgs = 0;
 
     if (!nextc(false))
@@ -2601,15 +2597,12 @@ smsg_proc()
     s = data;
 
     do {
-    loop:
         s = extractLine(s, block);
-        if (com(block))
-            goto loop;
         tidy(block);
         if (block[0] == 0)
             continue;
-        striplead("msgid=", block);
-        getword(block);
+        const char *p = skiplead("msgid=", block);
+        getword(p);
         if (Word[0] == 0)
             break;
 
@@ -2981,42 +2974,63 @@ compileSection(const char *name, bool isText, void (*procFn)())
 void
 compileGame()
 {
+    // title section defines the core game parameters, so we check it first
     compileSection("title", true, title_proc);
 
+    // next check the system message file because this probably won't change
+    // often and so should be fairly fire-and-forget
+    compileSection("sysmsg", true, smsg_proc);
+    if (smsgs != NSMSGS) {
+        alog(AL_FATAL, "%d system message(s) missing", NSMSGS - smsgs);
+    }
+
+    // Next, rooms, they're kind of fundamental
     if (!reuseRoomData) {
         compileSection("rooms", true, room_proc);
     }
-
     fopenr(rooms1fn); /* Check DMOVE ptrs */
     if (reuseRoomData) {
-		fseek(ifp, 0, SEEK_END);
+        fseek(ifp, 0, SEEK_END);
         rooms = ftell(ifp) / sizeof(*rmtab);
-		fseek(ifp, 0, SEEK_SET);
+        fseek(ifp, 0, SEEK_SET);
         rewind(ifp);
     }
     if ((rmtab = (struct _ROOM_STRUCT *)AllocMem(sizeof(room) * rooms, MEMF_PUBLIC)) == NULL) {
         alog(AL_FATAL, "Out of memory for room id table");
     }
-
-	int roomsInFile = fread(rmtab, sizeof(*rmtab), rooms, ifp);
+    int roomsInFile = fread(rmtab, sizeof(*rmtab), rooms, ifp);
     if (roomsInFile != rooms) {
         alog(AL_FATAL, "Roomtable appears to be corrupted. Recompile.");
     }
     if (checkDmoves && dmoves != 0) {
         compileSection("DMOVEs", false, checkdmoves);
     }
+
+    // list of available player ranks
     compileSection("ranks", true, rank_proc);
-    compileSection("sysmsg", true, smsg_proc);
-    if (smsgs != NSMSGS) {
-        alog(AL_FATAL, "%d system message(s) missing", NSMSGS - smsgs);
-    }
+
+    // user-defined messages next so that we can reference them in
+    // subsequent files.
     compileSection("umsg", true, umsg_proc);
+
+    // descriptions of npc classes (aka mobiles) needs to come
+    // next so we can imbue objects with them later
     compileSection("mobiles", true, mob_proc1);
+
+    // long and shared object descriptions
     compileSection("obdescs", true, obds_proc);
+
+    // the actual object definitions
     compileSection("objects", true, objs_proc);
+
+    // now we can declare language structure, esp verbs
     compileSection("lang", true, lang_proc);
-    proc = 0;
+    proc = 0;  // done processing language
+
+    // compile the links between rooms
     compileSection("travel", true, trav_proc);
+
+    // define synonyms (aliases)
     compileSection("syns", true, syn_proc);
 }
 
