@@ -3,43 +3,42 @@
 
 const char *extractLine(const char *from, char *to);
 const char *getword(const char *from);
-bool 	   striplead(const char *lead, char *from);
+bool        striplead(const char *lead, char *from);
 
 // Test for comment marker
 static inline bool
 isCommentChar(char c)
 {
-	return c == ';' || c == '*';
+    return c == ';' || c == '*';
 }
 
 // Test for end-of-line character
 static inline bool
 isEol(char c)
 {
-	return c == '\n';
+    return c == '\n';
 }
 
 // Test for end-of-string (nul terminator)
 static inline bool
 isEos(char c)
 {
-	return c == '\0';
+    return c == '\0';
 }
 
 // Test for any character that ends tokens on a line
 static inline bool
 isLineEnding(char c)
 {
-	return isEos(c) || isEol(c) || isCommentChar(c);
+    return isEos(c) || isEol(c) || isCommentChar(c);
 }
 
 // End of string or start of comment
 static inline bool
 isLineBreak(char c)
 {
-	return isEos(c) || isCommentChar(c);
+    return isEos(c) || isCommentChar(c);
 }
-
 
 static inline int
 bitset(int bitNo)

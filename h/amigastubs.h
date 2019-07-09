@@ -6,30 +6,30 @@
 #if defined(AMIGA)
 #    include <devices/timer.h>
 #else
-# if !defined(_MSC_VER)
-#	define stricmp strcasecmp
-# endif
+#    if !defined(_MSC_VER)
+#        define stricmp strcasecmp
+#    endif
 
-#include <stdlib.h>
-#include <stdint.h>
+#    include <stdint.h>
+#    include <stdlib.h>
 
 typedef uint16_t UWORD;
 typedef uint32_t ULONG;
-typedef int16_t WORD;
-typedef int16_t SHORT;
+typedef int16_t  WORD;
+typedef int16_t  SHORT;
 typedef uint16_t USHORT;
-typedef int16_t COUNT;
-typedef uint8_t UBYTE;
-typedef int8_t BYTE;
-typedef void VOID;
-typedef void *APTR;
+typedef int16_t  COUNT;
+typedef uint8_t  UBYTE;
+typedef int8_t   BYTE;
+typedef void     VOID;
+typedef void *   APTR;
 
 typedef struct Node {
     struct Node *ln_Succ;  // Pointer to next (successor)
     struct Node *ln_Pred;  // Pointer to previous (predecessor)
-    UBYTE ln_Type;
-    BYTE  ln_Pri;   // Priority, for sorting
-    char *ln_Name;  // ID string, null terminated
+    UBYTE        ln_Type;
+    BYTE         ln_Pri;   // Priority, for sorting
+    char *       ln_Name;  // ID string, null terminated
 } Node;
 
 // http://amigadev.elowar.com/read/ADCD_2.1/Includes_and_Autodocs_2._guide/node007D.html
@@ -67,11 +67,11 @@ typedef struct Task {
 } Task;
 
 typedef struct MsgPort {
-    Node  mp_Node;
-    UBYTE mp_Flags;
-    UBYTE mp_SigBit;   // signal bit number
-    void *mp_SigTask;  // object to be signalled
-    struct List  mp_MsgList;  // message linked list
+    Node        mp_Node;
+    UBYTE       mp_Flags;
+    UBYTE       mp_SigBit;   // signal bit number
+    void *      mp_SigTask;  // object to be signalled
+    struct List mp_MsgList;  // message linked list
 } MsgPort;
 
 typedef struct Message {
@@ -109,13 +109,13 @@ typedef struct IOStdReq {
     ULONG   io_Offset;  // offset for block structured devices
 } IOStdReq;
 
-#define mp_SoftInt mp_SigTask  // Alias
+#    define mp_SoftInt mp_SigTask  // Alias
 
 // mp_Flags: Port arrival actions (PutMsg)
-#define PF_ACTION 3   // Mask
-#define PA_SIGNAL 0   // Signal task in mp_SigTask
-#define PA_SOFTINT 1  // Signal SoftInt in mp_SoftInt/mp_SigTask
-#define PA_IGNORE 2   // Ignore arrival
+#    define PF_ACTION 3            // Mask
+#    define PA_SIGNAL 0            // Signal task in mp_SigTask
+#    define PA_SOFTINT 1           // Signal SoftInt in mp_SoftInt/mp_SigTask
+#    define PA_IGNORE 2            // Ignore arrival
 
 // prevent/reallow scheduling
 void Forbid();
@@ -133,16 +133,19 @@ Message *GetMsg(MsgPort *port);
 void     ReplyMsg(Message *msg);
 Message *WaitPort(MsgPort *port);
 
-#define MEMF_PUBLIC 0
-static inline void* AllocMem(size_t bytes, int flags) {
-	(void)flags;
-	return calloc(bytes, 1);
+#    define MEMF_PUBLIC 0
+static inline void *
+AllocMem(size_t bytes, int flags)
+{
+    (void)flags;
+    return calloc(bytes, 1);
 }
 
-static inline void FreeMem(void* ptr, int size) {
-	free(ptr);
+static inline void
+FreeMem(void *ptr, int size)
+{
+    free(ptr);
 }
-
 
 // Wait this many 20ths of a second
 void Delay(int ticks);
