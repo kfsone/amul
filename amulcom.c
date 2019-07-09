@@ -40,19 +40,20 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <stdarg.h>
 
 /* Compiler specific variables... */
 
-int	dchk;				/* Do we check DMOVE ptrs?	*/
-int	dmoves;				/* How many DMOVEs to check?	*/
-int	rmn;				/* Current room no.		*/
-int	rmrd;				/* Read rooms?			*/
+int		dchk;				/* Do we check DMOVE ptrs?	*/
+int		dmoves;				/* How many DMOVEs to check?	*/
+int		rmn;				/* Current room no.		*/
+int		rmrd;				/* Read rooms?			*/
 long	readgot,FPos;			/* Used during TT/Lang writes	*/
 char	exi=0;				/* Is it okay to exit?		*/
-int	warn=1;				/* Display warnings?		*/
+int		warn=1;				/* Display warnings?		*/
 char	Word[64],c;			/* For internal use only <grin>	*/
-int	err;				/* Error count			*/
-int	proc;				/* What we are processing	*/
+int		errorCount;			/* Number of LL_ERRORs logged */
+int		proc;				/* What we are processing	*/
 long	startTime;			/* Bits for time etc		*/
 char	*data;				/* Pointer to data buffer	*/
 char	*data2;				/* Secondary buffer area	*/
@@ -61,7 +62,7 @@ char	idt[IDL+1];			/* Temporary ID store		*/
 long	datal,datal2,mins;		/* Length of data! & gametime	*/
 long	obmem;				/* Size of Objects.TXT		*/
 long	vbmem;				/* Size of Lang.Txt		*/
-int	invis, invis2;			/* Invisibility Stuff		*/
+int		invis, invis2;			/* Invisibility Stuff		*/
 long	wizstr;				/* Wizards strength		*/
 char	*mobdat,*px;			/* Mobile data			*/
 long	moblen;				/* Length			*/
@@ -72,9 +73,9 @@ struct UMSG
 {
 	char	id[IDL+1];
 	long	fpos;
-}umsg;
+} umsg;
 
-char	fnm[150],was[128];
+char	fnm[150];
 FILE	*ofp5;
 
 struct _OBJ_STRUCT2 *obtab2,*objtab2,obj2,*osrch,*osrch2;
@@ -83,24 +84,106 @@ struct _OBJ_STRUCT2 *obtab2,*objtab2,obj2,*osrch,*osrch2;
 long	ohd;				/* Output handle for direct dos	*/
 #endif
 
-void quit();
-
 ///////////////////////////////////////////////////////////////////////////////
 
-static inline void
-tx(const char* text)
+void
+close_ofps()
 {
-	printf("%s", text);
+	if(ofp1!=NULL)fclose(ofp1);
+	if(ofp2!=NULL)fclose(ofp2);
+	if(ofp3!=NULL)fclose(ofp3);
+	if(ofp4!=NULL)fclose(ofp4);
+	if(ofp5!=NULL)fclose(ofp5);
+	if(afp!=NULL)fclose(afp);
+	ofp1=ofp2=ofp3=ofp4=ofp5=afp=NULL;
+}
+
+void
+quit()
+{
+	close_ofps();
+	if(exi!=1)
+	{
+		sprintf(block,"%s%s",dir,advfn);
+		unlink(block);
+	}
+	unlink("ram:ODIDs");
+	unlink("ram:umsg.tmp");
+	unlink("ram:objh.tmp");
+	if(mobdat)   FreeMem(mobdat,moblen);
+	mobdat=NULL;
+	if(mobp)     FreeMem(mobp,sizeof(mob)*mobchars);
+	mobp=NULL;
+	if(rmtab!=0) FreeMem(rmtab,sizeof(room)*rooms);
+	rmtab=NULL;
+	if(data!=0)  FreeMem(data, datal);
+	data=NULL;
+	if(data2!=0) FreeMem(data2,datal2);
+	data2=NULL;
+	if(obtab2!=0) FreeMem(obtab2,obmem);
+	obtab2=NULL;
+	if(vbtab!=0) FreeMem(vbtab,vbmem);
+	vbtab=NULL;
+	if(ifp!=NULL)fclose(ifp);
+	ifp=NULL;
+	exit(0);
+}
+
+enum LogLevel {
+	LL_DEBUG,
+	LL_INFO,
+	LL_NOTE,
+	LL_WARN,
+	LL_ERROR,
+	LL_FATAL,
+	MAX_LOG_LEVEL,
+};
+
+static const char* errors[MAX_LOG_LEVEL] = {
+	"Debug",
+	"Info",
+	"Note",
+	"WARNING",
+	"ERROR",
+	"FATAL",
+};
+
+static enum LogLevel s_logLevel = LL_INFO;
+
+void
+alog(enum LogLevel level, const char* fmt, ...)
+{
+	if (level >= s_logLevel) {
+		if (level > MAX_LOG_LEVEL)
+			level = MAX_LOG_LEVEL - 1;
+		printf("%c] ", errors[s_logLevel][0]);
+		va_list vl;
+		va_start(vl, fmt);
+		vprintf(fmt, vl);
+		va_end(vl);
+		printf("\n");
+		fflush(stdout);
+		switch (level) {
+		case LL_ERROR: errorCount++; break;
+		case LL_FATAL: quit(); break;
+		default: break;
+		}
+	}
+}
+
+void checkErrorCount()
+{
+	if (errorCount > 30) {
+		alog(LL_FATAL, "Terminating due to %d errors", errorCount);
+	}
 }
 
 void
 CXBRK()
 {
-	tx("\n[42m** Break pressed - memory released, files closed! Tata!\n\n[0m");
+	alog(LL_NOTE, "** CTRL-C pressed - memory released, files closed! Tata!");
 	quit();
 }
-
-	/*---------------------------------------------------------*/
 
 bool
 com(const char* text)
@@ -108,7 +191,7 @@ com(const char* text)
 	if (!*text && !isCommentChar(*text)) {
 		return false;
 	}
-	printf("%s", text);
+	alog(LL_INFO, "%s", text);
 	return true;
 }
 
@@ -144,83 +227,45 @@ broke:
     return from;
 }
 
-
-void
-close_ofps()
-{
-	if(ofp1!=NULL)fclose(ofp1);
-	if(ofp2!=NULL)fclose(ofp2);
-	if(ofp3!=NULL)fclose(ofp3);
-	if(ofp4!=NULL)fclose(ofp4);
-	if(ofp5!=NULL)fclose(ofp5);
-	if(afp!=NULL)fclose(afp);
-	ofp1=ofp2=ofp3=ofp4=ofp5=afp=NULL;
-}
-
-char
-nextc(int f)			/* Find the next real stuff in file */
+bool
+nextc(bool required)			/* Find the next real stuff in file */
 {
 	do
 	{
 		while((c=fgetc(ifp))!=EOF && isspace(c));
-		if(c==';' || c=='*') fgets(block,1024,ifp);
-		if(c=='*')printf("[3m*%s[0m",block);	/* Print cmts */
+		if(c==';' || c=='*')
+			fgets(block,1024,ifp);
+		if(c=='*')
+			alog(LL_NOTE, "%s", block);
 	} while(c!=EOF && (c=='*' || c==';' || isspace(c)));
-	if(f==1 && c==EOF)
+	if(c==EOF && required)
 	{
-		printf("\nFile contains NO data!\n\n");
-		quit();
+		alog(LL_FATAL, "File contained no data");
 	}
-	if(c==EOF) return -1;
+	if(c==EOF) return false;
 	fseek(ifp,-1,1);	/* Move back 1 char */
-	return 0;
+	return true;
 }
 
 void
-quit()
+fatalOp(char *s,char *t)
 {
-	if(exi!=1)
-	{
-		sprintf(block,"%s%s",dir,advfn);
-		unlink(block);
-	}
-	unlink("ram:ODIDs");
-	unlink("ram:umsg.tmp");
-	unlink("ram:objh.tmp");
-	if(mobdat)   FreeMem(mobdat,moblen);
-	mobdat=NULL;
-	if(mobp)     FreeMem(mobp,sizeof(mob)*mobchars);
-	mobp=NULL;
-	if(rmtab!=0) FreeMem(rmtab,sizeof(room)*rooms);
-	rmtab=NULL;
-	if(data!=0)  FreeMem(data, datal);
-	data=NULL;
-	if(data2!=0) FreeMem(data2,datal2);
-	data2=NULL;
-	if(obtab2!=0) FreeMem(obtab2,obmem);
-	obtab2=NULL;
-	if(vbtab!=0) FreeMem(vbtab,vbmem);
-	vbtab=NULL;
-	if(ifp!=NULL)fclose(ifp);
-	ifp=NULL;
-	close_ofps();
-	exit(0);
-}
-
-void
-Err(char *s,char *t)
-{
-	printf("## Error!\x07\nCan't %s %s!\n\n",s,t); quit();
+	alog(LL_ERROR, "Can't %s %s", s, t);
 }
 
 void
 fopenw(char *s)		/* Open file for reading */
 {
-	FILE *tfp;
-	if(*s=='-') strcpy(fnm,s+1);
+	if(*s=='-')strcpy(fnm,s+1);
 	else sprintf(fnm,"%s%s",dir,s);
-	if((tfp=fopen(fnm,"wb"))==NULL) Err("write",fnm);
-	if(ofp1==NULL)ofp1=tfp; else if(ofp2==NULL)ofp2=tfp; else if(ofp3==NULL) ofp3=tfp; else if(ofp4==NULL) ofp4=tfp; else ofp5=tfp;
+	FILE *fp = fopen(fnm, "wb");
+	if(!fp) fatalOp("write",fnm);
+	if (!ofp1) ofp1=fp;
+	else if(!ofp2) ofp2=fp;
+	else if(!ofp3) ofp3=fp;
+	else if(!ofp4) ofp4=fp;
+	else if(!ofp5) ofp5=fp;
+	else fatalOp("select", "file descriptor");
 }
 
 void
@@ -229,7 +274,7 @@ fopena(char *s)		/* Open file for appending */
 	if(afp!=NULL) fclose(afp);
 	if(*s=='-') strcpy(fnm,s+1);
 	else sprintf(fnm,"%s%s",dir,s);
-	if((afp=fopen(fnm,"rb+"))==NULL) Err("create",fnm);
+	if((afp=fopen(fnm,"rb+"))==NULL) fatalOp("create",fnm);
 }
 
 void
@@ -238,7 +283,7 @@ fopenr(char *s)		/* Open file for reading */
 	if(ifp!=NULL) fclose(ifp);
 	if(*s!='-') sprintf(fnm,"%s%s",dir,s);
 	else strcpy(fnm,s+1);
-	if((ifp=fopen(fnm,"rb"))==NULL) Err("open",fnm);
+	if((ifp=fopen(fnm,"rb"))==NULL) fatalOp("open",fnm);
 }
 
 FILE*
@@ -247,7 +292,7 @@ rfopen(const char *s)		/* Open file for reading */
 
 	if(*s!='-') sprintf(fnm,"%s%s",dir,s);
 	else strcpy(fnm,s+1);
-	if((fp=fopen(fnm,"rb"))==NULL) Err("open",fnm);
+	if((fp=fopen(fnm,"rb"))==NULL) fatalOp("open",fnm);
 	return fp;
 }
 
@@ -264,8 +309,7 @@ opentxt(char *s)
 	sprintf(block,"%s%s.TXT",dir,s);
 	if((ifp=fopen(block,"rb"))==NULL)
 	{
-		printf("[33;1m !! Missing file %s !! [0m\n\n",block);
-		exit(202);
+		alog(LL_FATAL, "Missing file: %s", block);
 	}
 }
 
@@ -294,12 +338,16 @@ tidy(char *ptr)
 
 
 int
-is_verb(char *s)
+is_verb(const char *s)
 {	int i;
 
-	if(verbs==0 || strlen(s) > IDL) { printf("@! illegal verb.\n"); return -1; }
-
-	if(stricmp(s,verb.id)==0) return (verbs-1);
+	if (verbs == 0) {
+		alog(LL_FATAL, "Attempted to look up verb '%s' with no verbs defined", s);
+	}
+	if (strlen(s) > IDL) {
+		printf("Invalid verb ID (too long): %s", s);
+		return -1;
+	}
 
 	vbptr=vbtab;
 	for(i=0;i<verbs;i++,vbptr++)
@@ -324,7 +372,7 @@ blkget(long *s,char **p,long off)
 	*s=filesize()+off;
 	if((*p=(char *)AllocMem(*s,MEMF_PUBLIC))==NULL)
 	{
-		tx("\x07\n** Out of memory!\n\n"); close_ofps(); quit();
+		alog(LL_FATAL, "Out of memory");
 	}
 	fread((*p)+off,1,*s,ifp); *((*p+*s)-2)=0; *((*p+*s)-1)=0;
 	//repcrlf((*p)+off);	///TODO: HANDLE \r
@@ -383,8 +431,7 @@ set_adj()
 
 	if(strlen(Word)>IDL || strlen(Word)<3)
 	{
-		printf("\nInvalid adjective '%s'!\n\n\x07",Word);
-		quit();
+		alog(LL_FATAL, "Invalid adjective (length): %s", Word);
 	}
 	if(adjs==0)
 	{
@@ -408,8 +455,7 @@ set_adj()
 void
 object(char *s)
 {
-	printf("\nObject #%d \"%s\" has invalid %s, '%s'!\n",nouns+1,obj2.id,s,Word);
-	quit();
+	alog(LL_FATAL, "Object #%d: %s: invalid %s: %s", nouns + 1, obj2.id, s, Word);
 }
 
 void
@@ -471,12 +517,13 @@ isprep(char *s)
 ///////////////////////////////////////////////////////////////////////////////
 
 void
-room_proc()			/*=* Process ROOMS.TXT *=*/
+room_proc()			/* Process ROOMS.TXT */
 {
 	char	lastc,*p,*p2;
 	int	n;
 
-	rooms=0;	nextc(1);		/* Skip any headings etc */
+	rooms=0;
+	nextc(true);
 
 	fopenw(rooms1fn);	fopenw(rooms2fn);
 
@@ -489,11 +536,10 @@ room_proc()			/*=* Process ROOMS.TXT *=*/
 		striplead("room=",block);
 		if(strlen(block)<3 || strlen(block)>IDL)
 		{
-			printf("!! \x07 Invalid ID: \"%s\"\x07 !!\n",block);
-			quit();
+			alog(LL_FATAL, "Invalid ID (length): %s", block);
 		}
 		strcpy(room.id,block);
-			/*=* Do the flags *=*/
+			/* Do the flags */
 		room.flags=0; room.tabptr=-1; temp[0]=0;
 		if(c!='\n')
 		{
@@ -514,8 +560,7 @@ room_proc()			/*=* Process ROOMS.TXT *=*/
 				}
 				if((n=isrflag(p))==-1)
 				{
-					printf("\x07'%s' is invalid!\n\n\x07",p);
-					quit();
+					alog(LL_FATAL, "Invalid flag: %s", p);
 				}
 				n-=NRNULL;
 				if(n>=0) room.flags=(room.flags | bitset(n));
@@ -533,9 +578,8 @@ room_proc()			/*=* Process ROOMS.TXT *=*/
 		};
 		fputc(0,ofp2);
 		fwrite(room.id,sizeof(room),1,ofp1);
-		nextc(0);
+		nextc(false);
 	}while(c!=EOF);
-	close_ofps();
 }
 
 void
@@ -544,27 +588,23 @@ checkdmoves()
 	int n;
 	struct _ROOM_STRUCT *roomptr;
 
-	/*=* Check DMOVE ptrs *=*/
+	/* Check DMOVE ptrs */
 	fopenr(rooms2fn);	/* Open desc. file */
 	roomptr=rmtab;
 	for(n=0;n<rooms;n++)
 	{
 		if(roomptr->flags & DMOVE)
 		{
-			sprintf(block,"%-9s\x0d",roomptr->id); tx(block);
+			printf("%-9s\r", roomptr->id);
 			fseek(ifp,roomptr->desptr,0);
 			fread(dmove,IDL,1,ifp);	/* Read the DMOVE name */
 			if(isroom(dmove)==-1)	/* Is it a valid room? */
 			{
-				sprintf(block,"%-9s - invalid DMOVE '%s'...\n",roomptr->id,dmove);
-				tx(block); dchk=-1;
+				alog(LL_ERROR, "%-9s: invalid dmove: %s", roomptr->id, dmove);
+				dchk=-1;
 			}
 		}
 		roomptr++;
-	}
-	if(dchk==-1) {
-		tx("\nCompile failed due to invalid DMOVE flags!\n");
-		quit();
 	}
 }
 
@@ -573,23 +613,21 @@ chkline(char *p)
 {
 	if(*p==0)
 	{
-		printf("## Rank line %ld incomplete!!!\n",ranks);
-		err++;
+		alog(LL_ERROR, "Rank line %d incomplete", ranks);
 		return false;
 	}
 	return true;
 }
 
 void
-rank_proc()			/*=* Process RANKS.TXT *=*/
+rank_proc()			/* Process RANKS.TXT */
 {
 	char	*p; int	n;
 
-	nextc(1);
+	nextc(true);
 	fopenw(ranksfn);
-	putchar('\n');
 
-	ranks=0;n=0;err=0;
+	ranks=0;n=0;
 
 	do
 	{
@@ -601,8 +639,7 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 		ranks++; rank.male[0]=0; rank.female[0]=0;
 		if(strlen(Word)<3 || strlen(Word)>RANKL)
 		{
-			printf("!! \x07 Invalid Male Rank: \"%s\"\x07 !!\n",Word);
-			quit();
+			alog(LL_FATAL, "Rank %d: Invalid male rank: %s", ranks, Word);
 		}
 		n=0;
 		do
@@ -615,8 +652,7 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 		p=getword(p); if(chkline(p)!=0) continue;
 		if(strcmp(Word,"=")!=0 && (strlen(Word)<3 || strlen(Word)>RANKL))
 		{
-			printf("\n!! \x07 Invalid Female Rank: \"%s\"\x07 !!\n",Word);
-			quit();
+			alog(LL_FATAL, "Rank %d: Invalid female rank: %s", ranks, Word);
 		}
 		if(Word[0]!='=')
 		{
@@ -632,88 +668,88 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 		p=getword(p); if(chkline(p)!=0) continue;
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number min.score, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid score value: %s", Word);
+			continue;
 		}
 		rank.score=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number min.strength, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid strength value: %s", Word);
+			continue;
 		}
 		rank.strength=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number stamina, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid stamina value: %s", Word);
+			continue;
 		}
 		rank.stamina=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number min.dexterity, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid dexterity value: %s", Word);
+			continue;
 		}
 		rank.dext=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number wisdom, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid wisdom value: %s", Word);
+			continue;
 		}
 		rank.wisdom=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number experience, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid experience value: %s", Word);
+			continue;
 		}
 		rank.experience=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number magic points, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid magic points value: %s", Word);
+			continue;
 		}
 		rank.magicpts=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number max weight carried, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid max weight value: %s", Word);
+			continue;
 		}
 		rank.maxweight=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number max number of objects carried, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid max inventory value: %s", Word);
+			continue;
 		}
 		rank.numobj=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid number min. points per kill, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid kill points value: %s", Word);
+			continue;
 		}
 		rank.minpksl=atoi(Word);
 
 		p=getword(p);
 		if(!isdigit(Word[0]))
 		{
-			printf("## Invalid task number, \"%s\"!\n",Word);
-			err++; continue;
+			alog(LL_ERROR, "Invalid task number: %s", Word);
+			continue;
 		}
 		rank.tasks=atoi(Word);
 
@@ -723,8 +759,8 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 		*(p++)=0;
 		if(p-block>10)	/* Greater than prompt length? */
 		{
-			printf("\n\"%s\" prompt (rank %d) too long!\n",block,ranks);
-			err++; continue;
+			alog(LL_ERROR, "Rank %d prompt too long: %s", ranks, block);
+			continue;
 		}
 		if(block[0] == 0) strcpy(rank.prompt,"$ ");
 		else strcpy(rank.prompt,block);
@@ -732,21 +768,18 @@ rank_proc()			/*=* Process RANKS.TXT *=*/
 		wizstr=rank.strength;
 		fwrite(rank.male,sizeof(rank),1,ofp1);
 	} while(!feof(ifp));
-	if(err!=0)
-	{
-		printf("\n\n\x07!! Aborting due to %ld errors!\n\n",err);
-		quit();
-	}
-	close_ofps();
 }
 
 void
 obds_proc()
 {	char	lastc;
 
-	obdes=0;err=0;
+	obdes=0;
 	fopenw(obdsfn); close_ofps();		/* Create file */
-	if(nextc(0)==-1) return tx("** No Long Object Descriptions!\n");
+	if(!nextc(false)) {
+		alog(LL_INFO, "No long object descriptions");
+		return;
+	}
 	fopenw("-ram:ODIDs");	fopenw(obdsfn);
 	do
 	{
@@ -754,9 +787,8 @@ obds_proc()
 		striplead("desc=",block); getword(block);
 		if(strlen(Word)<3 || strlen(Word)>IDL)
 		{
-			printf("!! \x07 Invalid ID: \"%s\"\x07 !!\n",Word);
-			printf("@! note: strlen(Word)=%ld\n",strlen(Word));
-			err++; skipblock(); continue;
+			alog(LL_ERROR, "Invalid obj. description id: %s", Word);
+			skipblock(); continue;
 		}
 		strcpy(objdes.id,Word);
 		fseek(ofp2,0,2); objdes.descrip=ftell(ofp2);
@@ -768,14 +800,8 @@ obds_proc()
 			fputc((lastc=c),ofp2);
 		};
 		fputc(0,ofp2);
-		obdes++; nextc(0);
+		obdes++; nextc(false);
 	} while(c!=EOF);
-	if(err!=0)
-	{
-		printf("\n\n\x07!! Aborting due to %ld errors!\n\n",err);
-		quit();
-	}
-	close_ofps();
 }
 
 /*
@@ -820,7 +846,6 @@ sort_objs()
 		fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
 	}
 	printf("%20s\r%ld objects moved.\n"," ",k);
-	close_ofps();
 	FreeMem(data, datal); FreeMem(data2, datal2); data=data2=NULL;
 	fopenr(objsfn); fread((char *)obtab2, sizeof(obj), nouns, ifp);
 }
@@ -829,8 +854,7 @@ sort_objs()
 void
 statinv(char *s)
 {
-	printf("\nObject #%d \"%s\" has invalid %s state line!\n",nouns+1,obj2.id,s,block);
-	quit();
+	alog(LL_FATAL, "Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s, block);
 }
 
 void
@@ -840,7 +864,7 @@ is_desid()
 		state.descrip=-2;
 		return;
 	}
-	if((fp=fopen("ram:ODIDs","rb+"))==NULL) Err("open","ram:ODIDs");
+	if((fp=fopen("ram:ODIDs","rb+"))==NULL) fatalOp("open","ram:ODIDs");
 	for(i=0;i<obdes;i++)
 	{
 		fread(objdes.id,sizeof(objdes),1,fp); state.descrip=objdes.descrip;
@@ -863,9 +887,9 @@ text_id(char *p,char c)
 	if(*(p-2) == '{') ptr=p-1; else ptr=p;
 
 	sprintf(temp,"%s%s",dir,obdsfn);	/* Open output file */
-	if((fp=fopen(temp,"rb+"))==NULL) Err("open",temp);
+	if((fp=fopen(temp,"rb+"))==NULL) fatalOp("open",temp);
 	fseek(fp,0,2L); state.descrip=ftell(fp); /* Get pos */
-	if(fwrite(block,ptr-block,1,fp)!=1) { fclose(fp); Err("write",temp); }
+	if(fwrite(block,ptr-block,1,fp)!=1) { fclose(fp); fatalOp("write",temp); }
 	fputc(0,fp); strcpy(block,p); fclose(fp);
 }
 
@@ -912,7 +936,9 @@ state_proc()
 	}
 	if(state.descrip==-1)
 	{
-		sprintf(temp,"desc= ID (%s) on",Word); statinv(temp);
+		char tmp[128];
+		snprintf(tmp, "desc= ID (%s) on", Word);
+		statinv(tmp);
 	}
 	while(*p!=0)
 	{
@@ -953,10 +979,10 @@ isloc(char *s)		/* Room or container */
 	if((i = iscont(s)) == -1)
 	{
 		if(isnoun(s) == -1)
-			printf("\x07## Invalid object start location, '%s'...\n",s);
+			alog(LL_ERROR, "Invalid object start location: %s", s);
 		else
-			printf("\x07## Tried to start '%s' in non-container '%s'!\n",obj2.id,s);
-		err++; return -1;
+			alog(LL_ERROR, "Tried to start '%s' in non-container '%s'", obj2.id, s);
+		return -1;
 	}
 
 	return -(INS+i);
@@ -968,12 +994,14 @@ getno(const char *s)
 	p = skiplead(s, block);
 	if(!p)
 	{
-		printf("## Missing %s entry!\n",s); err++; return -1;
+		alog(LL_ERROR, "Missing %s entry", s);
+		return -1;
 	}
-	p=getword(p); strcpy(block, p); ///ISSUE: overlap
+	p=getword(p);
 	if(!isdigit(Word[0]))
 	{
-		printf("## Invalid %s entry...\n",s); err++; return -1;
+		alog(LL_ERROR, "Invalid %s entry", s);
+		return -1;
 	}
 	return atoi(Word);
 }
@@ -1012,7 +1040,7 @@ chknum(char *p)
 	else n=atoi(p);
 	if(n>=1000000)
 	{
-		printf("\x07\n*** Number %d exceeds limits!",n);
+		alog(LL_ERROR, "Number too large: %d", n);
 		return -1000001;
 	}
 	if(*p=='-') return (long) -n;
@@ -1052,7 +1080,7 @@ antype(char *s)
 	if(strcmp(s,"here")==0) return AHERE;
 	if(strcmp(s,"others")==0) return AOTHERS;
 	if(strcmp(s,"all")==0) return AALL;
-	printf("\x07\nInvalid anouncement-group, '%s'...\n",s);
+	alog(LL_ERROR, "Invalid announcement-group: %s", s);
 	return -1;
 }
 
@@ -1216,8 +1244,7 @@ isumsg(char *s, FILE *fp)	/* Check FP for umsg id! */
 		i=atoi(s+1);
 		if(i<1 || i>NSMSGS)
 		{
-			printf("\x07\n!! Invalid System Message ID, '%s'!\n\n",s);
-			quit();
+			alog(LL_ERROR, "Invalid system message ID: %s", s);
 		}
 		return i-1;
 	}
@@ -1239,7 +1266,7 @@ chkumsg(char *s)
 
 	if((fp=fopen("ram:umsg.tmp","rb+"))==NULL)
 	{
-		printf("Unable to re-access ram:umsg.tmp!\n"); quit();
+		alog(LL_FATAL, "Unable to access umsg.tmp file");
 	}
 	r=isumsg(s,fp);
 	fclose(fp);
@@ -1265,13 +1292,12 @@ char *
 chkp(char *p,char t,int c,int z,FILE *fp)
 {	char qc,*p2; long x;
 
-	p=optis(p); p2=(p=skipspc(p));	/*=* Strip crap out *=*/
+	p=optis(p); p2=(p=skipspc(p));	/* Strip crap out */
 	if(*p==0)
 	{
-		printf("\x07\%s \"%s\" has incomplete C&A line! (%s='%s')\n\n",
+		alog(LL_FATAL, "%s '%s' has incomplete C&A line: (%s='%s')",
 			(proc==1)?"Verb":"Room",(proc==1)?verb.id:roomtab->id,
 			(z==1)?"condition":"action",(z==1)?conds[c]:acts[c]);
-		quit();
 	}
 	if(*p!='\"' && *p!='\'') while(*p!=32 && *p!=0) p++;
 	else
@@ -1285,7 +1311,7 @@ chkp(char *p,char t,int c,int z,FILE *fp)
 		x=actualval(p2,t);
 		if(x==-1)	/* If it was an actual, but wrong type */
 		{
-			printf("\x07\nInvalid slot label, '%s', after %s '%s' in verb '%s'.\n",
+			alog(LL_ERROR, "Invalid slot label, '%s', after %s '%s' in verb '%s'",
 				p2,(z==1)?"condition":"action",(z==1)?conds[c]:acts[c],
 				verb.id);
 			return NULL;
@@ -1316,17 +1342,16 @@ chkp(char *p,char t,int c,int z,FILE *fp)
 		{
 			if(!(proc==1 && t>=0 && t<=10))
 			{
-				printf("\n\n\x07!! Internal error, invalid PTYPE (val: %d) in %s %s!\n\n",
-					t,(proc==1)?"verb":"room",(proc==1)?verb.id:(rmtab+rmn)->id);
-				printf("%s = %s.\n", (z==1)?"condition":"action",(z==1)?conds[c]:acts[c]);
-				quit();
+				alog(LL_FATAL, "Internal error: Invalid PTYPE (val: %d) in %s %s (%s = %s)",
+					t,(proc==1)?"verb":"room",(proc==1)?verb.id:(rmtab+rmn)->id,
+					(z==1)?"condition":"action",(z==1)?conds[c]:acts[c]);
 			}
 		}
 	}
 	if(t==-70 && x==-2) x=-1;
 	else if(((x==-1 || x==-2) && t!=PNUM) || x==-1000001)
 	{
-		printf("\x07\nInvalid parameter, '%s', after %s '%s' in %s '%s'.\n",
+		alog(LL_ERROR, "Invalid parameter '%s' after %s '%s' in %s '%s'",
 			p2,(z==1)?"condition":"action",(z==1)?conds[c]:acts[c],
 			(proc==1)?"verb":"room",(proc==1)?(verb.id):(rmtab+rmn)->id);
 		return NULL;
@@ -1355,35 +1380,32 @@ chkcparms(char *p,int c,FILE *fp)
 	return p;
 }
 
-bool
+void
 objs_proc()
 {	char *p,*s; int roomno;
 
-	nouns=adjs=err=0;
+	nouns=adjs=0;
 
 	/* Clear files */
-	fopenw(adjfn); close_ofps();
+	fopenw(adjfn); close_ofps(); // create file
 	fopenw(objsfn); fopenw(statfn); fopenw(objrmsfn); fopena(adjfn);
 
-	if(nextc(0)==-1) { close_ofps(); return false; } /* Nothing to process */
+	if(!nextc(false)) { return; } /* Nothing to process: ///TODO: Warning */
 	blkget(&obmem,(char **)&obtab2,32*sizeof(obj2)); objtab2=obtab2+32;
 	s=(char *)objtab2;
 
 	do
 	{
-		if(err>30)
-		{
-			printf("\x07** Maximum number of errors exceeded!\n");
-			quit();
-		}
+		checkErrorCount();
+
 		do p=s=extractLine(s,block); while(*s!=0 && (com(block)==-1 || block[0]==0));
 		if(*s==0 || block[0]==0) continue;
 		tidy(block); if(block[0]==0) continue;
 		striplead("noun=",block); p=getword(block);
 		if(strlen(Word)<3 || strlen(Word)>IDL)
 		{
-			printf("## \x07 Invalid ID: \"%s\"\x07 ##\n",Word);
-			err++; Word[IDL+1]=0;
+			alog(LL_FATAL, "Invalid object id (length): %s", Word);
+			Word[IDL+1]=0;
 		}
 		obj2.adj=obj2.mobile=-1; obj2.idno=nouns;
 		obj2.state=obj2.nrooms=obj2.contains=obj2.flags=obj2.putto=0;
@@ -1399,8 +1421,8 @@ objs_proc()
 			{
 				if((roomno=isoparm())==-1)
 				{
-					printf("\x07## Invalid parameter '%s'\n",Word);
-					err++; continue;
+					alog(LL_ERROR, "Object: %s: Invalid parameter: %s", obj2.id, Word);
+					continue;
 				}
 				switch(bitset(roomno))
 				{
@@ -1410,7 +1432,7 @@ objs_proc()
 					case OP_PUT:	set_put(); break;
 					case OP_MOB:	set_mob(); mobs++; break;
 					default:
-						printf("** Internal: Code for object-parameter '%s' missing!\n",obparms[roomno]);
+						alog(LL_FATAL, "Internal Error: Code for object-parameter '%s' missing", obparms[roomno]);
 				}
 			}
 		} while(Word[0] != 0);
@@ -1426,8 +1448,7 @@ objs_proc()
 				do s=extractLine(s,block); while(*s!=0 && block[0]!=0 && com(block)==-1);
 				if(*s==0)
 				{
-					printf("** Unexpected end of file in Objects.TXT!\n");
-					quit();
+					alog(LL_FATAL, "Unexpected end of file in Objects.TXT");
 				}
 				p=block; Word[0]=' '; continue;
 			}
@@ -1438,8 +1459,7 @@ objs_proc()
 		} while(Word[0] !=0);
 		if(obj2.nrooms == 0  &&  roomno == 0)
 		{
-			printf("\x07!! No rooms listed for object '%s'...\n",obj2.id);
-			err++;
+			alog(LL_ERROR, "Object: %s: no location given", obj2.id);
 		}
 		obj2.nstates=0;
 		do
@@ -1450,70 +1470,64 @@ objs_proc()
 		} while(block[0]!=0 && block[0]!='\n');
 		if(obj2.nstates==0 || obj2.nstates>100)
 			object("amount of states (i.e. none)");
-		if((long)(obtab2+(nouns)) > (long)s) printf("@! table exceeded data\n");
+		if((long)(obtab2+(nouns)) > (long)s)
+			alog(LL_FATAL, "table exceeded data");
 		*(obtab2+(nouns++))=obj2;
 	} while(*s!=0);
-	if(err!=0)
-	{
-		printf("\n\n!! Aborting due to %ld errors !!\n\n",err);
-		quit();
-	}
 	/*
 	close_ofps();
 	sort_objs();
 	*/
 	fwrite((char *)obtab2,sizeof(obj2),nouns,ofp1);
-	close_ofps();
-	return false;
 }
 
 void
 title_proc()
 {
-	nextc(1);	fgets(block,1000,ifp); repspc(block);
+	nextc(true);
+	fgets(block,1000,ifp); repspc(block);
 	char* p = block;
 	if(!canSkipLead("name=", &p))
 	{
-		tx("Invalid title.txt; missing 'name=' line!\n");
-		quit();
+		alog(LL_FATAL, "Invalid title.txt: missing name= line");
 	}
 	int length = strlen(p);
 	*(p + length - 1) = 0;  // remove newline
 	if(length > 40)
 	{
 		*(p + 40) = 0;
-		printf("Adventure name too long!            \nTruncated to %40s...\n",block);
+		alog(LL_WARN, "Game name too long: trunvate to %s", block);
 	}
 	strcpy(adname,block);
 	fgets(block,1000,ifp); repspc(block);
 	mins=getno("gametime=");
-	if(mins<15) { tx("!! Minimum game time of 15 minutes inforced!\n"); mins=15; }
+	if(mins<15) {
+		mins = 15;
+		alog(LL_WARN, "Game time too short, falling back to %d minutes", mins);
+	}
 
 	fgets(block,1000,ifp); repspc(block);
-	invis=getno("invisible="); getword(block);
-	if(!isdigit(Word[0]))
-	{
-		printf("## Invalid rank for visible players to see other invisible players/objects.\n");
-		err++;
+	p = block;
+	if (!canSkipLead("invisible=", &p)) {
+		alog(LL_FATAL, "Missing invisible= line");
 	}
-	else invis2=atoi(Word);
+	int reads = sscanf(p, "%d %d", &invis, &invis2);
+	if (reads != 2) {
+		alog(LL_ERROR, "Invalid invisible= line: %s", block);
+	}
 
 	fgets(block,1000,ifp); repspc(block);
 	minsgo=getno("min sgo=");
 
-	/*-* Get the Scaleing line. *-*/
+	/* Get the Scaleing line. */
 	fgets(block,1000,ifp); repspc(block);
 	rscale=getno("rankscale=");		/* Process RankScale= */
+	fgets(block,1000,ifp); repspc(block);
 	tscale=getno("timescale=");		/* Process TimeScale= */
 
 	readgot=ftell(ifp);
-
-	if(err!=0)
-	{
-		printf("\n\n!! Aborting due to %ld errors !!\n\n",err);
-		quit();
-	}
 }
+
 /*
      Travel Processing Routines for AMUL, Copyright (C) Oliver Smith, '90
      --------------------------------------------------------------------
@@ -1522,49 +1536,48 @@ title_proc()
 
 
 void
-trav_proc()			/*=* Process TRAVEL.TXT *=*/
+trav_proc()			/* Process TRAVEL.TXT */
 {
 	int strip,lines,nvbs,i,ntt,t,r;
 	char *p; long *l;
 
-	nextc(1);		/* Move to first text */
+	nextc(true);		/* Move to first text */
 	fopenw(ttfn); fopenw(ttpfn); fopena(rooms1fn);
-	err=ntt=t=0;
+	ntt=t=0;
 
 	do
 	{
-loop1:		if(err>30)
-		{
-			printf("\x07** Maximum number of errors exceeded!\n");
-			quit();
-		}
+loop1:
+		checkErrorCount();
 		fgets(block,1000,ifp); if(feof(ifp)) continue; tidy(block);
 		if(com(block)==-1 || block[0]==0) goto loop1;
 		p=block; getword(block); striplead("room=",Word);
 		if((rmn=isroom(Word))==-1)
 		{
-			printf("** Invalid room '%s'!\n",Word);
-			err++; skipblock(); goto loop1;
+			alog(LL_ERROR, "No such room: %s", Word);
+			skipblock(); goto loop1;
 		}
 		if(roomtab->tabptr!=-1)
 		{
-			printf("\x07!! Room \"%s\" defined twice in travel table!\n",roomtab->id);
-			err++; skipblock(); goto loop1;
+			alog(LL_ERROR, "Multiple tt entries for room: %s", roomtab->id);
+			skipblock(); goto loop1;
 		}
-vbloop:		do fgets(block,1000,ifp); while(com(block)==-1);
+vbloop:		
+		do fgets(block,1000,ifp); while(com(block)==-1);
 		if(block[0]==0 || block[0]=='\n')
 		{
 			/* Only complain if room is not a death room */
-			if((roomtab->flags & DEATH)!=DEATH && warn==1)
-				printf("## Room \"%s\" has no TT entries!\n",roomtab->id);
-			roomtab->tabptr=-2;
-			ntt++; continue;
+			if((roomtab->flags & DEATH)!=DEATH && warn==1) {
+				alog(LL_INFO, "No tt entries for room: %s", roomtab->id);
+				roomtab->tabptr=-2;
+				ntt++; continue;
+			}
 		}
 		tidy(block);
 		if(!striplead("verb=",block) && !striplead("verbs=",block))
 		{
-			printf("## Room %s: expected a VERB[S]= entry!\n",roomtab->id);
-			err++; goto vbloop;
+			alog(LL_ERROR, "Missing verb[s]= entry for room: %s", roomtab->id);
+			goto vbloop;
 		}
 		lines=0; verb.id[0]=0;
 		roomtab->tabptr=t;roomtab->ttlines=0;
@@ -1578,15 +1591,13 @@ vbproc:		/* Process verb list */
 			if(Word[0] == 0) break;
 			if((*l=is_verb(Word))==-1)
 			{
-				printf("\nRoom \"%s\" has invalid verb, \"%s\"...\n",roomtab->id,Word);
-				err++;
+				alog(LL_ERROR, "Room: %s: Invalid verb: %s", roomtab->id, Word);
 			}
 			l++; nvbs++;
 		} while(Word[0]!=0);
 		if(nvbs == 0)
 		{
-			printf("Room \"%s\" has empty verb[s]= line!\n",roomtab->id);
-			quit();
+			alog(LL_FATAL, "Room has empty verb[s]= line: %s", roomtab->id);
 		}
 		/* Now process each instruction line */
 		do
@@ -1618,35 +1629,36 @@ notlp2:			if(Word[0]=='!') { strcpy(Word,Word+1); r=-1*r; goto notlp2; }
 				if((tt.action=isroom(Word))!=-1) goto write;
 				if((tt.action=isact(Word))==-1)
 				{
-					printf("\x07Invalid condition, \"%s\", in TT entry for room \"%s\"...\n",
-						Word,roomtab->id);
-					err++; goto xloop;
+					alog(LL_ERROR, "Room: %s: invalid tt condition: %s", Word, roomtab->id);
+					goto xloop;
 				}
 				goto gotohere;
 			}
 			p=skipspc(p);
-			if((p=chkcparms(p,tt.condition,ofp2))==NULL) { err++; goto next; }
+			if((p=chkcparms(p,tt.condition,ofp2))==NULL) { goto next; }
 			if(r==1) tt.condition=-1-tt.condition;
 			if(*p==0)
 			{
-				printf("\x07Room \"%s\" has entry with missing action!\n",roomtab->id);
-				err++; goto xloop;
+				alog(LL_ERROR, "Room's tt entry is missing an action", roomtab->id);
+				goto xloop;
 			}
 			p=preact(p); p=getword(p);
 			if((tt.action=isroom(Word))!=-1) goto write;
 			if((tt.action=isact(Word))==-1)
 			{
-				printf("\x07Invalid action, \"%s\", in TT entry for room \"%s\"...\n",
-					Word,(rmtab+rmn)->id);
-				err++; goto xloop;
+				alog(LL_ERROR, "Room %s has unrecognized tt action: %s", Word,
+						(rmtab+rmn)->id);
+				goto xloop;
 			}
 gotohere:		if(tt.action==ATRAVEL)
 			{
-				printf("## Tried to call TRAVEL action from travel table! (grin)\n");
-				err++; goto xloop;
+				alog(LL_ERROR, "Room %s: Tried to call action 'travel' from travel table", roomtab->id);
+				goto xloop;
 			}
 			p=skipspc(p);
-			if((p=chkaparms(p,tt.action,ofp2))==NULL) { err++; goto next; }
+			if((p=chkaparms(p,tt.action,ofp2))==NULL) {
+				goto next;
+			}
 			tt.action=0-(tt.action+1);
 write:			roomtab=rmtab+rmn;
 			l=(long *)temp;
@@ -1661,31 +1673,25 @@ write:			roomtab=rmtab+rmn;
 next:			strip=0;
 		} while(strip==0 && !feof(ifp));
 		if(strip==1 && !feof(ifp)) goto vbproc;
-		nextc(0);
+		nextc(false);
 		ntt++;
 	} while(!feof(ifp));
-	if(err==0 && ntt!=rooms && warn==1)
+	if(errorCount==0 && ntt!=rooms && warn==1)
 	{
 		roomtab=rmtab;
 		for(i=0; i<rooms; i++,roomtab++)
-			if(roomtab->tabptr == -1 && (roomtab->flags & DEATH) != DEATH)
-				printf("Room \"%s\" has no TT entry!\n",roomtab->id);
-	}
-	if(err!=0)
-	{
-		printf("\n\n!! Aborting due to %ld errors !!\n\n",err);
-		quit();
+			if(roomtab->tabptr == -1 && (roomtab->flags & DEATH) != DEATH) {
+				alog(LL_WARN, "No TT entry for room: %s", roomtab->id);
+			}
 	}
 	ttroomupdate();
-	close_ofps();
 }
 /* Lang.TXT processor */
 
 void
 chae_err()
 {
-	printf("\x07## Invalid '#CHAE' flags, \"%s\" in verb %s.\n",Word,verb.id);
-	err++;
+	alog(LL_ERROR, "Verb: %s: Invalid '#CHAE' flag: %s", verb.id, Word);
 }
 
 int
@@ -1735,18 +1741,18 @@ iswtype(char *s)		/* Is 'text' a ptype */
 void
 vbprob(char *s,char *s2)	/* Declare a PROBLEM, and which verb its in! */
 {
-	printf("## Verb %s: line '%s'\n%s!\n",verb.id,s2,s); err++;
+	alog(LL_FATAL, "Verb: %s line: '%s': %s", verb.id, s2, s);
 }
 
 void
-lang_proc()			/*=* Process LANG.TXT *=*/
+lang_proc()			/* Process LANG.TXT */
 {
 	char	lastc,*p,*p2,*s1,*s2;
 	/* n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2) */
 	int	n,cs,s,r;
 	unsigned long	of2p,of3p;
 
-	err=0; verbs=0; nextc(1);
+	verbs=0; nextc(true);
 	fopenw(lang1fn); close_ofps(); fopena(lang1fn); ofp1=afp; afp=NULL;
 	fopenw(lang2fn); fopenw(lang3fn); fopenw(lang4fn);
 
@@ -1756,11 +1762,7 @@ lang_proc()			/*=* Process LANG.TXT *=*/
 
 	do
 	{
-		if(err>30)
-		{
-			printf("\x07** Maximum number of errors exceeded!\n");
-			quit();
-		}
+		checkErrorCount();
 		verbs++; p=block;
 loop:		do { s1=extractLine((s2=s1),block); *(s1-1)=0; } while(com(block)==-1 && *s1!=0);
 		if(*s1==0) { verbs--; break; }
@@ -1768,11 +1770,12 @@ loop:		do { s1=extractLine((s2=s1),block); *(s1-1)=0; } while(com(block)==-1 && 
 		p=skiplead("verb=",block); p=getword(p);
 		if(Word[0]==0)
 		{
-			printf("!! \x07 verb= line without a verb!\n"); goto loop;
+			alog(LL_ERROR, "verb= line without a verb?");
+			continue;
 		}
 		if(strlen(Word)>IDL)
 		{
-			printf("\x07 Invalid verb ID: \"%s\"",Word); err++;
+			alog(LL_ERROR, "Invalid verb ID (too long): %s", Word);
 			do { s1=extractLine((s2=s1),block); *(s1-1)=0; } while(*s1!=0 && block[0]!=0);
 			if(*s1==0) break;
 			goto loop;
@@ -1804,7 +1807,8 @@ noflags:	verb.ents=0; verb.ptr=(struct _SLOTTAB *)of2p;
 stuffloop:	do { s2=s1; s1=extractLine(s1,block); *(s1-1)=0; } while(*s1!=0 && block[0]!=0 && com(block)==-1);
 		if(*s1==0 || block[0]==0)
 		{
-			if(verb.ents==0 && (verb.flags & VB_TRAVEL)) printf("!! \x07Verb \"%s\" has no entries!\n",verb.id);
+			if(verb.ents==0 && (verb.flags & VB_TRAVEL))
+				alog(LL_WARN, "Verb has no entries: %s", verb.id);
 			goto write;
 		}
 
@@ -1829,22 +1833,24 @@ synloop:	setslots(WNONE); verb.ents++; p=skiplead("verb",p);
 			setslots(WNONE); goto endsynt;
 		}
 
-sp2:		/*=* Syntax line processing *=*/
+sp2:		/* Syntax line processing */
 		p=skipspc(p); if(*p==';' || *p=='|' || *p=='*') goto endsynt;
 		Word[0]=0; p=getword(p);
 		if(Word[0]==0) goto endsynt;
 		if((n=iswtype(Word))==-3)
 		{
-			sprintf(block,"Invalid phrase, '%s', on syntax line!",Word);
-			vbprob(block,s2); goto commands;
+			char tmp[128];
+			snprintf(tmp, sizeof(tmp), "Invalid phrase on syntax line: %s", Word);
+			vbprob(tmp, s2); goto commands;
 		}
 		if(Word[0]==0) { s=WANY; goto skipeq; }
 
-		/*=* First of all, eliminate illegal combinations *=*/
+		/* First of all, eliminate illegal combinations */
 		if(n==WNONE || n==WANY)
 		{	/* you cannot say none=fred any=fred etc */
-			sprintf(block,"Tried to defined %s= on syntax line",syntax[n]);
-			vbprob(block,s2);
+			char tmp[128];
+			snprintf(tmp, "Tried to define %s on syntax line", syntax[n]);
+			vbprob(tmp, s2);
 			goto endsynt;
 		}
 		if(n==WPLAYER && strcmp(Word,"me")!=0 && strcmp(Word,"myself")!=0)
@@ -1865,28 +1871,32 @@ sp2:		/*=* Syntax line processing *=*/
 		    case WPLAYER:
 			if(strcmp(Word,"me")==0 || strcmp(Word,"myself")==0) s=-3; break;
 		    case WROOM:	s=isroom(Word); break;
-		    case WSYN:	printf("!! Syn's not supported at this time!\n"); s=WANY;
+		    case WSYN:	alog(LL_WARN, "Synonyms not supported yet"); s=WANY; break;
 		    case WTEXT:	s=chkumsg(Word); break;
 		    case WVERB:	s=is_verb(Word); break;
 		    case WCLASS: s=WANY;
 		    case WNUMBER:
 				if(Word[0]=='-') s=atoi(Word+1);
 				else s=atoi(Word);
-		    default:	 printf("** Internal error! Invalid W-type!\n");
+		    default:	 
+				alog(LL_ERROR, "Internal Error: Invalid w-type");
 		}
 
 		if(n==WNUMBER && (s>100000 || -s>100000))
 		{
-			sprintf(fnm,"Invalid number, %ld",s); vbprob(fnm,s2);
+			char tmp[64];
+			snprintf(tmp, sizeof(tmp), "Invalid number: %d", s);
+			vbprob(tmp, s2);
 		}
 		if(s==-1 && n!=WNUMBER)
 		{
-			sprintf(fnm,"Invalid setting, '%s' after %s=",Word,syntax[n+1]);
-			vbprob(fnm,s2);
+			char tmp[128];
+			snprintf(tmp, sizeof(tmp), "%s=: Invalid setting: %s", syntax[n+1], Word);
+			vbprob(tmp, s2);
 		}
 		if(s==-3 && n==WNOUN) s=-1;
 
-skipeq:		/*=* (Skipped the equals signs) *=*/
+skipeq:		/* (Skipped the equals signs) */
 		/* Now fit this into the correct slot */
 		cs=1;			/* Noun1 */
 		switch(n)
@@ -1934,9 +1944,9 @@ skipeq:		/*=* (Skipped the equals signs) *=*/
 		    case WNUMBER:
 			if(vbslot.wtype[1]!=WNONE && vbslot.wtype[4]!=WNONE)
 			{
-				sprintf(block,"No free noun slot for '%s' entry",
-					syntax[n+1]);
-				vbprob(block,s2);
+				char tmp[128];
+				snprintf(block, "No free noun slot for %s entry", syntax[n+1]);
+				vbprob(tmp, s2);
 				n=-5; break;
 			}
 			if(vbslot.wtype[1]!=WNONE) cs=4;
@@ -1962,7 +1972,7 @@ commands:	lastc='x'; proc=0;
 		/* Process the condition */
 notloop:	p=precon(p); p=getword(p);
 
-		/*=* always endparse *=*/
+		/* always endparse */
 		if(strcmp(Word,ALWAYSEP)==0)
 		{
 			vt.condition=CALWAYS; vt.action=-(1+AENDPARSE);
@@ -1973,7 +1983,7 @@ notloop:	p=precon(p); p=getword(p);
 			r=-1*r; goto notloop;
 		}
 
-		/*=* If they forgot space between !<condition>, eg !toprank *=*/
+		/* If they forgot space between !<condition>, eg !toprank */
 notlp2:		if(Word[0]=='!') { strcpy(Word,Word+1); r=-1*r; goto notlp2; }
 
 		if((vt.condition=iscond(Word)) == -1)
@@ -1982,14 +1992,16 @@ notlp2:		if(Word[0]=='!') { strcpy(Word,Word+1); r=-1*r; goto notlp2; }
 			if((vt.action=isact(Word)) == -1)
 			{
 				if((vt.action=isroom(Word))!=-1) { vt.condition=CALWAYS; goto writecna; }
-				sprintf(block,"Invalid condition, '%s'",Word); vbprob(block,s2);
+				char tmp[128];
+				snprintf(tmp, "Invalid condition, '%s'",Word);
+				vbprob(tmp, s2);
 				proc=0; goto commands;
 			}
 			vt.condition=CALWAYS;
 			goto doaction;
 		}
 		p=skipspc(p); proc=1;
-		if((p=chkcparms(p,vt.condition,ofp4))==NULL) { err++; goto commands; }
+		if((p=chkcparms(p,vt.condition,ofp4))==NULL) { goto commands; }
 		if(*p==0)
 		{
 			if((vt.action=isact(conds[vt.condition]))==-1)
@@ -2003,11 +2015,13 @@ notlp2:		if(Word[0]=='!') { strcpy(Word,Word+1); r=-1*r; goto notlp2; }
 		if((vt.action=isact(Word))==-1)
 		{
 			if((vt.action=isroom(Word))!=-1) goto writecna;
-			sprintf(block,"Invalid action, '%s'",Word); vbprob(block,s2);
+			char tmp[128];
+			snprintf(tmp, sizeof(tmp), "Invalid action, '%s'",Word);
+			vbprob(tmp, s2);
 			goto commands;
 		}
 doaction:	p=skipspc(p);
-		if((p=chkaparms(p,vt.action,ofp4))==NULL) { err++; goto commands; }
+		if((p=chkaparms(p,vt.action,ofp4))==NULL) { goto commands; }
 		vt.action=0-(vt.action+1);
 
 writecna:	/* Write the C & A lines */
@@ -2021,26 +2035,24 @@ writeslot:	fwrite(vbslot.wtype,sizeof(vbslot),1,ofp2); proc=0; of2p+=sizeof(vbsl
 		lastc='\n';
 write:		fwrite(verb.id,sizeof(verb),1,ofp1); proc=0;
 		*(vbtab+(verbs-1))=verb;
-		if((long)(vbtab+(verbs-1)) > (long)s1) printf("@! table overtaking s1\n");
+		if((long)(vbtab+(verbs-1)) > (long)s1)
+			alog(LL_FATAL, "table overtaking s1");
 	} while(*s1!=0);
-	if(err!=0)
-	{
-		printf("\n\n!! Aborting due to %ld errors !!\n\n",err);
-		quit();
-	}
-	close_ofps();
 }
 
-bool
+void
 umsg_proc()
 {	char *s;
 
-	err=umsgs=0;
+	umsgs=0;
 	fopenw("-ram:umsg.tmp"); close_ofps();
 	fopena(umsgifn); ofp1=afp; afp=NULL; fseek(ofp1,0,2L);
 	fopena(umsgfn);  ofp2=afp; afp=NULL; fseek(ofp2,0,2L);
 	fopena("-ram:umsg.tmp");
-	if(nextc(0)==-1) { close_ofps(); return false; }	/* None to process */
+	if(!nextc(false)) {
+		///TODO: Tell the user
+		return;
+	}	/* None to process */
 	blkget(&datal,&data,0L); s=data;
 
 	do
@@ -2053,15 +2065,13 @@ loop:		do s=extractLine(s,block); while(com(block)==-1 && *s!=0);
 
 		if(Word[0]=='$')
 		{
-			printf("Invalid ID, '%s'. ",Word);
-			printf("'$' is reserved for System messages!\n");
-			err++; skipblock(); goto loop;
+			alog(LL_ERROR, "Invalid message ID: %s ('$' reserved or system messages", Word);
+			skipblock(); goto loop;
 		}
 		if(strlen(Word)>IDL)
 		{
-			printf("Invalid ID, '%s'. ",Word);
-			printf("Length exceeds %d characters.\n",IDL);
-			err++; skipblock(); goto loop;
+			alog(LL_ERROR, "Invalid message ID (too long): %s", Word);
+			skipblock(); goto loop;
 		}
 		umsgs++;	/* Now copy the text across */
 		strcpy(umsg.id,Word); umsg.fpos=ftell(ofp2); fwrite(umsg.id,sizeof(umsg),1,afp);
@@ -2079,15 +2089,8 @@ loop:		do s=extractLine(s,block); while(com(block)==-1 && *s!=0);
 		} while(*s!=0 && block[0]!=0);
 		fputc(0,ofp2);
 	} while(*s!=0);
-	close_ofps(); FreeMem(data,datal);
+	FreeMem(data,datal);
 	data=NULL; datal=NULL;
-	if(err!=0)
-	{
-		printf("\n\n!! Aborting due to %ld errors !!\n\n",err);
-		quit();
-	}
-
-	return true;
 }
 /*
      System Message processing routines for AMUL, (C) KingFisher Software
@@ -2106,9 +2109,9 @@ void
 smsg_proc()
 {	char	*s;	long id; long pos;
 
-	err=smsgs=0;
+	smsgs=0;
 
-	if(nextc(0)==-1) return;	/* Nothing to process! */
+	if(!nextc(false)) return;	/* Nothing to process! */
 	fopenw(umsgifn); fopenw(umsgfn);	/* Text and index */
 
 	blkget(&datal,&data,0L); s=data;
@@ -2123,18 +2126,15 @@ loop:		s=extractLine(s,block);
 
 		if(Word[0]!='$')
 		{
-			printf("\x07\n\n!! Invalid SysMsg ID, '%s'. SysMsgs MUST begin with a '$'!\n",Word);
-			quit();
+			alog(LL_FATAL, "Invalid system message id: %s (must begin with '$'", Word);
 		}
 		if(atoi(Word+1)!=smsgs+1)
 		{
-			printf("\x07\n\n!! Message %s out of sequence!\n\n",Word);
-			quit();
+			alog(LL_FATAL, "Message %s out of sequence", Word);
 		}
 		if(smsgs>=NSMSGS)
 		{
-			printf("\x07\n\n!! Too many System Messages, only require %ld!\n\n",NSMSGS);
-			quit();
+			alog(LL_FATAL, "Unexpected system message (last should be %d)", NSMSGS);
 		}
 		id=++smsgs;	/* Now copy the text across */
 		pos=ftell(ofp2); fwrite((char *)&pos,4,1,ofp1);
@@ -2151,7 +2151,7 @@ loop:		s=extractLine(s,block);
 		} while(*s!=0 && block[0]!=0);
 		fputc(0,ofp2);
 	} while(*s!=0);
-	close_ofps(); FreeMem(data,datal);
+	FreeMem(data,datal);
 	data=NULL; datal=NULL;
 }
 
@@ -2164,7 +2164,7 @@ void
 syn_proc()
 {	char *s,*t; short int no; short int x;
 
-	err=syns=0;	if(nextc(0)==-1) return;
+	syns=0;	if(!nextc(false)) return;
 	fopenw(synsfn); fopenw(synsifn);
 
 	blkget(&datal,&data,0L); s=data;
@@ -2180,8 +2180,8 @@ syn_proc()
 		{
 			if((x=is_verb(Word))==-1)
 			{
-				printf("\x07!! Invalid verb/noun, \"%s\"...\n",Word);
-				err++; continue;
+				alog(LL_ERROR, "Invalid verb/noun: %s", Word);
+				continue;
 			}
 			no=-(2+x);
 		}
@@ -2193,22 +2193,17 @@ syn_proc()
 			fprintf(ofp1,"%s%c",Word,0); syns++;
 		}
 	} while(*s!=0);
-	close_ofps(); FreeMem(data,datal);
+	FreeMem(data,datal);
 	data=NULL; datal=NULL;
-	if(err!=0)
-	{
-		printf("\n\n!! Aborting due to %ld errors !!\n\n",err);
-		quit();
-	}
 }
 /* Mobiles.Txt Processor */
 
-	/*=* Pass 1: Indexes mobile names *=*/
+	/* Pass 1: Indexes mobile names */
 
 void
 mobmis(char *s)
 {
-	printf("## Mobile '%s': missing %s field.\n",mob.id,s); err++;
+	alog(LL_ERROR, "Mobile: %s: missing field: %s", mob.id, s);
 	skipblock();
 }
 
@@ -2218,29 +2213,35 @@ badmobend()
 	return -1;
 }
 
-/*=* Fetch mobile message line *=*/
+/* Fetch mobile message line */
 int
 getmobmsg(char *s)
 {	char *q; int n;
 
 loop:	if(com(px)==-1) { px=skipline(px); goto loop; }
-	if(*px==0 || *px==13 || *px==10) { err++; printf("## Mobile '%s': Unexpected end of mobile!\n"); return -1; }
+	if(*px==0 || *px==13 || *px==10) { 
+		alog(LL_ERROR, "Mobile: %s: unexpected end of definition", s);
+		return -1;
+	}
 	px=skipspc(px); if(*px==0 || *px==13 || *px==10) goto loop;
 
-	if((q=skiplead(s,px))==px) { mobmis(s); err++; return -1; }
+	if((q=skiplead(s,px))==px) { mobmis(s); return -1; }
 	if(toupper(*q)=='N') { px=skipline(px); return -2; }
-	n=ttumsgchk(q); px=skipline(px); if(n==-1) { printf("## Mobile '%s': Bad text on '%s' line!\n",mob.id,s); err++; }
+	n=ttumsgchk(q); px=skipline(px);
+	if(n==-1) {
+		alog(LL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
+	}
 	return n;
 }
-	/*=* Pass 2: Indexes commands mobiles have access to *=*/
+/* Pass 2: Indexes commands mobiles have access to */
 
 
 void
 mob_proc1()
 {	char	*p,*s1,*s2; long n;
 
-	err=0; mobchars=0;
-	fopenw(mobfn); if(nextc(0)==-1) return;
+	mobchars=0;
+	fopenw(mobfn); if(!nextc(false)) return;
 
 	blkget(&moblen,&mobdat,0L); p=mobdat; repspc(mobdat);
 
@@ -2262,8 +2263,7 @@ mob_proc1()
 				s1=getword(s2); mob.dmove=isroom(Word);
 				if(mob.dmove==-1)
 				{
-					printf("## Mobile '%s': invalid DMove '%s'.\n",mob.id,Word);
-					err++;
+					alog(LL_ERROR, "Mobile: %s: invalid dmove: %s", mob.id, Word);
 				}
 				continue;
 			}
@@ -2283,7 +2283,7 @@ mob_proc1()
 		s1=getword(s2); s1=skipspc(s1); mob.wait = atoi(Word);
 		if( mob.travel+mob.fight+mob.act+mob.wait != 100 )
 		{
-			printf("## Mobile '%s': Travel+Fight+Act+Wait <> 100%! Please check!\n",mob.id); err++;
+			alog(LL_ERROR, "Mobile: %s: Travel+Fight+Act+Wait values not equal to 100%.", mob.id);
 		}
 		if((s2=skiplead("fear=",s1))==s1) { mobmis("fear="); continue; }
 		s1=getword(s2); s1=skipspc(s1); mob.fear = atoi(Word);
@@ -2304,19 +2304,14 @@ mob_proc1()
 		fwrite(mob.id,sizeof(mob),1,ofp1);
 	} while(*p!=0);
 
-	if(err!=0)
-	{
-		printf("\n\n!! Aborting due to %ld errors !!\n\n",err);
-		quit();
-	}
-	close_ofps();
 	if(mobchars!=0)
 	{
 		if((mobp=(struct _MOB_ENT *)AllocMem(sizeof(mob)*mobchars,MEMF_PUBLIC))==NULL)
 		{
-			printf("### FATALY OUT OF MEMORY!\n"); quit();
+			alog(LL_FATAL, "Out of memory");
 		}
-		fopena(mobfn); fread((char *)mobp,sizeof(mob)*mobchars,1,afp); close_ofps();
+		close_ofps();
+		fopena(mobfn); fread((char *)mobp,sizeof(mob)*mobchars,1,afp);
 	}
 }
 /*mob_proc2()
@@ -2328,8 +2323,7 @@ checkf(char *s)
 	sprintf(block,"%s%s",dir,s);
 	if((ifp=fopen(block,"rb"))==NULL)
 	{
-		printf("Missing: file \x1B[33;1m%s!!!\x1B[0m\n\n",block);
-		exit(202);
+		alog(LL_FATAL, "Missing file: %s", block);
 	}
 	fclose(ifp);ifp=NULL;
 }
@@ -2349,18 +2343,96 @@ argue(int argc, const char **argv)
 }
 
 
-	/*---------------------------------------------------------*/
+/*---------------------------------------------------------*/
+
+static void
+checkFilesExist()
+{
+	alog(LL_INFO, "Checking for files");
+	checkf("Title.TXT");
+	checkf("Rooms.TXT");
+	checkf("Ranks.TXT");
+	checkf("Obdescs.TXT");
+	checkf("Objects.TXT");
+	checkf("Lang.TXT");
+	checkf("Travel.TXT");
+	checkf("SysMsg.TXT");
+	checkf("UMsg.TXT");
+	checkf("Reset.TXT");
+	checkf("Syns.TXT");
+	checkf("Mobiles.TXT");
+	alog(LL_INFO, "All files found");
+}
+
+void compileSection(const char* name, bool isText, void (*procFn)())
+{
+	alog(LL_NOTE, "Compiling: %s", name);
+	if (isText)
+		opentxt(name);
+	procFn();
+	if (ifp) {
+		fclose(ifp);
+		ifp = NULL;
+	}
+	close_ofps();
+	if (errorCount > 0) {
+		alog(LL_FATAL, "Terminating due to errors.");
+	}
+}
+
+void compileGame()
+{
+	compileSection("title", true, title_proc);
+
+	dmoves=0;
+	if(rmrd==1)
+	{
+		compileSection("rooms", true, room_proc);
+	}
+
+	fopenr(rooms1fn);	/* Check DMOVE ptrs */
+	if(rmrd==0)
+	{
+		fseek(ifp,0,2L); rooms=ftell(ifp)/sizeof(room); rewind(ifp);
+	}
+	if((rmtab=(struct _ROOM_STRUCT*)AllocMem(sizeof(room)*rooms,MEMF_PUBLIC))==NULL)
+	{
+		alog(LL_FATAL, "Out of memory for room id table");
+	}
+	if(fread((char *)rmtab,sizeof(room),rooms,ifp)!=rooms)
+	{
+		alog(LL_FATAL, "Roomtable appears to be corrupted. Recompile.");
+	}
+	if(dchk!=0 || dmoves!=0)
+	{
+		compileSection("DMOVEs", false, checkdmoves);
+	}
+	compileSection("ranks", true, rank_proc);
+	compileSection("sysmsg", true, smsg_proc);
+	if(smsgs!=NSMSGS)
+	{
+		alog(LL_FATAL, "%d system message(s) missing", NSMSGS - smsgs);
+	}
+	compileSection("umsg", true, umsg_proc);
+	compileSection("mobiles", true, mob_proc1);
+	compileSection("obdescs", true, obds_proc);
+	compileSection("objects", true, objs_proc);
+	compileSection("lang", true, lang_proc);
+	proc=0;
+	compileSection("travel", true, trav_proc);
+	compileSection("syns", true, syn_proc);
+}
 
 /*---------------------------------------------------------*/
 
 int
-main(int argc, const char**argv)			/*=* Main Program *=*/
+main(int argc, const char**argv)			/* Main Program */
 {
 	sprintf(vername,"AMULCom v%d.%03d (%8s)",VERSION,REVISION,DATE);
 	mytask=FindTask(0L); mytask->tc_Node.ln_Name = vername;
 
-	puts("\x0C\n  [33mAMUL  Multi-User Games Language Copyright (C) KingFisher Software, 1991[0m\n");
-	printf("                 [4mAMUL Compiler; %s[0m\n\n",vername);
+	alog(LL_INFO, "  AMUL  Multi-User Games Language Copyright (C) KingFisher Software, 1991");
+	alog(LL_INFO, "                 AMUL Compiler; %s",vername);
 
 	ofp1=NULL;	ofp2=NULL;	ofp3=NULL;	dir[0]=0;
 	dchk=rmrd=1;
@@ -2373,76 +2445,25 @@ main(int argc, const char**argv)			/*=* Main Program *=*/
 
 	if(argc>6)
 	{
-		puts("!! Error !!\n\n Usage:\n   amulcom <game path>\n");
+		alog(LL_ERROR, "Usage: amulcom <game path>");
 		exit(0);
 	}
 	if(argc>1) argue(argc,argv);
+	if (warn) {
+		s_logLevel = LL_NOTE;
+	}
 
 	/* Check the files/directories */
 
-	tx("\n%% Checking existence of files\x0d");
-	checkf("Title.TXT"); checkf("Rooms.TXT"); checkf("Ranks.TXT");
-	checkf("Obdescs.TXT"); checkf("Objects.TXT"); checkf("Lang.TXT");
-	checkf("Travel.TXT"); checkf("SysMsg.TXT"); checkf("UMsg.TXT");
-	checkf("Reset.TXT"); checkf("Syns.TXT"); checkf("Mobiles.TXT");
-	tx("## All .TXT files located.    \n\n\x1B[1mCompiling game files...\n\x1B[0m");
+	checkFilesExist();
 
-	tx("%% TITLE....:\x0d");
-	opentxt("TITLE");	title_proc();	fclose(ifp);
-	dmoves=0;
-	if(rmrd==1)
-	{
-		tx("%% ROOMS....:\x0d");
-		opentxt("ROOMS");	room_proc();	fclose(ifp);
-	}
-	fopenr(rooms1fn);	/*=* Check DMOVE ptrs *=*/
-	if(rmrd==0)
-	{
-		fseek(ifp,0,2L); rooms=ftell(ifp)/sizeof(room); rewind(ifp);
-	}
-	if((rmtab=(struct _ROOM_STRUCT*)AllocMem(sizeof(room)*rooms,MEMF_PUBLIC))==NULL)
-	{
-		puts("No memory for ROOM ID table!\n"); quit();
-	}
-	if(fread((char *)rmtab,sizeof(room),rooms,ifp)!=rooms)
-	{
-		puts("Failed to get right number of rooms from files! Aborting!");
-		quit();
-	}
-	if(dchk!=0 || dmoves!=0)
-	{
-		tx("%% DMOVEs...:\x0d"); checkdmoves(); fclose(ifp);
-	}
-	tx("%% RANKS....:\x0d");
-	opentxt("RANKS");	rank_proc();	fclose(ifp);
-	tx("%% SYSMSG...:\x0d");
-	opentxt("SysMsg");	smsg_proc();	fclose(ifp);
-	if(smsgs!=NSMSGS)
-	{
-		printf("\x07!! %ld System message(s) missing!\n\n",NSMSGS-smsgs);
-		quit();
-	}
-	tx("%% UMSG.....:\x0d");
-	opentxt("UMSG");	if(!umsg_proc()) quit(); else fclose(ifp);
-	tx("%% MOBILES..:\x0d");
-	opentxt("MOBILES");	mob_proc1();	fclose(ifp);
-	tx("%% OBDESCS..:\x0d");
-	opentxt("OBDESCS");	obds_proc();	fclose(ifp);
-	tx("%% OBJECTS..:\x0d");
-	opentxt("OBJECTS");	objs_proc();	fclose(ifp);
-	tx("%% LANG.....:\x0d");
-	opentxt("LANG");	lang_proc();	fclose(ifp); proc=0;
-	tx("%% TRAVEL...:\x0d");
-	opentxt("TRAVEL");	trav_proc();	fclose(ifp);
-	tx("%% SYNS.....:\x0d");
-	opentxt("SYNS");	syn_proc();	fclose(ifp);
-
-	tx("Execution finished normally\n\n");
-	printf("Statistics for %s:\n\n",adname);
-	printf("		Rooms: %6d	Ranks: %6d	Nouns: %6d\n",rooms,ranks,nouns);
-	printf("		Adj's: %6d	Verbs: %6d	Syns : %6d\n",adjs,verbs,syns);
-	printf("		T.T's: %6d	Umsgs: %6d	SMsgs: %6d\n",ttents,umsgs,NSMSGS);
-	printf("		 [33mTotal items processed:[0;1m%7d\n\n[0m",rooms+ranks+adjs+verbs+nouns+syns+ttents+umsgs+NSMSGS+mobs+mobchars);
+	compileGame();
+	alog(LL_NOTE, "Execution finished normally");
+	alog(LL_INFO, "Statistics for %s:",adname);
+	alog(LL_INFO, "		Rooms: %6d	Ranks: %6d	Nouns: %6d",rooms,ranks,nouns);
+	alog(LL_INFO, "		Adj's: %6d	Verbs: %6d	Syns : %6d",adjs,verbs,syns);
+	alog(LL_INFO, "		T.T's: %6d	Umsgs: %6d	SMsgs: %6d",ttents,umsgs,NSMSGS);
+	alog(LL_INFO, "		 Total items processed:%7d",rooms+ranks+adjs+verbs+nouns+syns+ttents+umsgs+NSMSGS+mobs+mobchars);
 	fopenw(advfn); time(&startTime);
 	fprintf(ofp1,"%s\n%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld",adname,rooms,ranks,verbs,syns,nouns,adjs,ttents,umsgs,startTime,mins,invis,invis2,minsgo,mobs,rscale,tscale,mobchars);
 	opentxt("TITLE"); fseek(ifp,readgot,0);
