@@ -161,11 +161,9 @@ CXBRK()
 bool
 com(const char *text)
 {
-    if (!*text && !isCommentChar(*text)) {
-        return false;
-    }
-    alog(AL_INFO, "%s", text);
-    return true;
+	if (*text == '*')
+		alog(AL_INFO, "%s", text);
+	return isCommentChar(*text);
 }
 
 const char *
@@ -680,34 +678,28 @@ chkline(char *p)
 void
 rank_proc()
 {
-    char *p;
-    int   n;
-
     nextc(true);
-    fopenw(ranksfn);
 
-    ranks = 0;
-    n = 0;
+    fopenw(ranksfn);
 
     do {
         fgets(block, 1024, ifp);
         if (feof(ifp))
-            continue;
-        if (com(block) == -1 || block[0] == '\n')
+            break;
+        if (com(block) || isEol(block[0]))
             continue;
         tidy(block);
         if (block[0] == 0)
             continue;
-        p = getword(block);
+        char* p = getword(block);
         if (chkline(p) != 0)
             continue;
-        ranks++;
         rank.male[0] = 0;
         rank.female[0] = 0;
         if (strlen(Word) < 3 || strlen(Word) > RANKL) {
             alog(AL_FATAL, "Rank %d: Invalid male rank: %s", ranks, Word);
         }
-        n = 0;
+        int n = 0;
         do {
             if (Word[n] == '_')
                 Word[n] = ' ';
@@ -830,6 +822,7 @@ rank_proc()
 
         wizstr = rank.strength;
         fwrite(rank.male, sizeof(rank), 1, ofp1);
+        ranks++;
     } while (!feof(ifp));
 }
 
@@ -1659,7 +1652,7 @@ objs_proc()
 
         do
             p = s = extractLine(s, block);
-        while (*s != 0 && (com(block) == -1 || block[0] == 0));
+        while (*s != 0 && (block[0] == 0 || com(block)));
         if (*s == 0 || block[0] == 0)
             continue;
         tidy(block);
@@ -1716,7 +1709,7 @@ objs_proc()
             if (Word[0] == '+') {
                 do
                     s = extractLine(s, block);
-                while (*s != 0 && block[0] != 0 && com(block) == -1);
+                while (*s != 0 && block[0] != 0 && com(block));
                 if (*s == 0) {
                     alog(AL_FATAL, "Unexpected end of file in Objects.TXT");
                 }
@@ -1740,7 +1733,7 @@ objs_proc()
         do {
             do
                 s = extractLine(s, block);
-            while (block[0] != 0 && com(block) == -1 && block[0] != '\n');
+            while (block[0] != 0 && com(block));
             if (block[0] == 0 || block[0] == '\n')
                 break;
             state_proc();
@@ -1837,7 +1830,7 @@ trav_proc()
         if (feof(ifp))
             continue;
         tidy(block);
-        if (com(block) == -1 || block[0] == 0)
+        if (block[0] == 0 || com(block))
             goto loop1;
         p = block;
         getword(block);
@@ -1855,7 +1848,7 @@ trav_proc()
     vbloop:
         do
             fgets(block, 1000, ifp);
-        while (com(block) == -1);
+        while (block[0] != 0 && com(block));
         if (block[0] == 0 || block[0] == '\n') {
             /* Only complain if room is not a death room */
             if ((roomtab->flags & DEATH) != DEATH) {
@@ -1907,7 +1900,7 @@ trav_proc()
                 continue;
             }
             tidy(block);
-            if (com(block) == -1 || block[0] == 0)
+            if (block[0] == 0 || com(block))
                 goto xloop;
             if (striplead("verb=", block) || striplead("verbs=", block)) {
                 strip = 1;
@@ -2124,7 +2117,7 @@ lang_proc()
         do {
             s1 = extractLine((s2 = s1), block);
             *(s1 - 1) = 0;
-        } while (com(block) == -1 && *s1 != 0);
+        } while (com(block) && *s1 != 0);
         if (*s1 == 0) {
             verbs--;
             break;
@@ -2193,7 +2186,7 @@ lang_proc()
             s2 = s1;
             s1 = extractLine(s1, block);
             *(s1 - 1) = 0;
-        } while (*s1 != 0 && block[0] != 0 && com(block) == -1);
+        } while (*s1 != 0 && block[0] != 0 && com(block));
         if (*s1 == 0 || block[0] == 0) {
             if (verb.ents == 0 && (verb.flags & VB_TRAVEL))
                 alog(AL_WARN, "Verb has no entries: %s", verb.id);
@@ -2378,7 +2371,7 @@ lang_proc()
             s2 = s1;
             s1 = extractLine(s1, block);
             *(s1 - 1) = 0;
-        } while (*s1 != 0 && block[0] != 0 && com(block) == -1);
+        } while (*s1 != 0 && block[0] != 0 && com(block));
         if (block[0] == 0 || *s1 == 0) {
             lastc = 1;
             goto writeslot;
@@ -2521,7 +2514,7 @@ umsg_proc()
     loop:
         do
             s = extractLine(s, block);
-        while (com(block) == -1 && *s != 0);
+        while (com(block) && *s != 0);
         if (*s == 0)
             break;
         tidy(block);
@@ -2548,7 +2541,7 @@ umsg_proc()
         fwrite(umsg.id, sizeof(umsg), 1, afp);
         fwrite((char *)&umsg.fpos, 4, 1, ofp1);
         do {
-            while (*s != 0 && com(s) == -1)
+            while (*s != 0 && com(s))
                 s = skipline(s);
             if (*s == 0 || *s == 13) {
                 *s = 0;
@@ -2610,7 +2603,7 @@ smsg_proc()
     do {
     loop:
         s = extractLine(s, block);
-        if (com(block) == -1)
+        if (com(block))
             goto loop;
         tidy(block);
         if (block[0] == 0)
@@ -2633,7 +2626,7 @@ smsg_proc()
         pos = ftell(ofp2);
         fwrite((char *)&pos, 4, 1, ofp1);
         do {
-            while (*s != 0 && com(s) == -1)
+            while (*s != 0 && com(s))
                 s = skipline(s);
             if (*s == 0 || *s == 13) {
                 *s = 0;
@@ -2685,7 +2678,7 @@ syn_proc()
     do {
         do
             s = extractLine(s, block);
-        while (com(block) == -1);
+        while (com(block));
 
         tidy(block);
         if (block[0] == 0)
@@ -2739,7 +2732,7 @@ getmobmsg(char *s)
     int   n;
 
 loop:
-    if (com(px) == -1) {
+    if (com(px)) {
         px = skipline(px);
         goto loop;
     }
