@@ -44,14 +44,16 @@
 
 /* Compiler specific variables... */
 
-int		dchk;				/* Do we check DMOVE ptrs?	*/
-int		dmoves;				/* How many DMOVEs to check?	*/
-int		rmn;				/* Current room no.		*/
-int		rmrd;				/* Read rooms?			*/
-long	readgot,FPos;			/* Used during TT/Lang writes	*/
-char	exi=0;				/* Is it okay to exit?		*/
-int		warn=1;				/* Display warnings?		*/
-char	Word[64],c;			/* For internal use only <grin>	*/
+bool	exiting = false;
+bool	verbose = false;
+bool	checkDmoves = false;
+bool	reuseRoomData = false;
+
+int		dmoves = 0;			/* How many DMOVEs to check?	*/
+int		rmn = 0;			/* Current room no.		*/
+long	titlePos = 0;		/* Position of the title text in title.txt */
+long	FPos;				/* Used during TT/Lang writes	*/
+char	Word[64];			/* For internal use only <grin>	*/
 int		errorCount;			/* Number of LL_ERRORs logged */
 int		proc;				/* What we are processing	*/
 long	startTime;			/* Bits for time etc		*/
@@ -102,7 +104,7 @@ void
 quit()
 {
 	close_ofps();
-	if(exi!=1)
+	if(exiting)
 	{
 		sprintf(block,"%s%s",dir,advfn);
 		unlink(block);
@@ -230,6 +232,7 @@ broke:
 bool
 nextc(bool required)			/* Find the next real stuff in file */
 {
+	char c;
 	do
 	{
 		while((c=fgetc(ifp))!=EOF && isspace(c));
@@ -519,7 +522,7 @@ isprep(char *s)
 void
 room_proc()			/* Process ROOMS.TXT */
 {
-	char	lastc,*p,*p2;
+	char	c, lastc,*p,*p2;
 	int	n;
 
 	rooms=0;
@@ -601,7 +604,6 @@ checkdmoves()
 			if(isroom(dmove)==-1)	/* Is it a valid room? */
 			{
 				alog(LL_ERROR, "%-9s: invalid dmove: %s", roomptr->id, dmove);
-				dchk=-1;
 			}
 		}
 		roomptr++;
@@ -781,6 +783,7 @@ obds_proc()
 		return;
 	}
 	fopenw("-ram:ODIDs");	fopenw(obdsfn);
+	char c;
 	do
 	{
 		fgets(block,1024,ifp); tidy(block);
@@ -1525,7 +1528,7 @@ title_proc()
 	fgets(block,1000,ifp); repspc(block);
 	tscale=getno("timescale=");		/* Process TimeScale= */
 
-	readgot=ftell(ifp);
+	titlePos = ftell(ifp);
 }
 
 /*
@@ -1567,10 +1570,11 @@ vbloop:
 		if(block[0]==0 || block[0]=='\n')
 		{
 			/* Only complain if room is not a death room */
-			if((roomtab->flags & DEATH)!=DEATH && warn==1) {
+			if((roomtab->flags & DEATH)!=DEATH) {
 				alog(LL_INFO, "No tt entries for room: %s", roomtab->id);
 				roomtab->tabptr=-2;
-				ntt++; continue;
+				ntt++;
+				continue;
 			}
 		}
 		tidy(block);
@@ -1676,13 +1680,14 @@ next:			strip=0;
 		nextc(false);
 		ntt++;
 	} while(!feof(ifp));
-	if(errorCount==0 && ntt!=rooms && warn==1)
+	if(errorCount==0 && ntt!=rooms && verbose)
 	{
 		roomtab=rmtab;
-		for(i=0; i<rooms; i++,roomtab++)
+		for(i=0; i<rooms; i++,roomtab++) {
 			if(roomtab->tabptr == -1 && (roomtab->flags & DEATH) != DEATH) {
 				alog(LL_WARN, "No TT entry for room: %s", roomtab->id);
 			}
+		}
 	}
 	ttroomupdate();
 }
@@ -2334,14 +2339,14 @@ argue(int argc, const char **argv)
 	int n;
 	for(n=2;n<=argc;n++)
 	{
-		if(strcmp("-d",argv[n-1])==0){dchk=0; continue;}
-		if(strcmp("-q",argv[n-1])==0){warn=0; continue;}
-		if(strcmp("-r",argv[n-1])==0){rmrd=0; continue;}
+		if(strcmp("-d",argv[n-1])==0){checkDmoves=true; continue;}
+		if(strcmp("-q",argv[n-1])==0){verbose=true; continue;}
+		if(strcmp("-r",argv[n-1])==0){reuseRoomData=true; continue;}
 		strcpy(dir,argv[n-1]);
-		if((c=dir[strlen(dir)-1])!='/' && c!=':') strcat(dir,"/");
+		char c = dir[strlen(dir)-1];
+		if(c!='/' && c!=':') strcat(dir,"/");
 	}
 }
-
 
 /*---------------------------------------------------------*/
 
@@ -2384,14 +2389,13 @@ void compileGame()
 {
 	compileSection("title", true, title_proc);
 
-	dmoves=0;
-	if(rmrd==1)
+	if(!reuseRoomData)
 	{
 		compileSection("rooms", true, room_proc);
 	}
 
 	fopenr(rooms1fn);	/* Check DMOVE ptrs */
-	if(rmrd==0)
+	if(reuseRoomData)
 	{
 		fseek(ifp,0,2L); rooms=ftell(ifp)/sizeof(room); rewind(ifp);
 	}
@@ -2403,7 +2407,7 @@ void compileGame()
 	{
 		alog(LL_FATAL, "Roomtable appears to be corrupted. Recompile.");
 	}
-	if(dchk!=0 || dmoves!=0)
+	if(checkDmoves && dmoves!=0)
 	{
 		compileSection("DMOVEs", false, checkdmoves);
 	}
@@ -2435,7 +2439,6 @@ main(int argc, const char**argv)			/* Main Program */
 	alog(LL_INFO, "                 AMUL Compiler; %s",vername);
 
 	ofp1=NULL;	ofp2=NULL;	ofp3=NULL;	dir[0]=0;
-	dchk=rmrd=1;
 
 #if defined(_AMIGA_)
 	ohd=Output();
@@ -2449,7 +2452,7 @@ main(int argc, const char**argv)			/* Main Program */
 		exit(0);
 	}
 	if(argc>1) argue(argc,argv);
-	if (warn) {
+	if (verbose) {
 		s_logLevel = LL_NOTE;
 	}
 
@@ -2466,11 +2469,20 @@ main(int argc, const char**argv)			/* Main Program */
 	alog(LL_INFO, "		 Total items processed:%7d",rooms+ranks+adjs+verbs+nouns+syns+ttents+umsgs+NSMSGS+mobs+mobchars);
 	fopenw(advfn); time(&startTime);
 	fprintf(ofp1,"%s\n%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld",adname,rooms,ranks,verbs,syns,nouns,adjs,ttents,umsgs,startTime,mins,invis,invis2,minsgo,mobs,rscale,tscale,mobchars);
-	opentxt("TITLE"); fseek(ifp,readgot,0);
-	do
-	{
-		block[0]=0; readgot=fread(block,1,1020,ifp); fwrite(block,readgot,1,ofp1);
-	}while(readgot==1020);
-	exi=1;
+
+	// Copy the text from title.txt into the profile file
+	opentxt("TITLE");
+	fseek(ifp, titlePos, 0);
+	for (;;) {
+		int bytes = fread(block, 1, sizeof(block), ifp);
+		if (bytes <= 0)
+			break;
+		bytes = fwrite(block, bytes, 1, ofp1);
+		if (bytes != 1)
+			alog(LL_FATAL, "Error writing title text");
+	}
+
+	exiting = true;
+
 	quit();
 }
