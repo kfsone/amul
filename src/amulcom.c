@@ -558,7 +558,75 @@ isprep(char *s)
     return -1;
 }
 
+int
+getno(const char *s)
+{
+    char *p = skipspc(block);
+    p = skiplead(s, block);
+    if (!p) {
+        alog(AL_ERROR, "Missing %s entry", s);
+        return -1;
+    }
+    p = getword(p);
+    if (!isdigit(Word[0])) {
+        alog(AL_ERROR, "Invalid %s entry", s);
+        return -1;
+    }
+    return atoi(Word);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
+
+void
+title_proc()
+{
+    nextc(true);
+    fgets(block, 1000, ifp);
+    repspc(block);
+    char *p = block;
+    if (!canSkipLead("name=", &p)) {
+        alog(AL_FATAL, "Invalid title.txt: missing name= line");
+    }
+    int length = strlen(p);
+    *(p + length - 1) = 0;  // remove newline
+    if (length > 40) {
+        *(p + 40) = 0;
+        alog(AL_WARN, "Game name too long: trunvate to %s", block);
+    }
+    strcpy(adname, block);
+    fgets(block, 1000, ifp);
+    repspc(block);
+    mins = getno("gametime=");
+    if (mins < 15) {
+        mins = 15;
+        alog(AL_WARN, "Game time too short, falling back to %d minutes", mins);
+    }
+
+    fgets(block, 1000, ifp);
+    repspc(block);
+    p = block;
+    if (!canSkipLead("invisible=", &p)) {
+        alog(AL_FATAL, "Missing invisible= line");
+    }
+    int reads = sscanf(p, "%d %d", &invis, &invis2);
+    if (reads != 2) {
+        alog(AL_ERROR, "Invalid invisible= line: %s", block);
+    }
+
+    fgets(block, 1000, ifp);
+    repspc(block);
+    minsgo = getno("min sgo=");
+
+    /* Get the Scaleing line. */
+    fgets(block, 1000, ifp);
+    repspc(block);
+    rscale = getno("rankscale="); /* Process RankScale= */
+    fgets(block, 1000, ifp);
+    repspc(block);
+    tscale = getno("timescale="); /* Process TimeScale= */
+
+    titlePos = ftell(ifp);
+}
 
 /* Process ROOMS.TXT */
 void
@@ -1099,23 +1167,6 @@ isloc(char *s)
     }
 
     return -(INS + i);
-}
-
-int
-getno(const char *s)
-{
-    char *p = skipspc(block);
-    p = skiplead(s, block);
-    if (!p) {
-        alog(AL_ERROR, "Missing %s entry", s);
-        return -1;
-    }
-    p = getword(p);
-    if (!isdigit(Word[0])) {
-        alog(AL_ERROR, "Invalid %s entry", s);
-        return -1;
-    }
-    return atoi(Word);
 }
 
 char *
@@ -1748,57 +1799,6 @@ objs_proc()
     sort_objs();
     */
     fwrite((char *)obtab2, sizeof(obj2), nouns, ofp1);
-}
-
-void
-title_proc()
-{
-    nextc(true);
-    fgets(block, 1000, ifp);
-    repspc(block);
-    char *p = block;
-    if (!canSkipLead("name=", &p)) {
-        alog(AL_FATAL, "Invalid title.txt: missing name= line");
-    }
-    int length = strlen(p);
-    *(p + length - 1) = 0;  // remove newline
-    if (length > 40) {
-        *(p + 40) = 0;
-        alog(AL_WARN, "Game name too long: trunvate to %s", block);
-    }
-    strcpy(adname, block);
-    fgets(block, 1000, ifp);
-    repspc(block);
-    mins = getno("gametime=");
-    if (mins < 15) {
-        mins = 15;
-        alog(AL_WARN, "Game time too short, falling back to %d minutes", mins);
-    }
-
-    fgets(block, 1000, ifp);
-    repspc(block);
-    p = block;
-    if (!canSkipLead("invisible=", &p)) {
-        alog(AL_FATAL, "Missing invisible= line");
-    }
-    int reads = sscanf(p, "%d %d", &invis, &invis2);
-    if (reads != 2) {
-        alog(AL_ERROR, "Invalid invisible= line: %s", block);
-    }
-
-    fgets(block, 1000, ifp);
-    repspc(block);
-    minsgo = getno("min sgo=");
-
-    /* Get the Scaleing line. */
-    fgets(block, 1000, ifp);
-    repspc(block);
-    rscale = getno("rankscale="); /* Process RankScale= */
-    fgets(block, 1000, ifp);
-    repspc(block);
-    tscale = getno("timescale="); /* Process TimeScale= */
-
-    titlePos = ftell(ifp);
 }
 
 /*
@@ -2597,50 +2597,56 @@ smsg_proc()
     s = data;
 
     do {
-        s = extractLine(s, block);
+        checkErrorCount();
+
+        do {
+            s = extractLine(s, block);
+        } while (isCommentChar(block[0]));
+        if (block[0] == 0)
+            continue;
+
         tidy(block);
         if (block[0] == 0)
             continue;
-        const char *p = skiplead("msgid=", block);
-        getword(p);
+
+        getWordAfter("msgid=", block);
         if (Word[0] == 0)
             break;
 
+        bool valid = true;
+
         if (Word[0] != '$') {
-            alog(AL_FATAL, "Invalid system message id: %s (must begin with '$'", Word);
-        }
-        if (atoi(Word + 1) != smsgs + 1) {
-            alog(AL_FATAL, "Message %s out of sequence", Word);
-        }
-        if (smsgs >= NSMSGS) {
+            alog(AL_ERROR, "Invalid system message id: %s (must begin with '$'", Word);
+            valid = false;
+        } else if (atoi(Word + 1) != smsgs + 1) {
+            alog(AL_ERROR, "Message %s out of sequence", Word);
+            valid = false;
+        } else if (smsgs >= NSMSGS) {
             alog(AL_FATAL, "Unexpected system message (last should be %d)", NSMSGS);
         }
+
         id = ++smsgs; /* Now copy the text across */
+
         pos = ftell(ofp2);
         fwrite((char *)&pos, 4, 1, ofp1);
+
         do {
-            while (*s != 0 && com(s))
+            while (com(s))
                 s = skipline(s);
-            if (*s == 0 || *s == 13) {
-                *s = 0;
+            if (isLineEnding(*s))
                 break;
-            }
-            if (*s == 9)
+            if (*s == '\t')  // expected but optional indent
                 s++;
-            if (*s == 13) {
-                block[0] = 13;
-                continue;
-            }
             s = extractLine(s, block);
             if (block[0] == 0)
-                break;
+                continue;
             pos = strlen(block);
             if (block[pos - 1] == '{')
                 block[--pos] = 0;
             else
                 strcat(block + (pos++) - 1, "\n");
             fwrite(block, 1, pos, ofp2);
-        } while (*s != 0 && block[0] != 0);
+        } while (*s != 0);
         fputc(0, ofp2);
     } while (*s != 0);
     FreeMem(data, datal);
