@@ -2584,9 +2584,7 @@ umsg_proc()
 void
 smsg_proc()
 {
-    char *s;
-    long  id, pos;
-    smsgs = 0;
+    long id, pos;
 
     if (!nextc(false))
         return; /* Nothing to process! */
@@ -2594,7 +2592,7 @@ smsg_proc()
     fopenw(umsgfn); /* Text and index */
 
     blkget(&datal, &data, 0L);
-    s = data;
+    char *s = data;
 
     do {
         checkErrorCount();
@@ -2631,8 +2629,9 @@ smsg_proc()
         fwrite((char *)&pos, 4, 1, ofp1);
 
         do {
-            while (com(s))
+            while (com(s)) {
                 s = skipline(s);
+            }
             if (isLineEnding(*s))
                 break;
             if (*s == '\t')  // expected but optional indent

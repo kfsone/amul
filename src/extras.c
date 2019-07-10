@@ -9,13 +9,12 @@ extractLine(const char *from, char *to)
 {
     *to = 0;
     // Skip whole-line comment lines
-	for (;;) {
-		from = skipspc(from);
-		if (!isCommentChar(*from))
-			break;
-		from = strstop(from, '\n');
+    for (;;) {
+        if (!isCommentChar(*from))
+            break;
+        from = strstop(from, '\n');
     }
-	// copy the text into to
+    // copy the text into to
     while (*from && !isEol(*from)) {
         *(to++) = *(from++);
     }

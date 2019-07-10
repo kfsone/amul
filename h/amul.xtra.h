@@ -59,7 +59,7 @@ repspc(char *s)
 static inline const char *
 skipspc(const char *s)
 {
-    while (*s && isspace(*s)) {
+    while (*s == ' ' || *s == 't') {
         ++s;
     }
     return s;
@@ -84,8 +84,8 @@ skiplead(const char *lead, const char *from)
             return from;
         ++lead, ++cur;
     }
-	// if lead == 0, we reached the end of the prefix, which
-	// means 'from' matched as much as it needed to
+    // if lead == 0, we reached the end of the prefix, which
+    // means 'from' matched as much as it needed to
     return (*lead == 0) ? cur : from;
 }
 
