@@ -2724,34 +2724,32 @@ badmobend()
 
 /* Fetch mobile message line */
 int
-getmobmsg(char *s)
+getmobmsg(const char* s, const char **p)
 {
-    char *q;
-    int   n;
+    int        n;
 
 loop:
-    if (com(px)) {
-        px = skipline(px);
-        goto loop;
-    }
-    if (*px == 0 || *px == 13 || *px == 10) {
-        alog(AL_ERROR, "Mobile: %s: unexpected end of definition", s);
+	while (isCommentChar(*p)) {
+		*p = skipline(*p);
+	}
+	if (**p == 0 || **p == '\r' || **p == '\n')  {
+        alog(AL_ERROR, "Mobile: %s: unexpected end of definition", mob.id);
         return -1;
     }
-    px = skipspc(px);
-    if (*px == 0 || *px == 13 || *px == 10)
+    *p = skipspc(*p);
+	if (**p == 0 || **p == '\r' || **p == '\n') 
         goto loop;
 
-    if ((q = skiplead(s, px)) == px) {
+    if (!canSkipLead(s, p)) {
         mobmis(s);
         return -1;
     }
-    if (toupper(*q) == 'N') {
-        px = skipline(px);
+    if (toupper(*p) == 'N') {
+        *p = skipline(*p);
         return -2;
     }
-    n = ttumsgchk(q);
-    px = skipline(px);
+    n = ttumsgchk(*p);
+    *p = skipline(*p);
     if (n == -1) {
         alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
     }
@@ -2762,10 +2760,9 @@ loop:
 void
 mob_proc1()
 {
-    char *p, *s1, *s2;
+    char *p, *cur;
     long  n;
 
-    mobchars = 0;
     fopenw(mobfn);
     if (!nextc(false))
         return;
@@ -2780,115 +2777,108 @@ mob_proc1()
         if (*p == 0)
             break;
         p = extractLine(p, block);
-        mobchars++;
-        s1 = getword(block + 1);
+        cur = getword(block + 1);
         strcpy(mob.id, Word);
         do {
-            s1 = skipspc(s1);
-            if (*s1 == 0 || *s1 == ';')
+            cur = skipspc(cur);
+            if (*cur == 0 || *cur == ';')
                 break;
-            if ((s2 = skiplead("dead=", s1)) != s1) {
-                s1 = getword(s2);
+            if (canSkipLead("dead=", &cur)) {
+                cur = getword(cur);
                 mob.dead = atoi(Word);
                 continue;
             }
-            if ((s2 = skiplead("dmove=", s1)) != s1) {
-                s1 = getword(s2);
+            if (canSkipLead("dmove=", &cur)) {
+                cur = getword(cur);
                 mob.dmove = isroom(Word);
                 if (mob.dmove == -1) {
                     alog(AL_ERROR, "Mobile: %s: invalid dmove: %s", mob.id, Word);
                 }
                 continue;
             }
-        } while (*s1 != 0 && *s1 != ';' && Word[0] != 0);
+        } while (*cur != 0 && *cur != ';' && Word[0] != 0);
 
         p = extractLine(p, block);
         tidy(block);
-        s1 = block;
+		cur = skipspc(block);
+        cur = block;
         mob.dmove = -1;
 
-        if ((s2 = skiplead("speed=", s1)) == s1) {
+        if (!canSkipLead("speed=", &cur)) {
             mobmis("speed=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.speed = atoi(Word);
-        if ((s2 = skiplead("travel=", s1)) == s1) {
+        if (!canSkipLead("travel=", &cur)) {
             mobmis("travel=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.travel = atoi(Word);
-        if ((s2 = skiplead("fight=", s1)) == s1) {
+        if (!canSkipLead("fight=", &cur)) {
             mobmis("speed=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.fight = atoi(Word);
-        if ((s2 = skiplead("act=", s1)) == s1) {
+        if (!canSkipLead("act=", &cur)) {
             mobmis("act=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.act = atoi(Word);
-        if ((s2 = skiplead("wait=", s1)) == s1) {
+        if (!canSkipLead("wait=", &cur)) {
             mobmis("wait=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.wait = atoi(Word);
         if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
             alog(AL_ERROR, "Mobile: %s: Travel+Fight+Act+Wait values not equal to 100%.", mob.id);
         }
-        if ((s2 = skiplead("fear=", s1)) == s1) {
+        if (!canSkipLead("fear=", &cur)) {
             mobmis("fear=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
         mob.fear = atoi(Word);
-        if ((s2 = skiplead("attack=", s1)) == s1) {
+        if (!canSkipLead("attack=", &cur)) {
             mobmis("attack=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
+        cur = skipspc(cur);
         mob.attack = atoi(Word);
-        if ((s2 = skiplead("hitpower=", s1)) == s1) {
+        if (!canSkipLead("hitpower=", &cur)) {
             mobmis("hitpower=");
             continue;
         }
-        s1 = getword(s2);
-        s1 = skipspc(s1);
+        cur = getword(cur);
+        cur = skipspc(cur);
         mob.hitpower = atoi(Word);
 
-        px = p;
-        if ((n = getmobmsg("arrive=")) == -1)
+        if ((n = getmobmsg("arrive=", &p)) == -1)
             continue;
         mob.arr = n;
-        if ((n = getmobmsg("depart=")) == -1)
+        if ((n = getmobmsg("depart=", &p)) == -1)
             continue;
         mob.dep = n;
-        if ((n = getmobmsg("flee=")) == -1)
+        if ((n = getmobmsg("flee=", &p)) == -1)
             continue;
         mob.flee = n;
-        if ((n = getmobmsg("strike=")) == -1)
+        if ((n = getmobmsg("strike=", &p)) == -1)
             continue;
         mob.hit = n;
-        if ((n = getmobmsg("miss=")) == -1)
+        if ((n = getmobmsg("miss=", &p)) == -1)
             continue;
         mob.miss = n;
-        if ((n = getmobmsg("dies=")) == -1)
+        if ((n = getmobmsg("dies=", &p)) == -1)
             continue;
         mob.death = n;
-        p = px;
 
         fwrite(mob.id, sizeof(mob), 1, ofp1);
+        mobchars++;
     } while (*p != 0);
 
     if (mobchars != 0) {
