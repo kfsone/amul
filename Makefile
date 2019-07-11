@@ -13,7 +13,8 @@ bin/amulcom: src/amulcom.c src/extras.c src/logging.c h/*.h
 			-o bin/amulcom src/amulcom.c src/extras.c src/logging.c \
 			-O0 -g2 \
 			-fsanitize=address,undefined \
-			-fno-omit-frame-pointer
+			-fno-omit-frame-pointer \
+			-Wno-discarded-qualifiers
 
 bin/hash_test: bin src/hashmap.c
 	cc -std=c11 -I. -Wall -O0 -g2 -o bin/hash_test src/hashmap.c \
