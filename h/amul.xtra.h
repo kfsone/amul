@@ -59,7 +59,7 @@ repspc(char *s)
 static inline const char *
 skipspc(const char *s)
 {
-    while (*s == ' ' || *s == 't') {
+    while (*s == ' ' || *s == '\t') {
         ++s;
     }
     return s;

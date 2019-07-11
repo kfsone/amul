@@ -575,161 +575,6 @@ getno(const char *s)
     return atoi(Word);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
-void
-title_proc()
-{
-    nextc(true);
-    fgets(block, 1000, ifp);
-    repspc(block);
-    char *p = block;
-    if (!canSkipLead("name=", &p)) {
-        alog(AL_FATAL, "Invalid title.txt: missing name= line");
-    }
-    int length = strlen(p);
-    *(p + length - 1) = 0;  // remove newline
-    if (length > 40) {
-        *(p + 40) = 0;
-        alog(AL_WARN, "Game name too long: trunvate to %s", block);
-    }
-    strcpy(adname, block);
-    fgets(block, 1000, ifp);
-    repspc(block);
-    mins = getno("gametime=");
-    if (mins < 15) {
-        mins = 15;
-        alog(AL_WARN, "Game time too short, falling back to %d minutes", mins);
-    }
-
-    fgets(block, 1000, ifp);
-    repspc(block);
-    p = block;
-    if (!canSkipLead("invisible=", &p)) {
-        alog(AL_FATAL, "Missing invisible= line");
-    }
-    int reads = sscanf(p, "%d %d", &invis, &invis2);
-    if (reads != 2) {
-        alog(AL_ERROR, "Invalid invisible= line: %s", block);
-    }
-
-    fgets(block, 1000, ifp);
-    repspc(block);
-    minsgo = getno("min sgo=");
-
-    /* Get the Scaleing line. */
-    fgets(block, 1000, ifp);
-    repspc(block);
-    rscale = getno("rankscale="); /* Process RankScale= */
-    fgets(block, 1000, ifp);
-    repspc(block);
-    tscale = getno("timescale="); /* Process TimeScale= */
-
-    titlePos = ftell(ifp);
-}
-
-/* Process ROOMS.TXT */
-void
-room_proc()
-{
-    char c, lastc, *p, *p2;
-    int  n;
-
-    nextc(true);
-
-    fopenw(rooms1fn);
-    fopenw(rooms2fn);
-
-    do {
-        p = block;
-        while ((c = fgetc(ifp)) != EOF && !isspace(c))
-            *(p++) = c;
-        if (c == EOF)
-            break;
-        *p = 0; /* Set null byte */
-        p = skipspc(block);
-        if (*p == 0)
-            continue;
-        striplead("room=", block);
-        if (strlen(block) < 3 || strlen(block) > IDL) {
-            alog(AL_FATAL, "Invalid ID (length): %s", block);
-        }
-        strcpy(room.id, block);
-        /* Do the flags */
-        room.flags = 0;
-        room.tabptr = -1;
-        temp[0] = 0;
-        if (c != '\n') {
-            fgets(block, 1024, ifp);
-            p = block;
-            n = -1;
-            do {
-                while (isspace(*p) && *p != 0)
-                    p++;
-                if (*p == 0)
-                    continue;
-                p2 = p;
-                while (!isspace(*p2) && *p2 != 0)
-                    p2++;
-                *p2 = 0;
-                if (n == 0) {
-                    /* Get dmove param */
-                    strcpy(temp, p);
-                    dmoves++;
-                    p = p2 + 1;
-                    n = -1;
-                    continue;
-                }
-                if ((n = isrflag(p)) == -1) {
-                    alog(AL_FATAL, "Invalid flag: %s", p);
-                }
-                n -= NRNULL;
-                if (n >= 0)
-                    room.flags = (room.flags | bitset(n));
-                p = p2 + 1;
-            } while (*p != 0);
-        }
-
-        lastc = '\n';
-        fseek(ofp2, 0, 1);
-        room.desptr = ftell(ofp2);
-        n = 0;
-        if (temp[0] != 0)
-            fwrite(temp, IDL, 1, ofp2); /* save dmove */
-        while ((c = fgetc(ifp)) != EOF && !(c == '\n' && lastc == '\n')) {
-            if (lastc == '\n' && c == 9)
-                continue;
-            fputc((lastc = c), ofp2);
-            n++;
-        };
-        fputc(0, ofp2);
-        fwrite(room.id, sizeof(room), 1, ofp1);
-        ++rooms;
-        nextc(false);
-    } while (c != EOF);
-}
-
-void
-checkdmoves()
-{
-    struct _ROOM_STRUCT *roomptr;
-
-    /* Check DMOVE ptrs */
-    fopenr(rooms2fn); /* Open desc. file */
-    roomptr = rmtab;
-    for (int n = 0; n < rooms; n++) {
-        if (roomptr->flags & DMOVE) {
-            printf("%-9s\r", roomptr->id);
-            fseek(ifp, roomptr->desptr, 0);
-            fread(dmove, IDL, 1, ifp); /* Read the DMOVE name */
-            if (isroom(dmove) == -1) {
-                alog(AL_ERROR, "%-9s: invalid dmove: %s", roomptr->id, dmove);
-            }
-        }
-        roomptr++;
-    }
-}
-
 bool
 chkline(char *p)
 {
@@ -739,246 +584,6 @@ chkline(char *p)
     }
     return true;
 }
-
-/* Process RANKS.TXT */
-void
-rank_proc()
-{
-    nextc(true);
-
-    fopenw(ranksfn);
-
-    do {
-        fgets(block, 1024, ifp);
-        if (feof(ifp))
-            break;
-        if (com(block) || isEol(block[0]))
-            continue;
-        tidy(block);
-        if (block[0] == 0)
-            continue;
-        char *p = getword(block);
-        if (chkline(p) != 0)
-            continue;
-        rank.male[0] = 0;
-        rank.female[0] = 0;
-        if (strlen(Word) < 3 || strlen(Word) > RANKL) {
-            alog(AL_FATAL, "Rank %d: Invalid male rank: %s", ranks, Word);
-        }
-        int n = 0;
-        do {
-            if (Word[n] == '_')
-                Word[n] = ' ';
-            rank.male[n] = rank.female[n] = tolower(Word[n]);
-            n++;
-        } while (Word[n - 1] != 0);
-
-        p = getword(p);
-        if (chkline(p) != 0)
-            continue;
-        if (strcmp(Word, "=") != 0 && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
-            alog(AL_FATAL, "Rank %d: Invalid female rank: %s", ranks, Word);
-        }
-        if (Word[0] != '=') {
-            n = 0;
-            do {
-                if (Word[n] == '_')
-                    Word[n] = ' ';
-                rank.female[n] = tolower(Word[n]);
-                n++;
-            } while (Word[n - 1] != 0);
-        }
-
-        p = getword(p);
-        if (chkline(p) != 0)
-            continue;
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid score value: %s", Word);
-            continue;
-        }
-        rank.score = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid strength value: %s", Word);
-            continue;
-        }
-        rank.strength = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid stamina value: %s", Word);
-            continue;
-        }
-        rank.stamina = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid dexterity value: %s", Word);
-            continue;
-        }
-        rank.dext = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid wisdom value: %s", Word);
-            continue;
-        }
-        rank.wisdom = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid experience value: %s", Word);
-            continue;
-        }
-        rank.experience = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid magic points value: %s", Word);
-            continue;
-        }
-        rank.magicpts = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid max weight value: %s", Word);
-            continue;
-        }
-        rank.maxweight = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid max inventory value: %s", Word);
-            continue;
-        }
-        rank.numobj = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid kill points value: %s", Word);
-            continue;
-        }
-        rank.minpksl = atoi(Word);
-
-        p = getword(p);
-        if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid task number: %s", Word);
-            continue;
-        }
-        rank.tasks = atoi(Word);
-
-        p = skipspc(p);
-        if (*p == '\"')
-            p++;
-        strcpy(block, p);
-        p = block;
-        while (*p != 0 && *p != '\"')
-            p++;
-        *(p++) = 0;
-        /* Greater than prompt length? */
-        if (p - block > 10) {
-            alog(AL_ERROR, "Rank %d prompt too long: %s", ranks, block);
-            continue;
-        }
-        if (block[0] == 0)
-            strcpy(rank.prompt, "$ ");
-        else
-            strcpy(rank.prompt, block);
-
-        wizstr = rank.strength;
-        fwrite(rank.male, sizeof(rank), 1, ofp1);
-        ranks++;
-    } while (!feof(ifp));
-}
-
-void
-obds_proc()
-{
-    char lastc;
-
-    obdes = 0;
-    fopenw(obdsfn);
-    close_ofps(); /* Create file */
-    if (!nextc(false)) {
-        alog(AL_INFO, "No long object descriptions");
-        return;
-    }
-    fopenw("-ram:ODIDs");
-    fopenw(obdsfn);
-    char c;
-    do {
-        fgets(block, 1024, ifp);
-        tidy(block);
-        striplead("desc=", block);
-        getword(block);
-        if (strlen(Word) < 3 || strlen(Word) > IDL) {
-            alog(AL_ERROR, "Invalid obj. description id: %s", Word);
-            skipblock();
-            continue;
-        }
-        strcpy(objdes.id, Word);
-        fseek(ofp2, 0, 2);
-        objdes.descrip = ftell(ofp2);
-        fwrite(objdes.id, sizeof(objdes), 1, ofp1);
-        lastc = '\n';
-        while ((c = fgetc(ifp)) != EOF && !(c == '\n' && lastc == '\n')) {
-            if ((lastc == EOF || lastc == '\n') && c == 9)
-                continue;
-            fputc((lastc = c), ofp2);
-        };
-        fputc(0, ofp2);
-        obdes++;
-        nextc(false);
-    } while (c != EOF);
-}
-
-/*
-void
-sort_objs()
-{	int i,j,k,nts; long *rmtab,*rmptr;
-
-    if(ifp!=NULL) fclose(ifp); ifp=NULL;
-    close_ofps(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
-    close_ofps(); fopenr(objrmsfn); blkget(&datal2,&data2,NULL); fclose(ifp); ifp=NULL;
-    close_ofps(); fopenw(objsfn);	fopenw(statfn); fopenw(objrmsfn); fopenw(ntabfn);
-    ifp=NULL;
-
-    printf("Sorting Objects...:\r"); objtab2=obtab2; nts=0; k=0;
-
-    statab=(struct _OBJ_STATE *)data; rmtab=(long *)data2;
-    for(i=0; i<nouns; i++)
-    {
-        if(*(objtab2=(obtab2+i))->id==0)
-        {
-            printf("@! skipping %ld states, %ld rooms.\n",objtab2->nstates,objtab2->nrooms);
-            statab += objtab2->nstates;
-            rmtab  += objtab2->nrooms;
-            continue;
-        }
-        strcpy(nountab.id,objtab2->id); nts++;
-        nountab.num_of=0; osrch=objtab2; statep=statab; rmptr=rmtab;
-        for(j=i; j<nouns; j++, osrch++)
-        {
-            if(*(osrch->id)!=0 && stricmp(nountab.id,osrch->id)==0)
-            {
-                fwrite((char *)osrch,  sizeof(obj),   1,               ofp1);
-                fwrite((char *)statep, sizeof(state), osrch->nstates,  ofp2);
-                fwrite((char *)rmptr,  sizeof(long),  osrch->nrooms,   ofp3);
-                nountab.num_of++; *osrch->id=0; if(osrch!=objtab) k++;
-                statep+=osrch->nstates; rmptr+=osrch->nrooms;
-                if(osrch==objtab2) { statab=statep; rmtab=rmptr; objtab2++; i++; }
-            }
-            else statep+=osrch->nstates; rmptr+=osrch->nrooms;
-        }
-
-        fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
-    }
-    printf("%20s\r%ld objects moved.\n"," ",k);
-    FreeMem(data, datal); FreeMem(data2, datal2); data=data2=NULL;
-    fopenr(objsfn); fread((char *)obtab2, sizeof(obj), nouns, ifp);
-}
-*/
 
 void
 statinv(char *s)
@@ -1039,89 +644,6 @@ text_id(char *p, char c)
     fputc(0, fp);
     strcpy(block, p);
     fclose(fp);
-}
-
-void
-state_proc()
-{
-    int   flag;
-    char *p;
-
-    state.weight = state.value = state.flags = 0;
-    state.descrip = -1;
-
-    tidy(block);
-    if (block[0] == 0)
-        return;
-
-    /* Get the weight of the object */
-    striplead("weight=", block);
-    p = getword(block);
-    if (*p == 0)
-        statinv("incomplete");
-    if (!isdigit(Word[0]) && Word[0] != '-')
-        statinv("weight value on");
-    state.weight = atoi(Word);
-    if (obj2.flags & OF_SCENERY)
-        state.weight = wizstr + 1;
-
-    /* Get the value of it */
-    p = skipspc(p);
-    striplead("value=", p);
-    p = getword(p);
-    if (*p == 0)
-        statinv("incomplete");
-    if (!isdigit(Word[0]) && Word[0] != '-')
-        statinv("value entry on");
-    state.value = atoi(Word);
-
-    /* Get the strength of it (hit points)*/
-    p = skipspc(p);
-    striplead("str=", p);
-    p = getword(p);
-    if (*p == 0)
-        statinv("incomplete");
-    if (!isdigit(Word[0]) && Word[0] != '-')
-        statinv("strength entry on");
-    state.strength = atoi(Word);
-
-    /* Get the damage it does as a weapon*/
-    p = skipspc(p);
-    striplead("dam=", p);
-    p = getword(p);
-    if (*p == 0)
-        statinv("incomplete");
-    if (!isdigit(Word[0]) && Word[0] != '-')
-        statinv("damage entry on");
-    state.damage = atoi(Word);
-
-    /* Description */
-    p = skipspc(p);
-    striplead("desc=", p);
-    if (*p == 0)
-        statinv("incomplete");
-    if (*p == '\"' || *p == '\'') {
-        text_id(p + 1, *p);
-        p = block;
-    } else {
-        p = getword(p);
-        is_desid(); /* Is it valid? */
-    }
-    if (state.descrip == -1) {
-        char tmp[128];
-        snprintf(tmp, "desc= ID (%s) on", Word);
-        statinv(tmp);
-    }
-    while (*p != 0) {
-        p = getword(p);
-        if (Word[0] == 0)
-            break;
-        if ((flag = isoflag2(Word)) == -1)
-            statinv("flag on");
-        state.flags = (state.flags | bitset(flag));
-    }
-    fwrite((char *)&state.weight, sizeof(state), 1, ofp2);
-    obj2.nstates++;
 }
 
 int
@@ -1396,89 +918,6 @@ bvmode(char c)
     return -1;
 }
 
-/* Note about matching actuals...
-
-Before agreeing a match, remember to check that the relevant slot isn't
-set to NONE.
-Variable N is a wtype... If the phrases 'noun', 'noun1' or 'noun2' are used,
-instead of matching the phrases WTYPE with n, match the relevant SLOT with
-n...
-
-So, if the syntax line is 'verb text player' the command 'tell noun2 text'
-will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
-structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
-the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
-user is refering too.							     */
-
-/* Get actual value! */
-int
-actualval(char *s, int n)
-{
-    int i;
-
-    if (n != -70 && (*s == '?' || *s == '%' || *s == '^' || *s == '~' || *s == '`')) {
-        if (n != WNUMBER)
-            return -1;
-        if (*s == '~')
-            return RAND0 + atoi(s + 1);
-        if (*s == '`')
-            return RAND1 + atoi(s + 1);
-        i = actualval(s + 1, -70);
-        if (i == -1)
-            return -1;
-        if ((i & IWORD) == 0)
-            return -1;
-        if (*s == '?')
-            return OBVAL + i;
-        if (*s == '%')
-            return OBDAM + i;
-        if (*s == '^')
-            return OBWHT + i;
-        if (*s == '*')
-            return OBLOC + i;
-        if (*s == '#')
-            return PRANK + i;
-        return -1;
-    }
-    if (!isalpha(*s))
-        return -2;
-    for (i = 0; i < NACTUALS; i++) {
-        if (stricmp(s, actual[i].name) != 0)
-            continue;
-        /* If its not a slot label, and the wtypes match, we's okay! */
-        if (!(actual[i].value & IWORD))
-            return (actual[i].wtype == n || n == -70) ? actual[i].value : -1;
-
-        /* Now we know its a slot label... check which: */
-        switch (actual[i].value - IWORD) {
-        case IVERB: /* Verb */
-            if (n == PVERB || n == PREAL)
-                return actual[i].value;
-            return -1;
-        case IADJ1: /* Adjective #1 */
-            if (vbslot.wtype[0] == n)
-                return actual[i].value;
-            if (*(s + strlen(s) - 1) != '1' && vbslot.wtype[3] == n)
-                return IWORD + IADJ2;
-            if (n == PREAL)
-                return actual[i].value;
-            return -1;
-        case INOUN1: /* noun 1 */
-            if (vbslot.wtype[1] == n)
-                return actual[i].value;
-            if (*(s + strlen(s) - 1) != '1' && vbslot.wtype[4] == n)
-                return IWORD + INOUN2;
-            if (n == PREAL)
-                return actual[i].value;
-            return -1;
-        case IADJ2: return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
-        case INOUN2: return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
-        default: return -1; /* Nah... Guru instead 8-) */
-        }
-    }
-    return -2; /* It was no actual! */
-}
-
 int
 msgline(char *s)
 {
@@ -1563,6 +1002,89 @@ onoff(char *p)
     if (stricmp(p, "on") == 0 || stricmp(p, "yes") == 0)
         return 1;
     return 0;
+}
+
+/* Note about matching actuals...
+
+Before agreeing a match, remember to check that the relevant slot isn't
+set to NONE.
+Variable N is a wtype... If the phrases 'noun', 'noun1' or 'noun2' are used,
+instead of matching the phrases WTYPE with n, match the relevant SLOT with
+n...
+
+So, if the syntax line is 'verb text player' the command 'tell noun2 text'
+will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
+structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
+the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
+user is refering too.							     */
+
+/* Get actual value! */
+int
+actualval(char *s, int n)
+{
+    int i;
+
+    if (n != -70 && (*s == '?' || *s == '%' || *s == '^' || *s == '~' || *s == '`')) {
+        if (n != WNUMBER)
+            return -1;
+        if (*s == '~')
+            return RAND0 + atoi(s + 1);
+        if (*s == '`')
+            return RAND1 + atoi(s + 1);
+        i = actualval(s + 1, -70);
+        if (i == -1)
+            return -1;
+        if ((i & IWORD) == 0)
+            return -1;
+        if (*s == '?')
+            return OBVAL + i;
+        if (*s == '%')
+            return OBDAM + i;
+        if (*s == '^')
+            return OBWHT + i;
+        if (*s == '*')
+            return OBLOC + i;
+        if (*s == '#')
+            return PRANK + i;
+        return -1;
+    }
+    if (!isalpha(*s))
+        return -2;
+    for (i = 0; i < NACTUALS; i++) {
+        if (stricmp(s, actual[i].name) != 0)
+            continue;
+        /* If its not a slot label, and the wtypes match, we's okay! */
+        if (!(actual[i].value & IWORD))
+            return (actual[i].wtype == n || n == -70) ? actual[i].value : -1;
+
+        /* Now we know its a slot label... check which: */
+        switch (actual[i].value - IWORD) {
+        case IVERB: /* Verb */
+            if (n == PVERB || n == PREAL)
+                return actual[i].value;
+            return -1;
+        case IADJ1: /* Adjective #1 */
+            if (vbslot.wtype[0] == n)
+                return actual[i].value;
+            if (*(s + strlen(s) - 1) != '1' && vbslot.wtype[3] == n)
+                return IWORD + IADJ2;
+            if (n == PREAL)
+                return actual[i].value;
+            return -1;
+        case INOUN1: /* noun 1 */
+            if (vbslot.wtype[1] == n)
+                return actual[i].value;
+            if (*(s + strlen(s) - 1) != '1' && vbslot.wtype[4] == n)
+                return IWORD + INOUN2;
+            if (n == PREAL)
+                return actual[i].value;
+            return -1;
+        case IADJ2: return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
+        case INOUN2: return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
+        default: return -1; /* Nah... Guru instead 8-) */
+        }
+    }
+    return -2; /* It was no actual! */
 }
 
 char *
@@ -1674,12 +1196,665 @@ chkcparms(char *p, int c, FILE *fp)
 }
 
 void
+chae_err()
+{
+    alog(AL_ERROR, "Verb: %s: Invalid '#CHAE' flag: %s", verb.id, Word);
+}
+
+/* Set the VT slots */
+void
+setslots(unsigned char i)
+{
+    vbslot.wtype[0] = WANY;
+    vbslot.wtype[1] = i;
+    vbslot.wtype[2] = i;
+    vbslot.wtype[3] = WANY;
+    vbslot.wtype[4] = i;
+    vbslot.slot[0] = vbslot.slot[1] = vbslot.slot[2] = vbslot.slot[3] = vbslot.slot[4] = WANY;
+}
+
+/* Is 'text' a ptype */
+int
+iswtype(char *s)
+{
+    int i;
+
+    for (i = 0; i < nsynts; i++) {
+        if (strcmp(s, syntax[i]) == 0) {
+            *s = 0;
+            return i - 1;
+        }
+        if (strncmp(s, syntax[i], syntl[i]) != 0)
+            continue;
+        if (*(s + syntl[i]) != '=')
+            continue;
+        strcpy(s, s + syntl[i] + 1);
+        return i - 1;
+    }
+    return -3;
+}
+
+/* Declare a PROBLEM, and which verb its in! */
+void
+vbprob(char *s, char *s2)
+{
+    alog(AL_FATAL, "Verb: %s line: '%s': %s", verb.id, s2, s);
+}
+
+void
+mobmis(char *s)
+{
+    alog(AL_ERROR, "Mobile: %s: missing field: %s", mob.id, s);
+    skipblock();
+}
+
+int
+badmobend()
+{
+    return -1;
+}
+
+/* Fetch mobile message line */
+int
+getmobmsg(const char* s, const char **p)
+{
+    int        n;
+
+loop:
+	while (isCommentChar(*p)) {
+		*p = skipline(*p);
+	}
+	if (**p == 0 || **p == '\r' || **p == '\n')  {
+        alog(AL_ERROR, "Mobile: %s: unexpected end of definition", mob.id);
+        return -1;
+    }
+    *p = skipspc(*p);
+	if (**p == 0 || **p == '\r' || **p == '\n' || isCommentChar(**p)) 
+        goto loop;
+
+    if (!canSkipLead(s, p)) {
+        mobmis(s);
+        return -1;
+    }
+    if (toupper(*p) == 'N') {
+        *p = skipline(*p);
+        return -2;
+    }
+    n = ttumsgchk(*p);
+    *p = skipline(*p);
+    if (n == -1) {
+        alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
+    }
+    return n;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void
+title_proc()
+{
+    nextc(true);
+    fgets(block, 1000, ifp);
+    repspc(block);
+    char *p = block;
+    if (!canSkipLead("name=", &p)) {
+        alog(AL_FATAL, "Invalid title.txt: missing name= line");
+    }
+    int length = strlen(p);
+    *(p + length - 1) = 0;  // remove newline
+    if (length > 40) {
+        *(p + 40) = 0;
+        alog(AL_WARN, "Game name too long: trunvate to %s", block);
+    }
+    strcpy(adname, block);
+    fgets(block, 1000, ifp);
+    repspc(block);
+    mins = getno("gametime=");
+    if (mins < 15) {
+        mins = 15;
+        alog(AL_WARN, "Game time too short, falling back to %d minutes", mins);
+    }
+
+    fgets(block, 1000, ifp);
+    repspc(block);
+    p = block;
+    if (!canSkipLead("invisible=", &p)) {
+        alog(AL_FATAL, "Missing invisible= line");
+    }
+    int reads = sscanf(p, "%d %d", &invis, &invis2);
+    if (reads != 2) {
+        alog(AL_ERROR, "Invalid invisible= line: %s", block);
+    }
+
+    fgets(block, 1000, ifp);
+    repspc(block);
+    minsgo = getno("min sgo=");
+
+    /* Get the Scaleing line. */
+    fgets(block, 1000, ifp);
+    repspc(block);
+    rscale = getno("rankscale="); /* Process RankScale= */
+    fgets(block, 1000, ifp);
+    repspc(block);
+    tscale = getno("timescale="); /* Process TimeScale= */
+
+    titlePos = ftell(ifp);
+}
+
+/*
+     System Message processing routines for AMUL, (C) KingFisher Software
+     --------------------------------------------------------------------
+
+ Notes:
+
+    System messages MUST be listed in order, and MUST all exist! These
+      should be supplied with the package, so the user has a set of defaults.
+      We could write all the default system messages into AMULCOM, but this
+      would simply be a waste of space!
+
+*/
+
+void
+smsg_proc()
+{
+    long id, pos;
+
+    if (!nextc(false))
+        return; /* Nothing to process! */
+    fopenw(umsgifn);
+    fopenw(umsgfn); /* Text and index */
+
+    blkget(&datal, &data, 0L);
+    char *s = data;
+
+    do {
+        checkErrorCount();
+
+        do {
+            s = extractLine(s, block);
+        } while (isCommentChar(block[0]));
+        if (block[0] == 0)
+            continue;
+
+        tidy(block);
+        if (block[0] == 0)
+            continue;
+
+        getWordAfter("msgid=", block);
+        if (Word[0] == 0)
+            break;
+
+        bool valid = true;
+
+        if (Word[0] != '$') {
+            alog(AL_ERROR, "Invalid system message id: %s (must begin with '$'", Word);
+            valid = false;
+        } else if (atoi(Word + 1) != smsgs + 1) {
+            alog(AL_ERROR, "Message %s out of sequence", Word);
+            valid = false;
+        } else if (smsgs >= NSMSGS) {
+            alog(AL_FATAL, "Unexpected system message (last should be %d)", NSMSGS);
+        }
+
+        id = ++smsgs; /* Now copy the text across */
+
+        pos = ftell(ofp2);
+        fwrite((char *)&pos, 4, 1, ofp1);
+
+        do {
+            while (com(s)) {
+                s = skipline(s);
+            }
+            if (isLineEnding(*s))
+                break;
+            if (*s == '\t')  // expected but optional indent
+                s++;
+            s = extractLine(s, block);
+            if (block[0] == 0)
+                continue;
+            pos = strlen(block);
+            if (block[pos - 1] == '{')
+                block[--pos] = 0;
+            else
+                strcat(block + (pos++) - 1, "\n");
+            fwrite(block, 1, pos, ofp2);
+        } while (*s != 0);
+        fputc(0, ofp2);
+    } while (*s != 0);
+    FreeMem(data, datal);
+    data = NULL;
+    datal = NULL;
+}
+
+/* Process ROOMS.TXT */
+void
+room_proc()
+{
+    char c, lastc, *p, *p2;
+    int  n;
+
+    nextc(true);
+
+    fopenw(rooms1fn);
+    fopenw(rooms2fn);
+
+    do {
+        p = block;
+        while ((c = fgetc(ifp)) != EOF && !isspace(c))
+            *(p++) = c;
+        if (c == EOF)
+            break;
+        *p = 0; /* Set null byte */
+        p = skipspc(block);
+        if (*p == 0)
+            continue;
+        striplead("room=", block);
+        if (strlen(block) < 3 || strlen(block) > IDL) {
+            alog(AL_FATAL, "Invalid ID (length): %s", block);
+        }
+        strcpy(room.id, block);
+        /* Do the flags */
+        room.flags = 0;
+        room.tabptr = -1;
+        temp[0] = 0;
+        if (c != '\n') {
+            fgets(block, 1024, ifp);
+            p = block;
+            n = -1;
+            do {
+                while (isspace(*p) && *p != 0)
+                    p++;
+                if (*p == 0)
+                    continue;
+                p2 = p;
+                while (!isspace(*p2) && *p2 != 0)
+                    p2++;
+                *p2 = 0;
+                if (n == 0) {
+                    /* Get dmove param */
+                    strcpy(temp, p);
+                    dmoves++;
+                    p = p2 + 1;
+                    n = -1;
+                    continue;
+                }
+                if ((n = isrflag(p)) == -1) {
+                    alog(AL_FATAL, "Invalid flag: %s", p);
+                }
+                n -= NRNULL;
+                if (n >= 0)
+                    room.flags = (room.flags | bitset(n));
+                p = p2 + 1;
+            } while (*p != 0);
+        }
+
+        lastc = '\n';
+        fseek(ofp2, 0, 1);
+        room.desptr = ftell(ofp2);
+        n = 0;
+        if (temp[0] != 0)
+            fwrite(temp, IDL, 1, ofp2); /* save dmove */
+        while ((c = fgetc(ifp)) != EOF && !(c == '\n' && lastc == '\n')) {
+            if (lastc == '\n' && c == 9)
+                continue;
+            fputc((lastc = c), ofp2);
+            n++;
+        };
+        fputc(0, ofp2);
+        fwrite(room.id, sizeof(room), 1, ofp1);
+        ++rooms;
+        nextc(false);
+    } while (c != EOF);
+}
+
+void
+checkdmoves()
+{
+    struct _ROOM_STRUCT *roomptr;
+
+    /* Check DMOVE ptrs */
+    fopenr(rooms2fn); /* Open desc. file */
+    roomptr = rmtab;
+    for (int n = 0; n < rooms; n++) {
+        if (roomptr->flags & DMOVE) {
+            printf("%-9s\r", roomptr->id);
+            fseek(ifp, roomptr->desptr, 0);
+            fread(dmove, IDL, 1, ifp); /* Read the DMOVE name */
+            if (isroom(dmove) == -1) {
+                alog(AL_ERROR, "%-9s: invalid dmove: %s", roomptr->id, dmove);
+            }
+        }
+        roomptr++;
+    }
+}
+
+/* Process RANKS.TXT */
+void
+rank_proc()
+{
+    nextc(true);
+
+    fopenw(ranksfn);
+
+    do {
+        fgets(block, 1024, ifp);
+        if (feof(ifp))
+            break;
+        if (com(block) || isEol(block[0]))
+            continue;
+        tidy(block);
+        if (block[0] == 0)
+            continue;
+        char *p = getword(block);
+        if (chkline(p) != 0)
+            continue;
+        rank.male[0] = 0;
+        rank.female[0] = 0;
+        if (strlen(Word) < 3 || strlen(Word) > RANKL) {
+            alog(AL_FATAL, "Rank %d: Invalid male rank: %s", ranks, Word);
+        }
+        int n = 0;
+        do {
+            if (Word[n] == '_')
+                Word[n] = ' ';
+            rank.male[n] = rank.female[n] = tolower(Word[n]);
+            n++;
+        } while (Word[n - 1] != 0);
+
+        p = getword(p);
+        if (chkline(p) != 0)
+            continue;
+        if (strcmp(Word, "=") != 0 && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
+            alog(AL_FATAL, "Rank %d: Invalid female rank: %s", ranks, Word);
+        }
+        if (Word[0] != '=') {
+            n = 0;
+            do {
+                if (Word[n] == '_')
+                    Word[n] = ' ';
+                rank.female[n] = tolower(Word[n]);
+                n++;
+            } while (Word[n - 1] != 0);
+        }
+
+        p = getword(p);
+        if (chkline(p) != 0)
+            continue;
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid score value: %s", Word);
+            continue;
+        }
+        rank.score = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid strength value: %s", Word);
+            continue;
+        }
+        rank.strength = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid stamina value: %s", Word);
+            continue;
+        }
+        rank.stamina = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid dexterity value: %s", Word);
+            continue;
+        }
+        rank.dext = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid wisdom value: %s", Word);
+            continue;
+        }
+        rank.wisdom = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid experience value: %s", Word);
+            continue;
+        }
+        rank.experience = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid magic points value: %s", Word);
+            continue;
+        }
+        rank.magicpts = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid max weight value: %s", Word);
+            continue;
+        }
+        rank.maxweight = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid max inventory value: %s", Word);
+            continue;
+        }
+        rank.numobj = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid kill points value: %s", Word);
+            continue;
+        }
+        rank.minpksl = atoi(Word);
+
+        p = getword(p);
+        if (!isdigit(Word[0])) {
+            alog(AL_ERROR, "Invalid task number: %s", Word);
+            continue;
+        }
+        rank.tasks = atoi(Word);
+
+        p = skipspc(p);
+        if (*p == '\"')
+            p++;
+        strcpy(block, p);
+        p = block;
+        while (*p != 0 && *p != '\"')
+            p++;
+        *(p++) = 0;
+        /* Greater than prompt length? */
+        if (p - block > 10) {
+            alog(AL_ERROR, "Rank %d prompt too long: %s", ranks, block);
+            continue;
+        }
+        if (block[0] == 0)
+            strcpy(rank.prompt, "$ ");
+        else
+            strcpy(rank.prompt, block);
+
+        wizstr = rank.strength;
+        fwrite(rank.male, sizeof(rank), 1, ofp1);
+        ranks++;
+    } while (!feof(ifp));
+}
+
+void
+obds_proc()
+{
+    char lastc;
+
+    obdes = 0;
+    fopenw(obdsfn);
+    close_ofps(); /* Create file */
+    if (!nextc(false)) {
+        alog(AL_INFO, "No long object descriptions");
+        return;
+    }
+    fopenw("-ram:ODIDs");
+    fopenw(obdsfn);
+    char c;
+    do {
+        fgets(block, 1024, ifp);
+        tidy(block);
+        striplead("desc=", block);
+        getword(block);
+        if (strlen(Word) < 3 || strlen(Word) > IDL) {
+            alog(AL_ERROR, "Invalid obj. description id: %s", Word);
+            skipblock();
+            continue;
+        }
+        strcpy(objdes.id, Word);
+        fseek(ofp2, 0, 2);
+        objdes.descrip = ftell(ofp2);
+        fwrite(objdes.id, sizeof(objdes), 1, ofp1);
+        lastc = '\n';
+        while ((c = fgetc(ifp)) != EOF && !(c == '\n' && lastc == '\n')) {
+            if ((lastc == EOF || lastc == '\n') && c == 9)
+                continue;
+            fputc((lastc = c), ofp2);
+        };
+        fputc(0, ofp2);
+        obdes++;
+        nextc(false);
+    } while (c != EOF);
+}
+
+/*
+void
+sort_objs()
+{	int i,j,k,nts; long *rmtab,*rmptr;
+
+    if(ifp!=NULL) fclose(ifp); ifp=NULL;
+    close_ofps(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
+    close_ofps(); fopenr(objrmsfn); blkget(&datal2,&data2,NULL); fclose(ifp); ifp=NULL;
+    close_ofps(); fopenw(objsfn);	fopenw(statfn); fopenw(objrmsfn); fopenw(ntabfn);
+    ifp=NULL;
+
+    printf("Sorting Objects...:\r"); objtab2=obtab2; nts=0; k=0;
+
+    statab=(struct _OBJ_STATE *)data; rmtab=(long *)data2;
+    for(i=0; i<nouns; i++)
+    {
+        if(*(objtab2=(obtab2+i))->id==0)
+        {
+            printf("@! skipping %ld states, %ld rooms.\n",objtab2->nstates,objtab2->nrooms);
+            statab += objtab2->nstates;
+            rmtab  += objtab2->nrooms;
+            continue;
+        }
+        strcpy(nountab.id,objtab2->id); nts++;
+        nountab.num_of=0; osrch=objtab2; statep=statab; rmptr=rmtab;
+        for(j=i; j<nouns; j++, osrch++)
+        {
+            if(*(osrch->id)!=0 && stricmp(nountab.id,osrch->id)==0)
+            {
+                fwrite((char *)osrch,  sizeof(obj),   1,               ofp1);
+                fwrite((char *)statep, sizeof(state), osrch->nstates,  ofp2);
+                fwrite((char *)rmptr,  sizeof(long),  osrch->nrooms,   ofp3);
+                nountab.num_of++; *osrch->id=0; if(osrch!=objtab) k++;
+                statep+=osrch->nstates; rmptr+=osrch->nrooms;
+                if(osrch==objtab2) { statab=statep; rmtab=rmptr; objtab2++; i++; }
+            }
+            else statep+=osrch->nstates; rmptr+=osrch->nrooms;
+        }
+
+        fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
+    }
+    printf("%20s\r%ld objects moved.\n"," ",k);
+    FreeMem(data, datal); FreeMem(data2, datal2); data=data2=NULL;
+    fopenr(objsfn); fread((char *)obtab2, sizeof(obj), nouns, ifp);
+}
+*/
+void
+state_proc()
+{
+    int   flag;
+    char *p;
+
+    state.weight = state.value = state.flags = 0;
+    state.descrip = -1;
+
+    tidy(block);
+    if (block[0] == 0)
+        return;
+
+    /* Get the weight of the object */
+    striplead("weight=", block);
+    p = getword(block);
+    if (*p == 0)
+        statinv("incomplete");
+    if (!isdigit(Word[0]) && Word[0] != '-')
+        statinv("weight value on");
+    state.weight = atoi(Word);
+    if (obj2.flags & OF_SCENERY)
+        state.weight = wizstr + 1;
+
+    /* Get the value of it */
+    p = skipspc(p);
+    striplead("value=", p);
+    p = getword(p);
+    if (*p == 0)
+        statinv("incomplete");
+    if (!isdigit(Word[0]) && Word[0] != '-')
+        statinv("value entry on");
+    state.value = atoi(Word);
+
+    /* Get the strength of it (hit points)*/
+    p = skipspc(p);
+    striplead("str=", p);
+    p = getword(p);
+    if (*p == 0)
+        statinv("incomplete");
+    if (!isdigit(Word[0]) && Word[0] != '-')
+        statinv("strength entry on");
+    state.strength = atoi(Word);
+
+    /* Get the damage it does as a weapon*/
+    p = skipspc(p);
+    striplead("dam=", p);
+    p = getword(p);
+    if (*p == 0)
+        statinv("incomplete");
+    if (!isdigit(Word[0]) && Word[0] != '-')
+        statinv("damage entry on");
+    state.damage = atoi(Word);
+
+    /* Description */
+    p = skipspc(p);
+    striplead("desc=", p);
+    if (*p == 0)
+        statinv("incomplete");
+    if (*p == '\"' || *p == '\'') {
+        text_id(p + 1, *p);
+        p = block;
+    } else {
+        p = getword(p);
+        is_desid(); /* Is it valid? */
+    }
+    if (state.descrip == -1) {
+        char tmp[128];
+        snprintf(tmp, "desc= ID (%s) on", Word);
+        statinv(tmp);
+    }
+    while (*p != 0) {
+        p = getword(p);
+        if (Word[0] == 0)
+            break;
+        if ((flag = isoflag2(Word)) == -1)
+            statinv("flag on");
+        state.flags = (state.flags | bitset(flag));
+    }
+    fwrite((char *)&state.weight, sizeof(state), 1, ofp2);
+    obj2.nstates++;
+}
+
+void
 objs_proc()
 {
     char *p, *s;
     int   roomno;
-
-    nouns = adjs = 0;
 
     /* Clear files */
     fopenw(adjfn);
@@ -1995,12 +2170,6 @@ trav_proc()
     ttroomupdate();
 }
 
-void
-chae_err()
-{
-    alog(AL_ERROR, "Verb: %s: Invalid '#CHAE' flag: %s", verb.id, Word);
-}
-
 /* From and To */
 int
 chae_proc(char *f, char *t)
@@ -2037,46 +2206,6 @@ chae_proc(char *f, char *t)
     }
 
     return 0;
-}
-
-/* Set the VT slots */
-void
-setslots(unsigned char i)
-{
-    vbslot.wtype[0] = WANY;
-    vbslot.wtype[1] = i;
-    vbslot.wtype[2] = i;
-    vbslot.wtype[3] = WANY;
-    vbslot.wtype[4] = i;
-    vbslot.slot[0] = vbslot.slot[1] = vbslot.slot[2] = vbslot.slot[3] = vbslot.slot[4] = WANY;
-}
-
-/* Is 'text' a ptype */
-int
-iswtype(char *s)
-{
-    int i;
-
-    for (i = 0; i < nsynts; i++) {
-        if (strcmp(s, syntax[i]) == 0) {
-            *s = 0;
-            return i - 1;
-        }
-        if (strncmp(s, syntax[i], syntl[i]) != 0)
-            continue;
-        if (*(s + syntl[i]) != '=')
-            continue;
-        strcpy(s, s + syntl[i] + 1);
-        return i - 1;
-    }
-    return -3;
-}
-
-/* Declare a PROBLEM, and which verb its in! */
-void
-vbprob(char *s, char *s2)
-{
-    alog(AL_FATAL, "Verb: %s line: '%s': %s", verb.id, s2, s);
 }
 
 /* Process LANG.TXT */
@@ -2568,94 +2697,7 @@ umsg_proc()
     datal = NULL;
 }
 
-/*
-     System Message processing routines for AMUL, (C) KingFisher Software
-     --------------------------------------------------------------------
-
- Notes:
-
-    System messages MUST be listed in order, and MUST all exist! These
-      should be supplied with the package, so the user has a set of defaults.
-      We could write all the default system messages into AMULCOM, but this
-      would simply be a waste of space!
-
-*/
-
-void
-smsg_proc()
-{
-    long id, pos;
-
-    if (!nextc(false))
-        return; /* Nothing to process! */
-    fopenw(umsgifn);
-    fopenw(umsgfn); /* Text and index */
-
-    blkget(&datal, &data, 0L);
-    char *s = data;
-
-    do {
-        checkErrorCount();
-
-        do {
-            s = extractLine(s, block);
-        } while (isCommentChar(block[0]));
-        if (block[0] == 0)
-            continue;
-
-        tidy(block);
-        if (block[0] == 0)
-            continue;
-
-        getWordAfter("msgid=", block);
-        if (Word[0] == 0)
-            break;
-
-        bool valid = true;
-
-        if (Word[0] != '$') {
-            alog(AL_ERROR, "Invalid system message id: %s (must begin with '$'", Word);
-            valid = false;
-        } else if (atoi(Word + 1) != smsgs + 1) {
-            alog(AL_ERROR, "Message %s out of sequence", Word);
-            valid = false;
-        } else if (smsgs >= NSMSGS) {
-            alog(AL_FATAL, "Unexpected system message (last should be %d)", NSMSGS);
-        }
-
-        id = ++smsgs; /* Now copy the text across */
-
-        pos = ftell(ofp2);
-        fwrite((char *)&pos, 4, 1, ofp1);
-
-        do {
-            while (com(s)) {
-                s = skipline(s);
-            }
-            if (isLineEnding(*s))
-                break;
-            if (*s == '\t')  // expected but optional indent
-                s++;
-            s = extractLine(s, block);
-            if (block[0] == 0)
-                continue;
-            pos = strlen(block);
-            if (block[pos - 1] == '{')
-                block[--pos] = 0;
-            else
-                strcat(block + (pos++) - 1, "\n");
-            fwrite(block, 1, pos, ofp2);
-        } while (*s != 0);
-        fputc(0, ofp2);
-    } while (*s != 0);
-    FreeMem(data, datal);
-    data = NULL;
-    datal = NULL;
-}
-
-/*
-    Routines to process/handle Synonyms
-                        */
+/* Routines to process/handle Synonyms */
 
 void
 syn_proc()
@@ -2709,54 +2751,7 @@ syn_proc()
 /* Mobiles.Txt Processor */
 
 /* Pass 1: Indexes mobile names */
-void
-mobmis(char *s)
-{
-    alog(AL_ERROR, "Mobile: %s: missing field: %s", mob.id, s);
-    skipblock();
-}
 
-int
-badmobend()
-{
-    return -1;
-}
-
-/* Fetch mobile message line */
-int
-getmobmsg(const char* s, const char **p)
-{
-    int        n;
-
-loop:
-	while (isCommentChar(*p)) {
-		*p = skipline(*p);
-	}
-	if (**p == 0 || **p == '\r' || **p == '\n')  {
-        alog(AL_ERROR, "Mobile: %s: unexpected end of definition", mob.id);
-        return -1;
-    }
-    *p = skipspc(*p);
-	if (**p == 0 || **p == '\r' || **p == '\n') 
-        goto loop;
-
-    if (!canSkipLead(s, p)) {
-        mobmis(s);
-        return -1;
-    }
-    if (toupper(*p) == 'N') {
-        *p = skipline(*p);
-        return -2;
-    }
-    n = ttumsgchk(*p);
-    *p = skipline(*p);
-    if (n == -1) {
-        alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
-    }
-    return n;
-}
-
-/* Pass 2: Indexes commands mobiles have access to */
 void
 mob_proc1()
 {
@@ -2772,6 +2767,8 @@ mob_proc1()
     repspc(mobdat);
 
     do {
+		checkErrorCount();
+
         while (*p != 0 && *p != '!')
             p = skipline(p);
         if (*p == 0)
@@ -2781,7 +2778,7 @@ mob_proc1()
         strcpy(mob.id, Word);
         do {
             cur = skipspc(cur);
-            if (*cur == 0 || *cur == ';')
+            if (isLineBreak(*cur))
                 break;
             if (canSkipLead("dead=", &cur)) {
                 cur = getword(cur);
@@ -2796,12 +2793,11 @@ mob_proc1()
                 }
                 continue;
             }
-        } while (*cur != 0 && *cur != ';' && Word[0] != 0);
+        } while (!isLineBreak(*cur) && Word[0] != 0);
 
         p = extractLine(p, block);
         tidy(block);
 		cur = skipspc(block);
-        cur = block;
         mob.dmove = -1;
 
         if (!canSkipLead("speed=", &cur)) {
@@ -2810,52 +2806,58 @@ mob_proc1()
         }
         cur = getword(cur);
         mob.speed = atoi(Word);
+
         if (!canSkipLead("travel=", &cur)) {
             mobmis("travel=");
             continue;
         }
         cur = getword(cur);
         mob.travel = atoi(Word);
+
         if (!canSkipLead("fight=", &cur)) {
             mobmis("speed=");
             continue;
         }
         cur = getword(cur);
         mob.fight = atoi(Word);
+
         if (!canSkipLead("act=", &cur)) {
             mobmis("act=");
             continue;
         }
         cur = getword(cur);
         mob.act = atoi(Word);
+
         if (!canSkipLead("wait=", &cur)) {
             mobmis("wait=");
             continue;
         }
         cur = getword(cur);
         mob.wait = atoi(Word);
+
         if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
             alog(AL_ERROR, "Mobile: %s: Travel+Fight+Act+Wait values not equal to 100%.", mob.id);
         }
+
         if (!canSkipLead("fear=", &cur)) {
             mobmis("fear=");
             continue;
         }
         cur = getword(cur);
         mob.fear = atoi(Word);
+
         if (!canSkipLead("attack=", &cur)) {
             mobmis("attack=");
             continue;
         }
         cur = getword(cur);
-        cur = skipspc(cur);
         mob.attack = atoi(Word);
+
         if (!canSkipLead("hitpower=", &cur)) {
             mobmis("hitpower=");
             continue;
         }
         cur = getword(cur);
-        cur = skipspc(cur);
         mob.hitpower = atoi(Word);
 
         if ((n = getmobmsg("arrive=", &p)) == -1)
@@ -2890,8 +2892,12 @@ mob_proc1()
         fread((char *)mobp, sizeof(mob) * mobchars, 1, afp);
     }
 }
+
+/* Pass 2: Indexes commands mobiles have access to */
 /*mob_proc2()
 {*/
+
+/*---------------------------------------------------------*/
 
 void
 checkf(char *s)
@@ -2927,8 +2933,6 @@ argue(int argc, const char **argv)
             strcat(dir, "/");
     }
 }
-
-/*---------------------------------------------------------*/
 
 static void
 checkFilesExist()
