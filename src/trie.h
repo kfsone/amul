@@ -12,8 +12,11 @@ struct TrieNode {
 	// words, e.g. a node representing "node" could have a child representing
 	// the word "nodes".
 	// beyond null vs non-null, 'terminal' is opaque user-defined.
+	union {
+		struct TrieNode **children;
+		struct TrieNode *next;
+	};
 	trie_terminal_t	terminal;
-	struct TrieNode **children;
 	// what letter this represents
 	char			letter;
 };
@@ -25,24 +28,37 @@ enum {
 	TRIE_RANGE = MAX_TRIE_CHAR - MIN_TRIE_CHAR
 };
 
+struct TrieNodePool {
+	struct TrieNodePool	*next;
+	struct TrieNode		nodes[];
+};
+
 struct Trie {
 	struct TrieNode roots[TRIE_RANGE];
+	struct TrieNodePool* pools;
+	struct TrieNode* freelist;	// Linked by 'abuse of 'next' pointers.
 	size_t nodes;
 	size_t terminals;
 };
 
-// Constructor for creating a new Trie instance.
-struct Trie 	*NewTrie();
 // Release a trie and all of it's nodes
 void         	CloseTrie(struct Trie *trie);
-// Attempts to add a new word to a trie, returning true if the word was
-// not previously registered.
-// Returns false if (a) the word was already registered or (b) terminal is NULL
-bool         	add_trie_word(struct Trie *trie, const char *word,
-						   trie_terminal_t terminal);
 
-// Look up a word in the trie, returns NULL if the word is not registered,
-// otherwise returns the terminal value of the word.
-trie_terminal_t get_trie_word(struct Trie *trie, const char *string);
+// Look up a word in the trie. If terminal is not NULL, the word will be
+// added if it was not already present. If the word is either present or
+// added, returns the terminal of the entry.
+trie_terminal_t get_trie_word(struct Trie *trie, const char *string, trie_terminal_t terminal);
+
+// Helper: test for presence of a word in a trie.
+static inline
+bool is_trie_word(struct Trie *trie, const char* string) {
+	return get_trie_word(trie, string, (trie_terminal_t)NULL);
+}
+
+// Helper: Get a word without adding it
+static inline
+trie_terminal_t lookup_trie_word(struct Trie* trie, const char *string) {
+	return get_trie_word(trie, string, (trie_terminal_t)NULL);
+}
 
 #endif
