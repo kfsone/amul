@@ -51,7 +51,7 @@ the box', 'current state of door', 'no. of player carrying' etc...
 /* Numbers */
 #define LESS 0x40000000 /* <Beyond max lim>	*/
 #define MORE 0x80000000 /* <Beyond max lim>	*/
-#define NONE 0, 0, 0
+#define NONE { 0, 0, 0 }
 
 #ifdef COMPILER
 #    define NACTUALS 33 /* No. of actual names	*/
