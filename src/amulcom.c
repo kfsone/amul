@@ -16,7 +16,7 @@
 
  Notes:
 
-   When the LOCATE function is installed, aswell as as the 'i' words, we must
+   When the LOCATE function is installed, as-well as as the 'i' words, we must
   have a user variable, 'located'. This will allow the user to fiddle and
   tinker with the locate function... We will also need a 'setword' so that
   you could write:
@@ -26,7 +26,7 @@
    Last Amendments: 26/08/90   12:30   OS   Installed GameTime= (title.txt)
             27/09/90   14:52   OS   Enhanced ObjProc.C (uses MC rtns)
 
-                                       */
+*/
 
 #define COMPILER 1
 
@@ -219,14 +219,14 @@ nextc(bool required)
 }
 
 void
-fatalOp(char *s, char *t)
+fatalOp(const char *verb, const char *noun)
 {
-    alog(AL_ERROR, "Can't %s %s", s, t);
+    alog(AL_ERROR, "Can't %s %s", verb, noun);
 }
 
 /* Open file for reading */
 void
-fopenw(char *s)
+fopenw(const char *s)
 {
     if (*s == '-')
         strcpy(fnm, s + 1);
@@ -251,7 +251,7 @@ fopenw(char *s)
 
 /* Open file for appending */
 void
-fopena(char *s)
+fopena(const char *s)
 {
     if (afp != NULL)
         fclose(afp);
@@ -265,7 +265,7 @@ fopena(char *s)
 
 /* Open file for reading */
 void
-fopenr(char *s)
+fopenr(const char *s)
 {
     if (ifp != NULL)
         fclose(ifp);
@@ -301,7 +301,7 @@ ttroomupdate()
 }
 
 void
-opentxt(char *s)
+opentxt(const char *s)
 {
     sprintf(block, "%s%s.TXT", dir, s);
     if ((ifp = fopen(block, "r")) == NULL) {
@@ -478,7 +478,7 @@ set_adj()
 }
 
 void
-object(char *s)
+object(const char *s)
 {
     alog(AL_FATAL, "Object #%d: %s: invalid %s: %s", nouns + 1, obj2.id, s, Word);
 }
@@ -529,7 +529,7 @@ set_mob()
 }
 
 int
-iscond(char *s)
+iscond(const char *s)
 {
     int i;
     for (i = 0; i < NCONDS; i++)
@@ -539,7 +539,7 @@ iscond(char *s)
 }
 
 int
-isact(char *s)
+isact(const char *s)
 {
     int i;
     for (i = 0; i < NACTS; i++)
@@ -549,7 +549,7 @@ isact(char *s)
 }
 
 int
-isprep(char *s)
+isprep(const char *s)
 {
     int i;
     for (i = 0; i < NPREP; i++)
@@ -561,7 +561,7 @@ isprep(char *s)
 int
 getno(const char *s)
 {
-    char *p = skipspc(block);
+    const char *p = skipspc(block);
     p = skiplead(s, block);
     if (!p) {
         alog(AL_ERROR, "Missing %s entry", s);
@@ -576,7 +576,7 @@ getno(const char *s)
 }
 
 bool
-chkline(char *p)
+chkline(const char *p)
 {
     if (*p == 0) {
         alog(AL_ERROR, "Rank line %d incomplete", ranks);
@@ -586,7 +586,7 @@ chkline(char *p)
 }
 
 void
-statinv(char *s)
+statinv(const char *s)
 {
     alog(AL_FATAL, "Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s, block);
 }
@@ -615,31 +615,31 @@ is_desid()
 }
 
 void
-text_id(char *p, char c)
+text_id(const char *p, char c)
 {
-    char *ptr;
-    FILE *fp;
-
     strcpy(block, p);
-    p = block;
-    while (*p != c && *p != 0)
-        p++;
-    if (*p == 0)
-        *(p + 1) = 0;
-    *(p++) = '\n';
-    if (*(p - 2) == '{')
-        ptr = p - 1;
-    else
-        ptr = p;
+    char *end = block;
+    while (*end != c && *end != 0)
+        end++;
+    if (*end == 0)
+        *(end + 1) = 0;
+    *(end++) = '\n';
+    if (*(end - 2) == '{') {
+        p = end - 1;
+	} else {
+        p = end;
+	}
 
-    sprintf(temp, "%s%s", dir, obdsfn); /* Open output file */
-    if ((fp = fopen(temp, "rb+")) == NULL)
-        fatalOp("open", temp);
+	char filename[256];
+    snprintf(filename, "%s%s", dir, obdsfn); /* Open output file */
+	FILE *fp = fopen(filename, "rb+");
+    if ((fp = fopen(filename, "rb+")) == NULL)
+        fatalOp("open", filename);
     fseek(fp, 0, 2L);
     state.descrip = ftell(fp); /* Get pos */
-    if (fwrite(block, ptr - block, 1, fp) != 1) {
+    if (fwrite(block, p - block, 1, fp) != 1) {
         fclose(fp);
-        fatalOp("write", temp);
+        fatalOp("write", filename);
     }
     fputc(0, fp);
     strcpy(block, p);
@@ -647,7 +647,7 @@ text_id(char *p, char c)
 }
 
 int
-isnoun(char *s)
+isnoun(const char *s)
 {
     int i;
 
@@ -661,7 +661,7 @@ isnoun(char *s)
 }
 
 int
-iscont(char *s)
+iscont(const char *s)
 {
     int i;
 
@@ -674,7 +674,7 @@ iscont(char *s)
 
 /* Room or container */
 int
-isloc(char *s)
+isloc(const char *s)
 {
     int i;
 
@@ -691,14 +691,13 @@ isloc(char *s)
     return -(INS + i);
 }
 
-char *
-precon(char *s)
+const char *
+precon(const char *s)
 {
-    char *s2;
+	///TODO: use canSkipLead instead
+    const char *s2 = s;
 
-    s2 = s;
-
-    if ((s = skiplead("if ", s)) != s2) {
+	if ((s = skiplead("if ", s)) != s2) {
         s = skipspc(s);
         s2 = s;
     }
@@ -714,12 +713,12 @@ precon(char *s)
     return s;
 }
 
-char *
-preact(char *s)
+const char *
+preact(const char *s)
 {
-    char *s2;
+    /// TODO: use canSkipLead instead
+    const char *s2 = s;
 
-    s2 = s;
     if ((s = skiplead("then ", s)) != s2) {
         s = skipspc(s);
         s2 = s;
@@ -737,7 +736,7 @@ preact(char *s)
 }
 
 long
-chknum(char *p)
+chknum(const char *p)
 {
     long n;
 
@@ -760,12 +759,9 @@ chknum(char *p)
     return n;
 }
 
-char *
-optis(char *p)
+const char *
+optis(const char *p)
 {
-    char *p2;
-    p2 = p;
-
     p = skiplead("the ", p);
     p = skiplead("of ", p);
     p = skiplead("are ", p);
@@ -798,7 +794,7 @@ isgen(char c)
 }
 
 int
-antype(char *s)
+antype(const char *s)
 {
     if (strcmp(s, "global") == 0)
         return AGLOBAL;
@@ -818,7 +814,7 @@ antype(char *s)
 
 /* Test noun state, checking rooms */
 int
-isnounh(char *s)
+isnounh(const char *s)
 {
     int   i, l, j;
     FILE *fp;
@@ -835,7 +831,7 @@ isnounh(char *s)
             continue;
         fseek(fp, (long)objtab2->rmlist, 0L);
         for (j = 0; j < objtab2->nrooms; j++) {
-            fread((char *)&orm, 4, 1, fp);
+            fread(&orm, 4, 1, fp);
             if (orm == rmn) {
                 l = i;
                 i = nouns + 1;
@@ -863,7 +859,7 @@ rdmode(char c)
 }
 
 int
-spell(char *s)
+spell(const char *s)
 {
     if (strcmp(s, "glow") == 0)
         return SGLOW;
@@ -885,7 +881,7 @@ spell(char *s)
 }
 
 int
-stat(char *s)
+stat(const char *s)
 {
     if (strcmp(s, "sctg") == 0)
         return STSCTG;
@@ -919,18 +915,16 @@ bvmode(char c)
 }
 
 int
-msgline(char *s)
+msgline(const char *s)
 {
-    FILE *fp;
-    long  pos;
-    char  c;
-    fp = afp;
+    FILE *fp = afp;
     afp = NULL;
     fopena(umsgfn);
     fseek(afp, 0, 2L);
-    pos = ftell(afp);
+    long pos = ftell(afp);
 
     fwrite(s, strlen(s) - 1, 1, afp);
+    char c;
     if ((c = *(s + strlen(s) - 1)) != '{') {
         fputc(c, afp);
         fputc('\n', afp);
@@ -938,7 +932,7 @@ msgline(char *s)
     fputc(0, afp);
     fopena(umsgifn);
     fseek(afp, 0, 2L);
-    fwrite((char *)&pos, sizeof(long), 1, afp);
+    fwrite(&pos, sizeof(long), 1, afp);
     fclose(afp);
     afp = fp;
     return NSMSGS + (umsgs++);
@@ -946,7 +940,7 @@ msgline(char *s)
 
 /* Check FP for umsg id! */
 int
-isumsg(char *s, FILE *fp)
+isumsg(const char *s, FILE *fp)
 {
     int i;
 
@@ -969,7 +963,7 @@ isumsg(char *s, FILE *fp)
 }
 
 int
-chkumsg(char *s)
+chkumsg(const char *s)
 {
     int   r;
     FILE *fp;
@@ -986,7 +980,7 @@ chkumsg(char *s)
 }
 
 int
-ttumsgchk(char *s)
+ttumsgchk(const char *s)
 {
     s = skiplead("msgid=", s);
     s = skiplead("msgtext=", s);
@@ -997,7 +991,7 @@ ttumsgchk(char *s)
 }
 
 int
-onoff(char *p)
+onoff(const char *p)
 {
     if (stricmp(p, "on") == 0 || stricmp(p, "yes") == 0)
         return 1;
@@ -1016,11 +1010,11 @@ So, if the syntax line is 'verb text player' the command 'tell noun2 text'
 will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
 structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
 the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
-user is refering too.							     */
+user is referring too.							     */
 
 /* Get actual value! */
 int
-actualval(char *s, int n)
+actualval(const char *s, int n)
 {
     int i;
 
@@ -1087,14 +1081,14 @@ actualval(char *s, int n)
     return -2; /* It was no actual! */
 }
 
-char *
-chkp(char *p, char t, int c, int z, FILE *fp)
+const char *
+chkp(const char *p, char t, int c, int z, FILE *fp)
 {
-    char qc, *p2;
+    char qc;
     long x;
 
     p = optis(p);
-    p2 = (p = skipspc(p)); /* Strip crap out */
+    const char *p2 = (p = skipspc(p)); /* Strip crap out */
     if (*p == 0) {
         alog(AL_FATAL, "%s '%s' has incomplete C&A line: (%s='%s')", (proc == 1) ? "Verb" : "Room",
              (proc == 1) ? verb.id : roomtab->id, (z == 1) ? "condition" : "action",
@@ -1163,14 +1157,14 @@ chkp(char *p, char t, int c, int z, FILE *fp)
         return NULL;
     }
 write:
-    fwrite((char *)&x, 4, 1, fp);
+    fwrite(&x, 4, 1, fp);
     FPos += 4; /* Writes a LONG */
     *p = 32;
     return skipspc(p);
 }
 
-char *
-chkaparms(char *p, int c, FILE *fp)
+const char *
+chkaparms(const char *p, int c, FILE *fp)
 {
     int i;
 
@@ -1182,8 +1176,8 @@ chkaparms(char *p, int c, FILE *fp)
     return p;
 }
 
-char *
-chkcparms(char *p, int c, FILE *fp)
+const char *
+chkcparms(const char *p, int c, FILE *fp)
 {
     int i;
 
@@ -1236,13 +1230,13 @@ iswtype(char *s)
 
 /* Declare a PROBLEM, and which verb its in! */
 void
-vbprob(char *s, char *s2)
+vbprob(const char *s, const char *s2)
 {
     alog(AL_FATAL, "Verb: %s line: '%s': %s", verb.id, s2, s);
 }
 
 void
-mobmis(char *s)
+mobmis(const char *s)
 {
     alog(AL_ERROR, "Mobile: %s: missing field: %s", mob.id, s);
     skipblock();
@@ -1256,20 +1250,20 @@ badmobend()
 
 /* Fetch mobile message line */
 int
-getmobmsg(const char* s, const char **p)
+getmobmsg(const char *s, const char **p)
 {
-    int        n;
+    int n;
 
 loop:
-	while (isCommentChar(*p)) {
-		*p = skipline(*p);
-	}
-	if (**p == 0 || **p == '\r' || **p == '\n')  {
+    while (isCommentChar(*p)) {
+        *p = skipline(*p);
+    }
+    if (**p == 0 || **p == '\r' || **p == '\n') {
         alog(AL_ERROR, "Mobile: %s: unexpected end of definition", mob.id);
         return -1;
     }
     *p = skipspc(*p);
-	if (**p == 0 || **p == '\r' || **p == '\n' || isCommentChar(**p)) 
+    if (**p == 0 || **p == '\r' || **p == '\n' || isCommentChar(**p))
         goto loop;
 
     if (!canSkipLead(s, p)) {
@@ -1296,15 +1290,15 @@ title_proc()
     nextc(true);
     fgets(block, 1000, ifp);
     repspc(block);
-    char *p = block;
+    const char *p = block;
     if (!canSkipLead("name=", &p)) {
         alog(AL_FATAL, "Invalid title.txt: missing name= line");
     }
     int length = strlen(p);
-    *(p + length - 1) = 0;  // remove newline
+	block[p - block + length - 1] = 0;	// trim newline
     if (length > 40) {
         *(p + 40) = 0;
-        alog(AL_WARN, "Game name too long: trunvate to %s", block);
+        alog(AL_WARN, "Game name too long: truncate to %s", block);
     }
     strcpy(adname, block);
     fgets(block, 1000, ifp);
@@ -1357,15 +1351,14 @@ title_proc()
 void
 smsg_proc()
 {
-    long id, pos;
-
     if (!nextc(false))
         return; /* Nothing to process! */
+
     fopenw(umsgifn);
     fopenw(umsgfn); /* Text and index */
 
     blkget(&datal, &data, 0L);
-    char *s = data;
+    const char *s = data;
 
     do {
         checkErrorCount();
@@ -1396,10 +1389,9 @@ smsg_proc()
             alog(AL_FATAL, "Unexpected system message (last should be %d)", NSMSGS);
         }
 
-        id = ++smsgs; /* Now copy the text across */
-
-        pos = ftell(ofp2);
-        fwrite((char *)&pos, 4, 1, ofp1);
+        long pos = ftell(ofp2);
+		if (valid)
+        	fwrite(&pos, 4, 1, ofp1);
 
         do {
             while (com(s)) {
@@ -1419,7 +1411,9 @@ smsg_proc()
                 strcat(block + (pos++) - 1, "\n");
             fwrite(block, 1, pos, ofp2);
         } while (*s != 0);
+
         fputc(0, ofp2);
+        ++smsgs;
     } while (*s != 0);
     FreeMem(data, datal);
     data = NULL;
@@ -1545,7 +1539,7 @@ rank_proc()
         tidy(block);
         if (block[0] == 0)
             continue;
-        char *p = getword(block);
+        const char *p = getword(block);
         if (chkline(p) != 0)
             continue;
         rank.male[0] = 0;
@@ -1663,7 +1657,6 @@ rank_proc()
         p = block;
         while (*p != 0 && *p != '\"')
             p++;
-        *(p++) = 0;
         /* Greater than prompt length? */
         if (p - block > 10) {
             alog(AL_ERROR, "Rank %d prompt too long: %s", ranks, block);
@@ -1672,7 +1665,7 @@ rank_proc()
         if (block[0] == 0)
             strcpy(rank.prompt, "$ ");
         else
-            strcpy(rank.prompt, block);
+            strncpy(rank.prompt, block, p - block);
 
         wizstr = rank.strength;
         fwrite(rank.male, sizeof(rank), 1, ofp1);
@@ -1770,9 +1763,6 @@ sort_objs()
 void
 state_proc()
 {
-    int   flag;
-    char *p;
-
     state.weight = state.value = state.flags = 0;
     state.descrip = -1;
 
@@ -1782,7 +1772,7 @@ state_proc()
 
     /* Get the weight of the object */
     striplead("weight=", block);
-    p = getword(block);
+    const char *p = getword(block);
     if (*p == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
@@ -1793,7 +1783,7 @@ state_proc()
 
     /* Get the value of it */
     p = skipspc(p);
-    striplead("value=", p);
+    p = skiplead("value=", p);
     p = getword(p);
     if (*p == 0)
         statinv("incomplete");
@@ -1803,7 +1793,7 @@ state_proc()
 
     /* Get the strength of it (hit points)*/
     p = skipspc(p);
-    striplead("str=", p);
+    p = skiplead("str=", p);
     p = getword(p);
     if (*p == 0)
         statinv("incomplete");
@@ -1813,7 +1803,7 @@ state_proc()
 
     /* Get the damage it does as a weapon*/
     p = skipspc(p);
-    striplead("dam=", p);
+    p = skiplead("dam=", p);
     p = getword(p);
     if (*p == 0)
         statinv("incomplete");
@@ -1823,7 +1813,7 @@ state_proc()
 
     /* Description */
     p = skipspc(p);
-    striplead("desc=", p);
+    p = skiplead("desc=", p);
     if (*p == 0)
         statinv("incomplete");
     if (*p == '\"' || *p == '\'') {
@@ -1842,18 +1832,19 @@ state_proc()
         p = getword(p);
         if (Word[0] == 0)
             break;
-        if ((flag = isoflag2(Word)) == -1)
+        int flag = isoflag2(Word);
+        if (flag == -1)
             statinv("flag on");
         state.flags = (state.flags | bitset(flag));
     }
-    fwrite((char *)&state.weight, sizeof(state), 1, ofp2);
+    fwrite(&state.weight, sizeof(state), 1, ofp2);
     obj2.nstates++;
 }
 
 void
 objs_proc()
 {
-    char *p, *s;
+    const char *p, *s;
     int   roomno;
 
     /* Clear files */
@@ -1947,7 +1938,7 @@ objs_proc()
                 roomno = -1;
                 continue;
             }
-            fwrite((char *)&roomno, 1, 4, ofp3);
+            fwrite(&roomno, 1, 4, ofp3);
             obj2.nrooms++;
         } while (Word[0] != 0);
         if (obj2.nrooms == 0 && roomno == 0) {
@@ -1973,7 +1964,7 @@ objs_proc()
     close_ofps();
     sort_objs();
     */
-    fwrite((char *)obtab2, sizeof(obj2), nouns, ofp1);
+    fwrite(obtab2, sizeof(obj2), nouns, ofp1);
 }
 
 /*
@@ -1987,7 +1978,7 @@ void
 trav_proc()
 {
     int   strip, lines, nvbs, i, ntt, t, r;
-    char *p;
+    const char *p;
     long *l;
 
     nextc(true); /* Move to first text */
@@ -2145,7 +2136,7 @@ trav_proc()
                 else
                     tt.pptr = (long *)-1;
                 tt.verb = *(l++);
-                fwrite((char *)&tt.verb, sizeof(tt), 1, ofp1);
+                fwrite(&tt.verb, sizeof(tt), 1, ofp1);
                 roomtab->ttlines++;
                 t++;
                 ttents++;
@@ -2172,7 +2163,7 @@ trav_proc()
 
 /* From and To */
 int
-chae_proc(char *f, char *t)
+chae_proc(const char *f, char *t)
 {
     int n;
 
@@ -2212,7 +2203,7 @@ chae_proc(char *f, char *t)
 void
 lang_proc()
 {
-    char lastc, *p, *p2, *s1, *s2;
+    char lastc, *p, *p2;
     /* n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2) */
     int           n, cs, s, r;
     unsigned long of2p, of3p;
@@ -2230,7 +2221,8 @@ lang_proc()
 
     blkget(&vbmem, (char **)&vbtab, 64 * (sizeof(verb)));
     vbptr = vbtab + 64;
-    s1 = (char *)vbptr;
+    const char *s1 = (char *)vbptr;
+	const char *s2 = NULL;
     vbptr = vbtab;
     of2p = ftell(ofp2);
     of3p = ftell(ofp3);
@@ -2638,31 +2630,35 @@ umsg_proc()
     s = data;
 
     do {
-    loop:
+		checkErrorCount();
+
         do
             s = extractLine(s, block);
         while (com(block) && *s != 0);
+
         if (*s == 0)
             break;
+
         tidy(block);
         if (block[0] == 0)
-            goto loop;
+            continue;
+
         striplead("msgid=", block);
         getword(block);
         if (Word[0] == 0)
-            goto loop;
+            continue;
 
         if (Word[0] == '$') {
             alog(AL_ERROR, "Invalid message ID: %s ('$' reserved or system messages", Word);
             skipblock();
-            goto loop;
+            continue;
         }
         if (strlen(Word) > IDL) {
             alog(AL_ERROR, "Invalid message ID (too long): %s", Word);
             skipblock();
-            goto loop;
+            continue;
         }
-        umsgs++; /* Now copy the text across */
+
         strcpy(umsg.id, Word);
         umsg.fpos = ftell(ofp2);
         fwrite(umsg.id, sizeof(umsg), 1, afp);
@@ -2690,7 +2686,9 @@ umsg_proc()
                 strcat(block + (umsg.fpos++) - 1, "\n");
             fwrite(block, 1, umsg.fpos, ofp2);
         } while (*s != 0 && block[0] != 0);
+
         fputc(0, ofp2);
+        umsgs++; /* Now copy the text across */
     } while (*s != 0);
     FreeMem(data, datal);
     data = NULL;
@@ -2755,7 +2753,6 @@ syn_proc()
 void
 mob_proc1()
 {
-    char *p, *cur;
     long  n;
 
     fopenw(mobfn);
@@ -2763,18 +2760,18 @@ mob_proc1()
         return;
 
     blkget(&moblen, &mobdat, 0L);
-    p = mobdat;
+    const char *p = (char*)mobdat;
     repspc(mobdat);
 
     do {
-		checkErrorCount();
+        checkErrorCount();
 
         while (*p != 0 && *p != '!')
             p = skipline(p);
         if (*p == 0)
             break;
         p = extractLine(p, block);
-        cur = getword(block + 1);
+        const char *cur = getword(block + 1);
         strcpy(mob.id, Word);
         do {
             cur = skipspc(cur);
@@ -2797,7 +2794,7 @@ mob_proc1()
 
         p = extractLine(p, block);
         tidy(block);
-		cur = skipspc(block);
+        cur = skipspc(block);
         mob.dmove = -1;
 
         if (!canSkipLead("speed=", &cur)) {
