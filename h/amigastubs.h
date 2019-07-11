@@ -6,12 +6,14 @@
 #if defined(AMIGA)
 #    include <devices/timer.h>
 #else
-#    if !defined(_MSC_VER)
-#        define stricmp strcasecmp
-#    endif
 
 #    include <stdint.h>
 #    include <stdlib.h>
+#    include <strings.h>
+
+#    if !defined(_MSC_VER)
+#        define stricmp strcasecmp
+#    endif
 
 typedef uint16_t UWORD;
 typedef uint32_t ULONG;
