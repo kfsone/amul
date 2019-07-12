@@ -32,7 +32,6 @@
 
 #include "amulcom.h"
 
-#include "h/amulcom.h"
 #include "h/amul.alog.h" /* Logging */
 #include "h/amul.cons.h" /* Predefined Constants etc     */
 #include "h/amul.defs.h" /* Defines in one nice file     */
@@ -42,6 +41,7 @@
 #include "h/amul.test.h"
 #include "h/amul.vars.h" /* all INTERNAL variables       */
 #include "h/amul.xtra.h"
+#include "h/amulcom.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -55,26 +55,26 @@ bool verbose = false;
 bool checkDmoves = false;
 bool reuseRoomData = false;
 
-int   dmoves = 0;          /* How many DMOVEs to check?	*/
-int   rmn = 0;             /* Current room no.		*/
-long  titlePos = 0;        /* Position of the title text in title.txt */
-long  FPos;                /* Used during TT/Lang writes	*/
-char  Word[64];            /* For internal use only <grin>	*/
-int   errorCount;          /* Number of AL_ERRORs logged */
-int   proc;                /* What we are processing	*/
-long  startTime;           /* Bits for time etc		*/
-char *data;                /* Pointer to data buffer	*/
-char *data2;               /* Secondary buffer area	*/
-char *syntab;              /* Synonym table, re-read	*/
-char  idt[IDL + 1];        /* Temporary ID store		*/
-int   mins;                /* Game duration before reset */
-long  datal, datal2;       /* Length of data */
-long  obmem;               /* Size of Objects.TXT		*/
-long  vbmem;               /* Size of Lang.Txt		*/
-int   invis, invis2;       /* Invisibility Stuff		*/
-long  wizstr;              /* Wizards strength		*/
-char *mobdat, *px;         /* Mobile data			*/
-long  moblen;              /* Length			*/
+int   dmoves = 0;    /* How many DMOVEs to check?	*/
+int   rmn = 0;       /* Current room no.		*/
+long  titlePos = 0;  /* Position of the title text in title.txt */
+long  FPos;          /* Used during TT/Lang writes	*/
+char  Word[64];      /* For internal use only <grin>	*/
+int   errorCount;    /* Number of AL_ERRORs logged */
+int   proc;          /* What we are processing	*/
+long  startTime;     /* Bits for time etc		*/
+char *data;          /* Pointer to data buffer	*/
+char *data2;         /* Secondary buffer area	*/
+char *syntab;        /* Synonym table, re-read	*/
+char  idt[IDL + 1];  /* Temporary ID store		*/
+int   mins;          /* Game duration before reset */
+long  datal, datal2; /* Length of data */
+long  obmem;         /* Size of Objects.TXT		*/
+long  vbmem;         /* Size of Lang.Txt		*/
+int   invis, invis2; /* Invisibility Stuff		*/
+long  wizstr;        /* Wizards strength		*/
+char *mobdat, *px;   /* Mobile data			*/
+long  moblen;        /* Length			*/
 
 struct Task *mytask, *FindTask();
 
@@ -576,7 +576,8 @@ getNo(const char *prefix, const char *from)
 }
 
 void
-stripNewline(char *text) {
+stripNewline(char *text)
+{
     size_t len = strlen(text);
     while (len-- > 0 && (text[len] == '\n' || text[len] == '\r')) {
         text[len] = 0;
@@ -584,7 +585,7 @@ stripNewline(char *text) {
 }
 
 static void
-getBlock(const char *linetype, void(*callback)(const char *, const char *))
+getBlock(const char *linetype, void (*callback)(const char *, const char *))
 {
     for (;;) {
         if (!fgets(block, sizeof(block), ifp)) {
@@ -617,7 +618,7 @@ blockNoTrampoline(const char *prefix, const char *value)
 void
 getBlockNo(const char *prefix, int *into)
 {
-    //TODO: This is awful, use a context.
+    // TODO: This is awful, use a context.
     getBlock(prefix, blockNoTrampoline);
     *into = blockValue;
 }
@@ -673,13 +674,13 @@ text_id(const char *p, char c)
     *(end++) = '\n';
     if (*(end - 2) == '{') {
         p = end - 1;
-	} else {
+    } else {
         p = end;
-	}
+    }
 
-	char filename[256];
+    char filename[256];
     snprintf(filename, "%s%s", dir, obdsfn); /* Open output file */
-	FILE *fp = fopen(filename, "rb+");
+    FILE *fp = fopen(filename, "rb+");
     if ((fp = fopen(filename, "rb+")) == NULL)
         fatalOp("open", filename);
     fseek(fp, 0, 2L);
@@ -741,10 +742,10 @@ isloc(const char *s)
 const char *
 precon(const char *s)
 {
-	///TODO: use canSkipLead instead
+    /// TODO: use canSkipLead instead
     const char *s2 = s;
 
-	if ((s = skiplead("if ", s)) != s2) {
+    if ((s = skiplead("if ", s)) != s2) {
         s = skipspc(s);
         s2 = s;
     }
@@ -1320,7 +1321,8 @@ loop:
 ///////////////////////////////////////////////////////////////////////////////
 
 void
-_getAdventureName(const char *prefix, const char *value) {
+_getAdventureName(const char *prefix, const char *value)
+{
     strncpy(adname, value, sizeof(adname));
     if (strlen(value) > sizeof(adname) - 1)
         alog(AL_WARN, "Game name too long, truncated to: %s", adname);
@@ -1404,8 +1406,8 @@ smsg_proc()
         }
 
         long pos = ftell(ofp2);
-		if (valid)
-        	fwrite(&pos, 4, 1, ofp1);
+        if (valid)
+            fwrite(&pos, 4, 1, ofp1);
 
         do {
             while (com(s)) {
@@ -1859,7 +1861,7 @@ void
 objs_proc()
 {
     const char *p, *s;
-    int   roomno;
+    int         roomno;
 
     /* Clear files */
     fopenw(adjfn);
@@ -1991,9 +1993,9 @@ objs_proc()
 void
 trav_proc()
 {
-    int   strip, lines, nvbs, i, ntt, t, r;
+    int         strip, lines, nvbs, i, ntt, t, r;
     const char *p;
-    long *l;
+    long *      l;
 
     nextc(true); /* Move to first text */
     fopenw(ttfn);
@@ -2236,7 +2238,7 @@ lang_proc()
     blkget(&vbmem, (char **)&vbtab, 64 * (sizeof(verb)));
     vbptr = vbtab + 64;
     const char *s1 = (char *)vbptr;
-	const char *s2 = NULL;
+    const char *s2 = NULL;
     vbptr = vbtab;
     of2p = ftell(ofp2);
     of3p = ftell(ofp3);
@@ -2644,7 +2646,7 @@ umsg_proc()
     s = data;
 
     do {
-		checkErrorCount();
+        checkErrorCount();
 
         do
             s = extractLine(s, block);
@@ -2767,14 +2769,14 @@ syn_proc()
 void
 mob_proc1()
 {
-    long  n;
+    long n;
 
     fopenw(mobfn);
     if (!nextc(false))
         return;
 
     blkget(&moblen, &mobdat, 0L);
-    const char *p = (char*)mobdat;
+    const char *p = (char *)mobdat;
     repspc(mobdat);
 
     do {
@@ -2965,15 +2967,16 @@ checkFilesExist()
 }
 
 struct Context {
-    const char filename[512];
+    const char  filename[512];
     const char *start;
     const char *end;
     const char *cur;
-    size_t     lineNo;
+    size_t      lineNo;
     const char *lineStart;
 };
 
-struct Context *NewContext(const char *filename)
+struct Context *
+NewContext(const char *filename)
 {
     struct Context *context = calloc(sizeof(struct Context), 1);
     if (context == NULL) {

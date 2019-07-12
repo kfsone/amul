@@ -1,5 +1,5 @@
-#include "src/hashmap.h"
 #include "h/amul.test.h"
+#include "src/hashmap.h"
 
 // Test the get_string_hash function
 void
@@ -209,7 +209,8 @@ test_lookup_hash_value(struct TestContext *t)
     CloseHashMap(&map);
 }
 
-void test_hash_large_population(struct TestContext *t)
+void
+test_hash_large_population(struct TestContext *t)
 {
     // By "large", we expect at least one key to have 4+ entries.
 
@@ -220,7 +221,7 @@ void test_hash_large_population(struct TestContext *t)
     char key[MAX_HASH_KEY_SIZE];
     for (int i = 0; i < 256; ++i) {
         sprintf(key, "key%04d", i);
-        EXPECT_SUCCESS(AddToHash(map, key, i+1));
+        EXPECT_SUCCESS(AddToHash(map, key, i + 1));
     }
     EXPECT_EQUAL_VAL(256, GetMapSize(map));
 
@@ -239,7 +240,6 @@ void test_hash_large_population(struct TestContext *t)
 
     CloseHashMap(&map);
 }
-
 
 void
 hashmap_tests(struct TestContext *t)

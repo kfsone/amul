@@ -8,11 +8,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#if defined(DEBUG)
-extern size_t numTests;     // tests completed
-extern size_t numEvals;     // line items
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Function contracts -- errno style return values.
 
@@ -34,7 +29,7 @@ extern size_t numEvals;     // line items
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Unit testing macros
 
-#if defined(DEBUG)
+#if defined(_DEBUG)
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>

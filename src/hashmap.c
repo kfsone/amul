@@ -6,7 +6,7 @@
 hashval_t
 get_string_hash_and_len(const char *string, size_t *length)
 {
-    hashval_t hashval = 5381;
+    hashval_t   hashval = 5381;
     const char *p = string;
     while (*p) {
         hashval = (hashval << 5) + hashval + (hashval_t)tolower(*(p++));
@@ -157,8 +157,8 @@ LookupHashValue(const struct HashMap *map, const char *key, hash_value_t *into)
 {
     REQUIRE(map && key);
 
-    size_t             length = 0;
-    hashval_t          hashval = get_string_hash_and_len(key, &length);
+    size_t    length = 0;
+    hashval_t hashval = get_string_hash_and_len(key, &length);
     if (length > MAX_HASH_KEY_STRLEN) {
         return EINVAL;
     }

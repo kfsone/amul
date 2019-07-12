@@ -14,9 +14,10 @@ path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
     char *dst = into + offset;
     REQUIRE(dst < end);
 
-    while (offset > 1 && is_separator(into + offset - 1))
-        --offset;
-    bool slashed = offset > 0;
+    while (offset > 1 && is_separator(end - 1)) {
+        --dst;
+    }
+    bool slashed = offset > 0 && dst == into + offset;
 
     // only write single slashes, and only after seeing a
     // non-slash, so "////" => "" but "////a" => "/a"
@@ -30,6 +31,7 @@ path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
         if (slashed) {
             *(dst++) = '/';
             slashed = false;
+            continue;
         }
         *(dst++) = *(src++);
     }
@@ -62,9 +64,8 @@ path_join(char *into, size_t limit, const char *lhs, const char *rhs) {
     // Copy the left side of the path into the pathname so we have a mutable
     // storage
     REQUIRE(length > 0 && length < limit - 1);
-    into[length++] = '/';
     err = path_copy(into, limit, &length, rhs);
-    REQUIRE(err == 0);
+    REQUIRE(err == 0 && length < limit);
 
     return 0;
 }

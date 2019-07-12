@@ -9,9 +9,10 @@
 
 #    include <stdint.h>
 #    include <stdlib.h>
-#    include <strings.h>
+#    include <string.h>
 
 #    if !defined(_MSC_VER)
+#        include <strings.h>
 #        define stricmp strcasecmp
 #    endif
 
@@ -85,8 +86,10 @@ typedef struct Message {
 } Message;
 
 typedef struct Device {
+    int i;
 } Device;
 typedef struct Unit {
+    int i;
 } Unit;
 
 typedef struct IORequest {
