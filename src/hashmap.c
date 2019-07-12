@@ -20,13 +20,21 @@ typedef uint32_t hashval_t;
 
 // Calculates the "hash" of a string, based on djb2
 hashval_t
-get_string_hash(const char *string)
+get_string_hash_and_len(const char *string, size_t *length)
 {
     hashval_t hashval = 5381;
-    while (*string) {
-        hashval = (hashval << 5) + hashval + (hashval_t)tolower(*(string++));
+    const char *p = string;
+    while (*p) {
+        hashval = (hashval << 5) + hashval + (hashval_t)tolower(*(p++));
+    }
+    if (length) {
+        *length = p - string;
     }
     return hashval;
+}
+
+static inline hashval_t get_string_hash(const char *string) {
+    return get_string_hash_and_len(string, NULL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,22 +98,11 @@ CloseHashMap(struct HashMap **map)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// GetMapSize returns the number of keys currently in the map in O(1).
-//
-size_t
-GetMapSize(const struct HashMap *map)
-{
-    if (!map)
-        return 0;
-    return map->size;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // AddToHash attempts to add a new key:value into the map. Does not attempt to overwrite existing
 // values.
 //
 // Returns:
-//	EINVAL if map or key is NULL or if key is an empty string
+//	EINVAL if map or key is NULL or if key is an empty string or is too long
 //  ENOMEM if an allocation fails
 //  EEXISTS if the entry already exists
 //  0 if the entry was added
@@ -115,9 +112,13 @@ AddToHash(struct HashMap *map, const char *key, const hash_value_t value)
 {
     REQUIRE(map && key && *key);
 
-    hashval_t          hashval = get_string_hash(key);
+    size_t             length = 0;
+    hashval_t          hashval = get_string_hash_and_len(key, &length);
     size_t             bucketNo = hashval % map->capacity;
     struct HashBucket *bucket = map->buckets[bucketNo];
+    if (length > MAX_HASH_KEY_STRLEN) {
+        return EINVAL;
+    }
 
     struct HashNode *cursor = NULL;
     size_t           capacity = 0;
@@ -167,7 +168,7 @@ AddToHash(struct HashMap *map, const char *key, const hash_value_t value)
 // it, if found.
 //
 /// Returns
-//  EINVAL if map or key are NULL
+//  EINVAL if map or key are NULL, or the key is too long
 //	ENOENT if the key is not in the map
 //  0 on success and stores the value in *into if into is not NULL.
 //
@@ -176,7 +177,12 @@ LookupHashValue(const struct HashMap *map, const char *key, hash_value_t *into)
 {
     REQUIRE(map && key);
 
-    hashval_t          hashval = get_string_hash(key);
+    size_t             length = 0;
+    hashval_t          hashval = get_string_hash_and_len(key, &length);
+    if (length > MAX_HASH_KEY_STRLEN) {
+        return EINVAL;
+    }
+
     size_t             bucketNo = hashval % map->capacity;
     struct HashBucket *bucket = map->buckets[bucketNo];
     if (!bucket)
@@ -213,6 +219,13 @@ test_get_string_hash()
     EXPECT_EQUAL_VAL(3379623651, get_string_hash("$string_hash"));
     EXPECT_EQUAL_VAL(a_hash, get_string_hash("a"));
     EXPECT_EQUAL_VAL(3379623651, get_string_hash("$string_hash"));
+
+    size_t length = 0;
+    get_string_hash_and_len("a", &length);
+    EXPECT_EQUAL_VAL(1, length);
+
+    get_string_hash_and_len("1234567890123456789012345678901234567890", &length);
+    EXPECT_EQUAL_VAL(40, length);
 }
 
 void
@@ -260,6 +273,7 @@ test_add_to_hash()
     EXPECT_TRUE(map);
 
     EXPECT_EQUAL_VAL(EINVAL, AddToHash(map, NULL, 0));
+    EXPECT_EQUAL_VAL(EINVAL, AddToHash(map, "1234567890123456789012345678901234567890", 0));
 
     EXPECT_EQUAL_VAL(0, AddToHash(map, "hello", 101));
     EXPECT_EQUAL_VAL(1, map->size);
@@ -387,6 +401,40 @@ test_lookup_hash_value()
     EXPECT_EQUAL_VAL(101, value);
     EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "$rubber:duck!", NULL));
 
+    EXPECT_EQUAL_VAL(EINVAL, LookupHashValue(map, "1234567890123456789012345678901234567890", 0));
+    EXPECT_FALSE(HashContains(map, "1234567890123456789012345678901234567890"));
+
+    CloseHashMap(&map);
+}
+
+void test_hash_large_population()
+{
+    // By "large", we expect at least one key to have 4+ entries.
+
+    struct HashMap *map = NULL;
+    EXPECT_EQUAL_VAL(0, NewHashMap(16, &map));
+    EXPECT_TRUE(map);
+
+    char key[MAX_HASH_KEY_SIZE];
+    for (int i = 0; i < 256; ++i) {
+        sprintf(key, "key%04d", i);
+        EXPECT_EQUAL_VAL(0, AddToHash(map, key, i+1));
+    }
+    EXPECT_EQUAL_VAL(256, GetMapSize(map));
+
+    for (int i = 0; i < 256; ++i) {
+        sprintf(key, "key%04d", i);
+        EXPECT_TRUE(HashContains(map, key));
+    }
+    for (int i = 0; i < 256; ++i) {
+        sprintf(key, "%04d", i);
+        EXPECT_FALSE(HashContains(map, key));
+        sprintf(key, "notkey%04d", i);
+        EXPECT_FALSE(HashContains(map, key));
+        sprintf(key, "key%04d", i + 256);
+        EXPECT_FALSE(HashContains(map, key));
+    }
+
     CloseHashMap(&map);
 }
 
@@ -400,4 +448,6 @@ main()
     test_add_to_hash();
 
     test_lookup_hash_value();
+
+    test_hash_large_population();
 }
