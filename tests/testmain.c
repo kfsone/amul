@@ -26,5 +26,5 @@ main(int argc, const char **argv)
     printf("SUCCESS: %zu/%zu tests passed, %zu evaluations\n", context.passes, context.tests,
            context.lineItems);
 
-	return 0;
+    return 0;
 }
