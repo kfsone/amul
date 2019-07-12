@@ -1,5 +1,5 @@
-#ifndef H_AMUL_XTRA_H
-#define H_AMUL_XTRA_H 1
+#ifndef AMUL_H_AMUL_XTRA_H
+#define AMUL_H_AMUL_XTRA_H 1
 
 const char *extractLine(const char *from, char *to);
 const char *getword(const char *from);

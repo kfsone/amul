@@ -30,17 +30,23 @@
 
 #define COMPILER 1
 
+#include "amulcom.h"
+
 #include "h/amulcom.h"
 #include "h/amul.alog.h" /* Logging */
 #include "h/amul.cons.h" /* Predefined Constants etc     */
 #include "h/amul.defs.h" /* Defines in one nice file     */
+#include "h/amul.file.h"
 #include "h/amul.incs.h" /* Include files tidily stored. */
 #include "h/amul.lnks.h" /* (external) Linkage symbols   */
+#include "h/amul.test.h"
 #include "h/amul.vars.h" /* all INTERNAL variables       */
 #include "h/amul.xtra.h"
 
 #include <stdlib.h>
 #include <time.h>
+
+typedef int error_t;
 
 /* Compiler specific variables... */
 
@@ -593,6 +599,7 @@ getBlock(const char *linetype, void(*callback)(const char *, const char *))
 
         if (!canSkipLead(linetype, &p)) {
             alog(AL_FATAL, "Invalid title.txt:Expected '%s' got: %s", linetype, p);
+        }
 
         callback(linetype, p);
         break;
@@ -1274,12 +1281,6 @@ mobmis(const char *s)
 {
     alog(AL_ERROR, "Mobile: %s: missing field: %s", mob.id, s);
     skipblock();
-}
-
-int
-badmobend()
-{
-    return -1;
 }
 
 /* Fetch mobile message line */
@@ -2944,7 +2945,7 @@ argue(int argc, const char **argv)
     }
 }
 
-static void
+void
 checkFilesExist()
 {
     alog(AL_INFO, "Checking for files");
@@ -2961,6 +2962,29 @@ checkFilesExist()
     checkf("Syns.TXT");
     checkf("Mobiles.TXT");
     alog(AL_INFO, "All files found");
+}
+
+struct Context {
+    const char filename[512];
+    const char *start;
+    const char *end;
+    const char *cur;
+    size_t     lineNo;
+    const char *lineStart;
+};
+
+struct Context *NewContext(const char *filename)
+{
+    struct Context *context = calloc(sizeof(struct Context), 1);
+    if (context == NULL) {
+        alog(AL_FATAL, "Out of memory for context");
+    }
+
+    if (EINVAL == path_join(context->filename, sizeof(context->filename), dir, filename)) {
+        alog(AL_FATAL, "Path length exceeds limit for %s/%s", dir, filename);
+    }
+
+    return context;
 }
 
 void
@@ -3046,7 +3070,7 @@ compileGame()
 /*---------------------------------------------------------*/
 
 int
-main(int argc, const char **argv)
+amulcom_main(int argc, const char **argv)
 {
     sprintf(vername, "AMULCom v%d.%03d (%8s)", VERSION, REVISION, DATE);
     mytask = FindTask(0L);
@@ -3109,4 +3133,6 @@ main(int argc, const char **argv)
     exiting = true;
 
     quit();
+
+    return 0;
 }

@@ -1,9 +1,14 @@
 .vs
 .vscode
-bin
-lib
+build
 out
 **/*.o
 **/*.a
+**/*.lib
 **/*.amulc
-CMake*.json
+CMakeCache.txt
+CMakeFiles
+Makefile
+build.ninja
+cmake_install.cmake
+rules.ninja
