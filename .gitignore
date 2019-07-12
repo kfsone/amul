@@ -1,6 +1,9 @@
 .vs
 .vscode
 bin
+lib
 out
+**/*.o
+**/*.a
 **/*.amulc
 CMake*.json
