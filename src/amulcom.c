@@ -61,7 +61,8 @@ char *data;                /* Pointer to data buffer	*/
 char *data2;               /* Secondary buffer area	*/
 char *syntab;              /* Synonym table, re-read	*/
 char  idt[IDL + 1];        /* Temporary ID store		*/
-long  datal, datal2, mins; /* Length of data! & gametime	*/
+int   mins;                /* Game duration before reset */
+long  datal, datal2;       /* Length of data */
 long  obmem;               /* Size of Objects.TXT		*/
 long  vbmem;               /* Size of Lang.Txt		*/
 int   invis, invis2;       /* Invisibility Stuff		*/
@@ -558,21 +559,60 @@ isprep(const char *s)
     return -1;
 }
 
-int
-getno(const char *s)
+static int
+getNo(const char *prefix, const char *from)
 {
-    const char *p = skipspc(block);
-    p = skiplead(s, block);
-    if (!p) {
-        alog(AL_ERROR, "Missing %s entry", s);
-        return -1;
+    int result = 0;
+    if (sscanf(from, "%d", &result) != 1) {
+        alog(AL_FATAL, "Invalid '%s' entry: %s", prefix, from);
     }
-    p = getword(p);
-    if (!isdigit(Word[0])) {
-        alog(AL_ERROR, "Invalid %s entry", s);
-        return -1;
+    return result;
+}
+
+void
+stripNewline(char *text) {
+    size_t len = strlen(text);
+    while (len-- > 0 && (text[len] == '\n' || text[len] == '\r')) {
+        text[len] = 0;
     }
-    return atoi(Word);
+}
+
+static void
+getBlock(const char *linetype, void(*callback)(const char *, const char *))
+{
+    for (;;) {
+        if (!fgets(block, sizeof(block), ifp)) {
+            alog(AL_FATAL, "Invalid title.txt: Missing '%s' line", linetype);
+        }
+
+        repspc(block);
+        stripNewline(block);
+        const char *p = skipspc(block);
+        if (!*p || isCommentChar(*p))
+            continue;
+
+        if (!canSkipLead(linetype, &p)) {
+            alog(AL_FATAL, "Invalid title.txt:Expected '%s' got: %s", linetype, p);
+
+        callback(linetype, p);
+        break;
+    }
+}
+
+static int blockValue;
+
+void
+blockNoTrampoline(const char *prefix, const char *value)
+{
+    blockValue = getNo(prefix, value);
+}
+
+void
+getBlockNo(const char *prefix, int *into)
+{
+    //TODO: This is awful, use a context.
+    getBlock(prefix, blockNoTrampoline);
+    *into = blockValue;
 }
 
 bool
@@ -760,7 +800,7 @@ chknum(const char *p)
 }
 
 const char *
-optis(const char *p)
+skipOptionalPrefixes(const char *p)
 {
     p = skiplead("the ", p);
     p = skiplead("of ", p);
@@ -1084,34 +1124,30 @@ actualval(const char *s, int n)
 const char *
 chkp(const char *p, char t, int c, int z, FILE *fp)
 {
-    char qc;
-    long x;
+    int32_t x;
 
-    p = optis(p);
-    const char *p2 = (p = skipspc(p)); /* Strip crap out */
+    p = skipOptionalPrefixes(p);
     if (*p == 0) {
         alog(AL_FATAL, "%s '%s' has incomplete C&A line: (%s='%s')", (proc == 1) ? "Verb" : "Room",
              (proc == 1) ? verb.id : roomtab->id, (z == 1) ? "condition" : "action",
              (z == 1) ? conds[c] : acts[c]);
     }
-    if (*p != '\"' && *p != '\'')
-        while (*p != 32 && *p != 0)
-            p++;
-    else {
-        qc = *(p++); /* Search for same CLOSE quote */
-        while (*p != 0 && *p != qc)
-            p++;
+    const char *end = NULL;
+    if (*p != '\"' && *p != '\'') {
+        end = strstop(p, ' ');
+    } else {
+        end = strstop(p + 1, *p);
     }
-    if (*p != 0)
-        *p = 0;
-    else
-        *(p + 1) = 0;
+    char token[(end + 1) - p];
+    strncpy(token, p, end - p);
+    token[end - p] = 0;
+
     /* Processing lang tab? */
     if ((t >= 0 && t <= 10) || t == -70) {
-        x = actualval(p2, t);
+        x = actualval(token, t);
         if (x == -1) {
             /* it was an actual, but wrong type */
-            alog(AL_ERROR, "Invalid slot label, '%s', after %s '%s' in verb '%s'", p2,
+            alog(AL_ERROR, "Invalid slot label, '%s', after %s '%s' in verb '%s'", token,
                  (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c], verb.id);
             return NULL;
         }
@@ -1119,25 +1155,25 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
             goto write;
     }
     switch (t) {
-    case -6: x = onoff(p2); break;
-    case -5: x = bvmode(toupper(*p2)); break;
-    case -4: x = stat(p2); break;
-    case -3: x = spell(p2); break;
-    case -2: x = rdmode(toupper(*p2)); break;
-    case -1: x = antype(p2); break;
-    case PROOM: x = isroom(p2); break;
-    case PVERB: x = is_verb(p2); break;
+    case -6: x = onoff(token); break;
+    case -5: x = bvmode(toupper(*token)); break;
+    case -4: x = stat(token); break;
+    case -3: x = spell(token); break;
+    case -2: x = rdmode(toupper(*token)); break;
+    case -1: x = antype(token); break;
+    case PROOM: x = isroom(token); break;
+    case PVERB: x = is_verb(token); break;
     case PADJ: break;
     case -70:
-    case PNOUN: x = isnounh(p2); break;
-    case PUMSG: x = ttumsgchk(p2); break;
-    case PNUM: x = chknum(p2); break;
-    case PRFLAG: x = isrflag(p2); break;
-    case POFLAG: x = isoflag1(p2); break;
-    case PSFLAG: x = isoflag2(p2); break;
-    case PSEX: x = isgen(toupper(*p2)); break;
+    case PNOUN: x = isnounh(token); break;
+    case PUMSG: x = ttumsgchk(token); break;
+    case PNUM: x = chknum(token); break;
+    case PRFLAG: x = isrflag(token); break;
+    case POFLAG: x = isoflag1(token); break;
+    case PSFLAG: x = isoflag2(token); break;
+    case PSEX: x = isgen(toupper(*token)); break;
     case PDAEMON:
-        if ((x = is_verb(p2)) == -1 || *p2 != '.')
+        if ((x = is_verb(token)) == -1 || *token != '.')
             x = -1;
         break;
     default: {
@@ -1151,16 +1187,14 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
     if (t == -70 && x == -2)
         x = -1;
     else if (((x == -1 || x == -2) && t != PNUM) || x == -1000001) {
-        alog(AL_ERROR, "Invalid parameter '%s' after %s '%s' in %s '%s'", p2,
+        alog(AL_ERROR, "Invalid parameter '%s' after %s '%s' in %s '%s'", token,
              (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c],
              (proc == 1) ? "verb" : "room", (proc == 1) ? (verb.id) : (rmtab + rmn)->id);
         return NULL;
     }
 write:
-    fwrite(&x, 4, 1, fp);
-    FPos += 4; /* Writes a LONG */
-    *p = 32;
-    return skipspc(p);
+    FPos += fwrite(&x, sizeof(x), 1, fp);
+    return skipspc(p + 1);
 }
 
 const char *
@@ -1285,52 +1319,31 @@ loop:
 ///////////////////////////////////////////////////////////////////////////////
 
 void
+_getAdventureName(const char *prefix, const char *value) {
+    strncpy(adname, value, sizeof(adname));
+    if (strlen(value) > sizeof(adname) - 1)
+        alog(AL_WARN, "Game name too long, truncated to: %s", adname);
+}
+
+void
 title_proc()
 {
     nextc(true);
-    fgets(block, 1000, ifp);
-    repspc(block);
-    const char *p = block;
-    if (!canSkipLead("name=", &p)) {
-        alog(AL_FATAL, "Invalid title.txt: missing name= line");
-    }
-    int length = strlen(p);
-	block[p - block + length - 1] = 0;	// trim newline
-    if (length > 40) {
-        *(p + 40) = 0;
-        alog(AL_WARN, "Game name too long: truncate to %s", block);
-    }
-    strcpy(adname, block);
-    fgets(block, 1000, ifp);
-    repspc(block);
-    mins = getno("gametime=");
+
+    getBlock("name=", _getAdventureName);
+    getBlockNo("gametime=", &mins);
     if (mins < 15) {
         mins = 15;
-        alog(AL_WARN, "Game time too short, falling back to %d minutes", mins);
+        alog(AL_WARN, "gametime= too short: falling back to %d minutes", mins);
     }
 
-    fgets(block, 1000, ifp);
-    repspc(block);
-    p = block;
-    if (!canSkipLead("invisible=", &p)) {
-        alog(AL_FATAL, "Missing invisible= line");
-    }
-    int reads = sscanf(p, "%d %d", &invis, &invis2);
-    if (reads != 2) {
-        alog(AL_ERROR, "Invalid invisible= line: %s", block);
-    }
+    getBlockNo("invisible=", &invis);
+    getBlockNo("super invisible=", &invis2);
 
-    fgets(block, 1000, ifp);
-    repspc(block);
-    minsgo = getno("min sgo=");
+    getBlockNo("min sgo=", &minsgo);
 
-    /* Get the Scaleing line. */
-    fgets(block, 1000, ifp);
-    repspc(block);
-    rscale = getno("rankscale="); /* Process RankScale= */
-    fgets(block, 1000, ifp);
-    repspc(block);
-    tscale = getno("timescale="); /* Process TimeScale= */
+    getBlockNo("rankscale=", &rscale);
+    getBlockNo("rankscale=", &tscale);
 
     titlePos = ftell(ifp);
 }
