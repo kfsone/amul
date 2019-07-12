@@ -1698,7 +1698,7 @@ obds_proc()
         alog(AL_INFO, "No long object descriptions");
         return;
     }
-    fopenw("-ram:ODIDs");
+    fopenw("ram:ODIDs");
     fopenw(obdsfn);
     char c;
     do {
@@ -2624,7 +2624,7 @@ umsg_proc()
     char *s;
 
     umsgs = 0;
-    fopenw("-ram:umsg.tmp");
+    fopenw("ram:umsg.tmp");
     close_ofps();
     fopena(umsgifn);
     ofp1 = afp;
@@ -2634,7 +2634,7 @@ umsg_proc()
     ofp2 = afp;
     afp = NULL;
     fseek(ofp2, 0, 2L);
-    fopena("-ram:umsg.tmp");
+    fopena("ram:umsg.tmp");
     if (!nextc(false)) {
         /// TODO: Tell the user
         return;
