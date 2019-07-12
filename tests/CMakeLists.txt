@@ -2,6 +2,7 @@ SET(TESTS_SOURCES
     testmain.c
 
     hashmap_test.c
+    filesystem_test.c
 )
 
 SET(TESTS_HEADERS

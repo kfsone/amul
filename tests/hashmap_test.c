@@ -3,7 +3,7 @@
 
 // Test the get_string_hash function
 void
-test_get_string_hash()
+test_get_string_hash(struct TestContext *t)
 {
     // The hash for a should be the seed (5381) << 5 plus itself and the ascii for a
     hashval_t a_hash = (5381 << 5) + 5381 + 'a';
@@ -31,29 +31,29 @@ test_get_string_hash()
 }
 
 void
-test_new_hash_map()
+test_new_hash_map(struct TestContext *t)
 {
     struct HashMap *ptr = NULL;
     // check for einval until we request 4 buckets
     EXPECT_EQUAL_VAL(EINVAL, NewHashMap(0, &ptr));
-    EXPECT_FALSE(ptr);
+    EXPECT_NULL(ptr);
     EXPECT_EQUAL_VAL(EINVAL, NewHashMap(1, &ptr));
-    EXPECT_FALSE(ptr);
+    EXPECT_NULL(ptr);
     EXPECT_EQUAL_VAL(EINVAL, NewHashMap(2, &ptr));
-    EXPECT_FALSE(ptr);
+    EXPECT_NULL(ptr);
     EXPECT_EQUAL_VAL(EINVAL, NewHashMap(3, &ptr));
-    EXPECT_FALSE(ptr);
+    EXPECT_NULL(ptr);
 
     // should still get einval at 4 if ptr is NULL
     EXPECT_EQUAL_VAL(EINVAL, NewHashMap(4, NULL));
-    EXPECT_FALSE(ptr);
+    EXPECT_NULL(ptr);
 
     // and requesting a non^2 size should give EDOM
     EXPECT_EQUAL_VAL(EDOM, NewHashMap(15, &ptr));
 
     // asking for 4 should get us a map of 4 buckets
-    EXPECT_EQUAL_VAL(0, NewHashMap(4, &ptr));
-    EXPECT_TRUE(ptr);
+    EXPECT_SUCCESS(NewHashMap(4, &ptr));
+    EXPECT_NOT_NULL(ptr);
     EXPECT_EQUAL_VAL(4, ptr->capacity);
     EXPECT_EQUAL_VAL(0, ptr->size);
     EXPECT_EQUAL_PTR(NULL, ptr->buckets[0]);
@@ -61,23 +61,23 @@ test_new_hash_map()
     EXPECT_EQUAL_PTR(NULL, ptr->buckets[2]);
     EXPECT_EQUAL_PTR(NULL, ptr->buckets[3]);
 
-    EXPECT_EQUAL_VAL(0, CloseHashMap(&ptr));
-    EXPECT_FALSE(ptr);
+    EXPECT_SUCCESS(CloseHashMap(&ptr));
+    EXPECT_NULL(ptr);
 }
 
 void
-test_add_to_hash()
+test_add_to_hash(struct TestContext *t)
 {
     EXPECT_EQUAL_VAL(EINVAL, AddToHash(NULL, NULL, 0));
 
     struct HashMap *map = NULL;
-    EXPECT_EQUAL_VAL(0, NewHashMap(4, &map));
-    EXPECT_TRUE(map);
+    EXPECT_SUCCESS(NewHashMap(4, &map));
+    EXPECT_NOT_NULL(map);
 
     EXPECT_EQUAL_VAL(EINVAL, AddToHash(map, NULL, 0));
     EXPECT_EQUAL_VAL(EINVAL, AddToHash(map, "1234567890123456789012345678901234567890", 0));
 
-    EXPECT_EQUAL_VAL(0, AddToHash(map, "hello", 101));
+    EXPECT_SUCCESS(AddToHash(map, "hello", 101));
     EXPECT_EQUAL_VAL(1, map->size);
 
     hashval_t helloHash = get_string_hash("hello");
@@ -85,24 +85,24 @@ test_add_to_hash()
     // Based on the expected hash for hello it should go in
     // bucket #1
     EXPECT_EQUAL_VAL(1, hashBucket);
-    EXPECT_FALSE(map->buckets[0]);
-    EXPECT_TRUE(map->buckets[1]);
-    EXPECT_FALSE(map->buckets[2]);
-    EXPECT_FALSE(map->buckets[3]);
+    EXPECT_NULL(map->buckets[0]);
+    EXPECT_NOT_NULL(map->buckets[1]);
+    EXPECT_NULL(map->buckets[2]);
+    EXPECT_NULL(map->buckets[3]);
     EXPECT_EQUAL_VAL(1, map->buckets[1]->capacity);
-    EXPECT_TRUE(map->buckets[1]->nodes);
-    EXPECT_EQUAL_VAL(0, strcmp(map->buckets[1]->nodes[0].key, "hello"));
+    EXPECT_NOT_NULL(map->buckets[1]->nodes);
+    EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[0].key, "hello"));
     EXPECT_EQUAL_VAL(101, map->buckets[1]->nodes[0].value);
 
     EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "hello", 101));
     EXPECT_EQUAL_VAL(1, map->size);
-    EXPECT_FALSE(map->buckets[0]);
-    EXPECT_TRUE(map->buckets[1]);
-    EXPECT_FALSE(map->buckets[2]);
-    EXPECT_FALSE(map->buckets[3]);
+    EXPECT_NULL(map->buckets[0]);
+    EXPECT_NOT_NULL(map->buckets[1]);
+    EXPECT_NULL(map->buckets[2]);
+    EXPECT_NULL(map->buckets[3]);
     EXPECT_EQUAL_VAL(1, map->buckets[1]->capacity);
-    EXPECT_TRUE(map->buckets[1]->nodes);
-    EXPECT_EQUAL_VAL(0, strcmp(map->buckets[1]->nodes[0].key, "hello"));
+    EXPECT_NOT_NULL(map->buckets[1]->nodes);
+    EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[0].key, "hello"));
     EXPECT_EQUAL_VAL(101, map->buckets[1]->nodes[0].value);
 
     // Another string that should go into bucket 1 to
@@ -110,18 +110,18 @@ test_add_to_hash()
     hashval_t fooHash = get_string_hash("foo");
     size_t    fooBucket = fooHash % 4;
     EXPECT_EQUAL_VAL(1, fooBucket);
-    EXPECT_EQUAL_VAL(0, AddToHash(map, "foo", 102));
+    EXPECT_SUCCESS(AddToHash(map, "foo", 102));
     EXPECT_EQUAL_VAL(2, map->size);
-    EXPECT_FALSE(map->buckets[0]);
-    EXPECT_TRUE(map->buckets[1]);
-    EXPECT_FALSE(map->buckets[2]);
-    EXPECT_FALSE(map->buckets[3]);
+    EXPECT_NULL(map->buckets[0]);
+    EXPECT_NOT_NULL(map->buckets[1]);
+    EXPECT_NULL(map->buckets[2]);
+    EXPECT_NULL(map->buckets[3]);
 
     EXPECT_EQUAL_VAL(4, map->buckets[1]->capacity);
-    EXPECT_TRUE(map->buckets[1]->nodes);
-    EXPECT_EQUAL_VAL(0, strcmp(map->buckets[1]->nodes[0].key, "hello"));
+    EXPECT_NOT_NULL(map->buckets[1]->nodes);
+    EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[0].key, "hello"));
     EXPECT_EQUAL_VAL(101, map->buckets[1]->nodes[0].value);
-    EXPECT_EQUAL_VAL(0, strcmp(map->buckets[1]->nodes[1].key, "foo"));
+    EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[1].key, "foo"));
     EXPECT_EQUAL_VAL(102, map->buckets[1]->nodes[1].value);
 
     EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "hello", 0));
@@ -133,22 +133,22 @@ test_add_to_hash()
     size_t    aBucket = aHash % map->capacity;
     EXPECT_EQUAL_VAL(2, aBucket);
 
-    EXPECT_EQUAL_VAL(0, AddToHash(map, "a", 999));
+    EXPECT_SUCCESS(AddToHash(map, "a", 999));
     EXPECT_EQUAL_VAL(3, map->size);
-    EXPECT_FALSE(map->buckets[0]);
-    EXPECT_TRUE(map->buckets[1]);
-    EXPECT_TRUE(map->buckets[2]);
-    EXPECT_FALSE(map->buckets[3]);
+    EXPECT_NULL(map->buckets[0]);
+    EXPECT_NOT_NULL(map->buckets[1]);
+    EXPECT_NOT_NULL(map->buckets[2]);
+    EXPECT_NULL(map->buckets[3]);
 
-    EXPECT_TRUE(map->buckets[2]->nodes);
-    EXPECT_EQUAL_VAL(0, strcmp(map->buckets[2]->nodes[0].key, "a"));
+    EXPECT_NOT_NULL(map->buckets[2]->nodes);
+    EXPECT_SUCCESS(strcmp(map->buckets[2]->nodes[0].key, "a"));
     EXPECT_EQUAL_VAL(999, map->buckets[2]->nodes[0].value);
 
     EXPECT_EQUAL_VAL(4, map->buckets[1]->capacity);
-    EXPECT_TRUE(map->buckets[1]->nodes);
-    EXPECT_EQUAL_VAL(0, strcmp(map->buckets[1]->nodes[0].key, "hello"));
+    EXPECT_NOT_NULL(map->buckets[1]->nodes);
+    EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[0].key, "hello"));
     EXPECT_EQUAL_VAL(101, map->buckets[1]->nodes[0].value);
-    EXPECT_EQUAL_VAL(0, strcmp(map->buckets[1]->nodes[1].key, "foo"));
+    EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[1].key, "foo"));
     EXPECT_EQUAL_VAL(102, map->buckets[1]->nodes[1].value);
 
     EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "hello", 0));
@@ -159,14 +159,14 @@ test_add_to_hash()
 }
 
 void
-test_lookup_hash_value()
+test_lookup_hash_value(struct TestContext *t)
 {
     // Sanity check sanity checking.
     EXPECT_EQUAL_VAL(EINVAL, LookupHashValue(NULL, NULL, NULL));
 
     struct HashMap *map = NULL;
-    EXPECT_EQUAL_VAL(0, NewHashMap(4, &map));
-    EXPECT_TRUE(map);
+    EXPECT_SUCCESS(NewHashMap(4, &map));
+    EXPECT_NOT_NULL(map);
 
     EXPECT_EQUAL_VAL(EINVAL, LookupHashValue(map, NULL, NULL));
 
@@ -180,26 +180,26 @@ test_lookup_hash_value()
     EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "$rubber:duck!", NULL));
 
     // Add something
-    EXPECT_EQUAL_VAL(0, AddToHash(map, "hello", 101));
+    EXPECT_SUCCESS(AddToHash(map, "hello", 101));
 
     // Check it should be the only thing that returns a value, and
     // we expect to see the correct value
     EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "", NULL));
     EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "abc", NULL));
-    EXPECT_EQUAL_VAL(0, LookupHashValue(map, "hello", NULL));
-    EXPECT_EQUAL_VAL(0, LookupHashValue(map, "hello", &value));
+    EXPECT_SUCCESS(LookupHashValue(map, "hello", NULL));
+    EXPECT_SUCCESS(LookupHashValue(map, "hello", &value));
     EXPECT_EQUAL_VAL(101, value);
     EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "$rubber:duck!", NULL));
 
     // Add some more keys
-    EXPECT_EQUAL_VAL(0, AddToHash(map, "fish", 103));
-    EXPECT_EQUAL_VAL(0, AddToHash(map, "abc", 102));
+    EXPECT_SUCCESS(AddToHash(map, "fish", 103));
+    EXPECT_SUCCESS(AddToHash(map, "abc", 102));
 
     // And things should still be good
     EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "", NULL));
-    EXPECT_EQUAL_VAL(0, LookupHashValue(map, "abc", &value));
+    EXPECT_SUCCESS(LookupHashValue(map, "abc", &value));
     EXPECT_EQUAL_VAL(102, value);
-    EXPECT_EQUAL_VAL(0, LookupHashValue(map, "hello", &value));
+    EXPECT_SUCCESS(LookupHashValue(map, "hello", &value));
     EXPECT_EQUAL_VAL(101, value);
     EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "$rubber:duck!", NULL));
 
@@ -209,18 +209,18 @@ test_lookup_hash_value()
     CloseHashMap(&map);
 }
 
-void test_hash_large_population()
+void test_hash_large_population(struct TestContext *t)
 {
     // By "large", we expect at least one key to have 4+ entries.
 
     struct HashMap *map = NULL;
-    EXPECT_EQUAL_VAL(0, NewHashMap(16, &map));
-    EXPECT_TRUE(map);
+    EXPECT_SUCCESS(NewHashMap(16, &map));
+    EXPECT_NOT_NULL(map);
 
     char key[MAX_HASH_KEY_SIZE];
     for (int i = 0; i < 256; ++i) {
         sprintf(key, "key%04d", i);
-        EXPECT_EQUAL_VAL(0, AddToHash(map, key, i+1));
+        EXPECT_SUCCESS(AddToHash(map, key, i+1));
     }
     EXPECT_EQUAL_VAL(256, GetMapSize(map));
 
@@ -242,10 +242,10 @@ void test_hash_large_population()
 
 
 void
-hashmap_tests(int argc, const char** argv)
+hashmap_tests(struct TestContext *t)
 {
-    test_get_string_hash();
-    test_new_hash_map();
-    test_add_to_hash();
-    test_lookup_hash_value();
+    RUN_TEST(test_get_string_hash);
+    RUN_TEST(test_new_hash_map);
+    RUN_TEST(test_add_to_hash);
+    RUN_TEST(test_lookup_hash_value);
 }
