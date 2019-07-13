@@ -6,6 +6,7 @@
  */
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,6 +49,10 @@ struct TestContext {
 
 typedef void(test_harness_fn)(struct TestContext *t);
 
+#    define LPRINTF(fmt, ...)                                                                      \
+        fprintf(stderr, "\n%s:%d: error:%s: " fmt "\n", __FILE__, __LINE__, t->step, __VA_ARGS__); \
+        fflush(stderr)
+
 #    define RUN_TEST(fn)                                                                           \
         do {                                                                                       \
             t->tests++;                                                                            \
@@ -60,99 +65,86 @@ typedef void(test_harness_fn)(struct TestContext *t);
         if ((expected) == (actual)) {                                                              \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #actual " expecting error#%d but got %d\n", __FILE__,     \
-                   __LINE__, t->step, expected, actual);                                           \
-            fflush(stdout);                                                                        \
-            assert(expected == actual);                                                            \
+            LPRINTF(#actual " expecting error#%d; got %d", (expected), (actual));                  \
+            assert((expected) == (actual));                                                        \
         }
 
 #    define EXPECT_SUCCESS(actual)                                                                 \
         if ((0) == (actual)) {                                                                     \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #actual " expecting success but got error#%d\n",          \
-                   __FILE__, __LINE__, t->step, actual);                                           \
-            fflush(stdout);                                                                        \
-            assert(0 == actual);                                                                   \
+            LPRINTF(#actual " expecting SUCCESS; got error#%d", (actual));                         \
+            assert(0 == (actual));                                                                 \
         }
 
-#    define EXPECT_EQUAL_VAL(expected, actual)                                                     \
+#    define EXPECT_VAL_EQUAL(expected, actual)                                                     \
         if ((expected) == (actual)) {                                                              \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #actual " expecting %lu but got %lu\n", __FILE__,         \
-                   __LINE__, t->step, (uint64_t)expected, (uint64_t)actual);                       \
-            fflush(stdout);                                                                        \
-            assert(expected == actual);                                                            \
+            LPRINTF(#actual " expecting %" PRId64 "; got %" PRId64, (int64_t)(expected),           \
+                    (int64_t)(actual));                                                            \
+            assert((expected) == (actual));                                                        \
         }
 
-#    define EXPECT_EQUAL_PTR(expected, actual)                                                     \
+#    define EXPECT_PTR_EQUAL(expected, actual)                                                     \
         if ((void *)(expected) == (void *)(actual)) {                                              \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #actual " expecting %p but got %p\n", __FILE__, __LINE__, \
-                   t->step, (void *)expected, (void *)actual);                                     \
-            fflush(stdout);                                                                        \
-            assert(expected == actual);                                                            \
+            LPRINTF(#actual " expecting %p; got %p", (void *)(expected), (void *)(actual));        \
+            assert((expected) == (actual));                                                        \
         }
 
-#    define EXPECT_NOT_NULL(value)                                                                 \
-        if (value) {                                                                               \
+#    define EXPECT_NOT_NULL(actual)                                                                \
+        if ((actual)) {                                                                            \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #value " expected not-null.\n", __FILE__, __LINE__,       \
-                   t->step);                                                                       \
-            fflush(stdout);                                                                        \
-            assert(value);                                                                         \
+            LPRINTF(#actual " expecting !NULL; got NULL");                                         \
+            assert((actual));                                                                      \
         }
 
-#    define EXPECT_NULL(value)                                                                     \
-        if (!(value)) {                                                                            \
+#    define EXPECT_NULL(actual)                                                                    \
+        if (!(actual)) {                                                                           \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #value " expected null, got %p\n", __FILE__, __LINE__,    \
-                   t->step, (void *)value);                                                        \
-            fflush(stdout);                                                                        \
-            assert(value);                                                                         \
+            LPRINTF(#actual " expecting NULL; got %p", (void *)(actual));                          \
+            assert((actual));                                                                      \
         }
 
-#    define EXPECT_TRUE(value)                                                                     \
-        if (value) {                                                                               \
+#    define EXPECT_TRUE(actual)                                                                    \
+        if ((actual)) {                                                                            \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #value " expected true, got false\n", __FILE__, __LINE__, \
-                   t->step);                                                                       \
-            fflush(stdout);                                                                        \
-            assert(value);                                                                         \
+            LPRINTF(#actual " expecting true; got false");                                         \
+            assert((actual));                                                                      \
         }
 
-#    define EXPECT_FALSE(value)                                                                    \
-        if (!(value)) {                                                                            \
+#    define EXPECT_FALSE(actual)                                                                   \
+        if (!(actual)) {                                                                           \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #value " expected false, got %lu\n", __FILE__, __LINE__,  \
-                   t->step, (uint64_t)value);                                                      \
-            fflush(stdout);                                                                        \
-            assert(value);                                                                         \
+            LPRINTF(#actual " expecting false; got %" PRId64, (int64_t)(actual));                  \
+            assert((actual));                                                                      \
         }
 
-#    define EXPECT_EQUAL_STR(expected, actual)                                                     \
+#    define EXPECT_STR_EQUAL(expected, actual)                                                     \
         if (strcmp(expected, actual) == 0) {                                                       \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #actual " expected '%s', got '%s'\n", __FILE__, __LINE__, \
-                   t->step, expected, actual);                                                     \
-            fflush(stdout);                                                                        \
+            LPRINTF(#actual " expecting '%s'; got '%s'", (expected), (actual));                    \
             assert(strcmp(expected, actual) == 0);                                                 \
         }
 
 #else
 
 #    define EXPECT_ERROR(...)
-#    define EXPECT_EQUAL_VAL(...)
-#    define EXPECT_EQUAL_PTR(...)
+#    define EXPECT_SUCCESS(...)
+#    define EXPECT_VAL_EQUAL(...)
+#    define EXPECT_PTR_EQUAL(...)
 #    define EXPECT_TRUE(...)
 #    define EXPECT_FALSE(...)
+#    define EXPECT_NOT_NULL(...)
+#    define EXPECT_NULL(...)
+#    define EXPECT_STR_EQUAL(...)
 #endif
 
 #endif

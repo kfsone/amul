@@ -8,13 +8,13 @@ test_path_copy(struct TestContext *t)
 {
     char into[64] = {0};
     EXPECT_SUCCESS(path_copy(into, sizeof(into), NULL, "abcdefg"));
-    EXPECT_EQUAL_STR("abcdefg", into);
+    EXPECT_STR_EQUAL("abcdefg", into);
     EXPECT_SUCCESS(path_copy(into, sizeof(into), NULL, "/abcdefg"));
-    EXPECT_EQUAL_STR("/abcdefg", into);
+    EXPECT_STR_EQUAL("/abcdefg", into);
     EXPECT_SUCCESS(path_copy(into, sizeof(into), NULL, "\\abcdefg"));
-    EXPECT_EQUAL_STR("/abcdefg", into);
+    EXPECT_STR_EQUAL("/abcdefg", into);
     EXPECT_SUCCESS(path_copy(into, sizeof(into), NULL, "///\\\\abcdefg"));
-    EXPECT_EQUAL_STR("/abcdefg", into);
+    EXPECT_STR_EQUAL("/abcdefg", into);
 }
 
 void
@@ -23,16 +23,16 @@ test_path_copy_offset(struct TestContext *t)
     char   into[64] = {0};
     size_t offset = 0;
     EXPECT_SUCCESS(path_copy(into, sizeof(into), &offset, "///\\\\abcdefg"));
-    EXPECT_EQUAL_STR("/abcdefg", into);
-    EXPECT_EQUAL_VAL(8, offset);
+    EXPECT_STR_EQUAL("/abcdefg", into);
+    EXPECT_VAL_EQUAL(8, offset);
 
     offset = 2;
     EXPECT_SUCCESS(path_copy(into, sizeof(into), &offset, "fred"));
-    EXPECT_EQUAL_VAL(7, offset);
-    EXPECT_EQUAL_STR("/a/fred", into);
+    EXPECT_VAL_EQUAL(7, offset);
+    EXPECT_STR_EQUAL("/a/fred", into);
 
     EXPECT_SUCCESS(path_copy(into, sizeof(into), &offset, "/"));
-    EXPECT_EQUAL_VAL(7, offset);
+    EXPECT_VAL_EQUAL(7, offset);
 }
 
 void
@@ -41,7 +41,7 @@ test_path_join(struct TestContext *t)
     char into[64];
 
     EXPECT_SUCCESS(path_join(into, sizeof(into), "/\\////a//\\////", "\\//b\\//"));
-    EXPECT_EQUAL_STR("/a/b", into);
+    EXPECT_STR_EQUAL("/a/b", into);
 }
 
 void
@@ -57,15 +57,15 @@ test_path_join_constraints(struct TestContext *t)
     EXPECT_ERROR(EINVAL, path_join(into, 3, ".", "a"));
 
     EXPECT_SUCCESS(path_join(into, sizeof(into), ".", "a"));
-    EXPECT_EQUAL_STR(into, "./a");
+    EXPECT_STR_EQUAL(into, "./a");
     EXPECT_SUCCESS(path_join(into, 4, ".", "a"));
     EXPECT_SUCCESS(path_join(into, 4, ".//", "a"));
     EXPECT_SUCCESS(path_join(into, 4, ".///////////////////", "a"));
     EXPECT_SUCCESS(path_join(into, 4, ".//", "////a"));
-    EXPECT_EQUAL_STR("./a", into);
+    EXPECT_STR_EQUAL("./a", into);
 
 	EXPECT_SUCCESS(path_join(into, sizeof(into), "\\\\////\\\\//\\//a\\//b\\////\\c", "//////d////\\\\\\e//"));
-    EXPECT_EQUAL_STR(into, "/a/b/c/d/e");
+    EXPECT_STR_EQUAL(into, "/a/b/c/d/e");
 }
 
 void

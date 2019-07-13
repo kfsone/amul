@@ -2890,7 +2890,7 @@ amulcom_main(int argc, const char **argv)
     fopenw(advfn);
     time_t startTime = time(NULL);
     fprintf(ofp1, "%s\n", gameName);
-    fprintf(ofp1, "%lu ", startTime);
+    fprintf(ofp1, "%" PRIu64 " ", (uint64_t)startTime);
     fprintf(ofp1, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", rooms, ranks, verbs, syns, nouns,
             adjs, ttents, mins, invis, invis2, minsgo, mobs, rscale, tscale, mobchars);
 
