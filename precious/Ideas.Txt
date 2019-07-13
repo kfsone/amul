@@ -1,0 +1,8 @@
+
+Oli's ideas for precious:
+
+ * daemon to make people fall asleep when they enter GWOODN if they stop too
+   long.
+ * 'halucinate' command for masters to make other players think they are
+   seeing things.
+ * 'ignite' magic command to allow players to light something magically.

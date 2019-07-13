@@ -1,0 +1,94 @@
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ "Precious" User-Guide                                                 Page 01
+
+
+
+                          ==========================
+                          P R E C I O U S    D A Y S
+                          ==========================
+
+                    --------------------------------------
+                    Multi-User Role-Playing/Adventure Game
+                       Copyright (C) Oliver Smith, 1991
+                    For Jon Witty/MetNet Triangle BBS ONLY
+                    --------------------------------------
+
+
+
+
+
+ "Precious Days" refers to all elements which combine to form a computerised
+ game including locations, objects and vocabulary.
+ "Precious" is an abbreviation for "Precious Days".
+ "AMUL" refers to the computer-language in which Precious Days is written.
+ "Oliver Smith" is the name of the author of AMUL and Precious.
+ "MetNet Triangle" is the name of a Bulletin-Board System operated by
+ "Jon Witty" to whom PRECIOUS DAYS is licensed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ "Precious" User-Guide                                                 Page 01
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ "Precious" User-Guide                                                 Page 02 -> 128
+
+
+                   Section #01  --  What IS Precious Days?
+
+
+ Most computer users have experienced "An Adventure Game"! The age old relic
+ from those days when "Taking A Degree In Computer Science" and "Playing A
+ Computer Game" received pretty much the same degree of respect.
+
+ An adventure game has the computer depict or describe a series of 'locations'
+ which together form a 'world'. This was done originally using text only, and
+ later using smart graphics. It was possible for the player to 'move' between
+ these locations and perform various 'actions' in different places. This was
+ done by giving the game commands, entered through part of the games program
+ known as the 'parser'. Unlike 'Shoot-Em-Up' games, an adventure is controlled
+ by entering your 'commands' in something-like English text. So if you typed
+
+	Throw Up
+
+ the computer might have responed with "You throw up all over the carpet."
+ (but only if the guy who wrote the game remembered to tell it what "Throw
+ Up" meant!). Scattered around the game would be various 'objects', which
+ had to be used in specific ways to perform specific 'tasks' and overcome
+ different obstacles to reach the 'goal' of the game.
+
+ 'Objects' could be any KIND of item! From a magic wand, to a jade-statue
+ of an ox, to a golden earing or a deceased cat! A 'task' might be to take
+ a bucket of water from location-A.

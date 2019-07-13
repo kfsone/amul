@@ -1,0 +1,53 @@
+; Title.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by Oliver Smith / KingFisher Software
+; 70 Legsby Avenue,
+; Grimsby,
+; S. Humberside. DN32 0NE
+; England.
+;
+; This software is furnished on the understanding that it may be used and or
+; copied  only  with the inclusion of this notice.  No title or ownership of
+; this  software is hearby transferred.  The information in this software is
+; subject  to  change  without notice.  No responsibility is assumed for the
+; use or reliability of this software.
+
+; Adventure name is "Precious Days"
+; Standard 'game' time is 80 minutes (period between resets)
+; Players of rank 10-12 can see invisible players when they are _invisible_
+; Players of rank 11/12 can see invisible players when they are _visible_
+; Rank 12 is required to use the 'super-go' facility
+; 90% of an objects value is deducted for a top rank player
+; 55% of an objects value is deducted at the beginning of the game
+
+name=Precious Days
+gametime=80
+invisible=10 11
+min sgo=12
+RankScale=90
+timescale=55
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  ================================================
+  =::::::::::::::::::::::::::::::::::::::::::::::=      Copyright (C) 1992
+  =::::::#####::::::::::::::::::####:::::::::::::=  KingFisher Software D&EG!
+  =::::: ## ##::::::::::::::::: ## ##::::::::::::=
+  =::::: ##### R E C I O U S :: ## ## A Y S :::::=   Written & Developed by
+  =::::: ##  :::::::::::::::::: ## ##::::::::::::=        Oliver Smith
+  =::::: ##:::::::::::::::::::: ####:::::::::::::=
+  =:::::  :::::::::::::::::::::    ::::::::::::::=     Written Using AMUL
+  =::::::::::::::::::::::::::::::::::::::::::::::=  Multi-User Games Language
+  ================================================
+
+           Written using AMUL - The most POWERFUL MUD Language!
+
+ Last compile: @lc Last reset: @lr  Sesh: 80mins
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Precious Days is quite a new project, still under development.  YOU can help in
+the  construction  of a future masterpiece by adding YOUR thoughts and ideas to
+the game.  Use the 'SUGGEST' or 'BUG' commands to submit the relevant comments.
+
