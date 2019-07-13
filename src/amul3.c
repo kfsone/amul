@@ -115,16 +115,16 @@ whohere()
         return;
     }
     for (i = 0; i < MAXU; i++) {
-        if (i != Af && cansee(Af, i) == YES && !((lstat + i)->flags & PFMOVING)) {
+        if (i != Af && cansee(Af, i) == YES && !((linestat + i)->flags & PFMOVING)) {
             PutARankInto(str, i);
             sprintf(block, acp(ISHERE), (usr + i)->name, str);
-            if (((lstat + i)->flags & PFSITTING) != 0)
+            if (((linestat + i)->flags & PFSITTING) != 0)
                 strcat(block, ", sitting down");
-            if (((lstat + i)->flags & PFLYING) != 0)
+            if (((linestat + i)->flags & PFLYING) != 0)
                 strcat(block, ", lying down");
-            if (((lstat + i)->flags & PFASLEEP) != 0)
+            if (((linestat + i)->flags & PFASLEEP) != 0)
                 strcat(block, ", asleep");
-            if ((lstat + i)->numobj == 0) {
+            if ((linestat + i)->numobj == 0) {
                 strcat(block, ".\n");
                 tx(block);
             } else {
@@ -141,8 +141,8 @@ awho(register int type)
 
     if (type == TYPEV) {
         for (i = 0; i < MAXU; i++)
-            if ((usr + i)->name[0] != 0 && (lstat + i)->state > 1 &&
-                (!((lstat + i)->flags & PFSINVIS))) {
+            if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1 &&
+                (!((linestat + i)->flags & PFSINVIS))) {
                 str[0] = 0;
                 if (isPINVIS(i)) {
                     str[0] = '(';
@@ -164,8 +164,8 @@ awho(register int type)
         j = 0;
         str[0] = 0;
         for (i = 0; i < MAXU; i++)
-            if ((usr + i)->name[0] != 0 && (lstat + i)->state > 1 &&
-                (!((lstat + i)->flags & PFSINVIS))) {
+            if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1 &&
+                (!((linestat + i)->flags & PFSINVIS))) {
                 if (i != Af) {
                     if (j++ != 0)
                         strcat(str, ", ");
@@ -552,12 +552,12 @@ ado(register int verb)
 add_obj(register int to) /*== Add an object into a players inventory */
 {
     *objtab->rmlist = -(5 + to); /* It now belongs to him */
-    (lstat + to)->numobj++;
-    (lstat + to)->weight += STATE->weight;
-    (lstat + to)->strength -= ((rktab + (usr + to)->rank)->strength * STATE->weight) /
-                              (rktab + (usr + to)->rank)->maxweight;
+    (linestat + to)->numobj++;
+    (linestat + to)->weight += STATE->weight;
+    (linestat + to)->strength -= ((rktab + (usr + to)->rank)->strength * STATE->weight) /
+                                 (rktab + (usr + to)->rank)->maxweight;
     if (STATE->flags & SF_LIT)
-        (lstat + to)->light++;
+        (linestat + to)->light++;
 }
 
 /****** AMUL3.C/rem_obj ******************************************
@@ -593,12 +593,12 @@ add_obj(register int to) /*== Add an object into a players inventory */
 
 rem_obj(register int to, register int ob) /*== Remove object from inventory */
 {
-    (lstat + to)->numobj--;
-    (lstat + to)->weight -= STATE->weight;
-    (lstat + to)->strength += ((rktab + (usr + to)->rank)->strength * STATE->weight) /
-                              (rktab + (usr + to)->rank)->maxweight;
+    (linestat + to)->numobj--;
+    (linestat + to)->weight -= STATE->weight;
+    (linestat + to)->strength += ((rktab + (usr + to)->rank)->strength * STATE->weight) /
+                                 (rktab + (usr + to)->rank)->maxweight;
     if (STATE->flags & SF_LIT)
-        (lstat + to)->light--;
+        (linestat + to)->light--;
     if (me2->wield == ob)
         me2->wield = -1; /*== Don't let me wield it */
 }
@@ -638,7 +638,7 @@ rem_obj(register int to, register int ob) /*== Remove object from inventory */
 ainteract(register int who)
 {
     actor = -1;
-    if ((lstat + who)->state != PLAYING)
+    if ((linestat + who)->state != PLAYING)
         return;
     actor = who;
 }
@@ -861,8 +861,8 @@ DoThis(register int x, register char *cmd, register short int type)
     IAt = MFORCE;
     IAd = type;
     IAp = cmd;
-    PutMsg((lstat + x)->rep, (struct Message *)intam);
-    (lstat + x)->IOlock = -1;
+    PutMsg((linestat + x)->rep, (struct Message *)intam);
+    (linestat + x)->IOlock = -1;
 }
 
 /****** AMUL3.C/StopFollow ******************************************
@@ -891,12 +891,13 @@ StopFollow()
         Permit();
         return;
     }
-    if ((lstat + me2->following)->state != PLAYING || (lstat + me2->following)->followed != Af) {
+    if ((linestat + me2->following)->state != PLAYING ||
+        (linestat + me2->following)->followed != Af) {
         me2->following = -1;
         Permit();
         return;
     }
-    (lstat + me2->following)->followed = -1;
+    (linestat + me2->following)->followed = -1;
     Permit();
     tx("You are no-longer following @mf.\n");
     me2->following = -1;
@@ -927,7 +928,7 @@ LoseFollower()
 {
     if (me2->followed == -1)
         return;
-    (lstat + (me2->followed))->following = -1; /* Unhook them */
+    (linestat + (me2->followed))->following = -1; /* Unhook them */
     utx(me2->followed, "You are no-longer able to follow @me.\n");
     me2->followed = -1; /* Unhook me */
 }
@@ -1153,7 +1154,7 @@ showin(int o, int mode) /* Show contents of object */
 stfull(register int st, register int p) /* full <st> <player> */
 {
     you = (usr + p);
-    you2 = (lstat + p);
+    you2 = (linestat + p);
     switch (st) {
     case STSCORE: return NO;
     case STSCTG: return NO;
@@ -1218,7 +1219,7 @@ asetstat(int obj, int stat)
     i = lit(loc(obj)); /* WAS the room lit? */
     /* Remove from owners inventory */
     if (x != -1) {
-        w = (lstat + x)->wield;
+        w = (linestat + x)->wield;
         rem_obj(x, obj);
     }
     f = STATE->flags & SF_LIT;
@@ -1237,7 +1238,7 @@ asetstat(int obj, int stat)
         add_obj(x); /* And put it back again */
         /*== Should check to see if its too heavy now */
         lighting(x, AHERE);
-        (lstat + x)->wield = w;
+        (linestat + x)->wield = w;
     }
 
     if ((j = lit(loc(obj))) == i)
@@ -1263,7 +1264,7 @@ awhere(register int obj)
             if (canseeobj(i, Af) == NO)
                 continue;
             if ((j = owner(i)) != -1) {
-                if (lit((lstat + j)->room) == YES) {
+                if (lit((linestat + j)->room) == YES) {
                     if (j != Af) {
                         tx("You see ");
                         ans("1m");

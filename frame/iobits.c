@@ -83,7 +83,7 @@ loopit:
     if (t == MFORCE)
         strcpy(input, ap->ptr);
     SendIt(MBUSY, NULL, NULL);
-    if (f != -1 && (lstat + f)->state == PLAYING)
+    if (f != -1 && (linestat + f)->state == PLAYING)
         ReplyMsg((struct Message *)ap);
     else
         FreeMem((char *)ap, (long)sizeof(*amul));
@@ -342,8 +342,8 @@ esc(char *p, char *s) /* Find @ escape sequences */
             strcpy(s, (obtab + (me2->wield))->id);
             return 1;
         }
-        if (c == '2' && (lstat + (me2->fighting))->wield != -1) {
-            strcpy(s, (obtab + ((lstat + (me2->fighting))->wield))->id);
+        if (c == '2' && (linestat + (me2->fighting))->wield != -1) {
+            strcpy(s, (obtab + ((linestat + (me2->fighting))->wield))->id);
             return 1;
         }
         strcpy(s, "bare hands");
@@ -360,11 +360,11 @@ esc(char *p, char *s) /* Find @ escape sequences */
 
 interact(int msg, int n, int d)
 {
-    if ((lstat + n)->state < PLAYING)
+    if ((linestat + n)->state < PLAYING)
         return;
     lockusr(n);
     if (msg == MMESSAGE)
-        strcat((lstat + n)->buf, ow);
+        strcat((linestat + n)->buf, ow);
     if ((intam = (struct Aport *)AllocMem(sizeof(*amul), MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
         memfail("comms port");
     IAm.mn_Length = (UWORD)sizeof(*amul);
@@ -373,14 +373,14 @@ interact(int msg, int n, int d)
     IAm.mn_ReplyPort = repbk;
     IAt = msg;
     IAd = d;
-    (lstat + n)->IOlock = -1;
-    PutMsg((lstat + n)->rep, (struct Message *)intam);
+    (linestat + n)->IOlock = -1;
+    PutMsg((linestat + n)->rep, (struct Message *)intam);
 }
 
 sendex(register int n, register int d, register int p1, register int p2, register int p3,
        register int p4)
 {
-    if ((lstat + n)->state < PLAYING)
+    if ((linestat + n)->state < PLAYING)
         return;
     lockusr(n);
     if ((intam = (struct Aport *)AllocMem(sizeof(*amul), MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
@@ -395,6 +395,6 @@ sendex(register int n, register int d, register int p1, register int p2, registe
     intam->p2 = p2;
     intam->p3 = p3;
     intam->p4 = p4;
-    (lstat + n)->IOlock = -1;
-    PutMsg((lstat + n)->rep, (struct Message *)intam);
+    (linestat + n)->IOlock = -1;
+    PutMsg((linestat + n)->rep, (struct Message *)intam);
 }

@@ -33,8 +33,8 @@
 #include "amulcom.h"
 #include "amulcom.strings.h"
 
-#include "h/amul.alog.h" /* Logging */
 #include "h/amul.acts.h"
+#include "h/amul.alog.h" /* Logging */
 #include "h/amul.cons.h" /* Predefined Constants etc     */
 #include "h/amul.defs.h" /* Defines in one nice file     */
 #include "h/amul.file.h"
@@ -2144,7 +2144,7 @@ lang_proc()
         strcpy(verb.id, Word);
         ++verbs;
 
-        static char defaultChae[] = {(char)-1, 'C', 'H', 'A', 'E', (char)-1, 'C', 'H', 'A', 'E '};
+        static char defaultChae[] = {-1, 'C', 'H', 'A', 'E', -1, 'C', 'H', 'A', 'E'};
         memcpy((char *)(&verb.sort[0]), defaultChae, 10);
 
         verb.flags = VB_TRAVEL;
@@ -2890,7 +2890,7 @@ amulcom_main(int argc, const char **argv)
     fopenw(advfn);
     time_t startTime = time(NULL);
     fprintf(ofp1, "%s\n", gameName);
-    fprintf(ofp1, "%lld ", startTime);
+    fprintf(ofp1, "%lu ", startTime);
     fprintf(ofp1, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", rooms, ranks, verbs, syns, nouns,
             adjs, ttents, mins, invis, invis2, minsgo, mobs, rscale, tscale, mobchars);
 

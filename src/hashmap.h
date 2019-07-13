@@ -15,7 +15,7 @@
 #if !defined(_MSC_VER)
 #    include <strings.h>
 #    define stricmp strcasecmp
-#    define strnicmp strcasecmp
+#    define strnicmp strncasecmp
 #endif
 
 // A type for storing the result of the hashing function

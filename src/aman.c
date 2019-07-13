@@ -22,7 +22,7 @@
 #define TRQ timerequest
 
 #define UINFO                                                                                      \
-    ((sizeof(*usr) + sizeof(*lstat)) * MAXNODE) + (rooms * sizeof(short)) + (sizeof(mob) * mobs)
+    ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (rooms * sizeof(short)) + (sizeof(mob) * mobs)
 
 #include "h/aman.h"
 #include "h/amul.cons.h"
@@ -179,11 +179,11 @@ kernel()
     daemons = 1;
     nextdaem = count[0] = mins * 60;
     for (i = 0; i < MAXNODE; i++) {
-        (lstat + i)->IOlock = -1;
-        (lstat + i)->room = bid[i] = -1;
+        (linestat + i)->IOlock = -1;
+        (linestat + i)->room = bid[i] = -1;
         busy[i] = 0;
-        (lstat + i)->helping = -1;
-        (lstat + i)->following = -1;
+        (linestat + i)->helping = -1;
+        (linestat + i)->following = -1;
     }
     ResReq.tr_time.tv_secs = 1;
     ResReq.tr_time.tv_micro = XR;
@@ -218,7 +218,7 @@ kernel()
                     am->p3 = typ[i][0];
                     am->p4 = typ[i][1];
                     am->type = MDAEMON;
-                    PutMsg((lstat + own[i])->rep, am);
+                    PutMsg((linestat + own[i])->rep, am);
                     pack(i);
                     i--;
                 }
@@ -322,24 +322,24 @@ cnct() /* User connection! */
 {
     register int i;
 
-    Ad = (long)lstat;
+    Ad = (long)linestat;
     Ap = (char *)usr;
     if (Af >= MAXU) {
         if (Af == MAXU + 1)
             printf("** Mobile processor connected.\n");
-        if ((lstat + Af)->state != 0)
+        if ((linestat + Af)->state != 0)
             Af = -1;
         else
-            (lstat + Af)->state = PLAYING;
+            (linestat + Af)->state = PLAYING;
         return;
     }
     Af = -1;
     for (i = 0; i < MAXU; i++) /* Allow for daemons & mobiles */
     {
-        if ((lstat + i)->state != 0)
+        if ((linestat + i)->state != 0)
             continue;
         Af = i;
-        (lstat + i)->state = LOGGING;
+        (linestat + i)->state = LOGGING;
         online++;
         calls++;
         break;
@@ -348,18 +348,18 @@ cnct() /* User connection! */
 
 discnct() /* User disconnection */
 {
-    if (Af < MAXU && (lstat + Af)->state == PLAYING) {
+    if (Af < MAXU && (linestat + Af)->state == PLAYING) {
         sprintf(block, "<- (%d) %s: user disconnected.\n", Af, now());
         log(block);
     }
     if (Af < MAXU)
         online--;
     (usr + Af)->name[0] = 0;
-    (lstat + Af)->room = -1;
-    (lstat + Af)->helping = -1;
-    (lstat + Af)->following = -1;
+    (linestat + Af)->room = -1;
+    (linestat + Af)->helping = -1;
+    (linestat + Af)->following = -1;
     dkill(-1);
-    (lstat + Af)->state = 0;
+    (linestat + Af)->state = 0;
     Af = -1;
     Ad = -1;
 }
@@ -374,7 +374,7 @@ data() /* Sends pointers to database */
         Ap1 = calls;
         Ap2 = (long)vername;
         Ap3 = (long)adname;
-        Ap4 = (long)lstat;
+        Ap4 = (long)linestat;
         break;
     case 0:
         strcpy(Ap, dir);
@@ -424,7 +424,7 @@ data() /* Sends pointers to database */
 login() /* Receive & log a player login */
 {
     sprintf(block, "-> (%d) %s: \"%s\" logged in.\n", Af, now(), (usr + Af)->name);
-    (lstat + Af)->state = PLAYING;
+    (linestat + Af)->state = PLAYING;
     log(block);
 }
 
@@ -528,13 +528,13 @@ reset_users() /* Force users to log-out & kill extra lines */
 
     online = 0; /* Allows for daemons & mobiles */
     for (i = 0; i < MAXNODE; i++) {
-        if ((lstat + i)->state <= 0)
+        if ((linestat + i)->state <= 0)
             continue;
         online++;
         setam();
         am->type = MCLOSEING;
         am->msg.mn_ReplyPort = port;
-        PutMsg((lstat + i)->rep, am);
+        PutMsg((linestat + i)->rep, am);
     }
     while (online > 0) {
         WaitPort(port);
@@ -584,8 +584,8 @@ setup() /* Read in & evaluate data files */
         memfail("User tables");
     usr = (struct _PLAYER *)p;
     p += sizeof(*usr) * MAXNODE;
-    lstat = (struct LS *)p;
-    p += sizeof(*lstat) * MAXNODE;
+    linestat = (struct LS *)p;
+    p += sizeof(*linestat) * MAXNODE;
     rctab = (short *)p;
 
     fopenr(rooms1fn); /* 1: Open room block file */
@@ -760,7 +760,7 @@ givebackmemory() /* Release all memory AllocMem'd */
     if (synp)
         FreeMem((char *)synp, synlen + synilen + adtablen);
 
-    lstat = NULL;
+    linestat = NULL;
     umsgip = NULL;
     umsgp = NULL;
     ttpp = NULL;
@@ -836,11 +836,11 @@ char *xread(char *s, long *n, char *t) /* Size/Read data files */
 lock() /* Lock a users IO system */
 {
     bid[Af] = Ad;
-    if ((lstat + Ad)->IOlock != -1 || (busy[Ad] != 0 && Ad != Af && bid[Ad] != Af)) {
+    if ((linestat + Ad)->IOlock != -1 || (busy[Ad] != 0 && Ad != Af && bid[Ad] != Af)) {
         Ad = -1;
         return;
     }
-    (lstat + Ad)->IOlock = Af;
+    (linestat + Ad)->IOlock = Af;
     bid[Af] = -1;
 }
 
@@ -961,10 +961,10 @@ warn(register char *s)
     register int i;
 
     for (i = 0; i < MAXU; i++)
-        if ((lstat + i)->state != OFFLINE) {
+        if ((linestat + i)->state != OFFLINE) {
             setam();
             am->ptr = s;
             am->type = MRWARN;
-            PutMsg((lstat + i)->rep, am);
+            PutMsg((linestat + i)->rep, am);
         }
 }

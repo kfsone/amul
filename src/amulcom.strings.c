@@ -54,7 +54,7 @@ InitStrings()
 
     stringFP = OpenGameFile(strings_file, "r");  // Note: text mode, translate \r please
 
-	return 0;
+    return 0;
 }
 
 void
@@ -66,7 +66,7 @@ CloseStrings()
 
 #define check_write_str(op, buffer, length, fp)                                                    \
     if (fwrite(buffer, 1, (length), fp) != (length))                                               \
-		alog(AL_FATAL, "Unable to write %s", op)
+    alog(AL_FATAL, "Unable to write %s", op)
 
 error_t
 AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
@@ -157,7 +157,7 @@ RegisterTextString(
     entry.types |= stype;
     entry.offset = *idp;
 
-    return AddStrToHash(stringIDs, label, *(uint64_t*)&entry);
+    return AddStrToHash(stringIDs, label, *(uint64_t *)&entry);
 }
 
 error_t
@@ -202,9 +202,9 @@ WordCopy(char *into, size_t intoSize, const char *start, const char *end)
         return NULL;
     }
     const char *intoEnd = into + copylen;
-	while (into < intoEnd) {
+    while (into < intoEnd) {
         *(into++) = tolower(*(start++));
-	}
+    }
     into[copylen] = 0;
     return into + copylen;
 }

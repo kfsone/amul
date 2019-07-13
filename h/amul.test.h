@@ -29,7 +29,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Unit testing macros
 
-#if defined(_DEBUG)
+#ifndef NDEBUG
 #    include <assert.h>
 #    include <stdbool.h>
 #    include <stdint.h>
@@ -80,7 +80,7 @@ typedef void(test_harness_fn)(struct TestContext *t);
         if ((expected) == (actual)) {                                                              \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #actual " expecting %llu but got %llu\n", __FILE__,       \
+            printf("\n%s:%d: error:%s: " #actual " expecting %lu but got %lu\n", __FILE__,         \
                    __LINE__, t->step, (uint64_t)expected, (uint64_t)actual);                       \
             fflush(stdout);                                                                        \
             assert(expected == actual);                                                            \
@@ -130,7 +130,7 @@ typedef void(test_harness_fn)(struct TestContext *t);
         if (!(value)) {                                                                            \
             t->lineItems++;                                                                        \
         } else {                                                                                   \
-            printf("\n%s:%d: error:%s: " #value " expected false, got %llu\n", __FILE__, __LINE__, \
+            printf("\n%s:%d: error:%s: " #value " expected false, got %lu\n", __FILE__, __LINE__,  \
                    t->step, (uint64_t)value);                                                      \
             fflush(stdout);                                                                        \
             assert(value);                                                                         \

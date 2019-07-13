@@ -37,7 +37,7 @@ struct Aport *  amul;
 
 /* Structures: */
 struct _PLAYER *    usr, *me, him, *you;
-struct LS *         lstat, *me2, *you2;
+struct LS *         linestat, *me2, *you2;
 struct _ROOM_STRUCT room, *roomtab, *rmtab; /* ptr->table, ptr->a room */
 struct _VERB_STRUCT verb, *vbtab, *vbptr;
 struct _SLOTTAB     vbslot, *slottab, *stptr;

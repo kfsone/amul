@@ -404,10 +404,10 @@
 /* -- Useful defines -- */
 
 #define isOINVIS(x) ((obtab + x)->flags & OF_INVIS)
-#define isPINVIS(x) ((lstat + x)->flags & PFINVIS)
+#define isPINVIS(x) ((linestat + x)->flags & PFINVIS)
 #define IamINVIS (me2->flags & PFINVIS)
 #define IamSINVIS (me2->flags & PFSINVIS)
-#define pROOM(x) ((lstat + x)->room)
+#define pROOM(x) ((linestat + x)->room)
 #define pRANK(x) ((usr + x)->rank)
 #define myRANK me->rank
 #define mySCORE me->score
@@ -439,8 +439,8 @@
 #define STATE (objtab->states + (long)objtab->state)
 #define State(i) ((obtab + i)->states + (long)(obtab + i)->state)
 #define ItsState (it->states + (long)it->state)
-#define xLIGHT(x) (lstat + x)->light
-#define xHADLIGHT(x) (lstat + x)->hadlight
+#define xLIGHT(x) (linestat + x)->light
+#define xHADLIGHT(x) (linestat + x)->hadlight
 
 #define acp (char *)actptr
 

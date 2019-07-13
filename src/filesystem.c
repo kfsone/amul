@@ -1,8 +1,13 @@
 #include "h/amul.file.h"
 #include "h/amul.test.h"
 
+#include <stdbool.h>
+
 static inline bool
-is_separator(const char* ptr) { return (*ptr == '/' || *ptr == '\\'); }
+is_separator(const char *ptr)
+{
+    return (*ptr == '/' || *ptr == '\\');
+}
 
 error_t
 path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
@@ -11,7 +16,7 @@ path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
     size_t offset = offsetp ? *offsetp : 0;
 
     const char *end = into + limit - 1;
-    char *dst = into + offset;
+    char *      dst = into + offset;
     REQUIRE(dst < end);
 
     while (offset > 1 && is_separator(end - 1)) {
@@ -49,13 +54,14 @@ path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
 }
 
 error_t
-path_join(char *into, size_t limit, const char *lhs, const char *rhs) {
+path_join(char *into, size_t limit, const char *lhs, const char *rhs)
+{
     REQUIRE(into && limit > 0 && lhs && rhs && *rhs);
 
     REQUIRE(*rhs);
     REQUIRE(*lhs);
 
-    size_t length = 0;
+    size_t  length = 0;
     error_t err = path_copy(into, limit, &length, lhs);
     if (length == 0) {
         into[length++] = '.';

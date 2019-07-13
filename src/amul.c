@@ -98,8 +98,8 @@ main(int argc, char *argv[]) /*=* Main Program *=*/
     *amanp = *amul;
     link = 1;
     SendIt(MCNCT, -10, NULL); /* Go for a connection! */
-    lstat = (struct LS *)Ad;
-    me2 = lstat + Af;
+    linestat = (struct LS *)Ad;
+    me2 = linestat + Af;
     me2->IOlock = Af;
     ip = 0;
     usr = (struct _PLAYER *)Ap;
@@ -167,9 +167,9 @@ main(int argc, char *argv[]) /*=* Main Program *=*/
         fol = 0;
         needcr = NO;
         addcr = NO;
-        if (last_him != -1 && (lstat + last_him)->state != PLAYING)
+        if (last_him != -1 && (linestat + last_him)->state != PLAYING)
             last_him = -1;
-        if (last_her != -1 && (lstat + last_her)->state != PLAYING)
+        if (last_her != -1 && (linestat + last_her)->state != PLAYING)
             last_her = -1;
         iocheck();
         tx((rktab + me->rank)->prompt);
@@ -266,10 +266,10 @@ agive(register int obj, register int to) /* Add object to players inventory */
     if (STATE->flags & SF_LIT) {
         if (own == -1) /*== Did I just pick and was it from here? */
         {
-            if (orm == (lstat + own)->room)
+            if (orm == (linestat + own)->room)
                 return;
         } else { /*== If I got it from someone, and he is near me... */
-            if ((lstat + own)->room == (lstat + to)->room)
+            if ((linestat + own)->room == (linestat + to)->room)
                 return;
             lighting(own, AHERE); /*== Else check his lights! */
         }

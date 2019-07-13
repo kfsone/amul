@@ -23,7 +23,7 @@ struct Task *   mytask, *FindTask();
 struct Aport *  amul;
 
 struct _PLAYER *     usr;
-struct LS *          lstat;
+struct LS *          linestat;
 struct _ROOM_STRUCT *rmtab;
 struct _RANK_STRUCT *rktab;
 struct _OBJ_STRUCT * obtab;
@@ -77,7 +77,7 @@ main(int argc, char *argv[]) /* Accept no arguments */
     /* Get user structure and # online. */
     sendmsg(-1);
     usr = (struct _PLAYER *)Ap;
-    lstat = (struct LS *)Ap4;
+    linestat = (struct LS *)Ap4;
     online = Ad;
     calls = Ap1;
     adname = (char *)Ap3;
@@ -114,13 +114,13 @@ main(int argc, char *argv[]) /* Accept no arguments */
             printf("-----------%s----------+-----------%s----------+---%s---+--%s--\n", "name",
                    "rank", "location", "score");
             for (i = 0; i < MAXU; i++) {
-                if ((lstat + i)->state <= 0)
+                if ((linestat + i)->state <= 0)
                     continue;
-                if ((lstat + i)->state == 2)
+                if ((linestat + i)->state == 2)
                     printf("%-25.25s|%-25.25s|%-14.14s|%9.9ld\n", (usr + i)->name,
                            ((usr + i)->sex == 0) ? (rktab + (usr + i)->rank)->male
                                                  : (rktab + (usr + i)->rank)->female,
-                           (rmtab + (lstat + i)->room)->id, (usr + i)->score);
+                           (rmtab + (linestat + i)->room)->id, (usr + i)->score);
                 else
                     printf("%-25.25s|%-25.25s|%-14.14s|%9.9ld\n", "   << Logging In! >>", "",
                            "...Nowhere!...", 0);

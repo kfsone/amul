@@ -127,7 +127,7 @@ act(long ac, long *pt)
         case AMSGFROM: announcefrom(TP1, AP2); break;
         case AACTFROM: actionfrom(TP1, AP2); break;
         case ATELL:
-            if (!((lstat + TP1)->flags & PFDEAF)) {
+            if (!((linestat + TP1)->flags & PFDEAF)) {
                 setmxy(NOISE, TP1);
                 utx(TP1, AP2);
             }
@@ -163,10 +163,10 @@ act(long ac, long *pt)
         case AFORCE: aforce(TP1, TP2); break;
         case AHELP:
             me2->helping = TP1;
-            (lstat + TP1)->helped = Af;
+            (linestat + TP1)->helped = Af;
             break;
         case ASTOPHELP:
-            (lstat + me2->helping)->helped = -1;
+            (linestat + me2->helping)->helped = -1;
             me2->helping = -1;
             break;
         case AFIX: afix(TP1, TP2); break;
@@ -174,7 +174,7 @@ act(long ac, long *pt)
         case AOBJSHOW: (obtab + TP1)->flags = (obtab + TP1)->flags & (-1 - OF_INVIS); break;
         case AFIGHT: afight(TP1); break;
         case AFLEE:
-            dropall((lstat + me2->fighting)->room);
+            dropall((linestat + me2->fighting)->room);
             clearfight();
             break;
         case ALOG: log(AP1); break;
@@ -183,7 +183,7 @@ act(long ac, long *pt)
             me2->wield = TP1;
             break;
         /* - */ case AFOLLOW:
-            (lstat + TP1)->followed = me2->unum;
+            (linestat + TP1)->followed = me2->unum;
             me2->following = TP1;
             break;
         /* - */ case ALOSE:
@@ -198,15 +198,15 @@ act(long ac, long *pt)
         case ASYNTAX:
             asyntax(*(tt.pptr + ncop[tt.condition]), *(tt.pptr + ncop[tt.condition] + 1));
             break;
-        case ASETPRE: iocopy((lstat + TP1)->pre, AP2, 79); break;
-        case ASETPOST: iocopy((lstat + TP1)->post, AP2, 79); break;
+        case ASETPRE: iocopy((linestat + TP1)->pre, AP2, 79); break;
+        case ASETPOST: iocopy((linestat + TP1)->post, AP2, 79); break;
         case ASETARR:
-            qcopy((lstat + TP1)->arr, AP2, 79);
-            strcat((lstat + TP1)->arr, "\n");
+            qcopy((linestat + TP1)->arr, AP2, 79);
+            strcat((linestat + TP1)->arr, "\n");
             break;
         case ASETDEP:
-            qcopy((lstat + TP1)->dep, AP2, 79);
-            strcat((lstat + TP1)->dep, "\n");
+            qcopy((linestat + TP1)->dep, AP2, 79);
+            strcat((linestat + TP1)->dep, "\n");
             break;
         case ASENDDAEMON: dsend(TP1, TP2, TP3); break;
         case ADO: ado(TP1); break;
@@ -241,7 +241,7 @@ act(long ac, long *pt)
         if ((rmtab + ac)->flags & SMALL) /* Allow for losing follower! */
         {
             for (i = 0; i < MAXU; i++)
-                if ((lstat + i)->room == ac) {
+                if ((linestat + i)->room == ac) {
                     Permit();
                     sys(NOROOM);
                     actionin(ac, acp(NOROOMIN));
@@ -273,8 +273,8 @@ act(long ac, long *pt)
         if (me2->followed > -1 && me2->followed != Af && (!IamINVIS) && (!IamSINVIS)) {
             /* If we didn't just execute a travel verb, we've lost them.
                If the other player hasn't caught up with us, lose them! */
-            if (((vbtab + overb)->flags & VB_TRAVEL) || (lstat + me2->followed)->room != lroom ||
-                ((lstat + me2->followed)->flags & PFMOVING))
+            if (((vbtab + overb)->flags & VB_TRAVEL) || (linestat + me2->followed)->room != lroom ||
+                ((linestat + me2->followed)->flags & PFMOVING))
                 LoseFollower();
             else {
                 DoThis(me2->followed, (vbtab + overb)->id, 1);
@@ -369,12 +369,12 @@ cond(long n, int l) /* Execute a condition on me */
         break;
     case CONLYUSER:
         for (i = 0; i < MAXU; i++)
-            if ((usr + i)->name[0] != 0 && (lstat + i)->state > 1)
+            if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1)
                 ret = -1;
         break;
     case CALONE:
         for (i = 0; i < MAXU; i++)
-            if (((lstat + i)->room == me2->room) && i != Af)
+            if (((linestat + i)->room == me2->room) && i != Af)
                 ret = -1;
         break;
     case CINROOM:
@@ -411,7 +411,7 @@ cond(long n, int l) /* Execute a condition on me */
             ret = -1;
         break;
     case CSAMEROOM:
-        if ((lstat + CP1)->room != me2->room)
+        if ((linestat + CP1)->room != me2->room)
             ret = -1;
         break;
     case CTOPRANK:
@@ -473,7 +473,7 @@ cond(long n, int l) /* Execute a condition on me */
             ret = -1;
         break;
     case CFIGHTING:
-        if (!((lstat + CP1)->flags & PFFIGHT))
+        if (!((linestat + CP1)->flags & PFFIGHT))
             ret = -1;
         break;
     case CTASKSET:
@@ -549,7 +549,7 @@ cond(long n, int l) /* Execute a condition on me */
             return -1;
         break;
     case CHEALTH:
-        if (numb((((lstat + CP1)->stamina * 100) / (rktab + (usr + CP1)->rank)->stamina), CP2) ==
+        if (numb((((linestat + CP1)->stamina * 100) / (rktab + (usr + CP1)->rank)->stamina), CP2) ==
             NO)
             ret = -1;
         break;
@@ -558,7 +558,7 @@ cond(long n, int l) /* Execute a condition on me */
             return -1;
         break;
     case CSPELL:
-        if (numb((lstat + CP1)->wisdom, mod(rnd(), CP2)) == NO)
+        if (numb((linestat + CP1)->wisdom, mod(rnd(), CP2)) == NO)
             ret = -1;
         break;
     case CIN:
@@ -588,7 +588,7 @@ strip:
     /* Check for a players name BEFORE checking for white words! */
 
     for (word = 0; word < MAXU; word++)
-        if ((lstat + word)->state == PLAYING && match((usr + word)->name, p) == NULL) {
+        if ((linestat + word)->state == PLAYING && match((usr + word)->name, p) == NULL) {
             *s += strlen((usr + word)->name);
             return WPLAYER;
         }

@@ -10,7 +10,7 @@ lit(register int r) /* Is my room lit? */
     if (!((rmtab + r)->flags & DARK))
         return YES;
     Forbid();
-    you2 = lstat;
+    you2 = linestat;
     for (i = 0; i < MAXU; i++, you2++)
         if (you2->room == r && you2->hadlight != 0) {
             Permit();
@@ -37,7 +37,7 @@ loc(register int o)
     if (*(obtab + o)->rmlist >= -1)
         return *(obtab + o)->rmlist;
     if (*(obtab + o)->rmlist >= -5 && *(obtab + o)->rmlist <= -(5 + MAXU))
-        return (int)(lstat + owner(o))->room;
+        return (int)(linestat + owner(o))->room;
     /* Else its in a container */
 }
 
@@ -74,9 +74,9 @@ cangive(register int obj, register int plyr) /* If player could manage to carry 
 {
     objtab = obtab + obj;
 
-    if ((lstat + plyr)->weight + STATE->weight > (rktab + (usr + plyr)->rank)->maxweight)
+    if ((linestat + plyr)->weight + STATE->weight > (rktab + (usr + plyr)->rank)->maxweight)
         return NO;
-    if ((lstat + plyr)->numobj + 1 > (rktab + (usr + plyr)->rank)->numobj)
+    if ((linestat + plyr)->numobj + 1 > (rktab + (usr + plyr)->rank)->numobj)
         return NO;
     if ((objtab->flags & OF_SCENERY) || (objtab->flags & OF_COUNTER) || objtab->nrooms != 1)
         return NO;
@@ -274,7 +274,7 @@ CHAEtype(register int obj)
         return 'C';
     if (isin(obj, me2->room) == YES)
         return 'H';
-    if ((i = owner(obj)) != -1 && (lstat + i)->room == me2->room)
+    if ((i = owner(obj)) != -1 && (linestat + i)->room == me2->room)
         return 'A';
     return 'E';
 }
@@ -321,7 +321,7 @@ isroom(register char *s)
 
 infl(register int plyr, register int spell)
 {
-    you2 = lstat + plyr;
+    you2 = linestat + plyr;
     switch (spell) {
     case SGLOW:
         if (you2->flags & PFGLOW)
@@ -362,13 +362,13 @@ infl(register int plyr, register int spell)
 stat(register int plyr, register int st, register int x)
 {
     switch (st) {
-    case STSTR: return numb((lstat + plyr)->strength, x);
-    case STSTAM: return numb((lstat + plyr)->stamina, x);
+    case STSTR: return numb((linestat + plyr)->strength, x);
+    case STSTAM: return numb((linestat + plyr)->stamina, x);
     case STEXP: return numb((usr + plyr)->experience, x);
-    case STWIS: return numb((lstat + plyr)->wisdom, x);
-    case STDEX: return numb((lstat + plyr)->dext, x);
-    case STMAGIC: return numb((lstat + plyr)->magicpts, x);
-    case STSCTG: return numb((lstat + plyr)->sctg, x);
+    case STWIS: return numb((linestat + plyr)->wisdom, x);
+    case STDEX: return numb((linestat + plyr)->dext, x);
+    case STMAGIC: return numb((linestat + plyr)->magicpts, x);
+    case STSCTG: return numb((linestat + plyr)->sctg, x);
     }
 }
 
@@ -378,16 +378,16 @@ cansee(register int p1, register int p2)
     /* You can't see YOURSELF, and check for various other things... */
     if (*(usr + p2)->name == 0 || p1 == p2)
         return NO;
-    if ((lstat + p2)->state != PLAYING)
+    if ((linestat + p2)->state != PLAYING)
         return NO;
     /* If different rooms, or current room is dark */
     if (pROOM(p1) != pROOM(p2))
         return NO;
     /* If p2 is Super Invis, he can't be seen! */
-    if ((lstat + p2)->flags & PFSINVIS)
+    if ((linestat + p2)->flags & PFSINVIS)
         return NO;
     /* If player is blind, obviously can't see p2! */
-    if ((lstat + p1)->flags & PFBLIND)
+    if ((linestat + p1)->flags & PFBLIND)
         return NO;
     if (lit(pROOM(p1)) == NO)
         return NO;
@@ -410,9 +410,9 @@ cansee(register int p1, register int p2)
 
 canseeobj(register int obj, register int who)
 {
-    if (((obtab + obj)->flags & OF_SMELL) && !((lstat + who)->flags & PFBLIND))
+    if (((obtab + obj)->flags & OF_SMELL) && !((linestat + who)->flags & PFBLIND))
         return NO;
-    if ((lstat + who)->flags & PFBLIND &&
+    if ((linestat + who)->flags & PFBLIND &&
         (!((obtab + obj)->flags & OF_SMELL) || *(obtab + obj)->rmlist != -(5 + who)))
         return NO;
     if (!isOINVIS(obj))

@@ -3,8 +3,9 @@
 
 // AMUL type definitions.
 
-#include <errno.h>
-#include <stdint.h>
+#include <errno.h>   // for error numbers
+#include <stdint.h>  // for sized types
+#include <stdlib.h>  // for size_t
 
 // For returning error values.
 typedef int error_t;

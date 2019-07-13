@@ -243,21 +243,21 @@ test_hash_large_population(struct TestContext *t)
 
     char key[MAX_HASH_KEY_SIZE];
     for (uint64_t i = 0; i < 256; ++i) {
-        sprintf(key, "key%04llu", i);
+        sprintf(key, "key%04lu", i);
         EXPECT_SUCCESS(AddStrToHash(map, key, i + 1LL));
     }
     EXPECT_EQUAL_VAL(256, GetMapSize(map));
 
     for (uint64_t i = 0; i < 256; ++i) {
-        sprintf(key, "key%04llu", i);
+        sprintf(key, "key%04lu", i);
         EXPECT_TRUE(HashContainsStr(map, key));
     }
     for (uint64_t i = 0; i < 256; ++i) {
-        sprintf(key, "key%04llu", i);
+        sprintf(key, "key%04lu", i);
         EXPECT_FALSE(HashContainsStr(map, key));
-        sprintf(key, "notkey%04llu", i);
+        sprintf(key, "notkey%04lu", i);
         EXPECT_FALSE(HashContainsStr(map, key));
-        sprintf(key, "key%04llu", i + 256LL);
+        sprintf(key, "key%04lu", i + 256UL);
         EXPECT_FALSE(HashContainsStr(map, key));
     }
 

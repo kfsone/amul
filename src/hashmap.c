@@ -4,7 +4,7 @@
 
 // Calculates the "hash" of a string, based on djb2
 hashval_t
-get_string_hash_and_len(const char *string, const char *stringEnd, size_t * length)
+get_string_hash_and_len(const char *string, const char *stringEnd, size_t *length)
 {
     hashval_t   hashval = 5381;
     const char *p = string;
@@ -111,7 +111,7 @@ AddToHash(struct HashMap *map, const char *key, const char *keyEnd, const hash_v
                 continue;
             }
             if (strnicmp(bucket->nodes[i].key, key, length) == 0) {
-				if (bucket->nodes[i].key[length] == 0) {
+                if (bucket->nodes[i].key[length] == 0) {
                     bucket->nodes[i].value = value;
                     return 0;
                 }

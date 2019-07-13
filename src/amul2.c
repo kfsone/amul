@@ -49,14 +49,14 @@ make_rank(register int p, register int rankn, register int sex)
 {
     strcat(str, " the ");
     p += 5;
-    if (*(lstat + p)->pre != 0) {
-        strcat(str, (lstat + p)->pre);
+    if (*(linestat + p)->pre != 0) {
+        strcat(str, (linestat + p)->pre);
         strcat(str, " ");
     }
     strcat(str, (sex == 0) ? (rktab + rankn)->male : (rktab + rankn)->female);
-    if (*(lstat + p)->post != 0) {
+    if (*(linestat + p)->post != 0) {
         strcat(str, " ");
-        strcat(str, (lstat + p)->post);
+        strcat(str, (linestat + p)->post);
     }
 }
 
@@ -323,7 +323,7 @@ descobj(register int Ob)
 
 inflict(register int x, register int s)
 {
-    you2 = lstat + x;
+    you2 = linestat + x;
     if (you2->state != PLAYING)
         return;
     switch (s) {
@@ -347,7 +347,7 @@ inflict(register int x, register int s)
 
 cure(register int x, register int s)
 {
-    you2 = lstat + x;
+    you2 = linestat + x;
     if (you2->state != PLAYING)
         return;
     switch (s) {
@@ -371,7 +371,7 @@ cure(register int x, register int s)
 
 summon(int plyr)
 {
-    if ((lstat + plyr)->room == me2->room) {
+    if ((linestat + plyr)->room == me2->room) {
         txs(acp(CANTSUMN), (usr + plyr)->name);
         return;
     }
@@ -644,15 +644,15 @@ announce(register char *s, register int towho) /* Loud noises/events */
 
     for (i = 0; i < MAXU; i++) {
         /* If the player is deaf, ignore him */
-        if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & PFDEAF))
+        if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF))
             continue;
         /*
            The next line says:
             if this is another player, and he's in another room,
             and the room is a silent room, ignore him.
         */
-        if (i != Af && (lstat + i)->room != me2->room && /* --v */
-            ((rmtab + (lstat + i)->room)->flags & SILENT))
+        if (i != Af && (linestat + i)->room != me2->room && /* --v */
+            ((rmtab + (linestat + i)->room)->flags & SILENT))
             continue;
         x = 0;
         switch (towho) {
@@ -666,11 +666,11 @@ announce(register char *s, register int towho) /* Loud noises/events */
             if (i == Af)
                 break;
         case AHERE:
-            if ((lstat + i)->room == me2->room)
+            if ((linestat + i)->room == me2->room)
                 x = 1;
             break;
         case AOUTSIDE:
-            if ((lstat + i)->room != me2->room)
+            if ((linestat + i)->room != me2->room)
                 x = 1;
             break;
         }
@@ -686,8 +686,8 @@ announcein(int toroom, char *s) /* Loud noises/events */
     register int i;
     for (i = 0; i < MAXU; i++) {
         /* If the player is deaf, ignore him */
-        if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & PFDEAF) ||
-            (lstat + i)->room != toroom)
+        if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF) ||
+            (linestat + i)->room != toroom)
             continue;
         setmxy(NOISE, i);
         utx(i, s);
@@ -699,13 +699,13 @@ announcefrom(int obj, char *s) /* Loud noises/events */
     register int i, o;
     for (i = 0; i < MAXU; i++) {
         /* If the player is deaf or can see me, ignore him */
-        if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & PFDEAF) ||
-            (lstat + i)->room == me2->room)
+        if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF) ||
+            (linestat + i)->room == me2->room)
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-        if ((o = owner(obj)) != -1 && (lstat + o)->room != (lstat + i)->room)
+        if ((o = owner(obj)) != -1 && (linestat + o)->room != (linestat + i)->room)
             continue;
-        if (o == -1 && isin(obj, (lstat + o)->room) == NO)
+        if (o == -1 && isin(obj, (linestat + o)->room) == NO)
             continue;
         setmxy(NOISE, i);
         utx(i, s);
@@ -717,12 +717,12 @@ objannounce(register int obj, register char *s) /* Loud noises/events */
     register int i, o;
     for (i = 0; i < MAXU; i++) {
         /* If the player is deaf or can see me, ignore him */
-        if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & PFDEAF))
+        if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF))
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-        if ((o = owner(obj)) != -1 && (lstat + o)->room != (lstat + i)->room)
+        if ((o = owner(obj)) != -1 && (linestat + o)->room != (linestat + i)->room)
             continue;
-        if (o == -1 && isin(obj, (lstat + o)->room) == NO)
+        if (o == -1 && isin(obj, (linestat + o)->room) == NO)
             continue;
         setmxy(NOISE, i);
         utx(i, s);
@@ -734,8 +734,8 @@ action(char *s, int towho) /* Quiet actions/notices */
     register int i, x;
     for (i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
-        if (actor == i || ((lstat + i)->state < 2) ||
-            ((lstat + i)->flags & (PFBLIND + PFASLEEP)) != 0)
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) != 0)
             continue;
         x = 0;
         switch (towho) {
@@ -749,11 +749,11 @@ action(char *s, int towho) /* Quiet actions/notices */
             if (i == Af)
                 break;
         case AHERE:
-            if ((lstat + i)->room == me2->room && cansee(i, Af) == YES)
+            if ((linestat + i)->room == me2->room && cansee(i, Af) == YES)
                 x = 1;
             break;
         case AOUTSIDE:
-            if ((lstat + i)->room != me2->room)
+            if ((linestat + i)->room != me2->room)
                 x = 1;
             break;
         }
@@ -769,8 +769,8 @@ actionin(int toroom, char *s) /* Quiet actions/notices */
     register int i;
     for (i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
-        if (actor == i || ((lstat + i)->state < PLAYING) ||
-            ((lstat + i)->flags & (PFBLIND + PFASLEEP)) || (lstat + i)->room != toroom)
+        if (actor == i || ((linestat + i)->state < PLAYING) ||
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) || (linestat + i)->room != toroom)
             continue;
         setmxy(ACTION, i);
         utx(i, s);
@@ -782,14 +782,14 @@ actionfrom(int obj, char *s) /* Quiet actions/notices */
     register int i, o;
     for (i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
-        if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & (PFBLIND + PFASLEEP)) ||
-            (lstat + i)->room == me2->room)
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)) || (linestat + i)->room == me2->room)
             continue;
         /* Check if the player is NEAR to someone carrying the object */
         if ((o = owner(obj)) != -1)
-            if ((lstat + o)->room != (lstat + i)->room)
+            if ((linestat + o)->room != (linestat + i)->room)
                 continue;
-        if (o == -1 && isin(obj, (lstat + i)->room) == NO)
+        if (o == -1 && isin(obj, (linestat + i)->room) == NO)
             continue;
         setmxy(ACTION, i);
         utx(i, s);
@@ -801,13 +801,14 @@ objaction(register int obj, register char *s) /* Quiet actions/notices */
     register int i, o;
     for (i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
-        if (actor == i || ((lstat + i)->state < 2) || ((lstat + i)->flags & (PFBLIND + PFASLEEP)))
+        if (actor == i || ((linestat + i)->state < 2) ||
+            ((linestat + i)->flags & (PFBLIND + PFASLEEP)))
             continue;
         /* Check if the player is NEAR to someone carrying the object */
         if ((o = owner(obj)) != -1)
-            if ((lstat + o)->room != (lstat + i)->room)
+            if ((linestat + o)->room != (linestat + i)->room)
                 continue;
-        if (o == -1 && isin(obj, (lstat + i)->room) == NO)
+        if (o == -1 && isin(obj, (linestat + i)->room) == NO)
             continue;
         setmxy(ACTION, i);
         utx(i, s);
@@ -839,20 +840,21 @@ ableep(int n)
 
 lighting(int x, int twho) /*== twho - tell who! */
 {
-    if ((lstat + x)->light == (lstat + x)->hadlight || !((rmtab + (lstat + x)->room)->flags & DARK))
+    if ((linestat + x)->light == (linestat + x)->hadlight ||
+        !((rmtab + (linestat + x)->room)->flags & DARK))
         return;
-    if ((lstat + x)->light <= 0) {
-        if ((lstat + x)->hadlight <= 0)
+    if ((linestat + x)->light <= 0) {
+        if ((linestat + x)->hadlight <= 0)
             return;
-        (lstat + x)->hadlight = (lstat + x)->light = 0;
-        if (lit((lstat + x)->room) == NO)
+        (linestat + x)->hadlight = (linestat + x)->light = 0;
+        if (lit((linestat + x)->room) == NO)
             action(acp(NOWTOODARK), twho);
     } else {
-        if ((lstat + x)->hadlight != 0)
+        if ((linestat + x)->hadlight != 0)
             return;
-        if (lit((lstat + x)->room) == NO)
+        if (lit((linestat + x)->room) == NO)
             action(acp(NOWLIGHT), twho);
-        (lstat + x)->hadlight = (lstat + x)->light;
+        (linestat + x)->hadlight = (linestat + x)->light;
     }
 }
 
@@ -876,9 +878,9 @@ nohelp()
 
     if (me2->helping != -1)
         utx(me2->helping, "@me is no-longer able to help you...\n");
-    (lstat + me2->helping)->helped--;
+    (linestat + me2->helping)->helped--;
     me2->helping = -1;
-    you2 = lstat;
+    you2 = linestat;
     for (i = 0; i < MAXU; i++, you2++)
         if (you2->helping == Af) {
             utx(i, "You are no longer able to help @me.\n");
@@ -897,17 +899,17 @@ afight(int plyr)
         sys(NOFIGHT);
         return;
     }
-    if ((lstat + plyr)->fighting == Af) {
+    if ((linestat + plyr)->fighting == Af) {
         txs("You are already fighting %s!\n", (usr + plyr)->name);
         donet = ml + 1;
         return;
     }
-    if ((lstat + plyr)->fighting != -1) {
+    if ((linestat + plyr)->fighting != -1) {
         txs("%s is already in a fight!\n", (usr + plyr)->name);
         donet = ml + 1;
         return;
     }
-    you2 = lstat + plyr;
+    you2 = linestat + plyr;
     you2->flags = you2->flags | PFFIGHT;
     me2->flags = me2->flags | PFFIGHT | PFATTACKER;
     you2->fighting = Af;
@@ -927,7 +929,7 @@ clearfight()
 
 finishfight(int plyr)
 {
-    you2 = lstat + plyr;
+    you2 = linestat + plyr;
     you2->flags = you2->flags & (-1 - (PFFIGHT | PFATTACKER));
     you2->fighting = -1;
 }
@@ -955,7 +957,7 @@ attack/defence. */
     }
 
     you = usr + me2->fighting;
-    you2 = lstat + me2->fighting;
+    you2 = linestat + me2->fighting;
     minpksl = (rktab + you->rank)->minpksl;
 
     if (you2->state < PLAYING || you2->room != me2->room || you2->stamina <= 0) {
@@ -1043,7 +1045,7 @@ attack/defence. */
     }
     oldstr -= adam;
     if ((me2->flags & PFATTACKER) && oldstr > 0) {
-        /*		if(me2->helped != -1 && (lstat+me2->helped)->room==me2->room)	Well?	*/
+        /*		if(me2->helped != -1 && (linestat+me2->helped)->room==me2->room)	Well?	*/
 
         sendex(me2->fighting, ACOMBAT, -1, 0, 0); /* Tell them to clear up! */
     }
@@ -1142,8 +1144,8 @@ follow(register int x, register char *cmd)
     IAt = MFORCE;
     IAd = 1;
     IAp = cmd;
-    PutMsg((lstat + x)->rep, (struct Message *)intam);
-    (lstat + x)->IOlock = -1;
+    PutMsg((linestat + x)->rep, (struct Message *)intam);
+    (linestat + x)->IOlock = -1;
 }
 
 log(register char *s)
@@ -1167,7 +1169,7 @@ PutARankInto(char *s, int x)
     char *p;
 
     you = (usr + x);
-    you2 = (lstat + x);
+    you2 = (linestat + x);
 
     if (you2->pre[0] != 0) {
         p = you2->pre;
@@ -1251,7 +1253,7 @@ invent(register int plyr)
 
     strcpy(p, "carrying ");
     *(p += 9) = 0;
-    if ((lstat + plyr)->numobj == 0) {
+    if ((linestat + plyr)->numobj == 0) {
         strcat(p, "nothing.\n");
         tx(block);
         return;
