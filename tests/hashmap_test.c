@@ -33,7 +33,7 @@ test_get_string_hash(struct TestContext *t)
 
 	hashval_t hash = get_string_hash("hello");
     const char *key = "helloworld";
-    EXPECT_SUCCESS(get_string_hash_and_len(key, key + 5, &length));
+    EXPECT_FALSE(get_string_hash_and_len(key, key + 5, &length) == hash);
     EXPECT_EQUAL_VAL(5, length);
 }
 
@@ -85,7 +85,7 @@ test_add_str_to_hash(struct TestContext *t)
     EXPECT_ERROR(EINVAL, AddStrToHash(map, "1234567890123456789012345678901234567890", 0));
 
     EXPECT_SUCCESS(AddStrToHash(map, "hello", 3));
-    EXPECT_EQUAL_VAL(3, map->size);
+    EXPECT_EQUAL_VAL(1, map->size);
 
     hashval_t helloHash = get_string_hash("hello");
     size_t    hashBucket = helloHash % map->capacity;
@@ -131,8 +131,8 @@ test_add_str_to_hash(struct TestContext *t)
     EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[1].key, "foo"));
     EXPECT_EQUAL_VAL(102, map->buckets[1]->nodes[1].value);
 
-    EXPECT_ERROR(EEXIST, AddStrToHash(map, "hello", 0));
-    EXPECT_ERROR(EEXIST, AddStrToHash(map, "foo", 0));
+    EXPECT_SUCCESS(AddStrToHash(map, "hello", 111));
+    EXPECT_SUCCESS(AddStrToHash(map, "foo", 112));
     EXPECT_EQUAL_VAL(2, map->size);
 
     // Add a string that goes in another bucket
@@ -154,13 +154,13 @@ test_add_str_to_hash(struct TestContext *t)
     EXPECT_EQUAL_VAL(4, map->buckets[1]->capacity);
     EXPECT_NOT_NULL(map->buckets[1]->nodes);
     EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[0].key, "hello"));
-    EXPECT_EQUAL_VAL(101, map->buckets[1]->nodes[0].value);
+    EXPECT_EQUAL_VAL(111, map->buckets[1]->nodes[0].value);
     EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[1].key, "foo"));
-    EXPECT_EQUAL_VAL(102, map->buckets[1]->nodes[1].value);
+    EXPECT_EQUAL_VAL(112, map->buckets[1]->nodes[1].value);
 
-    EXPECT_ERROR(EEXIST, AddStrToHash(map, "hello", 0));
-    EXPECT_ERROR(EEXIST, AddStrToHash(map, "foo", 0));
-    EXPECT_ERROR(EEXIST, AddStrToHash(map, "a", 0));
+    EXPECT_SUCCESS(AddStrToHash(map, "hello", 0));
+    EXPECT_SUCCESS(AddStrToHash(map, "foo", 0));
+    EXPECT_SUCCESS(AddStrToHash(map, "a", 0));
 
     CloseHashMap(&map);
 }
@@ -175,7 +175,7 @@ test_add_to_hash(struct TestContext *t)
 	const char *key = "1234567890123456789012345678901234567890";
 
     EXPECT_ERROR(EINVAL, AddToHash(map, key, NULL, 0));
-    EXPECT_SUCCESS(AddToHash(map, key, NULL, 0));
+    EXPECT_SUCCESS(AddToHash(map, key, key+8, 0));
 
 	CloseHashMap(&map);
 }
