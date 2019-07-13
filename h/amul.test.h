@@ -50,7 +50,8 @@ struct TestContext {
 typedef void(test_harness_fn)(struct TestContext *t);
 
 #    define LPRINTF(fmt, ...)                                                                      \
-        fprintf(stderr, "\n%s:%d: error:%s: " fmt "\n", __FILE__, __LINE__, t->step, __VA_ARGS__); \
+        fprintf(stderr, "\n%s:%d: error:%s: " fmt "\n", __FILE__, __LINE__, t->step,               \
+                ##__VA_ARGS__); \
         fflush(stderr)
 
 #    define RUN_TEST(fn)                                                                           \
@@ -123,7 +124,7 @@ typedef void(test_harness_fn)(struct TestContext *t);
             t->lineItems++;                                                                        \
         } else {                                                                                   \
             LPRINTF(#actual " expecting false; got %" PRId64, (int64_t)(actual));                  \
-            assert((actual));                                                                      \
+            assert(!(actual));                                                                      \
         }
 
 #    define EXPECT_STR_EQUAL(expected, actual)                                                     \

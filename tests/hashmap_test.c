@@ -30,10 +30,16 @@ test_get_string_hash(struct TestContext *t)
 
     get_string_hash_and_len("1234567890123456789012345678901234567890", NULL, &length);
     EXPECT_VAL_EQUAL(40, length);
+}
 
+void
+test_get_string_hash_view(struct TestContext *t)
+{
 	hashval_t hash = get_string_hash("hello");
     const char *key = "helloworld";
-    EXPECT_FALSE(get_string_hash_and_len(key, key + 5, &length) == hash);
+	EXPECT_FALSE(get_string_hash(key) == hash);
+	size_t length = 0;
+    EXPECT_TRUE(get_string_hash_and_len(key, key + 5, &length) == hash);
     EXPECT_VAL_EQUAL(5, length);
 }
 
@@ -243,7 +249,7 @@ test_hash_large_population(struct TestContext *t)
 
     char key[MAX_HASH_KEY_SIZE];
     for (uint64_t i = 0; i < 256; ++i) {
-        sprintf(key, "key%04" PRIu64, (unsigned long long)i);
+        sprintf(key, "key%04" PRIu64, i);
         EXPECT_SUCCESS(AddStrToHash(map, key, i + 1LL));
     }
     EXPECT_VAL_EQUAL(256, GetMapSize(map));
@@ -268,6 +274,7 @@ void
 hashmap_tests(struct TestContext *t)
 {
     RUN_TEST(test_get_string_hash);
+    RUN_TEST(test_get_string_hash_view);
     RUN_TEST(test_new_hash_map);
     RUN_TEST(test_add_str_to_hash);
     RUN_TEST(test_add_to_hash);
