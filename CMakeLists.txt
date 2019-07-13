@@ -13,7 +13,7 @@ SET(CMAKE_C_STANDARD_REQUIRED ON)
 include_directories("${PROJECT_SOURCE_DIR}")
 
 IF (!_MSC_VER)
-	SET(CMAKE_C_FLAGS "-std=c11 -O0 -g2")
+	STRING(APPEND CMAKE_C_DEBUG_FLAGS " -Og -g3")
 	STRING(APPEND CMAKE_C_FLAGS " -Wall")
 	STRING(APPEND CMAKE_C_FLAGS " -Wno-format -Wno-missing-braces -Wno-int-conversion")
 	STRING(APPEND CMAKE_C_FLAGS " -Wno-incompatible-pointer-types-discards-qualifiers -Wno-tautological-constant-out-of-range-compare")

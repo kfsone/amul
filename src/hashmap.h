@@ -1,7 +1,7 @@
 #ifndef AMUL_SRC_HASHMAP_H
 #define AMUL_SRC_HASHMAP_H
 
-#include "h/amul.test.h"
+#include <h/amul.test.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "h/amul.hash.h"
+#include <h/amul.hash.h>
 
 // Platform portable case-insensitive string comparison.
 #if !defined(_MSC_VER)

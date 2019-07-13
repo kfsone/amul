@@ -117,6 +117,13 @@ typedef struct IOStdReq {
 
 #    define mp_SoftInt mp_SigTask  // Alias
 
+struct Aport {
+    struct Message msg;
+    long           type, from, data;
+    long           p1, p2, p3, p4; /* Action parameters	  */
+    char *         ptr;
+};
+
 // mp_Flags: Port arrival actions (PutMsg)
 #    define PF_ACTION 3            // Mask
 #    define PA_SIGNAL 0            // Signal task in mp_SigTask
@@ -138,20 +145,6 @@ void     PutMsg(MsgPort *port, Message *msg);
 Message *GetMsg(MsgPort *port);
 void     ReplyMsg(Message *msg);
 Message *WaitPort(MsgPort *port);
-
-#    define MEMF_PUBLIC 0
-static inline void *
-AllocMem(size_t bytes, int flags)
-{
-    (void)flags;
-    return calloc(bytes, 1);
-}
-
-static inline void
-FreeMem(void *ptr, int size)
-{
-    free(ptr);
-}
 
 // Wait this many 20ths of a second
 void Delay(int ticks);

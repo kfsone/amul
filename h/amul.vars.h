@@ -5,27 +5,14 @@
  ****           Internal Variables!            ****
  */
 
+#include <h/amul.stct.h>
+
 #ifdef PORTS
-long       ormtablen; /* Length of room table	 */
+#include <h/amigastubs.h>
 long       ormtab;    /* Room table		 */
-long       desctlen;  /* Length of desc tab	 */
-long       statablen; /* Len of states table	 */
-long       adtablen;  /* Length of table	 */
-long       stlen;     /* Length of slottab	 */
-long       vtlen;     /* Length of VT		 */
-long       vtplen;    /* Length of VT Parm Tab */
-long       ttlen;     /* Length of TT		 */
-long       ttplen;    /* Length of param tab	 */
-long       synlen;    /* Pointer to synonyms	 */
-long       synilen;   /* Len of syn index	 */
-long       umsgil;    /* User message indexes	 */
-long       umsgl;     /* User message length	 */
-long *     umsgip;    /* pointer to it!	 */
-char *     umsgp;     /* Actual messages	 */
 long *     ttpp;      /* Pointer to param tab	 */
 long *     vtpp;      /* ditto for VT		 */
 char *     adtab;     /* Adjective table	 */
-char *     desctab;   /* Object descrips	 */
 char *     synp;      /* Synonyms		 */
 short int *synip;     /* Synonyms index	 */
 short int *rctab;     /* Room count flags	 */

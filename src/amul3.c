@@ -22,9 +22,9 @@
 #define FRAME 1
 #define PORTS 1
 
-#include "h/amul.defs.h"
-#include "h/amul.incs.h"
-#include "h/amul.vars.h" /* all INTERNAL variables	*/
+#include <h/amul.defs.h>
+#include <h/amul.incs.h>
+#include <h/amul.vars.h> /* all INTERNAL variables	*/
 
 #define dtx(x)                                                                                     \
     if (debug != 0)                                                                                \
@@ -852,7 +852,7 @@ qcopy(char *p2, char *p, int max)
 DoThis(register int x, register char *cmd, register short int type)
 {
     lockusr(x);
-    if ((intam = (struct Aport *)AllocMem(sizeof(*amul), MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
     IAm.mn_Length = (UWORD)sizeof(*amul);
     IAf = Af;
@@ -993,7 +993,7 @@ show:
     fseek(ifp, 0, 2L);
     fsize = ftell(ifp);
     fseek(ifp, 0, 0L);
-    if ((p = (char *)AllocMem(fsize + 2, MEMF_PUBLIC + MEMF_CLEAR)) == NULL) {
+    if ((p = (char *)AllocateMemAllocMem(fsize + 2)) == NULL) {
         txs("\n--+ \x07System memory too low, exiting! +--\n");
         forced = 1;
         exeunt = 1;
@@ -1001,7 +1001,7 @@ show:
     }
     fread(p, fsize, 1, ifp);
     tx(p);
-    FreeMem(p, fsize + 2);
+    ReleaseMem(&p);
     pressret();
 }
 

@@ -61,7 +61,6 @@ getid()
         sys(WELCOMEBAK);
 
     /* Work out the players start location */
-    fopenr(rooms2fn); /* Get descriptions file */
     roomtab = rmtab;
     me2->room = -1;
     lroom = -1;

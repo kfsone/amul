@@ -1,10 +1,10 @@
 #include "amulcom.strings.h"
 #include "amulcom.h"
 
-#include "h/amul.alog.h"
-#include "h/amul.hash.h"
-#include "h/amul.test.h"
-#include "h/amul.xtra.h"
+#include <h/amul.alog.h>
+#include <h/amul.hash.h>
+#include <h/amul.test.h>
+#include <h/amul.xtra.h>
 
 static const char *strings_file = "strings.amulc";
 
@@ -95,14 +95,13 @@ AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
 error_t
 TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_t *idp)
 {
-    error_t err;
     REQUIRE(fp);
 
     // string's id will be the current position, so snag it now.
     stringid_t id = getStringID(0);
 
     struct StringIDEntry entry;
-    err = testLabelEntry(label, stype, &entry);
+    error_t              err = testLabelEntry(label, stype, &entry);
     if (err != ENOENT)
         return err;
 
@@ -116,10 +115,11 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
             break;
         if (*p == '\n')
             break;
-        if (isspace(*p)) {
-            if (!indent || (indent && *p == indent)) {
-                indent = *(p++);
-            }
+		if (!indent && *p) {
+            indent = *p;
+		}
+        if (isspace(*p) && *p == indent) {
+            p++;
         }
         const char *end = strstop(p, '\n');
         if (end > p && *(end - 1) == '{')

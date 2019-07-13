@@ -11,11 +11,10 @@
 #define AMAN 1  /* Get AMan includes */
 #define FRAME 1 /* Avoids various includes */
 
-#include "h/amul.cons.h"
-#include "h/amul.defs.h"
-#include "h/amul.stct.h"
-#include <exec/exec.h>
-#include <exec/types.h>
+#include <h/amul.cons.h>
+#include <h/amul.defs.h>
+#include <h/amul.stct.h>
+#include <h/amigastubs.h>
 #include <stdio.h>
 
 struct MsgPort *port, *reply, *FindPort(), *CreatePort();
@@ -63,7 +62,7 @@ main(int argc, char *argv[]) /* Accept no arguments */
         exit(0);
     }
 
-    amul = (struct Aport *)AllocMem((long)sizeof(*amul), MEMF_CLEAR + MEMF_PUBLIC);
+    amul = (struct Aport *)AllocateMem(sizeof(*amul));
     if (amul == NULL) {
         printf("Unable to create %s.\n", "message structure");
         quit();
@@ -164,7 +163,6 @@ quit()
 {
     if (reply != NULL)
         DeletePort((struct MsgPort *)reply);
-    if (amul != NULL)
-        FreeMem((char *)amul, (long)sizeof(*amul));
+    ReleaseMem(&amul);
     exit(0);
 }

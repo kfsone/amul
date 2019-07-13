@@ -14,18 +14,18 @@
     Copyright (C) Oliver Smith, 1990. Copyright (C) Kingfisher s/w 1990
   Program Designed, Developed and Written By: Oliver Smith & Richard Pike.
 
-                                       */
+*/
 
 #define AMUL 1
 #define AMUL1 1
 #define FRAME 1
 #define PORTS 1
 
-#include "h/amul.h"        /*=* Version info etc. *=*/
-#include "frame/amulinc.h" /*=* Main Include file *=*/
-#include "h/amul.cons.h"   /* Predefined Constants etc */
+#include <h/amul.h>        /* Version info etc. */
+#include <frame/amulinc.h> /* Main Include file */
+#include <h/amul.cons.h>   /* Predefined Constants etc */
 
-main(int argc, char *argv[]) /*=* Main Program *=*/
+main(int argc, char *argv[]) /* Main Program */
 {
     register int i;
 
@@ -67,11 +67,11 @@ main(int argc, char *argv[]) /*=* Main Program *=*/
         }
     } else
         switchC(argc, 0);
-    if ((ob = (char *)AllocMem(5000, MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((ob = (char *)AllocateMem(5000)) == NULL)
         memfail("IO buffers");
-    if ((ow = (char *)AllocMem(3000, MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((ow = (char *)AllocateMem(3000)) == NULL)
         memfail("IO buffers");
-    if ((input = (char *)AllocMem(400, MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((input = (char *)AllocateMem(400)) == NULL)
         memfail("IO buffers");
     if ((port = FindPort(mannam)) == NULL) {
         tx("Manager not running!\n");
@@ -83,9 +83,9 @@ main(int argc, char *argv[]) /*=* Main Program *=*/
         memfail("comms reply");
     if ((amanrep = CreatePort(0L, 0L)) == NULL)
         memfail("aman port");
-    if ((amul = (struct Aport *)AllocMem(sizeof(*amul), MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((amul = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
-    if ((amanp = (struct Aport *)AllocMem(sizeof(*amul), MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((amanp = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
     Am.mn_Length = (UWORD)sizeof(*amul);
     Am.mn_Node.ln_Type = NT_MESSAGE;

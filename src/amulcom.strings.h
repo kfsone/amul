@@ -1,8 +1,8 @@
 #ifndef AMUL_SRC_AMULCOM_STRINGS_H
 #define AMUL_SRC_AMULCOM_STRINGS_H 1
 
-#include "h/amul.strs.h"
-#include "h/amul.type.h"
+#include <h/amul.strs.h>
+#include <h/amul.type.h>
 
 #include <stdbool.h>
 #include <stdio.h>

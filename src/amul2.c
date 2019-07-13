@@ -1135,7 +1135,7 @@ isaroom(char *s)
 follow(register int x, register char *cmd)
 {
     lockusr(x);
-    if ((intam = (struct Aport *)AllocMem(sizeof(*amul), MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
     IAm.mn_Length = (UWORD)sizeof(*amul);
     IAf = Af;

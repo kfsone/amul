@@ -24,12 +24,15 @@
 #define UINFO                                                                                      \
     ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (rooms * sizeof(short)) + (sizeof(mob) * mobs)
 
-#include "h/aman.h"
-#include "h/amul.cons.h"
-#include "h/amul.defs.h"
-#include "h/amul.incs.h"
-#include "h/amul.vars.h"
+#include <h/aman.h>
+#include <h/amul.cons.h>
+#include <h/amul.defs.h>
+#include <h/amul.vars.h>
+#if defined(__AMIGA__)
 #include <devices/timer.h>
+#else
+#include <h/amigastubs.h>
+#endif
 #include <time.h>
 
 char *          ttxt, lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE], *xread(), *now();
@@ -202,7 +205,7 @@ kernel()
         Wait(-1);
     readport:
         while ((am = (struct Aport *)GetMsg(reply)) != NULL) {
-            FreeMem((char *)am, (long)sizeof(*amul));
+            ReleaseMem(&am);
         }
         while (GetMsg((struct MsgPort *)trport) != NULL) {
             /* Process counter table */
@@ -438,7 +441,7 @@ asend(int type, int data) /* Shutdown request */
         printf("Unable to create killer port!\n");
         return 0;
     }
-    amul = (struct Aport *)AllocMem((long)sizeof(*amul), MEMF_CLEAR + MEMF_PUBLIC);
+    amul = (struct Aport *)AllocateMem(sizeof(*amul));
     if (amul == NULL) {
         printf("Unable to allocate AMUL port memory!\n");
         DeletePort(reply);
@@ -464,7 +467,7 @@ asend(int type, int data) /* Shutdown request */
         case 'E': printf("... Game extended by %ld seconds ...\n", Ap1); break;
         default: printf("** Internal AMUL error ** (Returned '%c')\n", Ad); break;
         }
-    FreeMem((char *)amul, (long)sizeof(*amul));
+    ReleaseMem(&amul);
     DeletePort(reply);
     printf("\n");
     return 0;
@@ -546,7 +549,7 @@ reset_users() /* Force users to log-out & kill extra lines */
             ReplyMsg((struct Message *)am);
             goto skip;
         }
-        FreeMem((char *)am, (long)sizeof(*amul));
+        ReleaseMem(&am);
         online--;
     skip:
         if ((am = (struct Aport *)GetMsg(port)) != NULL)
@@ -574,13 +577,13 @@ setup() /* Read in & evaluate data files */
     register char *p;
 
     rc = 0;
-    fopenr(advfn);
+    fopenr(gameDataFile);
     fgets(adname, 41, ifp);
     adname[strlen(adname) - 1] = 0;
     fscanf(ifp, "%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld", &rooms,
            &ranks, &verbs, &syns, &nouns, &adjs, &ttents, &umsgs, &cclock, &mins, &invis, &invis2,
            &minsgo, &mobs, &rscale, &tscale, &mobchars);
-    if ((p = AllocMem(UINFO, MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((p = AllocateMem(UINFO)) == NULL)
         memfail("User tables");
     usr = (struct _PLAYER *)p;
     p += sizeof(*usr) * MAXNODE;
@@ -588,35 +591,35 @@ setup() /* Read in & evaluate data files */
     p += sizeof(*linestat) * MAXNODE;
     rctab = (short *)p;
 
-    fopenr(rooms1fn); /* 1: Open room block file */
-    if ((rmtab = (struct room *)AllocMem(rooms * sizeof(room), MEMF_PUBLIC)) == NULL)
+    fopenr(roomDataFile); /* 1: Open room block file */
+    if ((rmtab = (struct room *)AllocateMem(rooms * sizeof(room))) == NULL)
         memfail("room table"); /* Allocate memory */
     if ((i = fread((char *)rmtab, sizeof(room), rooms, ifp)) != rooms)
         readfail("room table", i, rooms);
 
-    fopenr(ranksfn); /* 2: Read player ranks */
-    if ((rktab = (struct rank *)AllocMem(ranks * sizeof(rank), MEMF_PUBLIC)) == NULL)
+    fopenr(rankDataFile); /* 2: Read player ranks */
+    if ((rktab = (struct rank *)AllocateMem(ranks * sizeof(rank))) == NULL)
         memfail("player ranks"); /* Allocate memory */
     if ((i = fread((char *)rktab, sizeof(rank), ranks, ifp)) != ranks)
         readfail("player ranks", i, ranks);
 
-    fopenr(lang1fn); /* 4: Read the verbs in */
-    if ((vbtab = (struct verb *)AllocMem(verbs * sizeof(verb), MEMF_PUBLIC)) == NULL)
+    fopenr(verbDataFile); /* 4: Read the verbs in */
+    if ((vbtab = (struct verb *)AllocateMem(verbs * sizeof(verb))) == NULL)
         memfail("verb table");
     if ((i = fread(vbtab->id, sizeof(verb), verbs, ifp)) != verbs)
         readfail("verb table", i, verbs);
 
     /* 3, 5, 6 & 7: Read objects */
-    obtlen = fsize(objsfn);
+    obtlen = fsize(objectDataFile);
     desctlen = fsize(obdsfn);
-    ormtablen = fsize(objrmsfn);
-    statablen = fsize(statfn);
-    if ((p = AllocMem(obtlen + desctlen + ormtablen + statablen, MEMF_PUBLIC)) == NULL)
+    ormtablen = fsize(objectRoomFile);
+    statablen = fsize(objectStateFile);
+    if ((p = AllocateMem(obtlen + desctlen + ormtablen + statablen)) == NULL)
         memfail("object data");
-    obtab = (struct obj *)readf(objsfn, p);
+    obtab = (struct obj *)readf(objectDataFile, p);
     desctab = (char *)readf(obdsfn, (p = p + obtlen));
-    ormtab = (long)readf(objrmsfn, (p = p + desctlen));
-    statab = (struct state *)readf(statfn, p + ormtablen);
+    ormtab = (long)readf(objectRoomFile, (p = p + desctlen));
+    statab = (struct state *)readf(objectStateFile, p + ormtablen);
 
     /* Update the object room list ptrs and the state ptrs */
     statep = statab;
@@ -632,16 +635,16 @@ setup() /* Read in & evaluate data files */
 
     umsgil = fsize(umsgifn);
     umsgl = fsize(umsgfn);
-    if ((p = AllocMem(umsgil + umsgl, MEMF_PUBLIC)) == NULL)
+    if ((p = AllocateMem(umsgil + umsgl)) == NULL)
         memfail("user messages");
     umsgip = (long *)readf(umsgifn, p);
     umsgp = (char *)readf(umsgfn, p + umsgil);
 
     /* 9: Read the travel table */
-    ttp = (struct tt *)xread(ttfn, &ttlen, "travel table");
+    ttp = (struct tt *)xread(travelTableFile, &ttlen, "travel table");
 
     /* 12: Read parameters */
-    ttpp = (long *)xread(ttpfn, &ttplen, "TT parameter table");
+    ttpp = (long *)xread(travelParamFile, &ttplen, "TT parameter table");
     ttents = ttlen / sizeof(tt);
     ttabp = ttp;
     pt = ttpp;
@@ -663,24 +666,24 @@ setup() /* Read in & evaluate data files */
     }
 
     /* 14: Load Slot table */
-    stlen = fsize(lang2fn);
-    vtlen = fsize(lang3fn);
-    vtplen = fsize(lang4fn);
-    if ((p = AllocMem(stlen + vtlen + vtplen, MEMF_PUBLIC)) == NULL)
+    stlen = fsize(verbSlotFile);
+    vtlen = fsize(verbTableFile);
+    vtplen = fsize(verbParamFile);
+    if ((p = AllocateMem(stlen + vtlen + vtplen)) == NULL)
         memfail("language data");
-    slottab = (struct _SLOTTAB *)readf(lang2fn, p);
-    vtp = (struct _VBTAB *)readf(lang3fn, p + stlen);
-    vtpp = (long *)readf(lang4fn, p + stlen + vtlen);
+    slottab = (struct _SLOTTAB *)readf(verbSlotFile, p);
+    vtp = (struct _VBTAB *)readf(verbTableFile, p + stlen);
+    vtpp = (long *)readf(verbParamFile, p + stlen + vtlen);
 
     /* 17: Get the Synonym data & adjectives */
-    synlen = fsize(synsfn);
-    synilen = fsize(synsifn);
-    adtablen = fsize(adjfn);
-    if ((p = AllocMem(synlen + synilen + adtablen, MEMF_PUBLIC)) == NULL)
+    synlen = fsize(synonymDataFile);
+    synilen = fsize(synonymIndexFile);
+    adtablen = fsize(adjectiveDataFile);
+    if ((p = AllocateMem(synlen + synilen + adtablen)) == NULL)
         memfail("synonym data");
-    synp = (char *)readf(synsfn, p);
-    synip = (short int *)readf(synsifn, (p = p + synlen));
-    adtab = (char *)readf(adjfn, p + synilen);
+    synp = (char *)readf(synonymDataFile, p);
+    synip = (short int *)readf(synonymIndexFile, (p = p + synlen));
+    adtab = (char *)readf(adjectiveDataFile, p + synilen);
 
     /* 18: Get last reset time */
     strcpy(lastres, now());
@@ -739,47 +742,24 @@ readfail(char *s, int got, int wanted) /* Report a read failure */
 
 givebackmemory() /* Release all memory AllocMem'd */
 {
-    if (usr)
-        FreeMem((char *)usr, UINFO);
-    if (rmtab)
-        FreeMem((char *)rmtab, sizeof(room) * rooms);
-    if (rktab)
-        FreeMem((char *)rktab, sizeof(rank) * ranks);
-    if (vbtab)
-        FreeMem((char *)vbtab, verbs * sizeof(verb));
-    if (obtab)
-        FreeMem((char *)obtab, obtlen + desctlen + ormtablen + statablen);
-    if (umsgip)
-        FreeMem((char *)umsgip, umsgil + umsgl);
-    if (ttp)
-        FreeMem((char *)ttp, ttlen);
-    if (ttpp)
-        FreeMem((char *)ttpp, ttplen);
-    if (slottab)
-        FreeMem((char *)slottab, stlen + vtlen + vtplen);
-    if (synp)
-        FreeMem((char *)synp, synlen + synilen + adtablen);
+    ReleaseMem(&obtab);
+    ReleaseMem(&rktab);
+    ReleaseMem(&rmtab);
+    ReleaseMem(&slottab);
+    ReleaseMem(&synp);
+    ReleaseMem(&ttp);
+    ReleaseMem(&ttpp);
+    ReleaseMem(&usr);
+    ReleaseMem(&vbtab);
 
+    adtab = NULL;
     linestat = NULL;
-    umsgip = NULL;
-    umsgp = NULL;
-    ttpp = NULL;
-    ttp = NULL;
-    vbtab = NULL;
-    slottab = NULL;
+    ormtab = NULL;
+    rctab = NULL;
+    statab = NULL;
+    synip = NULL;
     vtp = NULL;
     vtpp = NULL;
-    adtab = NULL;
-    statab = NULL;
-    ormtab = NULL;
-    desctab = NULL;
-    obtab = NULL;
-    rktab = NULL;
-    rmtab = NULL;
-    usr = NULL;
-    rctab = NULL;
-    synp = NULL;
-    synip = NULL;
 }
 
 fopenr(char *s) /* Open a file for reading */
@@ -825,7 +805,7 @@ char *xread(char *s, long *n, char *t) /* Size/Read data files */
     *n = ftell(ifp);
     fseek(ifp, 0, 0L);
     if (*n != 0) {
-        if ((p = (char *)AllocMem(*n, MEMF_PUBLIC)) == NULL)
+        if ((p = (char *)AllocateMem(*n)) == NULL)
             memfail(t);
         if ((i = fread(p, 1, *n, ifp)) != *n)
             readfail(t, i, *n);
@@ -936,7 +916,7 @@ check(register int d) /* Check if daemon is active */
 
 setam()
 {
-    am = (struct Aport *)AllocMem((long)sizeof(*amul), MEMF_CLEAR + MEMF_PUBLIC);
+    am = (struct Aport *)AllocateMem(sizeof(*amul));
     am->msg.mn_Node.ln_Type = NT_MESSAGE;
     am->msg.mn_ReplyPort = reply;
     am->msg.mn_Length = (UWORD)sizeof(*am);

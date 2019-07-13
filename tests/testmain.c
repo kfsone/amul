@@ -1,4 +1,4 @@
-#include "h/amul.test.h"
+#include <h/amul.test.h>
 #include <stdio.h>
 #include <stdlib.h>
 

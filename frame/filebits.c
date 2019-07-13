@@ -12,18 +12,13 @@ givebackmemory()
         DeletePort(repbk);
     if (reply != NULL)
         DeletePort(reply);
-    if (amul != NULL)
-        FreeMem((char *)amul, (long)sizeof(*amul));
+    ReleaseMem(&amul);
     if (amanrep != NULL)
         DeletePort(amanrep);
-    if (amanp != NULL)
-        FreeMem((char *)amanp, (long)sizeof(*amanp));
-    if (ob != NULL)
-        FreeMem(ob, 5000);
-    if (ow != NULL)
-        FreeMem(ow, 3000);
-    if (input != NULL)
-        FreeMem(input, 400);
+    ReleaseMem(&amanp);
+    ReleaseMem(&ob);
+    ReleaseMem(&ow);
+    ReleaseMem(&input);
     if (serio != NULL)
         DeleteExtIO((struct IORequest *)serio);
     if (wserio != NULL)

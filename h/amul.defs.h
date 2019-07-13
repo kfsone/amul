@@ -5,14 +5,30 @@
  ****                #defines!                 ****
  */
 
+enum {
+	NRFLAGS = 15,
+	NOFLAGS = 8,
+	NOPARMS = 5,
+	NSFLAGS = 7,
+	NPUTS = 4,
+	NPREP = 6,
+	NCONDS = 64,
+	MAX_COND_PARMS = 3,
+	MAX_ACT_PARMS = 3,
+	NACTS = 96,
+	NSYNTS = 12,
+};
+
 #define MAXU 14            /* Max users at 1 time		*/
 #define MAXNODE (MAXU + 2) /* + 1 mobiles+1 daemons	*/
 
 #define YES 0
 #define NO 1
 
-#define LOUD 1
-#define QUIET 2
+enum VolumeLevel {
+	LOUD = 1,
+	QUIET = 2,
+};
 
 #define ACTION 0
 #define NOISE 1
@@ -416,8 +432,6 @@
 #define unfreeze                                                                                   \
     Permit();                                                                                      \
     return
-
-#include "h/amul.msgs.h" /* System message defines */
 
 #define NONE                                                                                       \
     {                                                                                              \

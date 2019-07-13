@@ -1,4 +1,4 @@
-#include "h/amul.test.h"
+#include <h/amul.test.h>
 #include "src/hashmap.h"
 
 #include <stdint.h>

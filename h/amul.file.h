@@ -1,25 +1,24 @@
 #ifndef AMUL_SRC_FILESYSTEM_H
 #define AMUL_SRC_FILESYSTEM_H
 
-#include <stdlib.h>  // for size_t
+#include <h/amul.type.h>
 
-typedef int error_t;
+enum { MAX_PATH_LENGTH = 256 };
+extern char gameDir[MAX_PATH_LENGTH];
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
+void UnlinkGameFile(const char *gamefile);
 
-error_t path_copy(char *into, size_t limit, size_t *offset, const char *path);
+error_t PathCopy(char *into, size_t limit, size_t *offset, const char *path);
 
 // Normalize and concat two filenames into one '/' separated path name.
 // Returns EINVAL if into is null, limit is 0, lhs is null, rhs is null
 // or if the combined paths exceed limit.
-error_t path_join(char *into, size_t limit, const char *lhs, const char *rhs);
+error_t PathJoin(char *into, size_t limit, const char *lhs, const char *rhs);
 
-#if defined(__cplusplus)
-};
-#endif
-
-#define path_joiner(into, lhs, rhs) path_join(into, sizeof(int), lhs, rhs)
+#define path_joiner(into, lhs, rhs) PathJoin(into, sizeof(int), lhs, rhs)
+#define gamedir_joiner(filename) path_joiner(filepath, gameDir, filename)
+#define safe_gamedir_joiner(filename)                                                              \
+    if (gamedir_joiner(filename) != 0)                                                             \
+        alog(AL_FATAL, "Unable to form filename for %s / %s", gameDir, filename);
 
 #endif

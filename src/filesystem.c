@@ -1,16 +1,38 @@
-#include "h/amul.file.h"
-#include "h/amul.test.h"
+#include <h/amul.file.h>
+#include <h/amul.test.h>
 
 #include <stdbool.h>
+#include <stdlib.h>
+
+char gameDir[MAX_PATH_LENGTH];
+
+// File names
+const char *gameDataFile = "Prof.amulo";
+const char *roomDataFile = "room.amulo";
+const char *rankDataFile = "rank.amulo";
+const char *travelTableFile = "traveld.amulo";
+const char *travelParamFile = "travelp.amulo";
+const char *verbDataFile = "verbd.amulo";
+const char *verbSlotFile = "verbst.amulo";
+const char *verbTableFile = "verbtd.amulo";
+const char *verbParamFile = "verbtp.amulo";
+const char *synonymDataFile = "synonymd.amulo";
+const char *synonymIndexFile = "synonymi.amulo";
+const char *objectDataFile = "objectd.amulo";
+const char *objectRoomFile = "objectr.amulo";
+const char *objectStateFile = "objects.amulo";
+const char *adjectiveDataFile = "adjd.amulo";
+const char *mobileDataFile = "mobiled.amulo";
+const char *mobileCmdFile = "mobilec.amulo";
 
 static inline bool
-is_separator(const char *ptr)
+isSeparator(const char *ptr)
 {
     return (*ptr == '/' || *ptr == '\\');
 }
 
 error_t
-path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
+PathCopy(char *into, size_t limit, size_t *offsetp, const char *path)
 {
     REQUIRE(!offsetp || *offsetp < limit - 1);
     size_t offset = offsetp ? *offsetp : 0;
@@ -19,7 +41,7 @@ path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
     char *      dst = into + offset;
     REQUIRE(dst < end);
 
-    while (offset > 1 && is_separator(end - 1)) {
+    while (offset > 1 && isSeparator(end - 1)) {
         --dst;
     }
     bool slashed = offset > 0 && dst == into + offset;
@@ -28,7 +50,7 @@ path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
     // non-slash, so "////" => "" but "////a" => "/a"
     const char *src = path;
     for (; *src && dst < end;) {
-        if (is_separator(src)) {
+        if (isSeparator(src)) {
             slashed = true;
             ++src;
             continue;
@@ -54,7 +76,7 @@ path_copy(char *into, size_t limit, size_t *offsetp, const char *path)
 }
 
 error_t
-path_join(char *into, size_t limit, const char *lhs, const char *rhs)
+PathJoin(char *into, size_t limit, const char *lhs, const char *rhs)
 {
     REQUIRE(into && limit > 0 && lhs && rhs && *rhs);
 
@@ -62,7 +84,7 @@ path_join(char *into, size_t limit, const char *lhs, const char *rhs)
     REQUIRE(*lhs);
 
     size_t  length = 0;
-    error_t err = path_copy(into, limit, &length, lhs);
+    error_t err = PathCopy(into, limit, &length, lhs);
     if (length == 0) {
         into[length++] = '.';
     }
@@ -70,8 +92,26 @@ path_join(char *into, size_t limit, const char *lhs, const char *rhs)
     // Copy the left side of the path into the pathname so we have a mutable
     // storage
     REQUIRE(length > 0 && length < limit - 1);
-    err = path_copy(into, limit, &length, rhs);
+    err = PathCopy(into, limit, &length, rhs);
     REQUIRE(err == 0 && length < limit);
 
     return 0;
+}
+
+void
+CloseFile(FILE **fp)
+{
+    if (fp && *fp) {
+        fclose(*fp);
+        *fp = NULL;
+    }
+}
+
+void
+UnlinkGameFile(const char *gamefile)
+{
+    char filepath[MAX_PATH_LENGTH];
+    if (gamedir_joiner(gamefile) == 0) {
+        unlink(filepath);
+    }
 }

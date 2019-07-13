@@ -14,10 +14,8 @@
 #define PORTS 1
 #endif
 
-#include "h/amul.defs.h" /* Defines in one nice file	*/
-#include "h/amul.incs.h" /* Include files tidily stored.	*/
-#include "h/amul.lnks.h" /* (external) Linkage symbols	*/
-#include "h/amul.msgs.h" /* System Message Flags		*/
+#include <h/amul.defs.h>
+#include <h/amul.msgs.h>
 #include <setjmp.h>
 
 #define dtx(x)                                                                                     \
@@ -49,7 +47,7 @@ extern struct IOStdReq  ReadIo, WriteIo;
 
 /* get the powerwindows file */
 #ifdef AMUL1
-#include "h/amul.scrn.h" /* ParFilEd Window b4 U ask!	 */
+#include <h/amul.scrn.h>
 
 void end(), sendmessage(), parget();
 #endif

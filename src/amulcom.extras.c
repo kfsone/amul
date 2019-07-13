@@ -1,5 +1,4 @@
-#include "h/amul.incs.h"
-#include "h/amul.xtra.h"
+#include <h/amul.xtra.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // converted from extras.i
@@ -38,12 +37,13 @@ striplead(const char *lead, char *from)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Platform specific stubs
-//
+// AmigaStubs
+
+#include <h/amigastubs.h>
 
 static struct Task myTask;
 
-Task *
+struct Task *
 FindTask(const char *name)
 {
     if (name != NULL)

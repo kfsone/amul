@@ -8,7 +8,7 @@
 // rooms.txt file, whereas others are named such as object
 // descriptions from the "obdescs.txt" file.
 
-#include "h/amul.type.h"
+#include <h/amul.type.h>
 
 // Types of string, bit-mask
 enum StringType {

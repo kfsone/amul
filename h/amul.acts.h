@@ -12,7 +12,7 @@ the box', 'current state of door', 'no. of player carrying' etc...
 
 */
 
-#include "h/amul.defs.h"
+#include <h/amul.defs.h>
 
 /* Actual flags */
 

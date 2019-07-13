@@ -28,177 +28,67 @@
 
 */
 
-#define COMPILER 1
-
 #include "amulcom.h"
+#include "amulcom.runtime.h"
 #include "amulcom.strings.h"
 
-#include "h/amul.acts.h"
-#include "h/amul.alog.h" /* Logging */
-#include "h/amul.cons.h" /* Predefined Constants etc     */
-#include "h/amul.defs.h" /* Defines in one nice file     */
-#include "h/amul.file.h"
-#include "h/amul.hash.h"
-#include "h/amul.incs.h" /* Include files tidily stored. */
-#include "h/amul.lnks.h" /* (external) Linkage symbols   */
-#include "h/amul.strs.h"
-#include "h/amul.test.h"
-#include "h/amul.vars.h" /* all INTERNAL variables       */
-#include "h/amul.xtra.h"
-#include "h/amulcom.h"
+#include "modules.h"
+#include "system.h"
 
+#include <h/amigastubs.h>
+#include <h/amul.acts.h>
+#include <h/amul.alog.h>
+#include <h/amul.cons.h>
+#include <h/amul.defs.h>
+#include <h/amul.file.h>
+#include <h/amul.gcfg.h>
+#include <h/amul.hash.h>
+#include <h/amul.msgs.h>
+#include <h/amul.stct.h>
+#include <h/amul.strs.h>
+#include <h/amul.test.h>
+#include <h/amul.vars.h>
+#include <h/amul.xtra.h>
+#include <h/amulcom.h>
+
+#include <fcntl.h>
 #include <malloc.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
-
-#if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
-#    define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Variables
 
 static char compilerVersion[128];
 
-FILE *ifp;
-FILE *ofp1;
-FILE *ofp2;
-FILE *ofp3;
-FILE *ofp4;
-FILE *ofp5;
-FILE *afp;
-
 /* Compiler specific variables... */
 
-bool exiting = false;
-bool verbose = false;
-bool checkDmoves = false;
-bool reuseRoomData = false;
-
-int    dmoves = 0;   /* How many DMOVEs to check?	*/
-int    rmn = 0;      /* Current room no.		*/
-long   titlePos = 0; /* Position of the title text in title.txt */
-size_t FPos;         /* Used during TT/Lang writes	*/
-char   Word[64];     /* For internal use only <grin>	*/
-int    errorCount;   /* Number of AL_ERRORs logged */
-int    proc;         /* What we are processing	*/
-char * data;         /* Pointer to data buffer	*/
-char * data2;        /* Secondary buffer area	*/
-char * syntab;       /* Synonym table, re-read	*/
-char   idt[IDL + 1]; /* Temporary ID store		*/
-long   obmem;        /* Size of Objects.TXT		*/
-long   vbmem;        /* Size of Lang.Txt		*/
-long   wizstr;       /* Wizards strength		*/
-char * mobdat, *px;  /* Mobile data			*/
-long   moblen;       /* Length			*/
+int    dmoves = 0; /* How many DMOVEs to check?	*/
+int    rmn = 0;    /* Current room no.		*/
+size_t FPos;       /* Used during TT/Lang writes	*/
+char   Word[64];   /* For internal use only <grin>	*/
+int    errorCount; /* Number of AL_ERRORs logged */
+int    proc;       /* What we are processing	*/
+char * syntab;     /* Synonym table, re-read	*/
+long   wizstr;     /* Wizards strength		*/
 
 struct Task *mytask, *FindTask();
 
-char gameName[64];
-
 char block[1024];  // scratch pad
 
-enum { MAX_PATH_LENGTH = 256 };
-char gameDir[MAX_PATH_LENGTH];  // directory the game is in
-
-struct _OBJ_STRUCT2 *obtab2, *objtab2, obj2, *osrch, *osrch2;
+struct _OBJ_STRUCT *obtab2, *objtab2, obj2, *osrch, *osrch2;
 
 #if defined(_AMIGA_)
 long ohd; /* Output handle for direct dos	*/
 #endif
 
 // counters
-short nouns, mobchars, mobs, ttents, rooms, verbs, adjs, ranks, syns;
-
-// game duration, rank to see invisible, rank to see super-invis
-int mins, invis, invis2;
-// minimum rank to super-go
-int minsgo;
-// rank and time scale of points
-int rscale, tscale;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Local constants
-
-static const char *odids_file = "odids.tmp";
-static const char *umsg_tmp_file = "umsg.tmp";
-static const char *obj_loc_file = "objloc.tmp";
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Helper macros / inline functions
-
-#define gamedir_joiner(filename) path_joiner(filepath, gameDir, filename)
-#define safe_gamedir_joiner(filename)                                                              \
-    if (gamedir_joiner(filename) != 0)                                                             \
-        alog(AL_FATAL, "Unable to form filename for %s / %s", gameDir, filename);
+struct GameInfo   g_gameInfo;
+struct GameConfig g_gameConfig;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
-
-void
-CloseFile(FILE **fp)
-{
-    if (fp && *fp) {
-        fclose(*fp);
-        *fp = NULL;
-    }
-}
-
-void
-closeOutFiles()
-{
-    CloseFile(&ofp1);
-    CloseFile(&ofp2);
-    CloseFile(&ofp3);
-    CloseFile(&ofp4);
-    CloseFile(&ofp5);
-    CloseFile(&afp);
-}
-
-void
-unlinkGameFile(const char *gamefile)
-{
-    char filepath[MAX_PATH_LENGTH];
-    if (gamedir_joiner(gamefile) == 0) {
-        unlink(filepath);
-    }
-}
-
-void
-quit()
-{
-    closeOutFiles();
-    CloseFile(&ifp);
-    CloseStrings();
-
-    // If we didn't complete compilation, delete the profile file.
-    if (!exiting) {
-        unlinkGameFile(advfn);
-    }
-
-    unlinkGameFile(odids_file);
-    unlinkGameFile(umsg_tmp_file);
-    unlinkGameFile(obj_loc_file);
-
-    if (mobdat)
-        FreeMem(mobdat, moblen);
-    mobdat = NULL;
-    if (mobp)
-        FreeMem(mobp, sizeof(mob) * mobchars);
-    mobp = NULL;
-    if (rmtab != 0)
-        FreeMem(rmtab, sizeof(room) * rooms);
-    rmtab = NULL;
-    if (obtab2 != 0)
-        FreeMem(obtab2, obmem);
-    obtab2 = NULL;
-    if (vbtab != 0)
-        FreeMem(vbtab, vbmem);
-    vbtab = NULL;
-
-    exit(0);
-}
 
 void
 checkErrorCount()
@@ -206,13 +96,6 @@ checkErrorCount()
     if (al_errorCount > 30) {
         alog(AL_FATAL, "Terminating due to %u errors", al_errorCount);
     }
-}
-
-void
-CXBRK()
-{
-    alog(AL_NOTE, "** CTRL-C pressed - memory released, files closed! Tata!");
-    quit();
 }
 
 bool
@@ -335,7 +218,7 @@ void
 ttroomupdate()
 {
     fseek(afp, 0, 0L);
-    fwrite(rmtab->id, sizeof(room), rooms, afp);
+    fwrite(rmtab->id, sizeof(room), g_gameInfo.numRooms, afp);
 }
 
 void
@@ -386,7 +269,7 @@ is_verb(const char *s)
 {
     int i;
 
-    if (verbs == 0) {
+    if (g_gameInfo.numVerbs == 0) {
         alog(AL_FATAL, "Attempted to look up verb '%s' with no verbs defined", s);
     }
     if (strlen(s) > IDL) {
@@ -395,7 +278,7 @@ is_verb(const char *s)
     }
 
     vbptr = vbtab;
-    for (i = 0; i < verbs; i++, vbptr++) {
+    for (i = 0; i < g_gameInfo.numVerbs; i++, vbptr++) {
         if (stricmp(vbptr->id, s) == 0)
             return i;
     }
@@ -415,19 +298,6 @@ filesize()
     return s;
 }
 
-void
-blkget(long *s, char **p, long off)
-{
-    *s = filesize() + off;
-    if ((*p = (char *)AllocMem(*s, MEMF_PUBLIC)) == NULL) {
-        alog(AL_FATAL, "Out of memory");
-    }
-    fread((*p) + off, 1, *s, ifp);
-    *((*p + *s) - 2) = 0;
-    *((*p + *s) - 1) = 0;
-    // repcrlf((*p)+off);	///TODO: HANDLE \r
-}
-
 /* Check to see if s is a room flag */
 int
 isrflag(const char *s)
@@ -444,7 +314,7 @@ isroom(const char *s)
 {
     int r;
     roomtab = rmtab;
-    for (r = 0; r < rooms; r++)
+    for (r = 0; r < g_gameInfo.numRooms; r++)
         if (strcmp(roomtab->id, s) == 0)
             return r;
         else
@@ -488,11 +358,11 @@ set_adj()
     if (strlen(Word) > IDL || strlen(Word) < 3) {
         alog(AL_FATAL, "Invalid adjective (length): %s", Word);
     }
-    if (adjs == 0) {
+    if (g_gameInfo.numAdjectives == 0) {
         ZeroPad(Word, sizeof(Word));
         fwrite(Word, IDL + 1, 1, afp);
         obj2.adj = 0;
-        adjs++;
+        g_gameInfo.numAdjectives++;
         return;
     }
     fseek(afp, 0L, 0); /* Move to beginning */
@@ -511,13 +381,13 @@ set_adj()
     fseek(afp, 0L, 2); /* Move to end! */
     ZeroPad(Word, sizeof(Word));
     fwrite(Word, IDL + 1, 1, afp); /* Add this adjective */
-    obj2.adj = adjs++;
+    obj2.adj = g_gameInfo.numAdjectives++;
 }
 
 void
 object(const char *s)
 {
-    alog(AL_FATAL, "Object #%d: %s: invalid %s: %s", nouns + 1, obj2.id, s, Word);
+    alog(AL_FATAL, "Object #%d: %s: invalid %s: %s", g_gameInfo.numNouns + 1, obj2.id, s, Word);
 }
 
 void
@@ -557,7 +427,7 @@ void
 set_mob()
 {
     int i;
-    for (i = 0; i < mobchars; i++)
+    for (i = 0; i < g_gameInfo.numMobPersonas; i++)
         if (stricmp(Word, (mobp + i)->id) == 0) {
             obj2.mobile = i;
             return;
@@ -657,7 +527,7 @@ bool
 chkline(const char *p)
 {
     if (*p == 0) {
-        alog(AL_ERROR, "Rank line %d incomplete", ranks);
+        alog(AL_ERROR, "Rank line %" PRIu64 " incomplete", g_gameInfo.numRanks);
         return false;
     }
     return true;
@@ -666,7 +536,8 @@ chkline(const char *p)
 void
 statinv(const char *s)
 {
-    alog(AL_FATAL, "Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s, block);
+    alog(AL_FATAL, "Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameInfo.numNouns + 1, obj2.id, s,
+         block);
 }
 
 int
@@ -688,7 +559,7 @@ isnoun(const char *s)
     objtab2 = obtab2;
     if (stricmp(s, "none") == 0)
         return -2;
-    for (i = 0; i < nouns; i++, objtab2++)
+    for (i = 0; i < g_gameInfo.numNouns; i++, objtab2++)
         if (stricmp(s, objtab2->id) == 0)
             return i;
     return -1;
@@ -700,7 +571,7 @@ iscont(const char *s)
     int i;
 
     objtab2 = obtab2;
-    for (i = 0; i < nouns; i++, objtab2++)
+    for (i = 0; i < g_gameInfo.numNouns; i++, objtab2++)
         if (stricmp(s, objtab2->id) == 0 && objtab2->contains > 0)
             return i;
     return -1;
@@ -845,11 +716,11 @@ isnounh(const char *s)
 
     if (stricmp(s, "none") == 0)
         return -2;
-    FILE *fp = OpenGameFile(objrmsfn, "rb");
+    FILE *fp = OpenGameFile(objectRoomFile, "rb");
     l = -1;
     objtab2 = obtab2;
 
-    for (i = 0; i < nouns; i++, objtab2++) {
+    for (i = 0; i < g_gameInfo.numNouns; i++, objtab2++) {
         if (stricmp(s, objtab2->id) != 0)
             continue;
         fseek(fp, (long)(uintptr_t)objtab2->rmlist, 0L);  /// TODO: Dispose
@@ -857,12 +728,12 @@ isnounh(const char *s)
             fread(&orm, 4, 1, fp);
             if (orm == rmn) {
                 l = i;
-                i = nouns + 1;
+                i = g_gameInfo.numNouns + 1;
                 j = objtab2->nrooms;
                 break;
             }
         }
-        if (i < nouns)
+        if (i < g_gameInfo.numNouns)
             l = i;
     }
     fclose(fp);
@@ -1057,7 +928,7 @@ actualval(const char *s, int n)
 char *
 chkp(char *p, char t, int c, int z, FILE *fp)
 {
-    int32_t x;
+    int32_t x = -1;
 
     p = skipOptionalPrefixes(p);
     if (*p == 0) {
@@ -1074,7 +945,7 @@ chkp(char *p, char t, int c, int z, FILE *fp)
         lower = true;
     }
     size_t len = end - p;
-    char * token = alloca(len + 1);
+    char * token = (char *)alloca(len + 1);
     if (lower)
         WordCopier(token, p, end);
     else
@@ -1185,7 +1056,7 @@ iswtype(char *s)
 {
     int i;
 
-    for (i = 0; i < nsynts; i++) {
+    for (i = 0; i < NSYNTS; i++) {
         if (strcmp(s, syntax[i]) == 0) {
             *s = 0;
             return i - 1;
@@ -1283,9 +1154,9 @@ consumeMessageFile(
 void
 _getAdventureName(const char *prefix, const char *value)
 {
-    strncpy(gameName, value, sizeof(gameName));
-    if (strlen(value) > sizeof(gameName) - 1)
-        alog(AL_WARN, "Game name too long, truncated to: %s", gameName);
+    strncpy(g_gameConfig.gameName, value, sizeof(g_gameConfig.gameName));
+    if (strlen(value) > sizeof(g_gameConfig.gameName) - 1)
+        alog(AL_WARN, "Game name too long, truncated to: %s", g_gameConfig.gameName);
 }
 
 void
@@ -1294,21 +1165,25 @@ title_proc()
     nextc(true);
 
     getBlock("name=", _getAdventureName);
-    getBlockNo("gametime=", &mins);
-    if (mins < 15) {
-        mins = 15;
-        alog(AL_WARN, "gametime= too short: falling back to %d minutes", mins);
+    getBlockNo("gametime=", &g_gameConfig.gameDuration_m);
+    if (g_gameConfig.gameDuration_m < 15) {
+        g_gameConfig.gameDuration_m = 15;
+        alog(AL_WARN, "gametime= too short: falling back to %" PRIu64 " minutes",
+             g_gameConfig.gameDuration_m);
     }
 
-    getBlockNo("invisible=", &invis);
-    getBlockNo("super invisible=", &invis2);
+    getBlockNo("invisible=", &g_gameConfig.seeInvisRank);
+    getBlockNo("super invisible=", &g_gameConfig.seeSuperInvisRank);
 
-    getBlockNo("min sgo=", &minsgo);
+    getBlockNo("min sgo=", &g_gameConfig.superGoRank);
 
-    getBlockNo("rankscale=", &rscale);
-    getBlockNo("rankscale=", &tscale);
+    getBlockNo("rankscale=", &g_gameConfig.rankScale);
+    getBlockNo("rankscale=", &g_gameConfig.timeScale);
 
-    titlePos = ftell(ifp);
+    // Make message 0 be the splash screen
+    if (TextStringFromFile("$title", ifp, STRING_MESSAGE, NULL) != 0) {
+        alog(AL_FATAL, "Could not write splash text to message file");
+    }
 }
 
 /*
@@ -1384,7 +1259,7 @@ room_proc()
 {
     nextc(true);
 
-    fopenw(rooms1fn);
+    fopenw(roomDataFile);
 
     do {
         checkErrorCount();
@@ -1440,7 +1315,7 @@ room_proc()
         }
         fwrite(room.id, sizeof(room), 1, ofp1);
 
-        ++rooms;
+        ++g_gameInfo.numRooms;
 
         nextc(false);
     } while (!feof(ifp));
@@ -1458,7 +1333,7 @@ rank_proc()
 {
     nextc(true);
 
-    fopenw(ranksfn);
+    fopenw(rankDataFile);
 
     while (!feof(ifp)) {
         char *p = getTidyBlock(ifp);
@@ -1470,7 +1345,7 @@ rank_proc()
             continue;
 
         if (strlen(Word) < 3 || p - block > RANKL) {
-            alog(AL_FATAL, "Rank %d: Invalid male rank: %s", ranks, Word);
+            alog(AL_FATAL, "Rank %" PRIu64 ": Invalid male rank: %s", g_gameInfo.numRanks + 1, Word);
         }
         int n = 0;
         do {
@@ -1484,7 +1359,7 @@ rank_proc()
         if (chkline(p) != 0)
             continue;
         if (strcmp(Word, "=") != 0 && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
-            alog(AL_FATAL, "Rank %d: Invalid female rank: %s", ranks, Word);
+            alog(AL_FATAL, "Rank %d: Invalid female rank: %s", g_gameInfo.numRanks + 1, Word);
         }
         if (Word[0] != '=') {
             n = 0;
@@ -1584,7 +1459,7 @@ rank_proc()
             p++;
         /* Greater than prompt length? */
         if (p - block > 10) {
-            alog(AL_ERROR, "Rank %d prompt too long: %s", ranks, block);
+            alog(AL_ERROR, "Rank %" PRIu64 " prompt too long: %s", g_gameInfo.numRanks + 1, block);
             continue;
         }
         if (block[0] == 0)
@@ -1594,58 +1469,88 @@ rank_proc()
 
         wizstr = rank.strength;
         fwrite(rank.male, sizeof(rank), 1, ofp1);
-        ranks++;
+        g_gameInfo.numRanks++;
     }
-    while (!feof(ifp))
-        ;
 }
 
-/*
-void
-sort_objs()
-{	int i,j,k,nts; long *rmtab,*rmptr;
+// void
+// sort_objs()
+//{
+//    int   i, j, k, nts;
+//    long *rmtab, *rmptr;
+//
+//    if (ifp != NULL)
+//        fclose(ifp);
+//    ifp = NULL;
+//    closeOutFiles();
+//    fopenr(objectStateFile);
+//    blkget(&datal, &data, NULL);
+//    fclose(ifp);
+//    ifp = NULL;
+//    closeOutFiles();
+//    fopenr(objrmsfn);
+//    blkget(&datal2, &data2, NULL);
+//    fclose(ifp);
+//    ifp = NULL;
+//    closeOutFiles();
+//    fopenw(objsfn);
+//    fopenw(objectStateFile);
+//    fopenw(objrmsfn);
+//    fopenw(ntabfn);
+//    ifp = NULL;
+//
+//    printf("Sorting Objects...:\r");
+//    objtab2 = obtab2;
+//    nts = 0;
+//    k = 0;
+//
+//    statab = (struct _OBJ_STATE *)data;
+//    rmtab = (long *)data2;
+//    for (i = 0; i < nouns; i++) {
+//        if (*(objtab2 = (obtab2 + i))->id == 0) {
+//            printf("@! skipping %ld states, %ld rooms.\n", objtab2->nstates, objtab2->nrooms);
+//            statab += objtab2->nstates;
+//            rmtab += objtab2->nrooms;
+//            continue;
+//        }
+//        strcpy(nountab.id, objtab2->id);
+//        nts++;
+//        nountab.num_of = 0;
+//        osrch = objtab2;
+//        statep = statab;
+//        rmptr = rmtab;
+//        for (j = i; j < nouns; j++, osrch++) {
+//            if (*(osrch->id) != 0 && stricmp(nountab.id, osrch->id) == 0) {
+//                fwrite((char *)osrch, sizeof(obj), 1, ofp1);
+//                fwrite((char *)statep, sizeof(state), osrch->nstates, ofp2);
+//                fwrite((char *)rmptr, sizeof(long), osrch->nrooms, ofp3);
+//                nountab.num_of++;
+//                *osrch->id = 0;
+//                if (osrch != objtab)
+//                    k++;
+//                statep += osrch->nstates;
+//                rmptr += osrch->nrooms;
+//                if (osrch == objtab2) {
+//                    statab = statep;
+//                    rmtab = rmptr;
+//                    objtab2++;
+//                    i++;
+//                }
+//            } else
+//                statep += osrch->nstates;
+//            rmptr += osrch->nrooms;
+//        }
+//
+//        fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
+//    }
+//    printf("%20s\r%ld objects moved.\n", " ", k);
+//    ReleaseMem(datal);
+//    ReleaseMem(datal2);
+//    data = data2 = NULL;
+//    fopenr(objsfn);
+//    fread((char *)obtab2, sizeof(obj), nouns, ifp);
+//}
 
-    if(ifp!=NULL) fclose(ifp); ifp=NULL;
-    closeOutFiles(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
-    closeOutFiles(); fopenr(objrmsfn); blkget(&datal2,&data2,NULL); fclose(ifp); ifp=NULL;
-    closeOutFiles(); fopenw(objsfn);	fopenw(statfn); fopenw(objrmsfn); fopenw(ntabfn);
-    ifp=NULL;
-
-    printf("Sorting Objects...:\r"); objtab2=obtab2; nts=0; k=0;
-
-    statab=(struct _OBJ_STATE *)data; rmtab=(long *)data2;
-    for(i=0; i<nouns; i++)
-    {
-        if(*(objtab2=(obtab2+i))->id==0)
-        {
-            printf("@! skipping %ld states, %ld rooms.\n",objtab2->nstates,objtab2->nrooms);
-            statab += objtab2->nstates;
-            rmtab  += objtab2->nrooms;
-            continue;
-        }
-        strcpy(nountab.id,objtab2->id); nts++;
-        nountab.num_of=0; osrch=objtab2; statep=statab; rmptr=rmtab;
-        for(j=i; j<nouns; j++, osrch++)
-        {
-            if(*(osrch->id)!=0 && stricmp(nountab.id,osrch->id)==0)
-            {
-                fwrite((char *)osrch,  sizeof(obj),   1,               ofp1);
-                fwrite((char *)statep, sizeof(state), osrch->nstates,  ofp2);
-                fwrite((char *)rmptr,  sizeof(long),  osrch->nrooms,   ofp3);
-                nountab.num_of++; *osrch->id=0; if(osrch!=objtab) k++;
-                statep+=osrch->nstates; rmptr+=osrch->nrooms;
-                if(osrch==objtab2) { statab=statep; rmtab=rmptr; objtab2++; i++; }
-            }
-            else statep+=osrch->nstates; rmptr+=osrch->nrooms;
-        }
-
-        fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
-    }
-    printf("%20s\r%ld objects moved.\n"," ",k);
-    FreeMem(data, datal); FreeMem(data2, datal2); data=data2=NULL;
-    fopenr(objsfn); fread((char *)obtab2, sizeof(obj), nouns, ifp);
-}
-*/
 void
 state_proc()
 {
@@ -1731,12 +1636,13 @@ void
 objs_proc()
 {
     /* Clear files */
-    fopenw(objsfn);
-    fopenw(statfn);
-    fopenw(objrmsfn);
+    fopenw(objectDataFile);
+    fopenw(objectStateFile);
+    fopenw(objectRoomFile);
 
-    obmem = filesize();
-    obtab2 = AllocMem(obmem + 128 * sizeof(obj2), MEMF_PUBLIC);
+    obtab2 = (struct _OBJ_STRUCT *)AllocateMem(filesize() + 128 * sizeof(obj2));
+    if (obtab2 == NULL)
+        alog(AL_FATAL, "Out of memory");
     objtab2 = obtab2;
 
     if (!nextc(false)) {
@@ -1763,7 +1669,7 @@ objs_proc()
         }
 
         obj2.adj = obj2.mobile = -1;
-        obj2.idno = nouns;
+        obj2.idno = g_gameInfo.numNouns;
         obj2.state = 0;
         obj2.nrooms = 0;
         obj2.contains = 0;
@@ -1794,7 +1700,7 @@ objs_proc()
                 case OP_PUT: set_put(); break;
                 case OP_MOB:
                     set_mob();
-                    mobs++;
+                    g_gameInfo.numMobs++;
                     break;
                 default:
                     alog(AL_FATAL, "Internal Error: Code for object-parameter '%s' missing",
@@ -1845,14 +1751,14 @@ objs_proc()
         if (obj2.nstates > 100)
             alog(AL_ERROR, "object:%s: too many states defined (%d)", obj2.nstates);
 
-        *(obtab2 + (nouns++)) = obj2;
+        *(obtab2 + (g_gameInfo.numNouns++)) = obj2;
     }
 
     /*
     closeOutFiles();
     sort_objs();
     */
-    fwrite(obtab2, sizeof(obj2), nouns, ofp1);
+    fwrite(obtab2, sizeof(obj2), g_gameInfo.numNouns, ofp1);
 }
 
 /*
@@ -1865,16 +1771,18 @@ objs_proc()
 void
 trav_proc()
 {
-    int   strip, lines, nvbs, i, ntt, t, r;
-    long *l;
+    int strip, i;
 
     nextc(true); /* Move to first text */
-    fopenw(ttfn);
-    fopenw(ttpfn);
-    fopena(rooms1fn);
-    ntt = t = 0;
+    fopenw(travelTableFile);
+    fopenw(travelParamFile);
+    fopena(roomDataFile);
 
-    char temp[1024];
+    assert(g_gameInfo.numTTEnts == 0);
+    int ntt = 0, t = 0, r = 0;
+    int ttNumVerbs = 0;
+
+    verbid_t verbsUsed[200];
 
     while (!feof(ifp)) {
         checkErrorCount();
@@ -1920,27 +1828,26 @@ trav_proc()
             alog(AL_ERROR, "Missing verb[s]= entry for room: %s", roomtab->id);
             goto vbloop;
         }
-        lines = 0;
         verb.id[0] = 0;
         roomtab->tabptr = t;
         roomtab->ttlines = 0;
     vbproc: /* Process verb list */
-        nvbs = 0;
         tt.pptr = (long *)-1;
-        l = (long *)temp;
         p = block;
+        ttNumVerbs = 0;  // number of verbs in this tt entry
         /* Break verb list down to verb no.s */
         do {
             p = getword(p);
             if (Word[0] == 0)
                 break;
-            if ((*l = is_verb(Word)) == -1) {
+            verbsUsed[ttNumVerbs] = is_verb(Word);
+            if (verbsUsed[ttNumVerbs] == -1) {
                 alog(AL_ERROR, "Room: %s: Invalid verb: %s", roomtab->id, Word);
             }
-            l++;
-            nvbs++;
+            ttNumVerbs++;
+
         } while (Word[0] != 0);
-        if (nvbs == 0) {
+        if (!ttNumVerbs) {
             alog(AL_FATAL, "Room has empty verb[s]= line: %s", roomtab->id);
         }
         /* Now process each instruction line */
@@ -2022,19 +1929,15 @@ trav_proc()
             tt.action = 0 - (tt.action + 1);
         write:
             roomtab = rmtab + rmn;
-            l = (long *)temp;
-            for (i = 0; i < nvbs; i++) {
-                if (i < nvbs - 1)
-                    tt.pptr = (long *)-2;
-                else
-                    tt.pptr = (long *)-1;
-                tt.verb = *(l++);
+
+            // this is some weird-ass kind of encoding where -1 means "more", and "-2" means "last"
+            for (int verbNo = 0; verbNo < ttNumVerbs; ++verbNo) {
+                tt.pptr = verbNo + 1 == ttNumVerbs ? (long *)-2 : (long *)-1;
+                tt.verb = verbsUsed[verbNo];
                 fwrite(&tt.verb, sizeof(tt), 1, ofp1);
                 roomtab->ttlines++;
-                t++;
-                ttents++;
+                g_gameInfo.numTTEnts++;
             }
-            lines++;
         next:
             strip = 0;
         } while (strip == 0 && !feof(ifp));
@@ -2045,9 +1948,9 @@ trav_proc()
     }
     while (!feof(ifp))
         ;
-    if (errorCount == 0 && ntt != rooms && verbose) {
+    if (errorCount == 0 && ntt != g_gameInfo.numRooms) {
         roomtab = rmtab;
-        for (i = 0; i < rooms; i++, roomtab++) {
+        for (i = 0; i < g_gameInfo.numRooms; i++, roomtab++) {
             if (roomtab->tabptr == -1 && (roomtab->flags & DEATH) != DEATH) {
                 alog(AL_WARN, "No TT entry for room: %s", roomtab->id);
             }
@@ -2102,19 +2005,17 @@ lang_proc()
     /* n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2) */
     int n, cs, s, r;
 
-    verbs = 0;
     nextc(true);
-    fopenw(lang1fn);
-    closeOutFiles();
-    fopena(lang1fn);
+    fopenw(verbDataFile);
+    CloseOutFiles();
+    fopena(verbDataFile);
     ofp1 = afp;
     afp = NULL;
-    fopenw(lang2fn);
-    fopenw(lang3fn);
-    fopenw(lang4fn);
+    fopenw(verbSlotFile);
+    fopenw(verbTableFile);
+    fopenw(verbParamFile);
 
-    vbmem = filesize();
-    vbtab = AllocMem(vbmem + 128 * sizeof(verb), MEMF_PUBLIC);
+    vbtab = (struct _VERB_STRUCT *)AllocateMem(filesize() + 128 * sizeof(verb));
     vbptr = vbtab;
 
     size_t of2p = ftell(ofp2);
@@ -2142,7 +2043,7 @@ lang_proc()
         }
 
         strcpy(verb.id, Word);
-        ++verbs;
+        ++g_gameInfo.numVerbs;
 
         static char defaultChae[] = {-1, 'C', 'H', 'A', 'E', -1, 'C', 'H', 'A', 'E'};
         memcpy((char *)(&verb.sort[0]), defaultChae, 10);
@@ -2469,7 +2370,7 @@ lang_proc()
     write:
         fwrite(verb.id, sizeof(verb), 1, ofp1);
         proc = 0;
-        *(vbtab + (verbs - 1)) = verb;
+        *(vbtab + (g_gameInfo.numVerbs - 1)) = verb;
     }
 }
 
@@ -2481,8 +2382,8 @@ syn_proc()
     if (!nextc(false))
         return;
 
-    fopenw(synsfn);
-    fopenw(synsifn);
+    fopenw(synonymDataFile);
+    fopenw(synonymIndexFile);
 
     while (!feof(ifp)) {
         checkErrorCount();
@@ -2514,7 +2415,7 @@ syn_proc()
                 break;
             fwrite(&id, 1, sizeof(id), ofp2);
             fprintf(ofp1, "%s%c", Word, 0);
-            syns++;
+            g_gameInfo.numSynonyms++;
         }
     }
 }
@@ -2528,12 +2429,13 @@ mob_proc1()
 {
     long n;
 
-    fopenw(mobfn);
+    fopenw(mobileDataFile);
     if (!nextc(false))
         return;
 
-    moblen = filesize();
-    mobdat = AllocMem(moblen, MEMF_PUBLIC + sizeof(*mobdat) * 64);
+    // "mob" is the mobile entity
+    // "mobp" is a pointer to the runtime portion
+    struct _MOB *mobd = &mob.mob;
 
     while (!feof(ifp)) {
         checkErrorCount();
@@ -2544,6 +2446,7 @@ mob_proc1()
 
         // skip the '!'
         p = getword(p + 1);
+        memset(&mob, 0, sizeof(mob));
         strcpy(mob.id, Word);
 
         for (;;) {
@@ -2553,13 +2456,13 @@ mob_proc1()
 
             if (canSkipLead("dead=", &p)) {
                 p = getword(p);
-                mob.dead = atoi(Word);
+                mobd->deadstate = atoi(Word);
                 continue;
             }
             if (canSkipLead("dmove=", &p)) {
                 p = getword(p);
-                mob.dmove = isroom(Word);
-                if (mob.dmove == -1) {
+                mobd->dmove = isroom(Word);
+                if (mobd->dmove == -1) {
                     alog(AL_ERROR, "Mobile: %s: invalid dmove: %s", mob.id, Word);
                 }
                 continue;
@@ -2575,37 +2478,37 @@ mob_proc1()
             continue;
         }
         p = getword(p);
-        mob.speed = atoi(Word);
+        mobd->speed = atoi(Word);
 
         if (!canSkipLead("travel=", &p)) {
             mobmis("travel=");
             continue;
         }
         p = getword(p);
-        mob.travel = atoi(Word);
+        mobd->travel = atoi(Word);
 
         if (!canSkipLead("fight=", &p)) {
             mobmis("speed=");
             continue;
         }
         p = getword(p);
-        mob.fight = atoi(Word);
+        mobd->fight = atoi(Word);
 
         if (!canSkipLead("act=", &p)) {
             mobmis("act=");
             continue;
         }
         p = getword(p);
-        mob.act = atoi(Word);
+        mobd->act = atoi(Word);
 
         if (!canSkipLead("wait=", &p)) {
             mobmis("wait=");
             continue;
         }
         p = getword(p);
-        mob.wait = atoi(Word);
+        mobd->wait = atoi(Word);
 
-        if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
+        if (mobd->travel + mobd->fight + mobd->act + mobd->wait != 100) {
             alog(AL_ERROR, "Mobile: %s: Travel+Fight+Act+Wait values not equal to 100%.", mob.id);
         }
 
@@ -2614,52 +2517,53 @@ mob_proc1()
             continue;
         }
         p = getword(p);
-        mob.fear = atoi(Word);
+        mobd->fear = atoi(Word);
 
         if (!canSkipLead("attack=", &p)) {
             mobmis("attack=");
             continue;
         }
         p = getword(p);
-        mob.attack = atoi(Word);
+        mobd->attack = atoi(Word);
 
         if (!canSkipLead("hitpower=", &p)) {
             mobmis("hitpower=");
             continue;
         }
         p = getword(p);
-        mob.hitpower = atoi(Word);
+        mobd->hitpower = atoi(Word);
 
         if ((n = getmobmsg("arrive=", &p)) == -1)
             continue;
-        mob.arr = n;
+        mobd->arr = n;
         if ((n = getmobmsg("depart=", &p)) == -1)
             continue;
-        mob.dep = n;
+        mobd->dep = n;
         if ((n = getmobmsg("flee=", &p)) == -1)
             continue;
-        mob.flee = n;
+        mobd->flee = n;
         if ((n = getmobmsg("strike=", &p)) == -1)
             continue;
-        mob.hit = n;
+        mobd->hit = n;
         if ((n = getmobmsg("miss=", &p)) == -1)
             continue;
-        mob.miss = n;
+        mobd->miss = n;
         if ((n = getmobmsg("dies=", &p)) == -1)
             continue;
-        mob.death = n;
+        mobd->death = n;
 
         fwrite(&mob, sizeof(mob), 1, ofp1);
-        mobchars++;
+        g_gameInfo.numMobPersonas++;
     }
 
-    if (mobchars != 0) {
-        if ((mobp = (struct _MOB_ENT *)AllocMem(sizeof(mob) * mobchars, MEMF_PUBLIC)) == NULL) {
+    if (g_gameInfo.numMobPersonas != 0) {
+        mobp = (struct _MOB_ENT *)AllocateMem(sizeof(mob) * g_gameInfo.numMobPersonas);
+        if (mobp == NULL) {
             alog(AL_FATAL, "Out of memory");
         }
-        closeOutFiles();
-        fopena(mobfn);
-        fread((char *)mobp, sizeof(mob) * mobchars, 1, afp);
+        CloseOutFiles();
+        fopena(mobileDataFile);
+        fread((char *)mobp, sizeof(mob) * g_gameInfo.numMobPersonas, 1, afp);
     }
 }
 
@@ -2680,40 +2584,6 @@ checkFileExists(char *filename)
     int err = stat(filepath, &sb);
     if (err != 0)
         alog(AL_FATAL, "Missing file (%d): %s", err, filepath);
-}
-
-void
-argue(int argc, const char **argv)
-{
-    struct stat sb;
-
-    for (int n = 2; n <= argc; n++) {
-        const char *arg = argv[n - 1];
-        if (strcmp("-d", arg) == 0) {
-            checkDmoves = true;
-            continue;
-        }
-        if (strcmp("-q", arg) == 0) {
-            verbose = true;
-            continue;
-        }
-        if (strcmp("-r", arg) == 0) {
-            reuseRoomData = true;
-            continue;
-        }
-
-        if (gameDir[0] != 0)
-            alog(AL_FATAL, "Unexpected argument: %s", arg);
-        if (path_copy(gameDir, sizeof(gameDir), NULL, arg) != 0)
-            alog(AL_FATAL, "Invalid game path: %s", arg);
-        int err = stat(gameDir, &sb);
-        if (err != 0)
-            alog(AL_FATAL, "No such file/directory for game path (%d): %s", err, gameDir);
-        if (S_ISREG(sb.st_mode))
-            alog(AL_FATAL, "Game path must be a directory: %s", gameDir);
-
-        alog(AL_DEBUG, "Game Path: %s", gameDir);
-    }
 }
 
 void
@@ -2777,7 +2647,7 @@ compileSection(const char *name, bool isText, void (*procFn)())
         fclose(ifp);
         ifp = NULL;
     }
-    closeOutFiles();
+    CloseOutFiles();
     if (errorCount > 0) {
         alog(AL_FATAL, "Terminating due to errors.");
     }
@@ -2797,19 +2667,20 @@ compileGame()
     if (!reuseRoomData) {
         compileSection("rooms", true, room_proc);
     }
-    fopenr(rooms1fn); /* Check DMOVE ptrs */
+    fopenr(roomDataFile); /* Check DMOVE ptrs */
     if (reuseRoomData) {
         fseek(ifp, 0, SEEK_END);
-        rooms = ftell(ifp) / sizeof(*rmtab);
+        g_gameInfo.numRooms = ftell(ifp) / sizeof(*rmtab);
         fseek(ifp, 0, SEEK_SET);
         rewind(ifp);
     }
-    if ((rmtab = (struct _ROOM_STRUCT *)AllocMem(sizeof(room) * rooms, MEMF_PUBLIC)) == NULL) {
+    rmtab = (struct _ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameInfo.numRooms);
+    if (rmtab == NULL) {
         alog(AL_FATAL, "Out of memory for room id table");
     }
-    int roomsInFile = fread(rmtab, sizeof(*rmtab), rooms, ifp);
-    if (roomsInFile != rooms) {
-        alog(AL_FATAL, "Roomtable appears to be corrupted. Recompile.");
+    size_t roomsInFile = fread(rmtab, sizeof(*rmtab), g_gameInfo.numRooms, ifp);
+    if (roomsInFile != g_gameInfo.numRooms) {
+        alog(AL_FATAL, "Room table appears to be corrupted. Recompile.");
     }
     if (checkDmoves && dmoves != 0) {
         compileSection("DMOVEs", false, checkdmoves);
@@ -2843,73 +2714,79 @@ compileGame()
     compileSection("syns", true, syn_proc);
 }
 
-/*---------------------------------------------------------*/
-
-int
-amulcom_main(int argc, const char **argv)
+error_t
+compilerModuleInit(struct Module *module)
 {
     snprintf(
             compilerVersion, sizeof(compilerVersion), "AMULCom v%d.%03d (%8s)", VERSION, REVISION,
             DATE);
+    return 0;
+}
 
+error_t
+compilerModuleStart(struct Module *module)
+{
     // set process name
     mytask = FindTask(0L);
     mytask->tc_Node.ln_Name = compilerVersion;
+    alog(AL_INFO, "AMUL Compiler %s", compilerVersion);
+    return 0;
+}
 
-    alog(AL_INFO, "  AMUL  Multi-User Games Language Copyright (C) KingFisher Software, 1991");
-    alog(AL_INFO, "                 AMUL Compiler; %s", compilerVersion);
+error_t
+compilerModuleClose(struct Module *module, error_t err)
+{
+    // If we didn't complete compilation, delete the profile file.
+    if (err != 0) {
+        UnlinkGameFile(gameDataFile);
+    }
+
+    ReleaseMem(&obtab2);
+    ReleaseMem(&vbtab);
+    ReleaseMem(&mobp);
+    ReleaseMem(&rmtab);
+
+    return 0;
+}
+
+/*---------------------------------------------------------*/
+
+error_t
+amulcom_main()
+{
+    InitRuntimeModule();
+    NewModule(
+            false, MOD_COMPILER, compilerModuleInit, compilerModuleStart, compilerModuleClose, NULL,
+            NULL);
+
+    StartModules();
 
 #if defined(_AMIGA_)
     ohd = Output();
 #endif
 
-    /* Check we have correct no. of parameters */
-
-    if (argc > 6) {
-        alog(AL_ERROR, "Usage: amulcom <game path>");
-        exit(0);
-    }
-    if (argc > 1)
-        argue(argc, argv);
-    if (verbose) {
-        alogLevel(AL_NOTE);
-    }
-
     /* Check the files/directories */
-
     checkFilesExist();
 
     compileGame();
-    alog(AL_NOTE, "Execution finished normally");
-    alog(AL_INFO, "Statistics for %s:", gameName);
-    alog(AL_INFO, "		Rooms: %6d	Ranks:   %6d	Nouns: %6d", rooms, ranks, nouns);
-    alog(AL_INFO, "		Adj's: %6d	Verbs:   %6d	Syns : %6d", adjs, verbs, syns);
-    alog(AL_INFO, "		T.T's: %6d	Strings: %6d", ttents, GetStringCount());
-    alog(AL_INFO, "		 Total items processed:%7d",
-         rooms + ranks + adjs + verbs + nouns + syns + ttents + mobs + mobchars);
-    fopenw(advfn);
-    time_t startTime = time(NULL);
-    fprintf(ofp1, "%s\n", gameName);
-    fprintf(ofp1, "%" PRIu64 " ", (uint64_t)startTime);
-    fprintf(ofp1, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", rooms, ranks, verbs, syns, nouns,
-            adjs, ttents, mins, invis, invis2, minsgo, mobs, rscale, tscale, mobchars);
 
-    // Copy the text from title.txt into the profile file
-    REQUIRE(ifp == NULL);
-    ifp = OpenGameFile("title.txt", "r");
-    fseek(ifp, titlePos, 0);
-    for (;;) {
-        size_t bytes = fread(block, 1, sizeof(block), ifp);
-        if (bytes <= 0)
-            break;
-        bytes = fwrite(block, bytes, 1, ofp1);
-        if (bytes != 1)
-            alog(AL_FATAL, "Error writing title text");
-    }
+    g_gameInfo.numStrings = GetStringCount();
+
+    alog(AL_NOTE, "Execution finished normally");
+    alog(AL_INFO, "Statistics for %s:", g_gameConfig.gameName);
+    alog(AL_INFO, "		Rooms: %6" PRIu64 "	Ranks:   %6" PRIu64 "	Nouns: %6" PRIu64 "",
+         g_gameInfo.numRooms, g_gameInfo.numRanks, g_gameInfo.numNouns);
+    alog(AL_INFO, "		Adj's: %6" PRIu64 "	Verbs:   %6" PRIu64 "	Syns : %6" PRIu64 "",
+         g_gameInfo.numAdjectives, g_gameInfo.numVerbs, g_gameInfo.numSynonyms);
+    alog(AL_INFO, "		T.T's: %6" PRIu64 "	Strings: %6" PRIu64 "", g_gameInfo.numTTEnts,
+         g_gameInfo.numStrings);
+
+    fopenw(gameDataFile);
+    fwrite(&g_gameConfig, sizeof(g_gameConfig), 1, ofp1);
+    fwrite(&g_gameInfo, sizeof(g_gameInfo), 1, ofp1);
+    CloseOutFiles();
 
     exiting = true;
-
-    quit();
 
     return 0;
 }

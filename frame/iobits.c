@@ -15,7 +15,7 @@ loopit:
     t = 0;
     if ((ap = (struct Aport *)GetMsg(repbk)) != NULL) {
         t = ap->type;
-        FreeMem((char *)ap, (long)sizeof(*amul));
+        ReleaseMem(&ap);
         goto loopit;
     }
     if (t == -'R')
@@ -86,7 +86,7 @@ loopit:
     if (f != -1 && (linestat + f)->state == PLAYING)
         ReplyMsg((struct Message *)ap);
     else
-        FreeMem((char *)ap, (long)sizeof(*amul));
+        ReleaseMem(&ap);
     lockusr(Af);
     /* Any messages we receive should wake us up. */
 
@@ -365,7 +365,7 @@ interact(int msg, int n, int d)
     lockusr(n);
     if (msg == MMESSAGE)
         strcat((linestat + n)->buf, ow);
-    if ((intam = (struct Aport *)AllocMem(sizeof(*amul), MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
     IAm.mn_Length = (UWORD)sizeof(*amul);
     IAf = Af;
@@ -383,7 +383,7 @@ sendex(register int n, register int d, register int p1, register int p2, registe
     if ((linestat + n)->state < PLAYING)
         return;
     lockusr(n);
-    if ((intam = (struct Aport *)AllocMem(sizeof(*amul), MEMF_PUBLIC + MEMF_CLEAR)) == NULL)
+    if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
     IAm.mn_Length = (UWORD)sizeof(*amul);
     IAf = Af;
