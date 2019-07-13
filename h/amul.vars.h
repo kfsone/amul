@@ -5,44 +5,6 @@
  ****           Internal Variables!            ****
  */
 
-/* Integers */
-long rooms;          /* No. of rooms          */
-long ranks;          /* No. of ranks          */
-long ttents;         /* No. of TT entries     */
-long verbs;          /* No. of verbs		 */
-long syns;           /* No. of synonyms  	 */
-long msgs;           /* No. of user def. msgs */
-long nouns;          /* No. of nouns		 */
-long mobs;           /* No. of mobiles	 */
-long adjs;           /* No. of adjectives	 */
-long umsgs;          /* No. of user messages	 */
-long smsgs;          /* No. of system msgs	 */
-long mobchars;       /* No. of mobile chars	 */
-int  invis;          /* rnk 4 invis 2C invis	 */
-int  invis2;         /* rnk 4 !invis 2C invis */
-int  minsgo;         /* Minimum rank 4 SupaGo */
-int  rscale, tscale; /* Rank and time scaleing */
-#ifdef COMPILER
-long obdes; /* No. of obj descrips   */
-#endif
-
-/* Misc. */
-FILE *ifp, *ofp1, *ofp2, *ofp3, *afp; /* In and out file ptrs  */
-#ifdef COMPILER
-FILE *ofp4; /* For lang. table	 */
-#endif
-
-/* Text */
-char dir[60];        /* spc for work dir path */
-char block[1024];    /* 1k block of spare txt */
-char temp[256];      /* temp store		 */
-char dmove[IDL + 1]; /* Where to DMOVE to     */
-char adname[42];     /* Adventure name	 */
-char vername[40];    /* Version name etc	 */
-
-/* Longs */
-long flen; /* Length of file	 */
-
 #ifdef PORTS
 long       ormtablen; /* Length of room table	 */
 long       ormtab;    /* Room table		 */

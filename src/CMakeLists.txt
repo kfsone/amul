@@ -13,9 +13,10 @@ SET(AMUL_LIB_HEADERS
 )
 
 SET(AMULCOM_SOURCES
-        amulcom.main.c
         amulcom.c
-        extras.c
+        amulcom.main.c
+		amulcom.extras.c
+		amulcom.strings.c
 )
 
 SET(AMULCOM_HEADERS

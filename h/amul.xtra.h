@@ -1,6 +1,8 @@
 #ifndef AMUL_H_AMUL_XTRA_H
 #define AMUL_H_AMUL_XTRA_H 1
 
+#include <ctype.h>
+
 const char *extractLine(const char *from, char *to);
 const char *getword(const char *from);
 bool        striplead(const char *lead, char *from);

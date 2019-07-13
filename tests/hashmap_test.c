@@ -1,6 +1,8 @@
 #include "h/amul.test.h"
 #include "src/hashmap.h"
 
+#include <stdint.h>
+
 // Test the get_string_hash function
 void
 test_get_string_hash(struct TestContext *t)
@@ -23,11 +25,16 @@ test_get_string_hash(struct TestContext *t)
     EXPECT_EQUAL_VAL(3379623651, get_string_hash("$string_hash"));
 
     size_t length = 0;
-    get_string_hash_and_len("a", &length);
+    get_string_hash_and_len("a", NULL, &length);
     EXPECT_EQUAL_VAL(1, length);
 
-    get_string_hash_and_len("1234567890123456789012345678901234567890", &length);
+    get_string_hash_and_len("1234567890123456789012345678901234567890", NULL, &length);
     EXPECT_EQUAL_VAL(40, length);
+
+	hashval_t hash = get_string_hash("hello");
+    const char *key = "helloworld";
+    EXPECT_SUCCESS(get_string_hash_and_len(key, key + 5, &length));
+    EXPECT_EQUAL_VAL(5, length);
 }
 
 void
@@ -66,19 +73,19 @@ test_new_hash_map(struct TestContext *t)
 }
 
 void
-test_add_to_hash(struct TestContext *t)
+test_add_str_to_hash(struct TestContext *t)
 {
-    EXPECT_EQUAL_VAL(EINVAL, AddToHash(NULL, NULL, 0));
+    EXPECT_ERROR(EINVAL, AddStrToHash(NULL, NULL, 0));
 
     struct HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(4, &map));
     EXPECT_NOT_NULL(map);
 
-    EXPECT_EQUAL_VAL(EINVAL, AddToHash(map, NULL, 0));
-    EXPECT_EQUAL_VAL(EINVAL, AddToHash(map, "1234567890123456789012345678901234567890", 0));
+    EXPECT_ERROR(EINVAL, AddStrToHash(map, NULL, 0));
+    EXPECT_ERROR(EINVAL, AddStrToHash(map, "1234567890123456789012345678901234567890", 0));
 
-    EXPECT_SUCCESS(AddToHash(map, "hello", 101));
-    EXPECT_EQUAL_VAL(1, map->size);
+    EXPECT_SUCCESS(AddStrToHash(map, "hello", 3));
+    EXPECT_EQUAL_VAL(3, map->size);
 
     hashval_t helloHash = get_string_hash("hello");
     size_t    hashBucket = helloHash % map->capacity;
@@ -92,9 +99,9 @@ test_add_to_hash(struct TestContext *t)
     EXPECT_EQUAL_VAL(1, map->buckets[1]->capacity);
     EXPECT_NOT_NULL(map->buckets[1]->nodes);
     EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[0].key, "hello"));
-    EXPECT_EQUAL_VAL(101, map->buckets[1]->nodes[0].value);
+    EXPECT_EQUAL_VAL(3, map->buckets[1]->nodes[0].value);
 
-    EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "hello", 101));
+    EXPECT_EQUAL_VAL(0, AddStrToHash(map, "hello", 101));
     EXPECT_EQUAL_VAL(1, map->size);
     EXPECT_NULL(map->buckets[0]);
     EXPECT_NOT_NULL(map->buckets[1]);
@@ -110,7 +117,7 @@ test_add_to_hash(struct TestContext *t)
     hashval_t fooHash = get_string_hash("foo");
     size_t    fooBucket = fooHash % 4;
     EXPECT_EQUAL_VAL(1, fooBucket);
-    EXPECT_SUCCESS(AddToHash(map, "foo", 102));
+    EXPECT_SUCCESS(AddStrToHash(map, "foo", 102));
     EXPECT_EQUAL_VAL(2, map->size);
     EXPECT_NULL(map->buckets[0]);
     EXPECT_NOT_NULL(map->buckets[1]);
@@ -124,8 +131,8 @@ test_add_to_hash(struct TestContext *t)
     EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[1].key, "foo"));
     EXPECT_EQUAL_VAL(102, map->buckets[1]->nodes[1].value);
 
-    EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "hello", 0));
-    EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "foo", 0));
+    EXPECT_ERROR(EEXIST, AddStrToHash(map, "hello", 0));
+    EXPECT_ERROR(EEXIST, AddStrToHash(map, "foo", 0));
     EXPECT_EQUAL_VAL(2, map->size);
 
     // Add a string that goes in another bucket
@@ -133,7 +140,7 @@ test_add_to_hash(struct TestContext *t)
     size_t    aBucket = aHash % map->capacity;
     EXPECT_EQUAL_VAL(2, aBucket);
 
-    EXPECT_SUCCESS(AddToHash(map, "a", 999));
+    EXPECT_SUCCESS(AddStrToHash(map, "a", 999));
     EXPECT_EQUAL_VAL(3, map->size);
     EXPECT_NULL(map->buckets[0]);
     EXPECT_NOT_NULL(map->buckets[1]);
@@ -151,60 +158,76 @@ test_add_to_hash(struct TestContext *t)
     EXPECT_SUCCESS(strcmp(map->buckets[1]->nodes[1].key, "foo"));
     EXPECT_EQUAL_VAL(102, map->buckets[1]->nodes[1].value);
 
-    EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "hello", 0));
-    EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "foo", 0));
-    EXPECT_EQUAL_VAL(EEXIST, AddToHash(map, "a", 0));
+    EXPECT_ERROR(EEXIST, AddStrToHash(map, "hello", 0));
+    EXPECT_ERROR(EEXIST, AddStrToHash(map, "foo", 0));
+    EXPECT_ERROR(EEXIST, AddStrToHash(map, "a", 0));
 
     CloseHashMap(&map);
 }
 
 void
-test_lookup_hash_value(struct TestContext *t)
+test_add_to_hash(struct TestContext *t)
+{
+    struct HashMap *map = NULL;
+    EXPECT_SUCCESS(NewHashMap(4, &map));
+    EXPECT_NOT_NULL(map);
+
+	const char *key = "1234567890123456789012345678901234567890";
+
+    EXPECT_ERROR(EINVAL, AddToHash(map, key, NULL, 0));
+    EXPECT_SUCCESS(AddToHash(map, key, NULL, 0));
+
+	CloseHashMap(&map);
+}
+
+void
+test_lookup_str_hash_value(struct TestContext *t)
 {
     // Sanity check sanity checking.
-    EXPECT_EQUAL_VAL(EINVAL, LookupHashValue(NULL, NULL, NULL));
+    EXPECT_ERROR(EINVAL, LookupStrHashValue(NULL, NULL, NULL));
 
     struct HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(4, &map));
     EXPECT_NOT_NULL(map);
 
-    EXPECT_EQUAL_VAL(EINVAL, LookupHashValue(map, NULL, NULL));
+    EXPECT_ERROR(EINVAL, LookupStrHashValue(map, NULL, NULL));
 
     // For storing the returned value
     hash_value_t value = 0;
 
     // Confirm we can't look up strings pre-population
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "", NULL));
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "abc", NULL));
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "hello", NULL));
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "$rubber:duck!", NULL));
+    EXPECT_ERROR(ENOENT, LookupStrHashValue(map, "", NULL));
+    EXPECT_ERROR(ENOENT, LookupStrHashValue(map, "abc", NULL));
+    EXPECT_ERROR(ENOENT, LookupStrHashValue(map, "hello", NULL));
+    EXPECT_ERROR(ENOENT, LookupStrHashValue(map, "$rubber:duck!", NULL));
 
     // Add something
-    EXPECT_SUCCESS(AddToHash(map, "hello", 101));
+    EXPECT_SUCCESS(AddStrToHash(map, "hello", 101));
 
     // Check it should be the only thing that returns a value, and
     // we expect to see the correct value
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "", NULL));
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "abc", NULL));
-    EXPECT_SUCCESS(LookupHashValue(map, "hello", NULL));
-    EXPECT_SUCCESS(LookupHashValue(map, "hello", &value));
+    EXPECT_ERROR(ENOENT, LookupStrHashValue(map, "", NULL));
+    EXPECT_ERROR(ENOENT, LookupStrHashValue(map, "abc", NULL));
+    EXPECT_SUCCESS(LookupStrHashValue(map, "hello", NULL));
+    EXPECT_SUCCESS(LookupStrHashValue(map, "hello", &value));
     EXPECT_EQUAL_VAL(101, value);
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "$rubber:duck!", NULL));
+    EXPECT_ERROR(ENOENT, LookupStrHashValue(map, "$rubber:duck!", NULL));
 
     // Add some more keys
-    EXPECT_SUCCESS(AddToHash(map, "fish", 103));
-    EXPECT_SUCCESS(AddToHash(map, "abc", 102));
+    EXPECT_SUCCESS(AddStrToHash(map, "fish", 103));
+    EXPECT_SUCCESS(AddStrToHash(map, "abc", 102));
 
     // And things should still be good
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "", NULL));
-    EXPECT_SUCCESS(LookupHashValue(map, "abc", &value));
+    EXPECT_EQUAL_VAL(ENOENT, LookupStrHashValue(map, "", NULL));
+    EXPECT_SUCCESS(LookupStrHashValue(map, "abc", &value));
     EXPECT_EQUAL_VAL(102, value);
-    EXPECT_SUCCESS(LookupHashValue(map, "hello", &value));
+    EXPECT_SUCCESS(LookupStrHashValue(map, "hello", &value));
     EXPECT_EQUAL_VAL(101, value);
-    EXPECT_EQUAL_VAL(ENOENT, LookupHashValue(map, "$rubber:duck!", NULL));
+    EXPECT_EQUAL_VAL(ENOENT, LookupStrHashValue(map, "$rubber:duck!", NULL));
 
-    EXPECT_EQUAL_VAL(EINVAL, LookupHashValue(map, "1234567890123456789012345678901234567890", 0));
-    EXPECT_FALSE(HashContains(map, "1234567890123456789012345678901234567890"));
+    EXPECT_EQUAL_VAL(
+            EINVAL, LookupStrHashValue(map, "1234567890123456789012345678901234567890", 0));
+    EXPECT_FALSE(HashContainsStr(map, "1234567890123456789012345678901234567890"));
 
     CloseHashMap(&map);
 }
@@ -219,23 +242,23 @@ test_hash_large_population(struct TestContext *t)
     EXPECT_NOT_NULL(map);
 
     char key[MAX_HASH_KEY_SIZE];
-    for (int i = 0; i < 256; ++i) {
-        sprintf(key, "key%04d", i);
-        EXPECT_SUCCESS(AddToHash(map, key, i + 1));
+    for (uint64_t i = 0; i < 256; ++i) {
+        sprintf(key, "key%04llu", i);
+        EXPECT_SUCCESS(AddStrToHash(map, key, i + 1LL));
     }
     EXPECT_EQUAL_VAL(256, GetMapSize(map));
 
-    for (int i = 0; i < 256; ++i) {
-        sprintf(key, "key%04d", i);
-        EXPECT_TRUE(HashContains(map, key));
+    for (uint64_t i = 0; i < 256; ++i) {
+        sprintf(key, "key%04llu", i);
+        EXPECT_TRUE(HashContainsStr(map, key));
     }
-    for (int i = 0; i < 256; ++i) {
-        sprintf(key, "%04d", i);
-        EXPECT_FALSE(HashContains(map, key));
-        sprintf(key, "notkey%04d", i);
-        EXPECT_FALSE(HashContains(map, key));
-        sprintf(key, "key%04d", i + 256);
-        EXPECT_FALSE(HashContains(map, key));
+    for (uint64_t i = 0; i < 256; ++i) {
+        sprintf(key, "key%04llu", i);
+        EXPECT_FALSE(HashContainsStr(map, key));
+        sprintf(key, "notkey%04llu", i);
+        EXPECT_FALSE(HashContainsStr(map, key));
+        sprintf(key, "key%04llu", i + 256LL);
+        EXPECT_FALSE(HashContainsStr(map, key));
     }
 
     CloseHashMap(&map);
@@ -246,6 +269,7 @@ hashmap_tests(struct TestContext *t)
 {
     RUN_TEST(test_get_string_hash);
     RUN_TEST(test_new_hash_map);
+    RUN_TEST(test_add_str_to_hash);
     RUN_TEST(test_add_to_hash);
-    RUN_TEST(test_lookup_hash_value);
+    RUN_TEST(test_lookup_str_hash_value);
 }

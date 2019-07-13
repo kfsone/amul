@@ -32,21 +32,28 @@ extern "C++" {
 
 error_t NewHashMap(size_t buckets, struct HashMap **into);
 error_t CloseHashMap(struct HashMap **mapptr);
-error_t AddToHash(struct HashMap *map, const char *key, const hash_value_t value);
-error_t LookupHashValue(const struct HashMap *map, const char *key, hash_value_t *into);
+error_t AddToHash(struct HashMap *map, const char *key, const char *end, const hash_value_t value);
+error_t LookupHashValue(const struct HashMap *map, const char *key, const char *end, hash_value_t *into);
 
 #if defined(__cplusplus)
 }
 #endif
 
 // Quick helpers
+#define AddStrToHash(map, key, value) AddToHash(map, key, NULL, value)
+#define LookupStrHashValue(map, key, intop) LookupHashValue(map, key, NULL, intop)
+
 static inline bool
-HashContains(const struct HashMap *map, const char *key)
+HashContainsStr(const struct HashMap *map, const char *key)
 {
-    return (0 == LookupHashValue(map, key, 0));
+    return (0 == LookupStrHashValue(map, key, NULL));
 }
-static inline size_t
-GetMapSize(const struct HashMap *map)
+static inline bool
+HashContains(const struct HashMap *map, const char *key, const char *keyEnd)
+{
+    return (0 == LookupHashValue(map, key, keyEnd, NULL));
+}
+static inline size_t GetMapSize(const struct HashMap *map)
 {
     return map ? map->size : 0;
 }

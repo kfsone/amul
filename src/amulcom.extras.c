@@ -27,7 +27,7 @@ extractLine(const char *from, char *to)
 bool
 stripNewline(char *text)
 {
-    int len = strlen(text);
+    size_t len = strlen(text);
     if (len > 0 && text[len - 1] == '\n') {
         text[--len] = 0;
         return true;

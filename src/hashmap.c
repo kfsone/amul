@@ -4,11 +4,11 @@
 
 // Calculates the "hash" of a string, based on djb2
 hashval_t
-get_string_hash_and_len(const char *string, size_t *length)
+get_string_hash_and_len(const char *string, const char *stringEnd, size_t * length)
 {
     hashval_t   hashval = 5381;
     const char *p = string;
-    while (*p) {
+    while (*p && (stringEnd == NULL || p < stringEnd)) {
         hashval = (hashval << 5) + hashval + (hashval_t)tolower(*(p++));
     }
     if (length) {
@@ -84,16 +84,16 @@ CloseHashMap(struct HashMap **map)
 // Returns:
 //	EINVAL if map or key is NULL or if key is an empty string or is too long
 //  ENOMEM if an allocation fails
-//  EEXISTS if the entry already exists
 //  0 if the entry was added
 //
 error_t
-AddToHash(struct HashMap *map, const char *key, const hash_value_t value)
+AddToHash(struct HashMap *map, const char *key, const char *keyEnd, const hash_value_t value)
 {
     REQUIRE(map && key && *key);
+    REQUIRE(keyEnd == NULL || keyEnd > key);
 
     size_t             length = 0;
-    hashval_t          hashval = get_string_hash_and_len(key, &length);
+    hashval_t          hashval = get_string_hash_and_len(key, keyEnd, &length);
     size_t             bucketNo = hashval % map->capacity;
     struct HashBucket *bucket = map->buckets[bucketNo];
     if (length > MAX_HASH_KEY_STRLEN) {
@@ -105,11 +105,17 @@ AddToHash(struct HashMap *map, const char *key, const hash_value_t value)
     if (bucket) {
         capacity = bucket->capacity;
         for (size_t i = 0; i < capacity; ++i) {
-            if (stricmp(bucket->nodes[i].key, key) == 0)
-                return EEXIST;
             // remember the first empty slot we see
-            if (!cursor && bucket->nodes[i].key[0] == 0)
+            if (!cursor && bucket->nodes[i].key[0] == 0) {
                 cursor = &(bucket->nodes[i]);
+                continue;
+            }
+            if (strnicmp(bucket->nodes[i].key, key, length) == 0) {
+				if (bucket->nodes[i].key[length] == 0) {
+                    bucket->nodes[i].value = value;
+                    return 0;
+                }
+            }
         }
     }
 
@@ -153,12 +159,12 @@ AddToHash(struct HashMap *map, const char *key, const hash_value_t value)
 //  0 on success and stores the value in *into if into is not NULL.
 //
 error_t
-LookupHashValue(const struct HashMap *map, const char *key, hash_value_t *into)
+LookupHashValue(const struct HashMap *map, const char *key, const char *keyEnd, hash_value_t *into)
 {
     REQUIRE(map && key);
 
     size_t    length = 0;
-    hashval_t hashval = get_string_hash_and_len(key, &length);
+    hashval_t hashval = get_string_hash_and_len(key, keyEnd, &length);
     if (length > MAX_HASH_KEY_STRLEN) {
         return EINVAL;
     }
@@ -169,7 +175,9 @@ LookupHashValue(const struct HashMap *map, const char *key, hash_value_t *into)
         return ENOENT;
 
     for (struct HashNode *cur = bucket->nodes; cur != bucket->nodes + bucket->capacity; ++cur) {
-        if (stricmp(key, cur->key) == 0) {
+        if (strnicmp(key, cur->key, length) == 0) {
+            if (cur->key[length] != 0)
+                continue;
             if (into) {
                 *into = cur->value;
             }
