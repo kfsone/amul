@@ -36,7 +36,7 @@ error_t
 testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *entryp)
 {
     REQUIRE(label && entryp);
-    error_t err = LookupStrHashValue(stringIDs, label, entryp);
+    error_t err = LookupStrHashValue(stringIDs, label, (uint64_t*)entryp);
     if (err != 0 && err != ENOENT)
         return err;
     // If we found it, check the types
@@ -111,10 +111,10 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
         if (*p == '\n')
             break;
         if (isspace(*p)) {
-			if (!indent || (indent && *p == indent)) {
+            if (!indent || (indent && *p == indent)) {
                 indent = *(p++);
-			}
-		}
+            }
+        }
         const char *end = strstop(p, '\n');
         if (end > p && *(end - 1) == '{')
             --end;
@@ -122,7 +122,7 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
     }
     check_write_str("eol", "", 1, fp);
 
-	if (idp)
+    if (idp)
         *idp = entry.offset;
 
     return 0;
@@ -161,11 +161,17 @@ LookupTextString(const char *label, enum StringType stype, stringid_t *idp)
 
     struct StringIDEntry entry;
 
-	error_t err = testLabelEntry(label, stype, &entry);
+    error_t err = testLabelEntry(label, stype, &entry);
     if (err != EEXIST)
         return err;
 
     *idp = entry.offset;
 
     return 0;
+}
+
+size_t
+GetStringCount()
+{
+    return GetMapSize(stringIDs);
 }

@@ -76,32 +76,26 @@ bool verbose = false;
 bool checkDmoves = false;
 bool reuseRoomData = false;
 
-int   dmoves = 0;    /* How many DMOVEs to check?	*/
-int   rmn = 0;       /* Current room no.		*/
-long  titlePos = 0;  /* Position of the title text in title.txt */
-long  FPos;          /* Used during TT/Lang writes	*/
-char  Word[64];      /* For internal use only <grin>	*/
-int   errorCount;    /* Number of AL_ERRORs logged */
-int   proc;          /* What we are processing	*/
-long  startTime;     /* Bits for time etc		*/
-char *data;          /* Pointer to data buffer	*/
-char *data2;         /* Secondary buffer area	*/
-char *syntab;        /* Synonym table, re-read	*/
-char  idt[IDL + 1];  /* Temporary ID store		*/
-long  datal, datal2; /* Length of data */
-long  obmem;         /* Size of Objects.TXT		*/
-long  vbmem;         /* Size of Lang.Txt		*/
-long  wizstr;        /* Wizards strength		*/
-char *mobdat, *px;   /* Mobile data			*/
-long  moblen;        /* Length			*/
-char  dmove[IDL + 1];
+int    dmoves = 0;    /* How many DMOVEs to check?	*/
+int    rmn = 0;       /* Current room no.		*/
+long   titlePos = 0;  /* Position of the title text in title.txt */
+size_t FPos;          /* Used during TT/Lang writes	*/
+char   Word[64];      /* For internal use only <grin>	*/
+int    errorCount;    /* Number of AL_ERRORs logged */
+int    proc;          /* What we are processing	*/
+char * data;          /* Pointer to data buffer	*/
+char * data2;         /* Secondary buffer area	*/
+char * syntab;        /* Synonym table, re-read	*/
+char   idt[IDL + 1];  /* Temporary ID store		*/
+long   datal, datal2; /* Length of data */
+long   obmem;         /* Size of Objects.TXT		*/
+long   vbmem;         /* Size of Lang.Txt		*/
+long   wizstr;        /* Wizards strength		*/
+char * mobdat, *px;   /* Mobile data			*/
+long   moblen;        /* Length			*/
+char   dmove[IDL + 1];
 
 struct Task *mytask, *FindTask();
-
-struct UMSG {
-    char id[IDL + 1];
-    long fpos;
-} umsg;
 
 char gameName[64];
 
@@ -1263,6 +1257,38 @@ loop:
     return n;
 }
 
+error_t
+consumeMessageFile(
+        FILE *ifp, const char *prefix, enum StringType stype, bool (*checkerFn)(const char *))
+{
+    if (!nextc(false))
+        return ENOENT;
+
+    do {
+        checkErrorCount();
+
+        fgets(block, sizeof(block), ifp);
+        tidy(block);
+
+        const char *token = skipspc(block);
+        token = skiplead(prefix, token);
+        const char *end = strstop(token, ' ');
+        *(char *)end = 0;
+
+        if ((end - token) < 2 || (end - token) > IDL) {
+            alog(AL_ERROR, "Invalid ID: %s", token);
+            skipblock();
+        } else if (checkerFn && !checkerFn(token)) {
+            skipblock();
+        } else if (!checkerFn && token[0] == '$') {
+            alog(AL_ERROR, "Invalid ID (can't begin with '$'): %s", token);
+            skipblock();
+        }
+    } while (!feof(ifp));
+
+    return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void
@@ -1311,101 +1337,79 @@ title_proc()
 
 int currentSysMessage = 0;
 
+bool
+check_smsg(const char *token)
+{
+    if (*token != '$') {
+        alog(AL_ERROR, "Invalid system message ID (must start with '$'): %s", token);
+        return false;
+    }
+    int messageID = atoi(token + 1);
+    if (messageID != currentSysMessage) {
+        alog(AL_ERROR, "Out-of-order system message ID: %s (expeted $%d)", token,
+             currentSysMessage);
+        return false;
+    }
+    ++currentSysMessage;
+    return true;
+}
+
 void
 smsg_proc()
 {
-    if (!nextc(false))
-        return; /* Nothing to process! */
+    currentSysMessage = 1;
+    consumeMessageFile(ifp, "msgid=", STRING_MESSAGE, check_smsg);
+    if (currentSysMessage != NSMSGS)
+        alog(AL_FATAL, "sysmsg.txt is incomplete.");
+}
 
-    fopenw(umsgifn);
-    fopenw(umsgfn); /* Text and index */
+void
+umsg_proc()
+{
+    error_t err = consumeMessageFile(ifp, "msgid=", STRING_MESSAGE, NULL);
+    if (err == ENOENT) {
+        /// TODO: Tell the user
+        return;
+    }
+}
 
-    blkget(&datal, &data, 0L);
-    const char *s = data;
+void
+obds_proc()
+{
+    error_t err = consumeMessageFile(ifp, "desc=", STRING_OBJECT_DESC, NULL);
+    if (err == ENOENT) {
+        alog(AL_INFO, "No long object descriptions");
+        return;
+    }
+}
 
-    do {
-        checkErrorCount();
-
-        do {
-            s = extractLine(s, block);
-        } while (isCommentChar(block[0]));
-        if (block[0] == 0)
-            continue;
-
-        tidy(block);
-        if (block[0] == 0)
-            continue;
-
-        getWordAfter("msgid=", block);
-        if (Word[0] == 0)
-            break;
-
-        bool valid = true;
-
-        if (Word[0] != '$') {
-            alog(AL_ERROR, "Invalid system message id: %s (must begin with '$'", Word);
-            valid = false;
-        } else if (atoi(Word + 1) != currentSysMessage + 1) {
-            alog(AL_ERROR, "Message %s out of sequence", Word);
-            valid = false;
-        } else if (currentSysMessage >= NSMSGS) {
-            alog(AL_FATAL, "Unexpected system message (last should be %d)", NSMSGS);
-        }
-
-        size_t pos = ftell(ofp2);
-        if (valid)
-            fwrite(&pos, sizeof(pos), 1, ofp1);
-
-        do {
-            while (consumeComment(s)) {
-                s = skipline(s);
-            }
-            if (isLineEnding(*s))
-                break;
-            if (*s == '\t')  // expected but optional indent
-                s++;
-            s = extractLine(s, block);
-            if (block[0] == 0)
-                continue;
-            pos = strlen(block);
-            if (block[pos - 1] == '{')
-                block[--pos] = 0;
-            else
-                strcat(block + (pos++) - 1, "\n");
-            fwrite(block, 1, pos, ofp2);
-        } while (*s != 0);
-
-        fputc(0, ofp2);
-        ++currentSysMessage;
-    } while (*s != 0);
-    FreeMem(data, datal);
-    data = NULL;
-    datal = NULL;
+void
+saveRoomDmove(const char *dmove)
+{
+    /// TODO: Implement
 }
 
 /* Process ROOMS.TXT */
 void
 room_proc()
 {
-    char c, lastc, *p, *p2;
+    char c, *p2;
     int  n;
 
     nextc(true);
 
     fopenw(rooms1fn);
-    fopenw(rooms2fn);
 
     do {
-        p = block;
-        while ((c = fgetc(ifp)) != EOF && !isspace(c))
-            *(p++) = c;
-        if (c == EOF)
+        if (!fgets(block, sizeof(block), ifp))
             break;
-        *p = 0; /* Set null byte */
-        p = skipspc(block);
+        tidy(block);
+        const char *p = skipspc(block);
         if (*p == 0)
             continue;
-        striplead("room=", block);
+
+        p = skiplead("room=", block);
+
         if (strlen(block) < 3 || strlen(block) > IDL) {
             alog(AL_FATAL, "Invalid ID (length): %s", block);
         }
@@ -1414,11 +1418,11 @@ room_proc()
         room.flags = 0;
         room.tabptr = -1;
 
-        char temp[512];  /// TODO: Eliminate
-
-        temp[0] = 0;
         if (c != '\n') {
-            fgets(block, sizeof(block), ifp);
+            if (!fgets(block, sizeof(block), ifp)) {
+                alog(AL_ERROR, "Unexpected end of rooms file");
+                return;
+            }
             p = block;
             n = -1;
             do {
@@ -1432,7 +1436,7 @@ room_proc()
                 *p2 = 0;
                 if (n == 0) {
                     /* Get dmove param */
-                    strcpy(temp, p);
+                    strcpy(room.dmove, p);
                     dmoves++;
                     p = p2 + 1;
                     n = -1;
@@ -1448,44 +1452,24 @@ room_proc()
             } while (*p != 0);
         }
 
-        lastc = '\n';
-        fseek(ofp2, 0, 1);
-        room.desptr = ftell(ofp2);
-        n = 0;
-        if (temp[0] != 0)
-            fwrite(temp, IDL, 1, ofp2); /* save dmove */
-        while ((c = fgetc(ifp)) != EOF && !(c == '\n' && lastc == '\n')) {
-            if (lastc == '\n' && c == 9)
-                continue;
-            fputc((lastc = c), ofp2);
-            n++;
-        };
-        fputc(0, ofp2);
+        error_t err = TextStringFromFile(NULL, ifp, STRING_ROOM_DESC, &room.descid);
+        if (err != 0) {
+            alog(AL_ERROR, "Unable to write room %s description", room.id);
+            skipblock();
+            continue;
+        }
         fwrite(room.id, sizeof(room), 1, ofp1);
+
         ++rooms;
+
         nextc(false);
-    } while (c != EOF);
+    } while (!feof(ifp));
 }
 
 void
 checkdmoves()
 {
-    struct _ROOM_STRUCT *roomptr;
-
-    /* Check DMOVE ptrs */
-    fopenr(rooms2fn); /* Open desc. file */
-    roomptr = rmtab;
-    for (int n = 0; n < rooms; n++) {
-        if (roomptr->flags & DMOVE) {
-            printf("%-9s\r", roomptr->id);
-            fseek(ifp, roomptr->desptr, 0);
-            fread(dmove, IDL, 1, ifp); /* Read the DMOVE name */
-            if (isroom(dmove) == -1) {
-                alog(AL_ERROR, "%-9s: invalid dmove: %s", roomptr->id, dmove);
-            }
-        }
-        roomptr++;
-    }
+    /// TODO: Check dmoves
 }
 
 /* Process RANKS.TXT */
@@ -1497,8 +1481,7 @@ rank_proc()
     fopenw(ranksfn);
 
     do {
-        fgets(block, sizeof(block), ifp);
-        if (feof(ifp))
+        if (!fgets(block, sizeof(block), ifp))
             break;
         if (consumeComment(block) || isEol(block[0]))
             continue;
@@ -1510,7 +1493,7 @@ rank_proc()
             continue;
         rank.male[0] = 0;
         rank.female[0] = 0;
-        if (strlen(Word) < 3 || strlen(Word) > RANKL) {
+        if (strlen(Word) < 3 || p - block > RANKL) {
             alog(AL_FATAL, "Rank %d: Invalid male rank: %s", ranks, Word);
         }
         int n = 0;
@@ -1639,33 +1622,6 @@ rank_proc()
     } while (!feof(ifp));
 }
 
-void
-obds_proc()
-{
-    if (!nextc(false)) {
-        alog(AL_INFO, "No long object descriptions");
-        return;
-    }
-
-    do {
-        fgets(block, sizeof(block), ifp);
-        tidy(block);
-        striplead("desc=", block);
-        getword(block);
-        if (strlen(Word) < 3 || strlen(Word) > IDL) {
-            alog(AL_ERROR, "Invalid obj. description id: %s", Word);
-            skipblock();
-            continue;
-        }
-
-        error_t err = TextStringFromFile(Word, ifp, STRING_OBJECT_DESC, NULL);
-        if (err)
-            alog(AL_ERROR, "Couldn't write room description %s", Word);
-
-        nextc(false);
-    } while (!feof(ifp));
-}
-
 /*
 void
 sort_objs()
@@ -1777,7 +1733,7 @@ state_proc()
     }
     if (state.descrip == -1) {
         char tmp[128];
-        snprintf(tmp, "desc= ID (%s) on", &Word[0]);
+        snprintf(tmp, sizeof(tmp), "desc= ID (%s) on", &Word[0]);
         statinv(tmp);
     }
     while (*p != 0) {
@@ -1929,9 +1885,8 @@ objs_proc()
 void
 trav_proc()
 {
-    int         strip, lines, nvbs, i, ntt, t, r;
-    const char *p;
-    long *      l;
+    int   strip, lines, nvbs, i, ntt, t, r;
+    long *l;
 
     nextc(true); /* Move to first text */
     fopenw(ttfn);
@@ -1939,21 +1894,25 @@ trav_proc()
     fopena(rooms1fn);
     ntt = t = 0;
 
-	char temp[1024];
+    char temp[1024];
 
     do {
     loop1:
         checkErrorCount();
-        fgets(block, sizeof(block), ifp);
-        if (feof(ifp))
-            continue;
+
+        if (!fgets(block, sizeof(block), ifp))
+            break;
         tidy(block);
+
         if (block[0] == 0 || consumeComment(block))
-            goto loop1;
-        p = block;
-        getword(block);
-        striplead("room=", Word);
-        if ((rmn = isroom(Word)) == -1) {
+            continue;
+
+        const char *token = skipspc(block);
+        char *      p = (char *)skiplead("room=", token);
+        *p = 0;
+
+        rmn = isroom(token);
+        if (rmn == -1) {
             alog(AL_ERROR, "No such room: %s", Word);
             skipblock();
             goto loop1;
@@ -1961,7 +1920,7 @@ trav_proc()
         if (roomtab->tabptr != -1) {
             alog(AL_ERROR, "Multiple tt entries for room: %s", roomtab->id);
             skipblock();
-            goto loop1;
+            continue;
         }
     vbloop:
         do
@@ -2559,96 +2518,6 @@ lang_proc()
     } while (*s1 != 0);
 }
 
-void
-umsg_proc()
-{
-    char *s;
-
-    umsgs = 0;
-    fopenw(obj_loc_file);
-    closeOutFiles();
-    fopena(umsgifn);
-    ofp1 = afp;
-    afp = NULL;
-    fseek(ofp1, 0, 2L);
-    fopena(umsgfn);
-    ofp2 = afp;
-    afp = NULL;
-    fseek(ofp2, 0, 2L);
-    fopena(umsg_tmp_file);
-    if (!nextc(false)) {
-        /// TODO: Tell the user
-        return;
-    } /* None to process */
-    blkget(&datal, &data, 0L);
-    s = data;
-
-    do {
-        checkErrorCount();
-
-        do
-            s = extractLine(s, block);
-        while (consumeComment(block) && *s != 0);
-
-        if (*s == 0)
-            break;
-
-        tidy(block);
-        if (block[0] == 0)
-            continue;
-
-        striplead("msgid=", block);
-        getword(block);
-        if (Word[0] == 0)
-            continue;
-
-        if (Word[0] == '$') {
-            alog(AL_ERROR, "Invalid message ID: %s ('$' reserved or system messages", Word);
-            skipblock();
-            continue;
-        }
-        if (strlen(Word) > IDL) {
-            alog(AL_ERROR, "Invalid message ID (too long): %s", Word);
-            skipblock();
-            continue;
-        }
-
-        strcpy(umsg.id, Word);
-        umsg.fpos = ftell(ofp2);
-        fwrite(umsg.id, sizeof(umsg), 1, afp);
-        fwrite((char *)&umsg.fpos, 4, 1, ofp1);
-        do {
-            while (*s != 0 && consumeComment(s))
-                s = skipline(s);
-            if (*s == 0 || *s == 13) {
-                *s = 0;
-                break;
-            }
-            if (*s == 9)
-                s++;
-            if (*s == 13) {
-                block[0] = 13;
-                continue;
-            }
-            s = extractLine(s, block);
-            if (block[0] == 0)
-                break;
-            umsg.fpos = strlen(block);
-            if (block[umsg.fpos - 1] == '{')
-                block[--umsg.fpos] = 0;
-            else
-                strcat(block + (umsg.fpos++) - 1, "\n");
-            fwrite(block, 1, umsg.fpos, ofp2);
-        } while (*s != 0 && block[0] != 0);
-
-        fputc(0, ofp2);
-        umsgs++; /* Now copy the text across */
-    } while (*s != 0);
-    FreeMem(data, datal);
-    data = NULL;
-    datal = NULL;
-}
-
 /* Routines to process/handle Synonyms */
 
 void
@@ -2918,6 +2787,7 @@ checkFilesExist()
     alog(AL_INFO, "All files found");
 }
 
+/*
 struct Context {
     const char  filename[512];
     const char *start;
@@ -2935,12 +2805,13 @@ NewContext(const char *filename)
         alog(AL_FATAL, "Out of memory for context");
     }
 
-    if (EINVAL == path_join(context->filename, sizeof(context->filename), dir, filename)) {
-        alog(AL_FATAL, "Path length exceeds limit for %s/%s", dir, filename);
+    if (EINVAL == path_join(context->filename, sizeof(context->filename), gameDir, filename)) {
+        alog(AL_FATAL, "Path length exceeds limit for %s/%s", gameDir, filename);
     }
 
     return context;
 }
+*/
 
 void
 compileSection(const char *name, bool isText, void (*procFn)())
@@ -2971,9 +2842,6 @@ compileGame()
     // next check the system message file because this probably won't change
     // often and so should be fairly fire-and-forget
     compileSection("sysmsg", true, smsg_proc);
-    if (smsgs != NSMSGS) {
-        alog(AL_FATAL, "%d system message(s) missing", NSMSGS - smsgs);
-    }
 
     // Next, rooms, they're kind of fundamental
     if (!reuseRoomData) {
@@ -3064,23 +2932,24 @@ amulcom_main(int argc, const char **argv)
     compileGame();
     alog(AL_NOTE, "Execution finished normally");
     alog(AL_INFO, "Statistics for %s:", gameName);
-    alog(AL_INFO, "		Rooms: %6d	Ranks: %6d	Nouns: %6d", rooms, ranks, nouns);
-    alog(AL_INFO, "		Adj's: %6d	Verbs: %6d	Syns : %6d", adjs, verbs, syns);
-    alog(AL_INFO, "		T.T's: %6d	Umsgs: %6d	SMsgs: %6d", ttents, umsgs, NSMSGS);
+    alog(AL_INFO, "		Rooms: %6d	Ranks:   %6d	Nouns: %6d", rooms, ranks, nouns);
+    alog(AL_INFO, "		Adj's: %6d	Verbs:   %6d	Syns : %6d", adjs, verbs, syns);
+    alog(AL_INFO, "		T.T's: %6d	Strings: %6d", ttents, GetStringCount());
     alog(AL_INFO, "		 Total items processed:%7d",
-         rooms + ranks + adjs + verbs + nouns + syns + ttents + umsgs + NSMSGS + mobs + mobchars);
+         rooms + ranks + adjs + verbs + nouns + syns + ttents + mobs + mobchars);
     fopenw(advfn);
-    time(&startTime);
-    fprintf(ofp1, "%s\n%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", gameName,
-            rooms, ranks, verbs, syns, nouns, adjs, ttents, startTime, mins, invis, invis2, minsgo,
-            mobs, rscale, tscale, mobchars);
+    time_t startTime = time(NULL);
+    fprintf(ofp1, "%s\n", gameName);
+    fprintf(ofp1, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", 
+			rooms, ranks, verbs, syns, nouns, adjs, ttents, startTime, mins, invis, invis2, minsgo, mobs, rscale,
+            tscale, mobchars);
 
     // Copy the text from title.txt into the profile file
     REQUIRE(ifp == NULL);
     ifp = OpenGameFile("title.txt", "r");
     fseek(ifp, titlePos, 0);
     for (;;) {
-        int bytes = fread(block, 1, sizeof(block), ifp);
+        size_t bytes = fread(block, 1, sizeof(block), ifp);
         if (bytes <= 0)
             break;
         bytes = fwrite(block, bytes, 1, ofp1);

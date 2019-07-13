@@ -1,6 +1,8 @@
 #ifndef H_AMUL_STCT_H
 #define H_AMUL_STCT_H 1
+
 #include "h/amul.defs.h"
+#include "h/amul.type.h"
 
 struct _PLAYER /* Player def struct */
 {
@@ -69,11 +71,12 @@ struct Aport {
 
 struct _ROOM_STRUCT /* Room def struct */
 {
-    char               id[IDL + 1]; /* Room I.D.		   */
-    short int          flags;       /* Room FIXED flags        */
-    long               desptr;      /* Ptr to des. in des file */
-    long               tabptr;      /* Ptr to T.T. data 	   */
-    unsigned short int ttlines;     /* No. of TT lines	   */
+    char       id[IDL + 1]; /* Room I.D.		   */
+    char       dmove[IDL + 1];
+    uint32_t   flags;   /* Room FIXED flags        */
+    stringid_t descid;  /* Ptr to des. in des file */
+    uint32_t   tabptr;  /* Ptr to T.T. data 	   */
+    uint32_t   ttlines; /* No. of TT lines	   */
 };
 
 struct _VERB_STRUCT /* Verb def struct */
