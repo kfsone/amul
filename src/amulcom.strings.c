@@ -27,7 +27,7 @@ getStringID(size_t length)
 {
     uint64_t offset = ftell(stringFP);
     uint64_t maxOffset = 1ULL << 32;
-    if (offset + length >= maxOffset)
+    if (offset >= maxOffset || offset + length >= maxOffset || offset + length < offset)
         alog(AL_FATAL, "Text data exceeds 4GB");
     return (stringid_t)(offset & 0xffffffff);
 }
@@ -36,7 +36,7 @@ error_t
 testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *entryp)
 {
     REQUIRE(label && entryp);
-    error_t err = LookupStrHashValue(stringIDs, label, (uint64_t*)entryp);
+    error_t err = LookupStrHashValue(stringIDs, label, (uint64_t *)entryp);
     if (err != 0 && err != ENOENT)
         return err;
     // If we found it, check the types
@@ -53,6 +53,8 @@ InitStrings()
         alog(AL_FATAL, "Unable to create string table");
 
     stringFP = OpenGameFile(strings_file, "r");  // Note: text mode, translate \r please
+
+	return 0;
 }
 
 void
@@ -61,6 +63,10 @@ CloseStrings()
     CloseFile(&stringFP);
     CloseHashMap(&stringIDs);
 }
+
+#define check_write_str(op, buffer, length, fp)                                                    \
+    if (fwrite(buffer, 1, (length), fp) != (length))                                               \
+		alog(AL_FATAL, "Unable to write %s", op)
 
 error_t
 AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
@@ -151,7 +157,7 @@ RegisterTextString(
     entry.types |= stype;
     entry.offset = *idp;
 
-    return AddStrToHash(stringIDs, label, &entry);
+    return AddStrToHash(stringIDs, label, *(uint64_t*)&entry);
 }
 
 error_t
@@ -174,4 +180,41 @@ size_t
 GetStringCount()
 {
     return GetMapSize(stringIDs);
+}
+
+char *
+StrCopy(char *into, size_t intoSize, const char *start, const char *end)
+{
+    const size_t copylen = end - start;
+    if (copylen + 1 > intoSize) {
+        return NULL;
+    }
+    memcpy(into, start, copylen);
+    into[copylen] = 0;
+    return into + copylen;
+}
+
+char *
+WordCopy(char *into, size_t intoSize, const char *start, const char *end)
+{
+    const size_t copylen = end - start;
+    if (copylen + 1 > intoSize) {
+        return NULL;
+    }
+    const char *intoEnd = into + copylen;
+	while (into < intoEnd) {
+        *(into++) = tolower(*(start++));
+	}
+    into[copylen] = 0;
+    return into + copylen;
+}
+
+void
+ZeroPad(char *string, size_t stringSize)
+{
+    char *end = string + stringSize;
+    while (string < end && *string)
+        ++string;
+    while (string < end)
+        *(string++) = 0;
 }

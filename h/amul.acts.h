@@ -10,7 +10,9 @@
 variable elements of the adventure... Such as 'noun1', 'adj2', 'room of object
 the box', 'current state of door', 'no. of player carrying' etc...
 
-                                        */
+*/
+
+#include "h/amul.defs.h"
 
 /* Actual flags */
 

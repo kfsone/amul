@@ -417,8 +417,12 @@
     Permit();                                                                                      \
     return
 
-#include "h/amul.acts.h"
 #include "h/amul.msgs.h" /* System message defines */
+
+#define NONE                                                                                       \
+    {                                                                                              \
+        0, 0, 0                                                                                    \
+    }
 
 #define CP1 actual(*(tt.pptr))
 #define CP2 actual(*(tt.pptr + 1))

@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 const char *extractLine(const char *from, char *to);
-const char *getword(const char *from);
+char *      getword(char *from);
 bool        striplead(const char *lead, char *from);
 
 // Test for comment marker
@@ -58,8 +58,8 @@ repspc(char *s)
     }
 }
 
-static inline const char *
-skipspc(const char *s)
+static inline char *
+skipspc(char *s)
 {
     while (*s == ' ' || *s == '\t') {
         ++s;
@@ -67,8 +67,8 @@ skipspc(const char *s)
     return s;
 }
 
-static inline const char *
-skipline(const char *s)
+static inline char *
+skipline(char *s)
 {
     while (*s) {
         if (isEol(*(s++)))
@@ -77,10 +77,10 @@ skipline(const char *s)
     return s;
 }
 
-static inline const char *
-skiplead(const char *lead, const char *from)
+static inline char *
+skiplead(const char *lead, char *from)
 {
-    const char *cur = skipspc(from);
+    char *cur = skipspc(from);
     while (*lead && *cur) {
         if (tolower(*lead) != tolower(*cur))
             return from;
@@ -92,9 +92,9 @@ skiplead(const char *lead, const char *from)
 }
 
 static inline bool
-canSkipLead(const char *lead, const char **from)
+canSkipLead(const char *lead, char **from)
 {
-    const char *end = skiplead(lead, *from);
+    char *end = skiplead(lead, *from);
     if (end == *from) {
         return false;
     }
@@ -102,8 +102,8 @@ canSkipLead(const char *lead, const char **from)
     return true;
 }
 
-static inline const char *
-strstop(const char *in, char stop)
+static inline char *
+strstop(char *in, char stop)
 {
     while (*in && *in != stop) {
         ++in;
@@ -111,8 +111,8 @@ strstop(const char *in, char stop)
     return in;
 }
 
-static inline const char *
-getWordAfter(const char *lead, const char *from)
+static inline char *
+getWordAfter(const char *lead, char *from)
 {
     return getword(skiplead(lead, from));
 }

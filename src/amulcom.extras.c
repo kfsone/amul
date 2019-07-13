@@ -12,7 +12,7 @@ extractLine(const char *from, char *to)
     for (;;) {
         if (!isCommentChar(*from))
             break;
-        from = strstop(from, '\n');
+        from = strstop((char*)from, '\n');
     }
     // copy the text into to
     while (*from && !isEol(*from)) {
@@ -22,17 +22,6 @@ extractLine(const char *from, char *to)
         from++;
     *to = 0;
     return from;
-}
-
-bool
-stripNewline(char *text)
-{
-    size_t len = strlen(text);
-    if (len > 0 && text[len - 1] == '\n') {
-        text[--len] = 0;
-        return true;
-    }
-    return false;
 }
 
 bool

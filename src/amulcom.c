@@ -34,6 +34,7 @@
 #include "amulcom.strings.h"
 
 #include "h/amul.alog.h" /* Logging */
+#include "h/amul.acts.h"
 #include "h/amul.cons.h" /* Predefined Constants etc     */
 #include "h/amul.defs.h" /* Defines in one nice file     */
 #include "h/amul.file.h"
@@ -67,7 +68,6 @@ FILE *ofp3;
 FILE *ofp4;
 FILE *ofp5;
 FILE *afp;
-FILE *stringFP;
 
 /* Compiler specific variables... */
 
@@ -76,24 +76,22 @@ bool verbose = false;
 bool checkDmoves = false;
 bool reuseRoomData = false;
 
-int    dmoves = 0;    /* How many DMOVEs to check?	*/
-int    rmn = 0;       /* Current room no.		*/
-long   titlePos = 0;  /* Position of the title text in title.txt */
-size_t FPos;          /* Used during TT/Lang writes	*/
-char   Word[64];      /* For internal use only <grin>	*/
-int    errorCount;    /* Number of AL_ERRORs logged */
-int    proc;          /* What we are processing	*/
-char * data;          /* Pointer to data buffer	*/
-char * data2;         /* Secondary buffer area	*/
-char * syntab;        /* Synonym table, re-read	*/
-char   idt[IDL + 1];  /* Temporary ID store		*/
-long   datal, datal2; /* Length of data */
-long   obmem;         /* Size of Objects.TXT		*/
-long   vbmem;         /* Size of Lang.Txt		*/
-long   wizstr;        /* Wizards strength		*/
-char * mobdat, *px;   /* Mobile data			*/
-long   moblen;        /* Length			*/
-char   dmove[IDL + 1];
+int    dmoves = 0;   /* How many DMOVEs to check?	*/
+int    rmn = 0;      /* Current room no.		*/
+long   titlePos = 0; /* Position of the title text in title.txt */
+size_t FPos;         /* Used during TT/Lang writes	*/
+char   Word[64];     /* For internal use only <grin>	*/
+int    errorCount;   /* Number of AL_ERRORs logged */
+int    proc;         /* What we are processing	*/
+char * data;         /* Pointer to data buffer	*/
+char * data2;        /* Secondary buffer area	*/
+char * syntab;       /* Synonym table, re-read	*/
+char   idt[IDL + 1]; /* Temporary ID store		*/
+long   obmem;        /* Size of Objects.TXT		*/
+long   vbmem;        /* Size of Lang.Txt		*/
+long   wizstr;       /* Wizards strength		*/
+char * mobdat, *px;  /* Mobile data			*/
+long   moblen;       /* Length			*/
 
 struct Task *mytask, *FindTask();
 
@@ -134,10 +132,6 @@ static const char *obj_loc_file = "objloc.tmp";
 #define safe_gamedir_joiner(filename)                                                              \
     if (gamedir_joiner(filename) != 0)                                                             \
         alog(AL_FATAL, "Unable to form filename for %s / %s", gameDir, filename);
-
-#define check_write_str(op, buffer, length, fp)                                                    \
-    if (fwrite(buffer, 1, (length), fp) != (length))                                               \
-    fatalOp("write", op)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -196,12 +190,6 @@ quit()
     if (rmtab != 0)
         FreeMem(rmtab, sizeof(room) * rooms);
     rmtab = NULL;
-    if (data != 0)
-        FreeMem(data, datal);
-    data = NULL;
-    if (data2 != 0)
-        FreeMem(data2, datal2);
-    data2 = NULL;
     if (obtab2 != 0)
         FreeMem(obtab2, obmem);
     obtab2 = NULL;
@@ -235,8 +223,8 @@ consumeComment(const char *text)
     return isCommentChar(*text);
 }
 
-const char *
-getword(const char *from)
+char *
+getword(char *from)
 {
     char *to = Word;
     *to = 0;
@@ -378,6 +366,21 @@ tidy(char *ptr)
         *(lastNonSpace + 1) = 0;
 }
 
+char *
+getTidyBlock(FILE *ifp)
+{
+    for (;;) {
+        if (!fgets(block, sizeof(block), ifp))
+            return NULL;
+
+        tidy(block);
+
+        char *p = skipspc(block);
+        if (!consumeComment(p) && *p)
+            return p;
+    }
+}
+
 int
 is_verb(const char *s)
 {
@@ -451,33 +454,30 @@ isroom(const char *s)
 
 /* Is it a FIXED object flag? */
 int
-isoflag1(const char *s)
+isoflag1(const char *token)
 {
-    int i;
-    for (i = 0; i < NOFLAGS; i++)
-        if (strcmp(obflags1[i], s) == 0)
+    for (int i = 0; i < NOFLAGS; i++)
+        if (strcmp(obflags1[i], token) == 0)
             return i;
     return -1;
 }
 
 /* Is it an object parameter? */
 int
-isoparm()
+isoparm(char *token)
 {
-    int i;
-    for (i = 0; i < NOPARMS; i++)
-        if (striplead(obparms[i], Word))
+    for (int i = 0; i < NOPARMS; i++)
+        if (striplead(obparms[i], token))
             return i;
     return -1;
 }
 
 /* Is it a state flag? */
 int
-isoflag2(const char *s)
+isoflag2(const char *token)
 {
-    int i;
-    for (i = 0; i < NSFLAGS; i++)
-        if (strcmp(obflags2[i], s) == 0)
+    for (int i = 0; i < NSFLAGS; i++)
+        if (strcmp(obflags2[i], token) == 0)
             return i;
     return -1;
 }
@@ -485,36 +485,32 @@ isoflag2(const char *s)
 void
 set_adj()
 {
-    int i;
-
     if (strlen(Word) > IDL || strlen(Word) < 3) {
         alog(AL_FATAL, "Invalid adjective (length): %s", Word);
     }
     if (adjs == 0) {
-        for (i = 0; i < IDL + 1; i++)
-            dmove[i] = 0;
-        strcpy(dmove, Word);
+        ZeroPad(Word, sizeof(Word));
+        fwrite(Word, IDL + 1, 1, afp);
         obj2.adj = 0;
-        fwrite(dmove, IDL + 1, 1, afp);
         adjs++;
         return;
     }
     fseek(afp, 0L, 0); /* Move to beginning */
-    i = 0;
+    int i = 0;
     do {
-        if (fread(dmove, IDL + 1, 1, afp) != 1)
+        char id[IDL + 1];
+        if (fread(id, IDL + 1, 1, afp) != 1)
             continue; /* Read adj! */
-        if (strcmp(Word, dmove) == 0) {
+        if (strcmp(Word, id) == 0) {
             obj2.adj = i;
             return;
         }
         i++;
     } while (!feof(afp));
-    for (i = 0; i < IDL + 1; i++)
-        dmove[i] = 0;
-    strcpy(dmove, Word);
-    fseek(afp, 0L, 2);              /* Move to end! */
-    fwrite(dmove, IDL + 1, 1, afp); /* Add this adjective */
+
+    fseek(afp, 0L, 2); /* Move to end! */
+    ZeroPad(Word, sizeof(Word));
+    fwrite(Word, IDL + 1, 1, afp); /* Add this adjective */
     obj2.adj = adjs++;
 }
 
@@ -628,7 +624,7 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
 
         repspc(block);
         stripNewline(block);
-        const char *p = skipspc(block);
+        char *p = skipspc(block);
         if (!*p || isCommentChar(*p))
             continue;
 
@@ -729,47 +725,39 @@ isloc(const char *s)
     return -(INS + i);
 }
 
-const char *
-precon(const char *s)
+char *
+precon(char *s)
 {
-    /// TODO: use canSkipLead instead
-    const char *s2 = s;
-
-    if ((s = skiplead("if ", s)) != s2) {
+    while (*s) {
         s = skipspc(s);
-        s2 = s;
+        if (canSkipLead("if ", &s))
+            continue;
+        if (canSkipLead("the ", &s))
+            continue;
+        if (canSkipLead("i ", &s))
+            continue;
+        if (canSkipLead("am ", &s))
+            continue;
+        break;
     }
-    if ((s = skiplead("the ", s)) != s2) {
-        s = skipspc(s);
-        s2 = s;
-    }
-    if ((s = skiplead("i ", s)) != s2) {
-        s = skipspc(s);
-        s2 = s;
-    }
-    s = skiplead("am ", s);
     return s;
 }
 
-const char *
-preact(const char *s)
+char *
+preact(char *s)
 {
-    /// TODO: use canSkipLead instead
-    const char *s2 = s;
-
-    if ((s = skiplead("then ", s)) != s2) {
+    while (*s) {
         s = skipspc(s);
-        s2 = s;
+        if (canSkipLead("then ", &s))
+            continue;
+        if (canSkipLead("goto ", &s))
+            continue;
+        if (canSkipLead("go to ", &s))
+            continue;
+        if (canSkipLead("set ", &s))
+            continue;
+        break;
     }
-    if ((s = skiplead("goto ", s)) != s2) {
-        s = skipspc(s);
-        s2 = s;
-    }
-    if ((s = skiplead("go to ", s)) != s2) {
-        s = skipspc(s);
-        s2 = s;
-    }
-    s = skiplead("set ", s);
     return s;
 }
 
@@ -797,27 +785,25 @@ chknum(const char *p)
     return n;
 }
 
-const char *
-skipOptionalPrefixes(const char *p)
+static const char *optionalPrefixes[] = {  // noise we can skip
+        "the ",  "of ",  "are ", "is ",  "has ", "next ", "with ", "to ", "set ",
+        "from ", "for ", "by ",  "and ", "was ", "i ",    "am ",   "as ", NULL};
+
+char *
+skipOptionalPrefixes(char *p)
 {
-    p = skiplead("the ", p);
-    p = skiplead("of ", p);
-    p = skiplead("are ", p);
-    p = skiplead("is ", p);
-    p = skiplead("has ", p);
-    p = skiplead("next ", p);
-    p = skiplead("with ", p);
-    p = skiplead("to ", p);
-    p = skiplead("set ", p);
-    p = skiplead("from ", p);
-    p = skiplead("for ", p);
-    p = skiplead("by ", p);
-    p = skiplead("and ", p);
-    p = skiplead("was ", p);
-    p = skiplead("i ", p);
-    p = skiplead("am ", p);
-    p = skiplead("as ", p);
-    p = skipspc(p);
+    while (*p) {
+        p = skipspc(p);
+        bool match = false;
+        for (int i = 0; optionalPrefixes[i]; ++i) {
+            if (canSkipLead(optionalPrefixes[i], &p)) {
+                match = true;
+                break;
+            }
+        }
+        if (!match)
+            break;
+    }
     return p;
 }
 
@@ -866,7 +852,7 @@ isnounh(const char *s)
     for (i = 0; i < nouns; i++, objtab2++) {
         if (stricmp(s, objtab2->id) != 0)
             continue;
-        fseek(fp, (long)objtab2->rmlist, 0L);
+        fseek(fp, (long)(uintptr_t)objtab2->rmlist, 0L);  /// TODO: Dispose
         for (j = 0; j < objtab2->nrooms; j++) {
             fread(&orm, 4, 1, fp);
             if (orm == rmn) {
@@ -952,7 +938,7 @@ bvmode(char c)
 }
 
 stringid_t
-getTextString(const char *s, bool prefixed)
+getTextString(char *s, bool prefixed)
 {
     if (prefixed) {
         s = skipspc(s);
@@ -962,13 +948,14 @@ getTextString(const char *s, bool prefixed)
 
     stringid_t id = -1;
     if (*s == '\"' || *s == '\'') {
-        const char *start = s + 1;
-        const char *end = strstop(start, *s);
-        error_t     err = AddTextString(s + 1, end, true, &id);
+        char *  start = s + 1;
+        char *  end = strstop(start, *s);
+        error_t err = AddTextString(start, end, true, &id);
         if (err != 0)
             alog(AL_FATAL, "Unable to add string literal: %d", err);
     } else {
-        error_t err = LookupTextString(s, STRING_MESSAGE, &id);
+        getword(s);
+        error_t err = LookupTextString(Word, STRING_MESSAGE, &id);
         if (err != 0 && err != ENOENT)
             alog(AL_FATAL, "Error looking up string (%d): %s", err, s);
     }
@@ -1067,8 +1054,8 @@ actualval(const char *s, int n)
     return -2; /* It was no actual! */
 }
 
-const char *
-chkp(const char *p, char t, int c, int z, FILE *fp)
+char *
+chkp(char *p, char t, int c, int z, FILE *fp)
 {
     int32_t x;
 
@@ -1078,16 +1065,20 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
              (proc == 1) ? verb.id : roomtab->id, (z == 1) ? "condition" : "action",
              (z == 1) ? conds[c] : acts[c]);
     }
-    const char *end = NULL;
+    char *end = NULL;
+    bool  lower = false;
     if (*p != '\"' && *p != '\'') {
         end = strstop(p, ' ');
     } else {
         end = strstop(p + 1, *p);
+        lower = true;
     }
     size_t len = end - p;
     char * token = alloca(len + 1);
-    strncpy(token, p, end - p);
-    token[end - p] = 0;
+    if (lower)
+        WordCopier(token, p, end);
+    else
+        StrCopier(token, p, end);
 
     /* Processing lang tab? */
     if ((t >= 0 && t <= 10) || t == -70) {
@@ -1144,8 +1135,8 @@ write:
     return skipspc(p + 1);
 }
 
-const char *
-chkaparms(const char *p, int c, FILE *fp)
+char *
+chkaparms(char *p, int c, FILE *fp)
 {
     int i;
 
@@ -1157,8 +1148,8 @@ chkaparms(const char *p, int c, FILE *fp)
     return p;
 }
 
-const char *
-chkcparms(const char *p, int c, FILE *fp)
+char *
+chkcparms(char *p, int c, FILE *fp)
 {
     int i;
 
@@ -1225,7 +1216,7 @@ mobmis(const char *s)
 
 /* Fetch mobile message line */
 int
-getmobmsg(const char *s, const char **p)
+getmobmsg(const char *s, char **p)
 {
     int n;
 
@@ -1233,12 +1224,11 @@ loop:
     while (isCommentChar(**p)) {
         *p = skipline(*p);
     }
-    if (**p == 0 || **p == '\r' || **p == '\n') {
-        alog(AL_ERROR, "Mobile: %s: unexpected end of definition", mob.id);
-        return -1;
+    if (**p == 0 || **p == '\n') {
+        alog(AL_FATAL, "Mobile: %s: unexpected end of definition", mob.id);
     }
     *p = skipspc(*p);
-    if (**p == 0 || **p == '\r' || **p == '\n' || isCommentChar(**p))
+    if (**p == 0 || **p == '\n' || isCommentChar(**p))
         goto loop;
 
     if (!canSkipLead(s, p)) {
@@ -1264,27 +1254,26 @@ consumeMessageFile(
     if (!nextc(false))
         return ENOENT;
 
-    do {
+    while (!feof(ifp)) {
         checkErrorCount();
 
-        fgets(block, sizeof(block), ifp);
-        tidy(block);
+        char *p = getTidyBlock(ifp);
+        if (!p)
+            continue;
 
-        const char *token = skipspc(block);
-        token = skiplead(prefix, token);
-        const char *end = strstop(token, ' ');
-        *(char *)end = 0;
-
-        if ((end - token) < 2 || (end - token) > IDL) {
-            alog(AL_ERROR, "Invalid ID: %s", token);
+        p = getWordAfter(prefix, p);
+        if (strlen(Word) < 2 || strlen(Word) > IDL) {
+            alog(AL_ERROR, "Invalid %s ID: %s", prefix, Word);
             skipblock();
-        } else if (checkerFn && !checkerFn(token)) {
+        } else if (checkerFn && !checkerFn(Word)) {
             skipblock();
-        } else if (!checkerFn && token[0] == '$') {
-            alog(AL_ERROR, "Invalid ID (can't begin with '$'): %s", token);
+        } else if (!checkerFn && Word[0] == '$') {
+            alog(AL_ERROR, "Invalid ID (can't begin with '$'): %s", Word);
             skipblock();
         }
-    } while (!feof(ifp));
+
+        TextStringFromFile(Word, ifp, stype, NULL);
+    }
 
     return 0;
 }
@@ -1389,72 +1378,63 @@ saveRoomDmove(const char *dmove)
     /// TODO: Implement
 }
 
-/* Process ROOMS.TXT */
+// Process ROOMS.TXT
 void
 room_proc()
 {
-    char c, *p2;
-    int  n;
-
     nextc(true);
 
     fopenw(rooms1fn);
 
     do {
-        if (!fgets(block, sizeof(block), ifp))
-            break;
-        tidy(block);
-        const char *p = skipspc(block);
-        if (*p == 0)
+        checkErrorCount();
+
+        if (!nextc(false))
             continue;
 
-        p = skiplead("room=", block);
+        char *p = getTidyBlock(ifp);
+        if (!p)
+            continue;
 
-        if (strlen(block) < 3 || strlen(block) > IDL) {
-            alog(AL_FATAL, "Invalid ID (length): %s", block);
+        p = getWordAfter("room=", p);
+        if (strlen(Word) < 3 || strlen(Word) > IDL) {
+            *p = 0;
+            alog(AL_ERROR, "Invalid ID (length): %s", p);
+            skipblock();
+            continue;
         }
-        strcpy(room.id, block);
-        /* Do the flags */
+        strncpy(room.id, Word, sizeof(room.id));
+
+        // If there are additional words on the line, they are room flags.
         room.flags = 0;
         room.tabptr = -1;
-
-        if (c != '\n') {
-            if (!fgets(block, sizeof(block), ifp)) {
-                alog(AL_ERROR, "Unexpected end of rooms file");
-                return;
+        for (;;) {
+            p = skipspc(p);
+            if (!*p)
+                break;
+            p = getword(p);
+            char *dmove = p;
+            if (canSkipLead("dmove", &dmove)) {
+                if (room.dmove[0] != 0)
+                    alog(AL_ERROR, "room:%s: duplicate dmove flag", room.id);
+                else
+                    WordCopier(room.dmove, dmove, strstop(dmove, ' '));
+                continue;
             }
-            p = block;
-            n = -1;
-            do {
-                while (isspace(*p) && *p != 0)
-                    p++;
-                if (*p == 0)
-                    continue;
-                p2 = p;
-                while (!isspace(*p2) && *p2 != 0)
-                    p2++;
-                *p2 = 0;
-                if (n == 0) {
-                    /* Get dmove param */
-                    strcpy(room.dmove, p);
-                    dmoves++;
-                    p = p2 + 1;
-                    n = -1;
-                    continue;
-                }
-                if ((n = isrflag(p)) == -1) {
-                    alog(AL_FATAL, "Invalid flag: %s", p);
-                }
-                n -= NRNULL;
-                if (n >= 0)
-                    room.flags = (room.flags | bitset(n));
-                p = p2 + 1;
-            } while (*p != 0);
+            int no = isrflag(p);
+            if (no == -1) {
+                alog(AL_ERROR, "room:%s: Invalid room flag: %s", room.id, Word);
+                continue;
+            }
+            if (room.flags & bitset(no)) {
+                alog(AL_WARN, "room:%s: Duplicate room flag: %s", room.id, Word);
+            }
+            room.flags |= bitset(no);
         }
 
         error_t err = TextStringFromFile(NULL, ifp, STRING_ROOM_DESC, &room.descid);
         if (err != 0) {
-            alog(AL_ERROR, "Unable to write room %s description", room.id);
+            alog(AL_ERROR, "room:%s: Unable to write description", room.id);
             skipblock();
             continue;
         }
@@ -1480,19 +1460,15 @@ rank_proc()
 
     fopenw(ranksfn);
 
-    do {
-        if (!fgets(block, sizeof(block), ifp))
-            break;
-        if (consumeComment(block) || isEol(block[0]))
+    while (!feof(ifp)) {
+        char *p = getTidyBlock(ifp);
+        if (!p)
             continue;
-        tidy(block);
-        if (block[0] == 0)
-            continue;
-        const char *p = getword(block);
+
+        p = getword(block);
         if (chkline(p) != 0)
             continue;
-        rank.male[0] = 0;
-        rank.female[0] = 0;
+
         if (strlen(Word) < 3 || p - block > RANKL) {
             alog(AL_FATAL, "Rank %d: Invalid male rank: %s", ranks, Word);
         }
@@ -1614,12 +1590,14 @@ rank_proc()
         if (block[0] == 0)
             strcpy(rank.prompt, "$ ");
         else
-            strncpy(rank.prompt, block, p - block);
+            WordCopier(rank.prompt, block, p);
 
         wizstr = rank.strength;
         fwrite(rank.male, sizeof(rank), 1, ofp1);
         ranks++;
-    } while (!feof(ifp));
+    }
+    while (!feof(ifp))
+        ;
 }
 
 /*
@@ -1680,7 +1658,7 @@ state_proc()
 
     /* Get the weight of the object */
     striplead("weight=", block);
-    const char *p = getword(block);
+    char *p = getword(block);
     if (*p == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
@@ -1743,7 +1721,7 @@ state_proc()
         int flag = isoflag2(Word);
         if (flag == -1)
             statinv("flag on");
-        state.flags = (state.flags | bitset(flag));
+        state.flags |= bitset(flag);
     }
     fwrite(&state.weight, sizeof(state), 1, ofp2);
     obj2.nstates++;
@@ -1752,60 +1730,64 @@ state_proc()
 void
 objs_proc()
 {
-    const char *p, *s;
-    int         roomno;
-
     /* Clear files */
-    fopenw(adjfn);
-    closeOutFiles();  // create file
     fopenw(objsfn);
     fopenw(statfn);
     fopenw(objrmsfn);
-    fopena(adjfn);
+
+    obmem = filesize();
+    obtab2 = AllocMem(obmem + 128 * sizeof(obj2), MEMF_PUBLIC);
+    objtab2 = obtab2;
 
     if (!nextc(false)) {
         return;
     } /* Nothing to process: ///TODO: Warning */
-    blkget(&obmem, (char **)&obtab2, 32 * sizeof(obj2));
-    objtab2 = obtab2 + 32;
-    s = (char *)objtab2;
 
-    do {
+    while (!feof(ifp)) {
         checkErrorCount();
 
-        do
-            p = s = extractLine(s, block);
-        while (*s != 0 && (block[0] == 0 || consumeComment(block)));
-        if (*s == 0 || block[0] == 0)
+        char *cur = getTidyBlock(ifp);
+        if (!cur)
             continue;
-        tidy(block);
-        if (block[0] == 0)
+
+        cur = getWordAfter("noun=", cur);
+        if (Word[0] == 0) {
+            alog(AL_ERROR, "noun= line with no noun");
+            skipblock();
             continue;
-        striplead("noun=", block);
-        p = getword(block);
-        if (strlen(Word) < 3 || strlen(Word) > IDL) {
-            alog(AL_FATAL, "Invalid object id (length): %s", Word);
-            Word[IDL + 1] = 0;
         }
+        if (strlen(Word) || strlen(Word) > IDL) {
+            alog(AL_ERROR, "Invalid object name (length): %s", cur);
+            skipblock();
+            continue;
+        }
+
         obj2.adj = obj2.mobile = -1;
         obj2.idno = nouns;
-        obj2.state = obj2.nrooms = obj2.contains = obj2.flags = obj2.putto = 0;
+        obj2.state = 0;
+        obj2.nrooms = 0;
+        obj2.contains = 0;
+        obj2.flags = 0;
+        obj2.putto = 0;
         obj2.rmlist = (long *)ftell(ofp3);
-        strcpy(obj2.id, Word);
+        strncpy(obj2.id, Word, sizeof(obj2.id));
+        /// TODO: Register noun
 
-        /* Get the object flags */
-        do {
-            p = getword(p);
-            if (Word[0] == 0)
-                continue;
-            if ((roomno = isoflag1(Word)) != -1)
-                obj2.flags = (obj2.flags | bitset(roomno));
+        while (*cur) {
+            cur = getword(cur);
+            if (!Word[0])
+                break;
+
+            int idNo = isoflag1(Word);
+            if (idNo != -1)
+                obj2.flags |= idNo;
             else {
-                if ((roomno = isoparm()) == -1) {
-                    alog(AL_ERROR, "Object: %s: Invalid parameter: %s", obj2.id, Word);
+                idNo = isoparm(Word);
+                if (idNo == -1) {
+                    alog(AL_ERROR, "object:%s: Invalid parameter: %s", obj2.id, Word);
                     continue;
                 }
-                switch (bitset(roomno)) {
+                switch (bitset(idNo)) {
                 case OP_ADJ: set_adj(); break;
                 case OP_START: set_start(); break;
                 case OP_HOLDS: set_holds(); break;
@@ -1816,58 +1798,56 @@ objs_proc()
                     break;
                 default:
                     alog(AL_FATAL, "Internal Error: Code for object-parameter '%s' missing",
-                         obparms[roomno]);
+                         obparms[idNo]);
                 }
             }
-        } while (Word[0] != 0);
+        }
 
         /* Get the room list */
 
-        p = block;
-        *p = '+';
-        *(p + 1) = 0;
-        roomno = 0;
-        do {
-            p = getword(p);
-            if (Word[0] == '+') {
-                do
-                    s = extractLine(s, block);
-                while (*s != 0 && block[0] != 0 && consumeComment(block));
-                if (*s == 0) {
-                    alog(AL_FATAL, "Unexpected end of file in Objects.TXT");
+        bool continuation = true;
+        while (continuation) {
+            char *p = getTidyBlock(ifp);
+            if (!p)
+                alog(AL_FATAL, "object:%s: unexpected end of file", obj2.id);
+
+            while (*p) {
+                continuation = false;
+                p = getword(p);
+                if (strcmp(Word, "+") == 0) {
+                    continuation = true;
+                    continue;
                 }
-                p = block;
-                Word[0] = ' ';
-                continue;
+                int roomNo = isloc(Word);
+                if (roomNo == -1) {
+                    alog(AL_ERROR, "object:%s: invalid room: %s", obj2.id, Word);
+                }
+                fwrite(&roomNo, 1, sizeof(roomNo), ofp3);
+                obj2.nrooms++;
             }
-            if (Word[0] == 0)
-                continue;
-            if ((roomno = isloc(Word)) == -1) {
-                roomno = -1;
-                continue;
-            }
-            fwrite(&roomno, 1, 4, ofp3);
-            obj2.nrooms++;
-        } while (Word[0] != 0);
-        if (obj2.nrooms == 0 && roomno == 0) {
-            alog(AL_ERROR, "Object: %s: no location given", obj2.id);
         }
+
+        if (obj2.nrooms == 0)
+            alog(AL_ERROR, "object:%s: no location given", obj2.id);
+
         obj2.nstates = 0;
-        do {
-            do
-                s = extractLine(s, block);
-            while (block[0] != 0 && consumeComment(block));
-            if (block[0] == 0 || block[0] == '\n')
+        for (;;) {
+            char *p = getTidyBlock(ifp);
+            if (!p)
+                alog(AL_FATAL, "object:%s: unexpected end of file", obj2.id);
+            if (!*p)
                 break;
             state_proc();
-            block[0] = '-';
-        } while (block[0] != 0 && block[0] != '\n');
-        if (obj2.nstates == 0 || obj2.nstates > 100)
-            object("amount of states (i.e. none)");
-        if ((long)(obtab2 + (nouns)) > (long)s)
-            alog(AL_FATAL, "table exceeded data");
+        }
+
+        if (obj2.nstates == 0)
+            alog(AL_ERROR, "object:%s: no states defined");
+        if (obj2.nstates > 100)
+            alog(AL_ERROR, "object:%s: too many states defined (%d)", obj2.nstates);
+
         *(obtab2 + (nouns++)) = obj2;
-    } while (*s != 0);
+    }
+
     /*
     closeOutFiles();
     sort_objs();
@@ -1896,32 +1876,32 @@ trav_proc()
 
     char temp[1024];
 
-    do {
-    loop1:
+    while (!feof(ifp)) {
         checkErrorCount();
 
-        if (!fgets(block, sizeof(block), ifp))
-            break;
-        tidy(block);
-
-        if (block[0] == 0 || consumeComment(block))
+        char *p = getTidyBlock(ifp);
+        if (!p)
             continue;
 
-        const char *token = skipspc(block);
-        char *      p = (char *)skiplead("room=", token);
-        *p = 0;
+        p = getWordAfter("room=", p);
+        if (Word[0] == 0) {
+            alog(AL_ERROR, "travel: empty room= line");
+            skipblock();
+            continue;
+        }
 
-        rmn = isroom(token);
+        rmn = isroom(Word);
         if (rmn == -1) {
             alog(AL_ERROR, "No such room: %s", Word);
             skipblock();
-            goto loop1;
+            continue;
         }
         if (roomtab->tabptr != -1) {
             alog(AL_ERROR, "Multiple tt entries for room: %s", roomtab->id);
             skipblock();
             continue;
         }
+
     vbloop:
         do
             fgets(block, sizeof(block), ifp);
@@ -2062,7 +2042,9 @@ trav_proc()
             goto vbproc;
         nextc(false);
         ntt++;
-    } while (!feof(ifp));
+    }
+    while (!feof(ifp))
+        ;
     if (errorCount == 0 && ntt != rooms && verbose) {
         roomtab = rmtab;
         for (i = 0; i < rooms; i++, roomtab++) {
@@ -2116,10 +2098,9 @@ chae_proc(const char *f, char *t)
 void
 lang_proc()
 {
-    char lastc, *p, *p2;
+    char lastc;
     /* n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2) */
-    int           n, cs, s, r;
-    unsigned long of2p, of3p;
+    int n, cs, s, r;
 
     verbs = 0;
     nextc(true);
@@ -2132,61 +2113,39 @@ lang_proc()
     fopenw(lang3fn);
     fopenw(lang4fn);
 
-    blkget(&vbmem, (char **)&vbtab, 64 * (sizeof(verb)));
-    vbptr = vbtab + 64;
-    const char *s1 = (char *)vbptr;
-    const char *s2 = NULL;
+    vbmem = filesize();
+    vbtab = AllocMem(vbmem + 128 * sizeof(verb), MEMF_PUBLIC);
     vbptr = vbtab;
-    of2p = ftell(ofp2);
-    of3p = ftell(ofp3);
+
+    size_t of2p = ftell(ofp2);
+    size_t of3p = ftell(ofp3);
     FPos = ftell(ofp4);
 
-    do {
+    while (!feof(ifp)) {
         checkErrorCount();
-        verbs++;
-        p = block;
-    loop:
-        do {
-            s1 = extractLine((s2 = s1), block);
-            *(s1 - 1) = 0;
-        } while (consumeComment(block) && *s1 != 0);
-        if (*s1 == 0) {
-            verbs--;
-            break;
-        }
-        tidy(block);
-        if (block[0] == 0)
-            goto loop;
-        p = skiplead("verb=", block);
-        p = getword(p);
-        if (Word[0] == 0) {
+
+        char *p = getTidyBlock(ifp);
+        if (!p)
+            continue;
+
+        p = getWordAfter("verb=", p);
+        if (!Word[0]) {
             alog(AL_ERROR, "verb= line without a verb?");
+            skipblock();
             continue;
         }
+
         if (strlen(Word) > IDL) {
             alog(AL_ERROR, "Invalid verb ID (too long): %s", Word);
-            do {
-                s1 = extractLine((s2 = s1), block);
-                *(s1 - 1) = 0;
-            } while (*s1 != 0 && block[0] != 0);
-            if (*s1 == 0)
-                break;
-            goto loop;
+            skipblock();
+            continue;
         }
 
         strcpy(verb.id, Word);
+        ++verbs;
 
-        p2 = verb.sort;
-        *(p2++) = -1;
-        *(p2++) = 'C';
-        *(p2++) = 'H';
-        *(p2++) = 'A';
-        *(p2++) = 'E';
-        *(p2++) = -1;
-        *(p2++) = 'C';
-        *(p2++) = 'H';
-        *(p2++) = 'A';
-        *(p2++) = 'E';
+        static char defaultChae[] = {(char)-1, 'C', 'H', 'A', 'E', (char)-1, 'C', 'H', 'A', 'E '};
+        memcpy((char *)(&verb.sort[0]), defaultChae, 10);
 
         verb.flags = VB_TRAVEL;
         if (*p == 0 || *p == ';' || *p == '*')
@@ -2215,23 +2174,22 @@ lang_proc()
 
     stuffloop:
         do {
-            s2 = s1;
-            s1 = extractLine(s1, block);
-            *(s1 - 1) = 0;
-        } while (*s1 != 0 && block[0] != 0 && consumeComment(block));
-        if (*s1 == 0 || block[0] == 0) {
+            if (!fgets(block, sizeof(block), ifp))
+                alog(AL_FATAL, "verb:%s: unexpected end of file", verb.id);
+        } while (consumeComment(block));
+        if (block[0] == 0) {
             if (verb.ents == 0 && (verb.flags & VB_TRAVEL))
                 alog(AL_WARN, "Verb has no entries: %s", verb.id);
             goto write;
         }
-
         tidy(block);
         if (block[0] == 0)
             goto stuffloop;
-
-        if ((p = skiplead("syntax=", block)) == block) {
-            vbprob("no syntax= line", s2);
-            goto stuffloop;
+        p = block;
+        if (!canSkipLead("syntax=", &p)) {
+            vbprob("no syntax= line", block);
+            skipblock();
+            continue;
         }
 
         /* Syntax line loop */
@@ -2239,31 +2197,32 @@ lang_proc()
         setslots(WNONE);
         verb.ents++;
         p = skiplead("verb", p);
-        p2 = getword(p);
-        p2 = skipspc(p2);
+        char *qualifier = getword(p);
+        qualifier = skipspc(qualifier);
 
         /* If syntax line is 'syntax=verb any' or 'syntax=none' */
-        if (*p2 == 0 && strcmp("any", Word) == 0) {
+        if (*qualifier == 0 && strcmp("any", Word) == 0) {
             setslots(WANY);
             goto endsynt;
         }
-        if (*p2 == 0 && strcmp("none", Word) == 0) {
+        if (*qualifier == 0 && strcmp("none", Word) == 0) {
             setslots(WNONE);
             goto endsynt;
         }
 
     sp2: /* Syntax line processing */
         p = skipspc(p);
-        if (*p == ';' || *p == '|' || *p == '*')
+        if (consumeComment(p) || *p == '|')
             goto endsynt;
-        Word[0] = 0;
+
         p = getword(p);
         if (Word[0] == 0)
             goto endsynt;
+
         if ((n = iswtype(Word)) == -3) {
             char tmp[128];
             snprintf(tmp, sizeof(tmp), "Invalid phrase on syntax line: %s", Word);
-            vbprob(tmp, s2);
+            vbprob(tmp, block);
             goto commands;
         }
         if (Word[0] == 0) {
@@ -2274,12 +2233,12 @@ lang_proc()
         /* First of all, eliminate illegal combinations */
         if (n == WNONE || n == WANY) { /* you cannot say none=fred any=fred etc */
             char tmp[128];
-            snprintf(tmp, "Tried to define %s on syntax line", syntax[n]);
-            vbprob(tmp, s2);
+            snprintf(tmp, sizeof(tmp), "Tried to define %s on syntax line", syntax[n]);
+            vbprob(tmp, block);
             goto endsynt;
         }
         if (n == WPLAYER && strcmp(Word, "me") != 0 && strcmp(Word, "myself") != 0) {
-            vbprob("Tried to specify player other than self", s2);
+            vbprob("Tried to specify player other than self", block);
             goto endsynt;
         }
 
@@ -2314,12 +2273,12 @@ lang_proc()
         if (n == WNUMBER && (s > 100000 || -s > 100000)) {
             char tmp[64];
             snprintf(tmp, sizeof(tmp), "Invalid number: %d", s);
-            vbprob(tmp, s2);
+            vbprob(tmp, block);
         }
         if (s == -1 && n != WNUMBER) {
             char tmp[128];
             snprintf(tmp, sizeof(tmp), "%s=: Invalid setting: %s", syntax[n + 1], Word);
-            vbprob(tmp, s2);
+            vbprob(tmp, block);
         }
         if (s == -3 && n == WNOUN)
             s = -1;
@@ -2330,17 +2289,17 @@ lang_proc()
         switch (n) {
         case WADJ:
             if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
-                vbprob("Invalid NOUN NOUN ADJ combination", s2);
+                vbprob("Invalid NOUN NOUN ADJ combination", block);
                 n = -5;
                 break;
             }
             if (vbslot.wtype[1] != WNONE && vbslot.wtype[3] != WNONE) {
-                vbprob("Invalid NOUN ADJ NOUN ADJ combination", s2);
+                vbprob("Invalid NOUN ADJ NOUN ADJ combination", block);
                 n = -5;
                 break;
             }
             if (vbslot.wtype[0] != WNONE && vbslot.wtype[3] != WNONE) {
-                vbprob("More than two adjectives on a line", s2);
+                vbprob("More than two adjectives on a line", block);
                 n = -5;
                 break;
             }
@@ -2351,7 +2310,7 @@ lang_proc()
             break;
         case WNOUN:
             if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
-                vbprob("Invalid noun arrangement", s2);
+                vbprob("Invalid noun arrangement", block);
                 n = -5;
                 break;
             }
@@ -2360,7 +2319,7 @@ lang_proc()
             break;
         case WPREP:
             if (vbslot.wtype[2] != WNONE) {
-                vbprob("Invalid PREP arrangement", s2);
+                vbprob("Invalid PREP arrangement", block);
                 n = -5;
                 break;
             }
@@ -2375,8 +2334,8 @@ lang_proc()
         case WNUMBER:
             if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
                 char tmp[128];
-                snprintf(block, "No free noun slot for %s entry", syntax[n + 1]);
-                vbprob(tmp, s2);
+                snprintf(block, sizeof(block), "No free noun slot for %s entry", syntax[n + 1]);
+                vbprob(tmp, block);
                 n = -5;
                 break;
             }
@@ -2400,21 +2359,19 @@ lang_proc()
         proc = 0;
 
         do {
-            s2 = s1;
-            s1 = extractLine(s1, block);
-            *(s1 - 1) = 0;
-        } while (*s1 != 0 && block[0] != 0 && consumeComment(block));
-        if (block[0] == 0 || *s1 == 0) {
+            if (!fgets(block, sizeof(block), ifp))
+                alog(AL_FATAL, "verb:%s: unexpected end of file", verb.id);
+        } while (consumeComment(block));
+        if (!*p) {
             lastc = 1;
             goto writeslot;
         }
         tidy(block);
-        if ((p = skiplead("syntax=", block)) != block) {
+        p = skipspc(block);
+        if (canSkipLead("syntax=", &p)) {
             lastc = 0;
             goto writeslot;
         }
-        if (*p == 0)
-            goto commands;
 
         vbslot.ents++;
         r = -1;
@@ -2452,8 +2409,8 @@ lang_proc()
                     goto writecna;
                 }
                 char tmp[128];
-                snprintf(tmp, "Invalid condition, '%s'", Word);
-                vbprob(tmp, s2);
+                snprintf(tmp, sizeof(tmp), "Invalid condition, '%s'", Word);
+                vbprob(tmp, block);
                 proc = 0;
                 goto commands;
             }
@@ -2467,7 +2424,7 @@ lang_proc()
         }
         if (*p == 0) {
             if ((vt.action = isact(conds[vt.condition])) == -1) {
-                vbprob("Missing action", s2);
+                vbprob("Missing action", block);
                 goto commands;
             }
             vt.action = 0 - (vt.action + 1);
@@ -2483,7 +2440,7 @@ lang_proc()
                 goto writecna;
             char tmp[128];
             snprintf(tmp, sizeof(tmp), "Invalid action, '%s'", Word);
-            vbprob(tmp, s2);
+            vbprob(tmp, block);
             goto commands;
         }
     doaction:
@@ -2513,9 +2470,7 @@ lang_proc()
         fwrite(verb.id, sizeof(verb), 1, ofp1);
         proc = 0;
         *(vbtab + (verbs - 1)) = verb;
-        if ((long)(vbtab + (verbs - 1)) > (long)s1)
-            alog(AL_FATAL, "table overtaking s1");
-    } while (*s1 != 0);
+    }
 }
 
 /* Routines to process/handle Synonyms */
@@ -2523,50 +2478,45 @@ lang_proc()
 void
 syn_proc()
 {
-    char *    s, *t;
-    short int no;
-    short int x;
-
-    syns = 0;
     if (!nextc(false))
         return;
+
     fopenw(synsfn);
     fopenw(synsifn);
 
-    blkget(&datal, &data, 0L);
-    s = data;
+    while (!feof(ifp)) {
+        checkErrorCount();
 
-    do {
-        do
-            s = extractLine(s, block);
-        while (consumeComment(block));
-
-        tidy(block);
-        if (block[0] == 0)
+        char *p = getTidyBlock(ifp);
+        if (!p)
             continue;
-        t = getword(block);
-        t = skipspc(t);
 
-        if ((no = isnoun(Word)) < 0) {
-            if ((x = is_verb(Word)) == -1) {
+        /// TODO: Read syns file.
+
+        p = getword(p);
+        if (!*p) {
+            alog(AL_ERROR, "Invalid synonym line: %s", block);
+            continue;
+        }
+        uint16_t id = isnoun(Word);
+        if (id < 0) {
+            id = is_verb(Word);
+            if (id == -1) {
                 alog(AL_ERROR, "Invalid verb/noun: %s", Word);
                 continue;
             }
-            no = -(2 + x);
+            id = -(2 + id);
         }
 
-        while (*t != 0) {
-            t = getword(t);
+        for (;;) {
+            p = getword(p);
             if (Word[0] == 0)
                 break;
-            fwrite((char *)&no, 1, sizeof(short int), ofp2);
+            fwrite(&id, 1, sizeof(id), ofp2);
             fprintf(ofp1, "%s%c", Word, 0);
             syns++;
         }
-    } while (*s != 0);
-    FreeMem(data, datal);
-    data = NULL;
-    datal = NULL;
+    }
 }
 
 /* Mobiles.Txt Processor */
@@ -2582,102 +2532,102 @@ mob_proc1()
     if (!nextc(false))
         return;
 
-    blkget(&moblen, &mobdat, 0L);
-    const char *p = (char *)mobdat;
-    repspc(mobdat);
+    moblen = filesize();
+    mobdat = AllocMem(moblen, MEMF_PUBLIC + sizeof(*mobdat) * 64);
 
-    do {
+    while (!feof(ifp)) {
         checkErrorCount();
 
-        while (*p != 0 && *p != '!')
-            p = skipline(p);
-        if (*p == 0)
-            break;
-        p = extractLine(p, block);
-        const char *cur = getword(block + 1);
+        char *p = getTidyBlock(ifp);
+        if (!p || *p != '!')
+            continue;
+
+        // skip the '!'
+        p = getword(p + 1);
         strcpy(mob.id, Word);
-        do {
-            cur = skipspc(cur);
-            if (isLineBreak(*cur))
+
+        for (;;) {
+            p = skipspc(p);
+            if (!*p)
                 break;
-            if (canSkipLead("dead=", &cur)) {
-                cur = getword(cur);
+
+            if (canSkipLead("dead=", &p)) {
+                p = getword(p);
                 mob.dead = atoi(Word);
                 continue;
             }
-            if (canSkipLead("dmove=", &cur)) {
-                cur = getword(cur);
+            if (canSkipLead("dmove=", &p)) {
+                p = getword(p);
                 mob.dmove = isroom(Word);
                 if (mob.dmove == -1) {
                     alog(AL_ERROR, "Mobile: %s: invalid dmove: %s", mob.id, Word);
                 }
                 continue;
             }
-        } while (!isLineBreak(*cur) && Word[0] != 0);
+        }
 
-        p = extractLine(p, block);
-        tidy(block);
-        cur = skipspc(block);
-        mob.dmove = -1;
+        p = getTidyBlock(ifp);
+        if (!p)
+            alog(AL_FATAL, "mob: !%s: unexpected end of file", mob.id);
 
-        if (!canSkipLead("speed=", &cur)) {
+        if (!canSkipLead("speed=", &p)) {
             mobmis("speed=");
             continue;
         }
-        cur = getword(cur);
+        p = getword(p);
         mob.speed = atoi(Word);
 
-        if (!canSkipLead("travel=", &cur)) {
+        if (!canSkipLead("travel=", &p)) {
             mobmis("travel=");
             continue;
         }
-        cur = getword(cur);
+        p = getword(p);
         mob.travel = atoi(Word);
 
-        if (!canSkipLead("fight=", &cur)) {
+        if (!canSkipLead("fight=", &p)) {
             mobmis("speed=");
             continue;
         }
-        cur = getword(cur);
+        p = getword(p);
         mob.fight = atoi(Word);
 
-        if (!canSkipLead("act=", &cur)) {
+        if (!canSkipLead("act=", &p)) {
             mobmis("act=");
             continue;
         }
-        cur = getword(cur);
+        p = getword(p);
         mob.act = atoi(Word);
 
-        if (!canSkipLead("wait=", &cur)) {
+        if (!canSkipLead("wait=", &p)) {
             mobmis("wait=");
             continue;
         }
-        cur = getword(cur);
+        p = getword(p);
         mob.wait = atoi(Word);
 
         if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
             alog(AL_ERROR, "Mobile: %s: Travel+Fight+Act+Wait values not equal to 100%.", mob.id);
         }
 
-        if (!canSkipLead("fear=", &cur)) {
+        if (!canSkipLead("fear=", &p)) {
             mobmis("fear=");
             continue;
         }
-        cur = getword(cur);
+        p = getword(p);
         mob.fear = atoi(Word);
 
-        if (!canSkipLead("attack=", &cur)) {
+        if (!canSkipLead("attack=", &p)) {
             mobmis("attack=");
             continue;
         }
-        cur = getword(cur);
+        p = getword(p);
         mob.attack = atoi(Word);
 
-        if (!canSkipLead("hitpower=", &cur)) {
+        if (!canSkipLead("hitpower=", &p)) {
             mobmis("hitpower=");
             continue;
         }
-        cur = getword(cur);
+        p = getword(p);
         mob.hitpower = atoi(Word);
 
         if ((n = getmobmsg("arrive=", &p)) == -1)
@@ -2699,9 +2649,9 @@ mob_proc1()
             continue;
         mob.death = n;
 
-        fwrite(mob.id, sizeof(mob), 1, ofp1);
+        fwrite(&mob, sizeof(mob), 1, ofp1);
         mobchars++;
-    } while (*p != 0);
+    }
 
     if (mobchars != 0) {
         if ((mobp = (struct _MOB_ENT *)AllocMem(sizeof(mob) * mobchars, MEMF_PUBLIC)) == NULL) {
@@ -2819,7 +2769,7 @@ compileSection(const char *name, bool isText, void (*procFn)())
     alog(AL_NOTE, "Compiling: %s", name);
     if (isText) {
         char filename[MAX_PATH_LENGTH];
-        snprintf(filename, "%s.txt", name);
+        snprintf(filename, sizeof(filename), "%s.txt", name);
         ifp = OpenGameFile(filename, "r");
     }
     procFn();
@@ -2940,9 +2890,9 @@ amulcom_main(int argc, const char **argv)
     fopenw(advfn);
     time_t startTime = time(NULL);
     fprintf(ofp1, "%s\n", gameName);
-    fprintf(ofp1, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", 
-			rooms, ranks, verbs, syns, nouns, adjs, ttents, startTime, mins, invis, invis2, minsgo, mobs, rscale,
-            tscale, mobchars);
+    fprintf(ofp1, "%lld ", startTime);
+    fprintf(ofp1, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", rooms, ranks, verbs, syns, nouns,
+            adjs, ttents, mins, invis, invis2, minsgo, mobs, rscale, tscale, mobchars);
 
     // Copy the text from title.txt into the profile file
     REQUIRE(ifp == NULL);
