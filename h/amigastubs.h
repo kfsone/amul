@@ -14,6 +14,7 @@
 #    if !defined(_MSC_VER)
 #        include <strings.h>
 #        define stricmp strcasecmp
+#        define strnicmp strncasecmp
 #    endif
 
 typedef uint16_t UWORD;
