@@ -31,22 +31,43 @@
 #define COMPILER 1
 
 #include "amulcom.h"
+#include "amulcom.strings.h"
 
 #include "h/amul.alog.h" /* Logging */
 #include "h/amul.cons.h" /* Predefined Constants etc     */
 #include "h/amul.defs.h" /* Defines in one nice file     */
 #include "h/amul.file.h"
+#include "h/amul.hash.h"
 #include "h/amul.incs.h" /* Include files tidily stored. */
 #include "h/amul.lnks.h" /* (external) Linkage symbols   */
+#include "h/amul.strs.h"
 #include "h/amul.test.h"
 #include "h/amul.vars.h" /* all INTERNAL variables       */
 #include "h/amul.xtra.h"
 #include "h/amulcom.h"
 
+#include <malloc.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <time.h>
 
-typedef int error_t;
+#if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
+#    define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Variables
+
+static char compilerVersion[128];
+
+FILE *ifp;
+FILE *ofp1;
+FILE *ofp2;
+FILE *ofp3;
+FILE *ofp4;
+FILE *ofp5;
+FILE *afp;
+FILE *stringFP;
 
 /* Compiler specific variables... */
 
@@ -67,14 +88,13 @@ char *data;          /* Pointer to data buffer	*/
 char *data2;         /* Secondary buffer area	*/
 char *syntab;        /* Synonym table, re-read	*/
 char  idt[IDL + 1];  /* Temporary ID store		*/
-int   mins;          /* Game duration before reset */
 long  datal, datal2; /* Length of data */
 long  obmem;         /* Size of Objects.TXT		*/
 long  vbmem;         /* Size of Lang.Txt		*/
-int   invis, invis2; /* Invisibility Stuff		*/
 long  wizstr;        /* Wizards strength		*/
 char *mobdat, *px;   /* Mobile data			*/
 long  moblen;        /* Length			*/
+char  dmove[IDL + 1];
 
 struct Task *mytask, *FindTask();
 
@@ -83,8 +103,12 @@ struct UMSG {
     long fpos;
 } umsg;
 
-char  fnm[150];
-FILE *ofp5;
+char gameName[64];
+
+char block[1024];  // scratch pad
+
+enum { MAX_PATH_LENGTH = 256 };
+char gameDir[MAX_PATH_LENGTH];  // directory the game is in
 
 struct _OBJ_STRUCT2 *obtab2, *objtab2, obj2, *osrch, *osrch2;
 
@@ -92,37 +116,83 @@ struct _OBJ_STRUCT2 *obtab2, *objtab2, obj2, *osrch, *osrch2;
 long ohd; /* Output handle for direct dos	*/
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
+// counters
+short nouns, mobchars, mobs, ttents, rooms, verbs, adjs, ranks, syns;
+
+// game duration, rank to see invisible, rank to see super-invis
+int mins, invis, invis2;
+// minimum rank to super-go
+int minsgo;
+// rank and time scale of points
+int rscale, tscale;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Local constants
+
+static const char *odids_file = "odids.tmp";
+static const char *umsg_tmp_file = "umsg.tmp";
+static const char *obj_loc_file = "objloc.tmp";
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Helper macros / inline functions
+
+#define gamedir_joiner(filename) path_joiner(filepath, gameDir, filename)
+#define safe_gamedir_joiner(filename)                                                              \
+    if (gamedir_joiner(filename) != 0)                                                             \
+        alog(AL_FATAL, "Unable to form filename for %s / %s", gameDir, filename);
+
+#define check_write_str(op, buffer, length, fp)                                                    \
+    if (fwrite(buffer, 1, (length), fp) != (length))                                               \
+    fatalOp("write", op)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 void
-close_ofps()
+CloseFile(FILE **fp)
 {
-    if (ofp1 != NULL)
-        fclose(ofp1);
-    if (ofp2 != NULL)
-        fclose(ofp2);
-    if (ofp3 != NULL)
-        fclose(ofp3);
-    if (ofp4 != NULL)
-        fclose(ofp4);
-    if (ofp5 != NULL)
-        fclose(ofp5);
-    if (afp != NULL)
-        fclose(afp);
-    ofp1 = ofp2 = ofp3 = ofp4 = ofp5 = afp = NULL;
+    if (fp && *fp) {
+        fclose(*fp);
+        *fp = NULL;
+    }
+}
+
+void
+closeOutFiles()
+{
+    CloseFile(&ofp1);
+    CloseFile(&ofp2);
+    CloseFile(&ofp3);
+    CloseFile(&ofp4);
+    CloseFile(&ofp5);
+    CloseFile(&afp);
+}
+
+void
+unlinkGameFile(const char *gamefile)
+{
+    char filepath[MAX_PATH_LENGTH];
+    if (gamedir_joiner(gamefile) == 0) {
+        unlink(filepath);
+    }
 }
 
 void
 quit()
 {
-    close_ofps();
-    if (exiting) {
-        sprintf(block, "%s%s", dir, advfn);
-        unlink(block);
+    closeOutFiles();
+    CloseFile(&ifp);
+    CloseStrings();
+
+    // If we didn't complete compilation, delete the profile file.
+    if (!exiting) {
+        unlinkGameFile(advfn);
     }
-    unlink("ram:ODIDs");
-    unlink("ram:umsg.tmp");
-    unlink("ram:objh.tmp");
+
+    unlinkGameFile(odids_file);
+    unlinkGameFile(umsg_tmp_file);
+    unlinkGameFile(obj_loc_file);
+
     if (mobdat)
         FreeMem(mobdat, moblen);
     mobdat = NULL;
@@ -144,9 +214,7 @@ quit()
     if (vbtab != 0)
         FreeMem(vbtab, vbmem);
     vbtab = NULL;
-    if (ifp != NULL)
-        fclose(ifp);
-    ifp = NULL;
+
     exit(0);
 }
 
@@ -166,7 +234,7 @@ CXBRK()
 }
 
 bool
-com(const char *text)
+consumeComment(const char *text)
 {
     if (*text == '*')
         alog(AL_INFO, "%s", text);
@@ -212,7 +280,7 @@ nextc(bool required)
         while ((c = fgetc(ifp)) != EOF && isspace(c))
             ;
         if (c == ';' || c == '*')
-            fgets(block, 1024, ifp);
+            fgets(block, sizeof(block), ifp);
         if (c == '*')
             alog(AL_NOTE, "%s", block);
     } while (c != EOF && (c == '*' || c == ';' || isspace(c)));
@@ -231,72 +299,53 @@ fatalOp(const char *verb, const char *noun)
     alog(AL_ERROR, "Can't %s %s", verb, noun);
 }
 
+FILE *
+OpenGameFile(const char *filename, const char *mode)
+{
+    char filepath[MAX_PATH_LENGTH];
+    safe_gamedir_joiner(filename);
+    FILE *fp = fopen(filepath, mode);
+    if (!fp)
+        fatalOp("open", filepath);
+    return fp;
+}
+
 /* Open file for reading */
 void
-fopenw(const char *s)
+fopenw(const char *filename)
 {
-    if (*s == '-')
-        strcpy(fnm, s + 1);
-    else
-        sprintf(fnm, "%s%s", dir, s);
-    FILE *fp = fopen(fnm, "wb");
-    if (!fp)
-        fatalOp("write", fnm);
+    FILE **fpp = NULL;
     if (!ofp1)
-        ofp1 = fp;
+        fpp = &ofp1;
     else if (!ofp2)
-        ofp2 = fp;
+        fpp = &ofp2;
     else if (!ofp3)
-        ofp3 = fp;
+        fpp = &ofp3;
     else if (!ofp4)
-        ofp4 = fp;
+        fpp = &ofp4;
     else if (!ofp5)
-        ofp5 = fp;
+        fpp = &ofp5;
     else
         fatalOp("select", "file descriptor");
+    *fpp = OpenGameFile(filename, "wb");
 }
 
 /* Open file for appending */
 void
-fopena(const char *s)
+fopena(const char *filename)
 {
     if (afp != NULL)
         fclose(afp);
-    if (*s == '-')
-        strcpy(fnm, s + 1);
-    else
-        sprintf(fnm, "%s%s", dir, s);
-    if ((afp = fopen(fnm, "rb+")) == NULL)
-        fatalOp("create", fnm);
+    afp = OpenGameFile(filename, "rb+");
 }
 
 /* Open file for reading */
 void
-fopenr(const char *s)
+fopenr(const char *filename)
 {
     if (ifp != NULL)
         fclose(ifp);
-    if (*s != '-')
-        sprintf(fnm, "%s%s", dir, s);
-    else
-        strcpy(fnm, s + 1);
-    if ((ifp = fopen(fnm, "rb")) == NULL)
-        fatalOp("open", fnm);
-}
-
-/* Open file for reading */
-FILE *
-rfopen(const char *s)
-{
-    FILE *fp;
-
-    if (*s != '-')
-        sprintf(fnm, "%s%s", dir, s);
-    else
-        strcpy(fnm, s + 1);
-    if ((fp = fopen(fnm, "rb")) == NULL)
-        fatalOp("open", fnm);
-    return fp;
+    ifp = OpenGameFile(filename, "rb");
 }
 
 /* Update room entries after TT */
@@ -305,15 +354,6 @@ ttroomupdate()
 {
     fseek(afp, 0, 0L);
     fwrite(rmtab->id, sizeof(room), rooms, afp);
-}
-
-void
-opentxt(const char *s)
-{
-    sprintf(block, "%s%s.TXT", dir, s);
-    if ((ifp = fopen(block, "r")) == NULL) {
-        alog(AL_FATAL, "Missing file: %s", block);
-    }
 }
 
 void
@@ -639,59 +679,15 @@ statinv(const char *s)
     alog(AL_FATAL, "Object #%d: %s: invalid %s state line: %s", nouns + 1, obj2.id, s, block);
 }
 
-void
-is_desid()
+int
+getObjectDescriptionID(const char *text)
 {
-    int   i;
-    FILE *fp;
-    if (stricmp(Word, "none") == 0) {
-        state.descrip = -2;
-        return;
-    }
-    if ((fp = fopen("ram:ODIDs", "rb+")) == NULL)
-        fatalOp("open", "ram:ODIDs");
-    for (i = 0; i < obdes; i++) {
-        fread(objdes.id, sizeof(objdes), 1, fp);
-        state.descrip = objdes.descrip;
-        if (stricmp(Word, objdes.id) == 0) {
-            fclose(fp);
-            return;
-        }
-    }
-    fclose(fp);
-    state.descrip = -1;
-}
+    if (stricmp(text, "none") == 0)
+        return -2;
 
-void
-text_id(const char *p, char c)
-{
-    strcpy(block, p);
-    char *end = block;
-    while (*end != c && *end != 0)
-        end++;
-    if (*end == 0)
-        *(end + 1) = 0;
-    *(end++) = '\n';
-    if (*(end - 2) == '{') {
-        p = end - 1;
-    } else {
-        p = end;
-    }
-
-    char filename[256];
-    snprintf(filename, "%s%s", dir, obdsfn); /* Open output file */
-    FILE *fp = fopen(filename, "rb+");
-    if ((fp = fopen(filename, "rb+")) == NULL)
-        fatalOp("open", filename);
-    fseek(fp, 0, 2L);
-    state.descrip = ftell(fp); /* Get pos */
-    if (fwrite(block, p - block, 1, fp) != 1) {
-        fclose(fp);
-        fatalOp("write", filename);
-    }
-    fputc(0, fp);
-    strcpy(block, p);
-    fclose(fp);
+    stringid_t id = -1;
+    LookupTextString(text, STRING_OBJECT_DESC, &id);
+    return id;
 }
 
 int
@@ -864,13 +860,12 @@ antype(const char *s)
 int
 isnounh(const char *s)
 {
-    int   i, l, j;
-    FILE *fp;
-    long  orm;
+    int  i, l, j;
+    long orm;
 
     if (stricmp(s, "none") == 0)
         return -2;
-    fp = (FILE *)rfopen(objrmsfn);
+    FILE *fp = OpenGameFile(objrmsfn, "rb");
     l = -1;
     objtab2 = obtab2;
 
@@ -929,7 +924,7 @@ spell(const char *s)
 }
 
 int
-stat(const char *s)
+is_stat(const char *s)
 {
     if (strcmp(s, "sctg") == 0)
         return STSCTG;
@@ -962,80 +957,29 @@ bvmode(char c)
     return -1;
 }
 
-int
-msgline(const char *s)
+stringid_t
+getTextString(const char *s, bool prefixed)
 {
-    FILE *fp = afp;
-    afp = NULL;
-    fopena(umsgfn);
-    fseek(afp, 0, 2L);
-    long pos = ftell(afp);
-
-    fwrite(s, strlen(s) - 1, 1, afp);
-    char c;
-    if ((c = *(s + strlen(s) - 1)) != '{') {
-        fputc(c, afp);
-        fputc('\n', afp);
+    if (prefixed) {
+        s = skipspc(s);
+        s = skiplead("msgid=", s);
+        s = skiplead("msgtext=", s);
     }
-    fputc(0, afp);
-    fopena(umsgifn);
-    fseek(afp, 0, 2L);
-    fwrite(&pos, sizeof(long), 1, afp);
-    fclose(afp);
-    afp = fp;
-    return NSMSGS + (umsgs++);
-}
 
-/* Check FP for umsg id! */
-int
-isumsg(const char *s, FILE *fp)
-{
-    int i;
-
-    if (*s == '$') {
-        i = atoi(s + 1);
-        if (i < 1 || i > NSMSGS) {
-            alog(AL_ERROR, "Invalid system message ID: %s", s);
-        }
-        return i - 1;
+    stringid_t id = -1;
+    if (*s == '\"' || *s == '\'') {
+        const char *start = s + 1;
+        const char *end = strstop(start, *s);
+        error_t     err = AddTextString(s + 1, end, true, &id);
+        if (err != 0)
+            alog(AL_FATAL, "Unable to add string literal: %d", err);
+    } else {
+        error_t err = LookupTextString(s, STRING_MESSAGE, &id);
+        if (err != 0 && err != ENOENT)
+            alog(AL_FATAL, "Error looking up string (%d): %s", err, s);
     }
-    if (umsgs == 0)
-        return -1;
-    fseek(fp, 0, 0L); /* Rewind file */
-    for (i = 0; i < umsgs; i++) {
-        fread(umsg.id, sizeof(umsg), 1, fp);
-        if (stricmp(umsg.id, s) == 0)
-            return i + NSMSGS;
-    }
-    return -1;
-}
 
-int
-chkumsg(const char *s)
-{
-    int   r;
-    FILE *fp;
-
-    if (*s != '$' && umsgs == 0)
-        return -1;
-
-    if ((fp = fopen("ram:umsg.tmp", "rb+")) == NULL) {
-        alog(AL_FATAL, "Unable to access umsg.tmp file");
-    }
-    r = isumsg(s, fp);
-    fclose(fp);
-    return r;
-}
-
-int
-ttumsgchk(const char *s)
-{
-    s = skiplead("msgid=", s);
-    s = skiplead("msgtext=", s);
-    s = skipspc(s);
-    if (*s == '\"' || *s == '\'')
-        return msgline(s + 1);
-    return chkumsg(s);
+    return id;
 }
 
 int
@@ -1146,7 +1090,8 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
     } else {
         end = strstop(p + 1, *p);
     }
-    char token[(end + 1) - p];
+    size_t len = end - p;
+    char * token = alloca(len + 1);
     strncpy(token, p, end - p);
     token[end - p] = 0;
 
@@ -1165,7 +1110,7 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
     switch (t) {
     case -6: x = onoff(token); break;
     case -5: x = bvmode(toupper(*token)); break;
-    case -4: x = stat(token); break;
+    case -4: x = is_stat(token); break;
     case -3: x = spell(token); break;
     case -2: x = rdmode(toupper(*token)); break;
     case -1: x = antype(token); break;
@@ -1174,7 +1119,7 @@ chkp(const char *p, char t, int c, int z, FILE *fp)
     case PADJ: break;
     case -70:
     case PNOUN: x = isnounh(token); break;
-    case PUMSG: x = ttumsgchk(token); break;
+    case PUMSG: x = getTextString(token, true); break;
     case PNUM: x = chknum(token); break;
     case PRFLAG: x = isrflag(token); break;
     case POFLAG: x = isoflag1(token); break;
@@ -1291,7 +1236,7 @@ getmobmsg(const char *s, const char **p)
     int n;
 
 loop:
-    while (isCommentChar(*p)) {
+    while (isCommentChar(**p)) {
         *p = skipline(*p);
     }
     if (**p == 0 || **p == '\r' || **p == '\n') {
@@ -1306,11 +1251,11 @@ loop:
         mobmis(s);
         return -1;
     }
-    if (toupper(*p) == 'N') {
+    if (toupper(**p) == 'N') {
         *p = skipline(*p);
         return -2;
     }
-    n = ttumsgchk(*p);
+    n = getTextString(*p, true);
     *p = skipline(*p);
     if (n == -1) {
         alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
@@ -1323,9 +1268,9 @@ loop:
 void
 _getAdventureName(const char *prefix, const char *value)
 {
-    strncpy(adname, value, sizeof(adname));
-    if (strlen(value) > sizeof(adname) - 1)
-        alog(AL_WARN, "Game name too long, truncated to: %s", adname);
+    strncpy(gameName, value, sizeof(gameName));
+    if (strlen(value) > sizeof(gameName) - 1)
+        alog(AL_WARN, "Game name too long, truncated to: %s", gameName);
 }
 
 void
@@ -1364,6 +1309,8 @@ title_proc()
 
 */
 
+int currentSysMessage = 0;
+
 void
 smsg_proc()
 {
@@ -1398,19 +1345,19 @@ smsg_proc()
         if (Word[0] != '$') {
             alog(AL_ERROR, "Invalid system message id: %s (must begin with '$'", Word);
             valid = false;
-        } else if (atoi(Word + 1) != smsgs + 1) {
+        } else if (atoi(Word + 1) != currentSysMessage + 1) {
             alog(AL_ERROR, "Message %s out of sequence", Word);
             valid = false;
-        } else if (smsgs >= NSMSGS) {
+        } else if (currentSysMessage >= NSMSGS) {
             alog(AL_FATAL, "Unexpected system message (last should be %d)", NSMSGS);
         }
 
-        long pos = ftell(ofp2);
+        size_t pos = ftell(ofp2);
         if (valid)
-            fwrite(&pos, 4, 1, ofp1);
+            fwrite(&pos, sizeof(pos), 1, ofp1);
 
         do {
-            while (com(s)) {
+            while (consumeComment(s)) {
                 s = skipline(s);
             }
             if (isLineEnding(*s))
@@ -1429,7 +1376,7 @@ smsg_proc()
         } while (*s != 0);
 
         fputc(0, ofp2);
-        ++smsgs;
+        ++currentSysMessage;
     } while (*s != 0);
     FreeMem(data, datal);
     data = NULL;
@@ -1466,9 +1413,12 @@ room_proc()
         /* Do the flags */
         room.flags = 0;
         room.tabptr = -1;
+
+        char temp[512];  /// TODO: Eliminate
+
         temp[0] = 0;
         if (c != '\n') {
-            fgets(block, 1024, ifp);
+            fgets(block, sizeof(block), ifp);
             p = block;
             n = -1;
             do {
@@ -1547,10 +1497,10 @@ rank_proc()
     fopenw(ranksfn);
 
     do {
-        fgets(block, 1024, ifp);
+        fgets(block, sizeof(block), ifp);
         if (feof(ifp))
             break;
-        if (com(block) || isEol(block[0]))
+        if (consumeComment(block) || isEol(block[0]))
             continue;
         tidy(block);
         if (block[0] == 0)
@@ -1692,20 +1642,13 @@ rank_proc()
 void
 obds_proc()
 {
-    char lastc;
-
-    obdes = 0;
-    fopenw(obdsfn);
-    close_ofps(); /* Create file */
     if (!nextc(false)) {
         alog(AL_INFO, "No long object descriptions");
         return;
     }
-    fopenw("ram:ODIDs");
-    fopenw(obdsfn);
-    char c;
+
     do {
-        fgets(block, 1024, ifp);
+        fgets(block, sizeof(block), ifp);
         tidy(block);
         striplead("desc=", block);
         getword(block);
@@ -1714,20 +1657,13 @@ obds_proc()
             skipblock();
             continue;
         }
-        strcpy(objdes.id, Word);
-        fseek(ofp2, 0, 2);
-        objdes.descrip = ftell(ofp2);
-        fwrite(objdes.id, sizeof(objdes), 1, ofp1);
-        lastc = '\n';
-        while ((c = fgetc(ifp)) != EOF && !(c == '\n' && lastc == '\n')) {
-            if ((lastc == EOF || lastc == '\n') && c == 9)
-                continue;
-            fputc((lastc = c), ofp2);
-        };
-        fputc(0, ofp2);
-        obdes++;
+
+        error_t err = TextStringFromFile(Word, ifp, STRING_OBJECT_DESC, NULL);
+        if (err)
+            alog(AL_ERROR, "Couldn't write room description %s", Word);
+
         nextc(false);
-    } while (c != EOF);
+    } while (!feof(ifp));
 }
 
 /*
@@ -1736,9 +1672,9 @@ sort_objs()
 {	int i,j,k,nts; long *rmtab,*rmptr;
 
     if(ifp!=NULL) fclose(ifp); ifp=NULL;
-    close_ofps(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
-    close_ofps(); fopenr(objrmsfn); blkget(&datal2,&data2,NULL); fclose(ifp); ifp=NULL;
-    close_ofps(); fopenw(objsfn);	fopenw(statfn); fopenw(objrmsfn); fopenw(ntabfn);
+    closeOutFiles(); fopenr(statfn);	blkget(&datal,&data,NULL); fclose(ifp); ifp=NULL;
+    closeOutFiles(); fopenr(objrmsfn); blkget(&datal2,&data2,NULL); fclose(ifp); ifp=NULL;
+    closeOutFiles(); fopenw(objsfn);	fopenw(statfn); fopenw(objrmsfn); fopenw(ntabfn);
     ifp=NULL;
 
     printf("Sorting Objects...:\r"); objtab2=obtab2; nts=0; k=0;
@@ -1833,15 +1769,15 @@ state_proc()
     if (*p == 0)
         statinv("incomplete");
     if (*p == '\"' || *p == '\'') {
-        text_id(p + 1, *p);
+        state.descrip = getTextString(p, false);
         p = block;
     } else {
         p = getword(p);
-        is_desid(); /* Is it valid? */
+        state.descrip = getObjectDescriptionID(Word);
     }
     if (state.descrip == -1) {
         char tmp[128];
-        snprintf(tmp, "desc= ID (%s) on", Word);
+        snprintf(tmp, "desc= ID (%s) on", &Word[0]);
         statinv(tmp);
     }
     while (*p != 0) {
@@ -1865,7 +1801,7 @@ objs_proc()
 
     /* Clear files */
     fopenw(adjfn);
-    close_ofps();  // create file
+    closeOutFiles();  // create file
     fopenw(objsfn);
     fopenw(statfn);
     fopenw(objrmsfn);
@@ -1883,7 +1819,7 @@ objs_proc()
 
         do
             p = s = extractLine(s, block);
-        while (*s != 0 && (block[0] == 0 || com(block)));
+        while (*s != 0 && (block[0] == 0 || consumeComment(block)));
         if (*s == 0 || block[0] == 0)
             continue;
         tidy(block);
@@ -1940,7 +1876,7 @@ objs_proc()
             if (Word[0] == '+') {
                 do
                     s = extractLine(s, block);
-                while (*s != 0 && block[0] != 0 && com(block));
+                while (*s != 0 && block[0] != 0 && consumeComment(block));
                 if (*s == 0) {
                     alog(AL_FATAL, "Unexpected end of file in Objects.TXT");
                 }
@@ -1964,7 +1900,7 @@ objs_proc()
         do {
             do
                 s = extractLine(s, block);
-            while (block[0] != 0 && com(block));
+            while (block[0] != 0 && consumeComment(block));
             if (block[0] == 0 || block[0] == '\n')
                 break;
             state_proc();
@@ -1977,7 +1913,7 @@ objs_proc()
         *(obtab2 + (nouns++)) = obj2;
     } while (*s != 0);
     /*
-    close_ofps();
+    closeOutFiles();
     sort_objs();
     */
     fwrite(obtab2, sizeof(obj2), nouns, ofp1);
@@ -2003,14 +1939,16 @@ trav_proc()
     fopena(rooms1fn);
     ntt = t = 0;
 
+	char temp[1024];
+
     do {
     loop1:
         checkErrorCount();
-        fgets(block, 1000, ifp);
+        fgets(block, sizeof(block), ifp);
         if (feof(ifp))
             continue;
         tidy(block);
-        if (block[0] == 0 || com(block))
+        if (block[0] == 0 || consumeComment(block))
             goto loop1;
         p = block;
         getword(block);
@@ -2027,8 +1965,8 @@ trav_proc()
         }
     vbloop:
         do
-            fgets(block, 1000, ifp);
-        while (block[0] != 0 && com(block));
+            fgets(block, sizeof(block), ifp);
+        while (block[0] != 0 && consumeComment(block));
         if (block[0] == 0 || block[0] == '\n') {
             /* Only complain if room is not a death room */
             if ((roomtab->flags & DEATH) != DEATH) {
@@ -2072,7 +2010,7 @@ trav_proc()
             strip = 0;
             r = -1;
             block[0] = 0;
-            fgets(block, 1000, ifp);
+            fgets(block, sizeof(block), ifp);
             if (feof(ifp))
                 break;
             if (block[0] == 0 || block[0] == '\n') {
@@ -2080,7 +2018,7 @@ trav_proc()
                 continue;
             }
             tidy(block);
-            if (block[0] == 0 || com(block))
+            if (block[0] == 0 || consumeComment(block))
                 goto xloop;
             if (striplead("verb=", block) || striplead("verbs=", block)) {
                 strip = 1;
@@ -2227,7 +2165,7 @@ lang_proc()
     verbs = 0;
     nextc(true);
     fopenw(lang1fn);
-    close_ofps();
+    closeOutFiles();
     fopena(lang1fn);
     ofp1 = afp;
     afp = NULL;
@@ -2252,7 +2190,7 @@ lang_proc()
         do {
             s1 = extractLine((s2 = s1), block);
             *(s1 - 1) = 0;
-        } while (com(block) && *s1 != 0);
+        } while (consumeComment(block) && *s1 != 0);
         if (*s1 == 0) {
             verbs--;
             break;
@@ -2321,7 +2259,7 @@ lang_proc()
             s2 = s1;
             s1 = extractLine(s1, block);
             *(s1 - 1) = 0;
-        } while (*s1 != 0 && block[0] != 0 && com(block));
+        } while (*s1 != 0 && block[0] != 0 && consumeComment(block));
         if (*s1 == 0 || block[0] == 0) {
             if (verb.ents == 0 && (verb.flags & VB_TRAVEL))
                 alog(AL_WARN, "Verb has no entries: %s", verb.id);
@@ -2403,7 +2341,7 @@ lang_proc()
             alog(AL_WARN, "Synonyms not supported yet");
             s = WANY;
             break;
-        case WTEXT: s = chkumsg(Word); break;
+        case WTEXT: s = getTextString(Word, false); break;
         case WVERB: s = is_verb(Word); break;
         case WCLASS: s = WANY;
         case WNUMBER:
@@ -2506,7 +2444,7 @@ lang_proc()
             s2 = s1;
             s1 = extractLine(s1, block);
             *(s1 - 1) = 0;
-        } while (*s1 != 0 && block[0] != 0 && com(block));
+        } while (*s1 != 0 && block[0] != 0 && consumeComment(block));
         if (block[0] == 0 || *s1 == 0) {
             lastc = 1;
             goto writeslot;
@@ -2627,8 +2565,8 @@ umsg_proc()
     char *s;
 
     umsgs = 0;
-    fopenw("ram:umsg.tmp");
-    close_ofps();
+    fopenw(obj_loc_file);
+    closeOutFiles();
     fopena(umsgifn);
     ofp1 = afp;
     afp = NULL;
@@ -2637,7 +2575,7 @@ umsg_proc()
     ofp2 = afp;
     afp = NULL;
     fseek(ofp2, 0, 2L);
-    fopena("ram:umsg.tmp");
+    fopena(umsg_tmp_file);
     if (!nextc(false)) {
         /// TODO: Tell the user
         return;
@@ -2650,7 +2588,7 @@ umsg_proc()
 
         do
             s = extractLine(s, block);
-        while (com(block) && *s != 0);
+        while (consumeComment(block) && *s != 0);
 
         if (*s == 0)
             break;
@@ -2680,7 +2618,7 @@ umsg_proc()
         fwrite(umsg.id, sizeof(umsg), 1, afp);
         fwrite((char *)&umsg.fpos, 4, 1, ofp1);
         do {
-            while (*s != 0 && com(s))
+            while (*s != 0 && consumeComment(s))
                 s = skipline(s);
             if (*s == 0 || *s == 13) {
                 *s = 0;
@@ -2732,7 +2670,7 @@ syn_proc()
     do {
         do
             s = extractLine(s, block);
-        while (com(block));
+        while (consumeComment(block));
 
         tidy(block);
         if (block[0] == 0)
@@ -2900,7 +2838,7 @@ mob_proc1()
         if ((mobp = (struct _MOB_ENT *)AllocMem(sizeof(mob) * mobchars, MEMF_PUBLIC)) == NULL) {
             alog(AL_FATAL, "Out of memory");
         }
-        close_ofps();
+        closeOutFiles();
         fopena(mobfn);
         fread((char *)mobp, sizeof(mob) * mobchars, 1, afp);
     }
@@ -2913,37 +2851,49 @@ mob_proc1()
 /*---------------------------------------------------------*/
 
 void
-checkf(char *s)
+checkFileExists(char *filename)
 {
-    sprintf(block, "%s%s", dir, s);
-    if ((ifp = fopen(block, "rb")) == NULL) {
-        alog(AL_FATAL, "Missing file: %s", block);
-    }
-    fclose(ifp);
-    ifp = NULL;
+    struct stat sb;
+
+    char filepath[MAX_PATH_LENGTH];
+    safe_gamedir_joiner(filename);
+
+    int err = stat(filepath, &sb);
+    if (err != 0)
+        alog(AL_FATAL, "Missing file (%d): %s", err, filepath);
 }
 
 void
 argue(int argc, const char **argv)
 {
-    int n;
-    for (n = 2; n <= argc; n++) {
-        if (strcmp("-d", argv[n - 1]) == 0) {
+    struct stat sb;
+
+    for (int n = 2; n <= argc; n++) {
+        const char *arg = argv[n - 1];
+        if (strcmp("-d", arg) == 0) {
             checkDmoves = true;
             continue;
         }
-        if (strcmp("-q", argv[n - 1]) == 0) {
+        if (strcmp("-q", arg) == 0) {
             verbose = true;
             continue;
         }
-        if (strcmp("-r", argv[n - 1]) == 0) {
+        if (strcmp("-r", arg) == 0) {
             reuseRoomData = true;
             continue;
         }
-        strcpy(dir, argv[n - 1]);
-        char c = dir[strlen(dir) - 1];
-        if (c != '/' && c != ':')
-            strcat(dir, "/");
+
+        if (gameDir[0] != 0)
+            alog(AL_FATAL, "Unexpected argument: %s", arg);
+        if (path_copy(gameDir, sizeof(gameDir), NULL, arg) != 0)
+            alog(AL_FATAL, "Invalid game path: %s", arg);
+        int err = stat(gameDir, &sb);
+        if (err != 0)
+            alog(AL_FATAL, "No such file/directory for game path (%d): %s", err, gameDir);
+        if (S_ISREG(sb.st_mode))
+            alog(AL_FATAL, "Game path must be a directory: %s", gameDir);
+
+        alog(AL_DEBUG, "Game Path: %s", gameDir);
     }
 }
 
@@ -2951,18 +2901,20 @@ void
 checkFilesExist()
 {
     alog(AL_INFO, "Checking for files");
-    checkf("Title.TXT");
-    checkf("Rooms.TXT");
-    checkf("Ranks.TXT");
-    checkf("Obdescs.TXT");
-    checkf("Objects.TXT");
-    checkf("Lang.TXT");
-    checkf("Travel.TXT");
-    checkf("SysMsg.TXT");
-    checkf("UMsg.TXT");
-    checkf("Reset.TXT");
-    checkf("Syns.TXT");
-    checkf("Mobiles.TXT");
+
+    checkFileExists("Title.TXT");
+    checkFileExists("Rooms.TXT");
+    checkFileExists("Ranks.TXT");
+    checkFileExists("Obdescs.TXT");
+    checkFileExists("Objects.TXT");
+    checkFileExists("Lang.TXT");
+    checkFileExists("Travel.TXT");
+    checkFileExists("SysMsg.TXT");
+    checkFileExists("UMsg.TXT");
+    checkFileExists("Reset.TXT");
+    checkFileExists("Syns.TXT");
+    checkFileExists("Mobiles.TXT");
+
     alog(AL_INFO, "All files found");
 }
 
@@ -2994,14 +2946,17 @@ void
 compileSection(const char *name, bool isText, void (*procFn)())
 {
     alog(AL_NOTE, "Compiling: %s", name);
-    if (isText)
-        opentxt(name);
+    if (isText) {
+        char filename[MAX_PATH_LENGTH];
+        snprintf(filename, "%s.txt", name);
+        ifp = OpenGameFile(filename, "r");
+    }
     procFn();
     if (ifp) {
         fclose(ifp);
         ifp = NULL;
     }
-    close_ofps();
+    closeOutFiles();
     if (errorCount > 0) {
         alog(AL_FATAL, "Terminating due to errors.");
     }
@@ -3075,17 +3030,16 @@ compileGame()
 int
 amulcom_main(int argc, const char **argv)
 {
-    sprintf(vername, "AMULCom v%d.%03d (%8s)", VERSION, REVISION, DATE);
+    snprintf(
+            compilerVersion, sizeof(compilerVersion), "AMULCom v%d.%03d (%8s)", VERSION, REVISION,
+            DATE);
+
+    // set process name
     mytask = FindTask(0L);
-    mytask->tc_Node.ln_Name = vername;
+    mytask->tc_Node.ln_Name = compilerVersion;
 
     alog(AL_INFO, "  AMUL  Multi-User Games Language Copyright (C) KingFisher Software, 1991");
-    alog(AL_INFO, "                 AMUL Compiler; %s", vername);
-
-    ofp1 = NULL;
-    ofp2 = NULL;
-    ofp3 = NULL;
-    dir[0] = 0;
+    alog(AL_INFO, "                 AMUL Compiler; %s", compilerVersion);
 
 #if defined(_AMIGA_)
     ohd = Output();
@@ -3109,7 +3063,7 @@ amulcom_main(int argc, const char **argv)
 
     compileGame();
     alog(AL_NOTE, "Execution finished normally");
-    alog(AL_INFO, "Statistics for %s:", adname);
+    alog(AL_INFO, "Statistics for %s:", gameName);
     alog(AL_INFO, "		Rooms: %6d	Ranks: %6d	Nouns: %6d", rooms, ranks, nouns);
     alog(AL_INFO, "		Adj's: %6d	Verbs: %6d	Syns : %6d", adjs, verbs, syns);
     alog(AL_INFO, "		T.T's: %6d	Umsgs: %6d	SMsgs: %6d", ttents, umsgs, NSMSGS);
@@ -3117,12 +3071,13 @@ amulcom_main(int argc, const char **argv)
          rooms + ranks + adjs + verbs + nouns + syns + ttents + umsgs + NSMSGS + mobs + mobchars);
     fopenw(advfn);
     time(&startTime);
-    fprintf(ofp1, "%s\n%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld", adname,
-            rooms, ranks, verbs, syns, nouns, adjs, ttents, umsgs, startTime, mins, invis, invis2,
-            minsgo, mobs, rscale, tscale, mobchars);
+    fprintf(ofp1, "%s\n%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", gameName,
+            rooms, ranks, verbs, syns, nouns, adjs, ttents, startTime, mins, invis, invis2, minsgo,
+            mobs, rscale, tscale, mobchars);
 
     // Copy the text from title.txt into the profile file
-    opentxt("TITLE");
+    REQUIRE(ifp == NULL);
+    ifp = OpenGameFile("title.txt", "r");
     fseek(ifp, titlePos, 0);
     for (;;) {
         int bytes = fread(block, 1, sizeof(block), ifp);
