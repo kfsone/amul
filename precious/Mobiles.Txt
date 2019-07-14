@@ -1,25 +1,8 @@
-; ObDescs.Txt for Precious Days
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; Copyright (c) 1991 by Oliver Smith / KingFisher Software
-; 70 Legsby Avenue,
-; Grimsby,
-; S. Humberside. DN32 0NE
-; England.
+; Mobiles.Txt for Precious Days
 ;
-; This software is furnished on the understanding that it may be used and or
-; copied  only  with the inclusion of this notice.  No title or ownership of
-; this  software is hearby transferred.  The information in this software is
-; subject  to  change  without notice.  No responsibility is assumed for the
-; use or reliability of this software.
-
-;
-; --- Commentary ---
-;
-;  This is one of those biggies! This file describes the personas of the
-; mobiles... An actual mobile is created by attaching a persona to an object
-; in Objects.Txt.
-;
-; --- Commentary ---
+; To create an NPC in AMUL you need an object to represent it and a
+; "persona" to describe how it will behave, and "Mobiles.txt" describes
+; the personas.
 
 ; -- Firstly we need to tell AMUL what you've called your verbs!
 

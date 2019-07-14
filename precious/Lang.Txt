@@ -1,24 +1,19 @@
 ; Lang.Txt for Precious Days
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~
-; This software is furnished on the understanding that it may be used and or
-; copied  only  with the inclusion of this notice.  No title or ownership of
-; this  software is hearby transferred.  The information in this software is
-; subject  to  change  without notice.  No responsibility is assumed for the
-; use or reliability of this software.
+;;;TODO: Tell people what this file is about
 
 ; --------------------------- Special Verbs ------------------------------- ;
 ;
-; Verbs which perform special functions (note - "start is at the end of the
+; Verbs which perform special functions (note - .start is at the end of the
 ; file, because it requires several Daemons...)
 
-"travel			; Check if player can move before processing TT..
+.travel			; Check if player can move before processing TT..
 syntax=verb any
 	infl me cripple error Crippled		; Can't move if crippled.
 	fighting me error "You can't leave in the middle of a fight. Use FLEE if you want to leave..."
 	sitting error StandUp
 	lying error StandUp
 
-verb="speech
+.speech
 syntax=verb any
 	infl me dumb respond "You can't speak a word, you're dumbed."
 syntax=verb player=me text
@@ -119,7 +114,7 @@ syntax=verb any
 
 ; ------------------------- More Special Verbs ----------------------------- ;
 
-verb="magsleep
+verb=.magsleep
 syntax=verb any
 	infl me sleep error "You can't do anything, you're asleep."
 	active .deepsleep cancel .deepsleep
@@ -128,76 +123,76 @@ syntax=verb any
 	action cansee GoneSleep
 	error "Your spell has failed and the power of the magic puts you to sleep..."
 
-verb="rank11
+verb=.rank11
 syntax=verb any
 	toprank endparse
 	myrank <11 error $74
 	rand 100 <15 error $26
 
-verb="rank10
+verb=.rank10
 syntax=verb any
 	myrank <10 error $74
-	myrank >10 do "rank11
+	myrank >10 do .rank11
 	& endparse
 	rand 100 <20 error $26
 
-verb="rank9
+verb=.rank9
 syntax=verb any
 	myrank <9 error $74
-	myrank >9 do "rank10
+	myrank >9 do .rank10
 	& endparse
 	rand 100 <25 error $26
 
-verb="rank8
+verb=.rank8
 syntax=verb any
 	myrank <8 error $74
-	myrank >8 do "rank9
+	myrank >8 do .rank9
 	& endparse
-	rand 100 <30 do "magsleep
+	rand 100 <30 do .magsleep
 
-verb="rank7
+verb=.rank7
 syntax=verb any
-	myrank >7 do "rank8
+	myrank >7 do .rank8
 	& endparse
 	myrank <7 error $74
-	rand 100 <35 do "magsleep
+	rand 100 <35 do .magsleep
 
-verb="rank6
+verb=.rank6
 syntax=verb any
 	myrank <6 error $74
-	myrank >6 do "rank7
+	myrank >6 do .rank7
 	& endparse
-	rand 100 <45 do "magsleep
+	rand 100 <45 do .magsleep
 
-verb="rank5
+verb=.rank5
 syntax=verb any
 	myrank <5 error $74
-	myrank >5 do "rank6
+	myrank >5 do .rank6
 	& endparse
-	rand 100 <55 do "magsleep
+	rand 100 <55 do .magsleep
 
-verb="rank4
+verb=.rank4
 syntax=verb any
 	myrank <4 error $74
-	myrank >4 do "rank5
+	myrank >4 do .rank5
 	& endparse
-	rand 100 <65 do "magsleep
+	rand 100 <65 do .magsleep
 
-verb="rank3
+verb=.rank3
 syntax=verb any
 	myrank <3 error $74
-	myrank >3 do "rank4
+	myrank >3 do .rank4
 	& endparse
-	rand 100 <75 do "magsleep
+	rand 100 <75 do .magsleep
 
-verb="rank2
+verb=.rank2
 syntax=verb any
 	myrank <2 error $74
-	myrank >2 do "rank3
+	myrank >2 do .rank3
 	& endparse
-	rand 100 <85 do "magsleep
+	rand 100 <85 do .magsleep
 
-"pre-magic
+verb=.pre-magic
 syntax=verb noun
 	error "The spell only works on people."
 syntax=player=me
@@ -205,7 +200,7 @@ syntax=player=me
 syntax=verb player
 	stat magic me <1 error "You don't have enough magic points to perform the spell."
 
-verb="get			; pick something up...
+verb=.get			; pick something up...
 syntax=verb noun noun
 	get noun
 	action others "@xx has picked up the @n1."
@@ -215,13 +210,13 @@ syntax=verb noun
 	action others "@xx has picked up the @n1."
 	respond "@n1 taken."
 
-verb="burnme
+verb=.burnme
 syntax=verb noun any noun
 	lit noun reply "OUCH! It's on fire and your burn yourself fiddling with it."
 	& sub 2 stam me
 	& failparse
 
-verb="needtwo
+verb=.needtwo
 syntax=verb any
 	if toprank then respond "You easily manage to @vb the @n1."
 	if not gothelp then error "It's too much for you; you'll have to get someone to help you..."
@@ -373,11 +368,11 @@ syntax=verb noun
 	noun1 stove error MoveStove
 	noun1 phone error MovePhone
 	checkget noun		; Check that we can pick it up.
-	do "get
+	do .get
 
 ; - - - - - - - - - -
 
-verb="drop	; Call this to drop something ... Put special bits in here.
+verb=.drop	; Call this to drop something ... Put special bits in here.
 syntax=verb noun
 	drop noun
 	action others "@xx has dropped the @n1."
@@ -395,7 +390,7 @@ syntax=verb noun
 	noun1 all error NoAllYet
 	!carrying noun error NotGotNoun
 	reply "@n1 dropped."
-	do "drop
+	do .drop
 
 ; - - - - - - - - - -
 
@@ -418,7 +413,7 @@ syntax=verb player noun
 	else error notgotnoun
 	!sameroom player error PlyrNotHere
 	!cangive noun player reply "@n1 can't carry any more! Dropped."
-	&> do "drop
+	&> do .drop
 	interact player
 	give noun player
 	tell player "@xx has given you the @n2."
@@ -432,11 +427,11 @@ syntax=verb noun=door
 	inroom kitchen syntax stove none
 syntax=verb noun
 	checknear noun
-	do "burnme
+	do .burnme
 	!opens noun error "You can't open that!"
 	state noun 2 error "The @n1 is locked shut, you'll need to unlock it first."
 	state noun 0 error "The @n1 is already open."
-	noun1 gates do "needtwo
+	noun1 gates do .needtwo
 	else reply ItsNow
 	action cansee IDidItE
 	actionfrom noun HeDidItE
@@ -458,7 +453,7 @@ syntax=verb noun=door
 	inroom kitchen syntax stove none
 syntax=verb noun
 	checknear noun
-	do "burnme
+	do .burnme
 	!opens noun error "It isn't openable, so you can't close it."
 	!state noun 0 error "The @n1 is already closed."
 	reply ItsNow
@@ -548,7 +543,7 @@ syntax=verb noun
 	checknear noun
 	!carrying noun respond "Tying things is fiddly work; you'll have to pick the @n1 up first."
 syntax=verb noun=rope
-	do "burnme
+	do .burnme
 	!inc noun error "It's already got a knot in it."
 	myrank 1 add 2 points me
 	respond "You fiddle for a while and eventually fasten a nice, neat knot into it."
@@ -560,7 +555,7 @@ syntax=verb noun
 	checknear noun
 	!carrying noun respond "Untying things is fiddly work; you'll have to pick the @n1 up first."
 syntax=verb noun=rope
-	do "burnme
+	do .burnme
 	!dec noun error "Hmmm... I KNEW that someday someone would try to untie a STRAIGHT piece of string, dimwit."
 	respond "It's a tricky one, but you eventually get the knot undone."
 syntax=verb noun
@@ -589,7 +584,7 @@ syntax=verb player
 	inroom shute respond "You are moving too fast to perform the spell!"
 	cansee player	respond "@n1 is already here."
 	action cansee MakeMag
-	do "rank6
+	do .rank6
 	tell player "The scene around you begins to fade... {"
 	summon player
 	respond success
@@ -599,7 +594,7 @@ syntax=verb player
 verb=change			; Change a players sex.
 syntax=verb player
 	action cansee MakeMag
-	do "rank4
+	do .rank4
 	reply success
 	-> changesex player
 syntax=verb noun
@@ -618,7 +613,7 @@ syntax=verb player=me
 	syntax none none		; Reprocess this line
 syntax=verb player
 	action cansee MakeMag
-	do "rank6
+	do .rank6
 	reply success
 	senddaemon player .msleep 0
 syntax=verb none
@@ -643,7 +638,7 @@ syntax=verb player=me
 	syntax none none		; Reprocess, and ignore 'me'
 syntax=verb player
 	action cansee MakeMag
-	do "rank5
+	do .rank5
 	reply success
 	infl player sleep senddaemon player .wake 0
 syntax=verb none
@@ -672,13 +667,13 @@ syntax=player=me
 	syntax none none
 syntax=player
 	action cansee MakeMag
-	do "rank5
+	do .rank5
 	reply success			; your spell worked.
 	-> senddaemon player .glow 0	; make him start glowing
 syntax=verb none
 	infl me glow respond "You are already glowing."
 	action cansee MakeMag
-	do "rank4
+	do .rank4
 	reply success
 	-> treatas .glow
 
@@ -697,13 +692,13 @@ syntax=player=me
 	syntax none none
 syntax=player
 	action cansee MakeMag
-	do "rank6
+	do .rank6
 	reply success			; your spell worked.
 	-> senddaemon player .unglow 0	; make him start glowing
 syntax=verb none
 	!infl me glow respond "You aren't glowing anyway."
 	action cansee MakeMag
-	do "rank4
+	do .rank4
 	reply success
 	-> treatas .unglow
 
@@ -713,10 +708,10 @@ verb=force
 syntax=verb player=me text
 	respond "No will power, eh?"
 syntax=verb any
-	do "pre-magic
+	do .pre-magic
 syntax=player text
 	action cansee MakeMag
-	do "rank7
+	do .rank7
 	reply success
 	force player text
 syntax=text player
@@ -727,7 +722,7 @@ syntax=text player
 verb=where
 syntax=verb noun
 	action cansee MakeMag
-	do "rank5
+	do .rank5
 	reply success
 	where noun1
 syntax=verb
@@ -747,13 +742,13 @@ syntax=player=me
 	syntax none none
 syntax=player
 	action cansee MakeMag
-	do "rank10
+	do .rank10
 	reply success
 	-> senddaemon player .sinvis 0
 syntax=verb none
 	infl me sinvis respond "You are already super-invisible."
 	action cansee MakeMag
-	do "rank9
+	do .rank9
 	reply success
 	-> treatas .sinvis
 
@@ -773,13 +768,13 @@ syntax=player=me
 	syntax none none
 syntax=player
 	action cansee MakeMag
-	do "rank10
+	do .rank10
 	reply success
 	-> senddaemon player .unsinvis 0
 syntax=verb none
 	!infl me sinvis respond "You aren't super-invisible anyway."
 	action cansee MakeMag
-	do "rank7
+	do .rank7
 	reply success
 	-> treatas .unsinvis
 
@@ -797,13 +792,13 @@ syntax=player=me
 	syntax none none
 syntax=player
 	action cansee MakeMag
-	do "rank6
+	do .rank6
 	reply success
 	-> senddaemon player .invis 0
 syntax=verb none
 	infl me invis respond "You are already invisible."
 	action cansee MakeMag
-	do "rank5
+	do .rank5
 	reply success
 	-> treatas .invis
 
@@ -821,13 +816,13 @@ syntax=player=me
 	syntax none none
 syntax=player
 	action cansee MakeMag
-	do "rank9
+	do .rank9
 	reply success
 	-> senddaemon player .uninvis 0
 syntax=verb none
 	!infl me invis respond "You aren't invisible anyway."
 	action cansee MakeMag
-	do "rank5
+	do .rank5
 	reply success
 	-> treatas .uninvis
 
@@ -885,11 +880,11 @@ syntax=verb any
 
 verb=tell
 syntax=verb any
-	treatas "speech
+	treatas .speech
 
 verb=ask
 syntax=verb any
-	treatas "speech
+	treatas .speech
 
 verb=shout
 syntax=verb none
@@ -928,7 +923,7 @@ verb=cheer
 syntax=verb
 	treatas wail
 
-verb="greet
+verb=.greet
 syntax=verb player
 	interact player		; So he doesn' get ACTION OTHERS stuff
 	reply "OK, you @vb @n1."
@@ -946,7 +941,7 @@ syntax=verb player=me
 	respond "I'm sure you would."
 syntax=verb player
 	tell player "@xy @vbs you."
-	do "greet
+	do .greet
 
 verb=console
 syntax=verb noun
@@ -956,7 +951,7 @@ syntax=verb player=me
 	respond '"YOU ARE A COMPLETE AND UTTER SCHMUCK; I DETEST YOU". Make you feel any better?'
 syntax=verb player
 	tell player "@xx @vbs you."
-	do "greet
+	do .greet
 
 verb=bless
 syntax=verb none
@@ -967,14 +962,14 @@ syntax=verb noun
 	treatas console
 syntax=verb player
 	tell player "@xx @vbes you."
-	do "greet
+	do .greet
 
 verb=hug
 syntax=verb player=me
 	respond "Gimme a break, gizzard face."
 syntax=verb player
 	tell player "@xx @ves you."
-	do "greet
+	do .greet
 	-> action cansee "@xx gives @n1 a terrific @ve."
 syntax=verb any
 	treatas console
@@ -986,7 +981,7 @@ syntax=verb player=me
 	error "Sorry, I only kiss OLD wart hogs."
 syntax=verb player
 	tell player "@xx @vbes you."
-	do "greet
+	do .greet
 	-> action cansee "@xx gives @n1 a terrific @vb."
 
 verb=snog
@@ -1629,7 +1624,7 @@ verb=.bingo
 syntax=verb any
 	announce all 'In the distance a powerful voice shouts "There's no doughnuts left, again."'
 
-verb="boot			; set-up the initial daemons.
+verb=.boot			; set-up the initial daemons.
 syntax=verb any
 	gstart .pring1   ~80
 	gstart .thunder `243
@@ -1677,7 +1672,7 @@ syntax=verb any
 	inroom start reply "Still here? Try going West (through the doorway)."
 	endparse
 
-"start dream		; executed when the player enters the game.
+verb=.start dream		; executed when the player enters the game.
 syntax=verb any
 	reply null
 	reply "Current players: "

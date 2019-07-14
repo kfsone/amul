@@ -1,21 +1,9 @@
 ; SysMsg.Txt for Precious Days
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; Copyright (c) 1991 by Oliver Smith / KingFisher Software
-; 70 Legsby Avenue,
-; Grimsby,
-; S. Humberside. DN32 0NE
-; England.
-;
-; This software is furnished on the understanding that it may be used and or
-; copied  only  with the inclusion of this notice.  No title or ownership of
-; this  software is hearby transferred.  The information in this software is
-; subject  to  change  without notice.  No responsibility is assumed for the
-; use or reliability of this software.
 
 ; All System Messages get word-wrap treatment based on the users screen
 ; width/height settings - so its a good idea to try and put as much of the
 ; text onto one line as possible, this way best use of the USERS screen
-; is made!
+; is made.
 ;
 ; Also -- put your own plugs into some of the messages... Like on the
 ; goodbye one ... Put 'Leaving Precious Days on the Mega BBS'.
@@ -26,7 +14,7 @@ $1			; Can't enter the game - reset in progress
  
 
 $2			; All 16 slots in use (let me know if this ever happens)
-	Sorry, all lines out of the dimension are engaged! Please try later!
+	Sorry, all lines out of the dimension are engaged. Please try later.
 
 $3			; 'Press RETURN' prompt.
 	Hit <RETURN>: {
@@ -39,18 +27,18 @@ $5			; Entered an invalid name.
 	That name is no good, try something more, well, suitable?
 
 $6			; Entere a name used by SOMETHING in the game
-	That name is used for something else in the game! Try another!
+	That name is used for something else in the game. Try another.
 
 $7			; Warn other player someone just tried to be them.
 	Someone just tried to login as you (@me)!
 
-$8			; Can't have two of the same name at once!
-	Oops! "@me" is currently wandering around Precious! Try a different name!
+$8			; Can't have two of the same name at once.
+	Oops! "@me" is currently wandering around Precious. Try a different name.
 
 $9			; Didn't recognise name : "Are you a new user? (Y/N) {"
-	"@me" - is that correct (I do not recognise the name!) (Y/N) {
+	"@me" - is that correct (I do not recognise the name) (Y/N) {
 
-$10			; Offer them Male or Female - its all we got!
+$10			; Offer them Male or Female - its all we got.
 	You can choose to have a Male or Female character. The gender has very little affect on the game play, but some people chose to be female to hide their true identity. Remember - Precious is a role-playing game.
 	What'll it be? (M)ale or (F)emale? {
 
@@ -68,7 +56,7 @@ $14			; Do they want the ODD (and I MEAN odd) ANSI code?
 
 $15			; Welcome a first time player
  
-	Welcome to the world of Precious Days. PLEASE take the time to read through the Help Texts. If you are stuck, try communicating with other players, or leave some E-Mail to the SysOp!
+	Welcome to the world of Precious Days. PLEASE take the time to read through the Help Texts. If you are stuck, try communicating with other players, or leave some E-Mail to the SysOp.
  
 	You begin as "@me the @mr"... Enjoy your travels and have FUN!
 
@@ -77,24 +65,24 @@ $16			; Scare them off - third bad attempt at entering password
 
 $17			; Inform a user someone has been trying to use the account (put %ld where you want the number)
  
-	%ld attempts have been made to use this soul since last logon!
+	%ld attempts have been made to use this soul since last logon.
 
 $18			; Welcome back an old hat.
  
-	Welcome back, @me the @mr! You have now played @gp times!
+	Welcome back, @me the @mr! You have now played @gp times.
 
 $19			; Tell them when ANSI is enabled
  
 	> ANSI decoration enabled <
 
 $20			; Tell other players in the SAME ROOM you've begun
-	@me the @mr has just entered the land!
+	@me the @mr has just entered the land.
 
 $21			; Text displayed when user types 'HELP'
 	Precious Days		Copyright (C) Oliver Smith, 1991/1992
 	~~~~~~~~~~~~~		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
-	Precious days is a multi-user role-playing/adventure game written using AMUL the Amiga games language!
+	Precious days is a multi-user role-playing/adventure game written using AMUL the Amiga games language.
  
 	Summary of basic commands: (there are MANY MANY more commands available)
  
@@ -108,19 +96,19 @@ $21			; Text displayed when user types 'HELP'
 
 $22			; Say goodbye to a first time player (I recommend you remind them of their password)
  
-	I hope you enjoyed this visit, PLEASE call again! And remember, your password is "@pw"...
+	I hope you enjoyed this visit, please call again! And remember, your password is "@pw"...
  
 	<< Precious Days - the AMUL Demonstration Adventure by Oliver Smith >>
  
 
 $23			; Tell other players that you are quitting
-	@me has ceased to be!
+	@me has ceased to be.
 
 $24			; Pillock just got himself zonked
  
 	You have died...
 
-$25			; And we'll tell the other people as much!
+$25			; And we'll tell the other people as much.
 	@me has passed away...
 
 $26			; A spell failed to work
@@ -133,11 +121,11 @@ $28			; Tell the player that their rank just changed
 	Your ranking has changed to @mr!
 
 $29			; Saving X many points (put %ld if/where you want number to be)
-	Saving at %ld points!
+	Saving at %ld points.
 
 $30			; Make sure the user wants to quit.
  
-	Remember: Precious is a REAL-TIME multi-user game, so when you quit your inventory and location are not stored!
+	Remember: Precious is a REAL-TIME multi-user game, so when you quit your inventory and location are not stored.
  
 	Leave Precious Days [y/N]: {
 
@@ -169,7 +157,7 @@ $39			; You tried to move in a direction you can't.
 	You can't go @vb from here.
 
 $40			; Something you tried to but can't do.
-	You can't do that!
+	You can't do that.
 
 $41			; You've just done a supergo
 	>> Kappowwww! <<
@@ -180,7 +168,7 @@ $42			; When a player leaves (supergo)
 $43			; When a player arrives (supergo)
 	As if by magic, @me appears from nowhere!
 
-$44			; First word was understood, but not a verb!
+$44			; First word was understood, but not a verb.
 	I didn't quite understand that, try again...
 
 $45			; Understood the verb, but not the rest
@@ -205,7 +193,7 @@ $51			; You've just been rudely awoken.
 	You are suddenly awake!
 
 $52			; Can't summon a player who'se already here.
-	%s is already here!
+	%s is already here.
 
 $53			; When a player leaves a room (walking)
 	@me has just left.
@@ -220,7 +208,7 @@ $56			; Tell the other player about ^^
 	Someone else has just tried to enter here, but there wasn't enough room for them.
 
 $57			; When the players sex changes
-	Your sex has magically been changed! You are now a @gn!
+	Your sex has magically been changed: You are now a @gn!
 
 ; * NOTE
 ;
@@ -235,7 +223,7 @@ $57			; When the players sex changes
 ; *WP = Weapon
 
 $58			; YOU hit @pl				*NW
-	You strike @pl with your bare hands!
+	You strike @pl with your bare hands.
 
 $59			; tell @pl he blocked YOUR attack	*NW
 	You manage to parry a blow from @xx.
@@ -281,15 +269,15 @@ $71
 	{
 
 $72
-	You can make nothing out!
+	You can make nothing out.
 
 $73
 	Fighting is forbidden here.
 
 $74
-	You aren't powerful to cast that spell, you'll have to wait until you reach a higher rank!
+	You aren't powerful to cast that spell, you'll have to wait until you reach a higher rank.
 
 $75
-	You don't have enough magical power to cast the spell!
+	You don't have enough magical power to cast the spell.
 
 ; <End of file>

@@ -1,4 +1,3 @@
-
 Oli's ideas for precious:
 
  * daemon to make people fall asleep when they enter GWOODN if they stop too

@@ -1,22 +1,10 @@
 ; ObDescs.Txt for Precious Days
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; Copyright (c) 1991 by Oliver Smith / KingFisher Software
-; 70 Legsby Avenue,
-; Grimsby,
-; S. Humberside. DN32 0NE
-; England.
-;
-; This software is furnished on the understanding that it may be used and or
-; copied  only  with the inclusion of this notice.  No title or ownership of
-; this  software is hearby transferred.  The information in this software is
-; subject  to  change  without notice.  No responsibility is assumed for the
-; use or reliability of this software.
 
-;
-; --- Commentary ---
-;
-;
-; --- Commentary ---
+; Named descriptions for objects, because sometimes a description is
+; too long to fit into the object file proper, or because you want to
+; re-use the exact-same description across multiple instances of an
+; object.
+
 
 ; -- standard door state descriptions (with adjectives)
 dooraop

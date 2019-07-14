@@ -1,12 +1,21 @@
-- close ifps
-- amiga stubs
 - memory allocation
-- stricmp => strcasecmp
-- str[in]cmp.*NULL -> 0
-- opentxt -> text, not binary
 - use skip functions instead of replace
 - nacp/ncop -> structures like C++
 - bools
-- const
 - eliminate warnings
 
+Done in the .txt files, these need converting in code,
+but also they need some better names; perhaps '$x' would
+be better and more consistent for those that are builtins.
+
+"travel -> .travel
+"magsleep -> .magsleep
+"rankX -> .rankX
+"greet -> .greet
+"boot -> .boot
+"pre-magic -> .pre-magic
+"start -> .start
+"get -> .get
+"burnme -> .burnme
+"needtwo -> .needtwo
+"drop -> .drop

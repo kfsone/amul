@@ -1,21 +1,25 @@
 ; Rooms.Txt for Precious Days
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; Copyright (c) 1991 by Oliver Smith / KingFisher Software
-; 70 Legsby Avenue,
-; Grimsby,
-; S. Humberside. DN32 0NE
-; England.
 ;
-; This software is furnished on the understanding that it may be used and or
-; copied  only  with the inclusion of this notice.  No title or ownership of
-; this  software is hearby transferred.  The information in this software is
-; subject  to  change  without notice.  No responsibility is assumed for the
-; use or reliability of this software.
+; MUDs are made up of fixed, discrete locations and players, called Rooms.
+; There's no coordinate system so the relationship between Rooms is entirely
+; up to you and doesn't have to obey any kind of laws of physics; Rooms don't
+; even have to be indoors.
+;
+; There is also no hard rule of scale. You could have a Room that describes
+; an entire planet or universe, or one that describes the corner of a room
+; (lowercase r). A Room could be heaven, hell or a bathroom.
+;
+; Typically, MUDs provide players with directional commands to move between
+; Rooms. A very conventional game would probably use "north", "east", "up",
+; etc. But it's not enforced. The connections between rooms are defined in
+; the "travel table" and are entirely up to you.
 
 ; For tidiness sake, indent the text of each room description with ONE
 ; leading tab. To do this I usually write the description first and then go
 ; back and insert the tabs. This simply splits the rooms up better visually.
-
+;
+; The parser will remove ONE single tab from infront of every description line.
+; If you need an actual blank line, simply leave a line with only a tab on it.
 
 ; Room ID: start
 ; Flags  : room has a light source (Use of LIGHT is optional; its the default)

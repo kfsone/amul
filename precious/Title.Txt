@@ -35,7 +35,7 @@ timeScale=55
   =::::::::::::::::::::::::::::::::::::::::::::::=  Multi-User Games Language
   ================================================
 
-           Written using AMUL - The most POWERFUL MUD Language!
+               A demo Multi-User Dungeon written using "AMUL"
 
  Last compile: @lc Last reset: @lr  Sesh: 80mins
 
