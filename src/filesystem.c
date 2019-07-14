@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #if !defined(_MSC_VER)
-#include <unistd.h>		// for unlink
+#    include <unistd.h>  // for unlink
 #endif
 
 char gameDir[MAX_PATH_LENGTH];

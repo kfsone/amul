@@ -293,7 +293,7 @@ const char  tacp[NACTS][MAX_ACT_PARMS] = {  // Parameter type list
         PNOUN,   0,       0,       NONE,    PPLAYER, PNUM,  0,       PNOUN,   PNUM,    0,
         PNOUN,   PNUM,    0,       PDAEMON, PNUM,    0};
 
-const char *    syntax[NSYNTS] = {  // syntax slot labels
+const char *   syntax[NSYNTS] = {  // syntax slot labels
         "none", "any", "noun", "adj",  "prep",  "player",
         "room", "syn", "text", "verb", "class", "number"};
 const uint16_t syntl[NSYNTS] = {  // the length of each label. ///TODO: Destroy with fire.
