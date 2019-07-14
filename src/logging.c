@@ -38,7 +38,7 @@ uint32_t al_errorCount = 0;
 static const char *levelName[MAX_LOG_LEVEL + 1] = {"Debug", "Info",  "Note",    "WARNING",
                                                    "ERROR", "FATAL", "DISABLED"};
 
-static enum LogLevel s_logLevel = AL_DEBUG;
+static enum LogLevel s_logLevel = MAX_LOG_LEVEL;
 
 error_t
 loggingModuleInit(struct Module *module)
