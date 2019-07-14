@@ -14,6 +14,12 @@
 #include <h/amul.argp.h>
 #include <h/amul.cons.h>
 
+#if defined(_MSC_VER)
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
 FILE *ifp, *ofp1, *ofp2, *ofp3, *ofp4, *ofp5, *afp;
 
 bool exiting;
@@ -117,13 +123,21 @@ ParseCommandLine(const struct CommandLine *cmdline)
             return misuse(argv, "Not a directory", gameDir, EINVAL);
     }
 
-	if (gameDir[0] == 0) {
-        strcpy(gameDir, ".");
+    char    pwd[MAX_PATH_LENGTH];
+	if (getcwd(pwd, sizeof(pwd)) == NULL) {
+        alog(AL_FATAL, "Cannot get CWD");
 	}
+	if (strncmp(gameDir, "./", 2) == 0) {
+        path_concater(pwd, gameDir + 2);
+        gameDir[0] = 0;
+	}
+    if (gameDir[0] == 0 || strcmp(gameDir, ".") == 0) {
+        path_copier(gameDir, pwd);
+    }
 
-	alogLevel(desiredLogLevel);
+    alogLevel(desiredLogLevel);
 
-	return 0;
+    return 0;
 }
 
 error_t
@@ -135,11 +149,12 @@ initCommandLine(const struct Module *module)
 error_t
 InitCommandLine(const struct CommandLine *cmdline)
 {
-    return NewModule(false, MOD_CMDLINE, initCommandLine, NULL, NULL, cmdline, NULL);
+    return NewModule(false, MOD_CMDLINE, initCommandLine, NULL, NULL, (void*)cmdline, NULL);
 }
 
 error_t
-runtimeModuleStart(struct Module *module){
+runtimeModuleStart(struct Module *module)
+{
     alog(AL_DEBUG, "Game Directory: %s", gameDir);
     alog(AL_DEBUG, "Log Verbosity : %s", alogGetLevelName());
     alog(AL_DEBUG, "Check DMoves  : %s", checkDmoves ? "true" : "false");
