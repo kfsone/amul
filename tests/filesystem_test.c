@@ -68,10 +68,24 @@ test_path_join_constraints(struct TestContext *t)
 }
 
 void
+test_path_joiner(struct TestContext *t)
+{
+    char filepath[MAX_PATH_LENGTH];
+    EXPECT_SUCCESS(path_joiner(filepath, ".", "title.txt"));
+    EXPECT_STR_EQUAL(filepath, "./title.txt");
+
+	char gameDir[MAX_PATH_LENGTH] = "c:\\users\\oliver\\\\//";
+    EXPECT_SUCCESS(gamedir_joiner("\\precious\\rooms.txt"));
+    EXPECT_STR_EQUAL(filepath, "c:/users/oliver/precious/rooms.txt");
+
+}
+
+void
 filesystem_tests(struct TestContext *t)
 {
     RUN_TEST(test_path_copy);
     RUN_TEST(test_path_copy_offset);
     RUN_TEST(test_path_join);
     RUN_TEST(test_path_join_constraints);
+    RUN_TEST(test_path_joiner);
 }
