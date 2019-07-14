@@ -22,7 +22,7 @@ struct Module {
     struct DoubleLinkedNode links;
 
     enum ModuleID id;
-    const char *   name;
+    const char *  name;
 
     moduleinit_fn  init;
     modulestart_fn start;
@@ -33,9 +33,9 @@ struct Module {
     bool allocd;  // false if this is a static module object
 };
 
-void           InitModules();
-error_t        StartModules();
-void           CloseModules(error_t err);
+void    InitModules();
+error_t StartModules();
+void    CloseModules(error_t err);
 
 error_t NewModule(
         bool useStatic, enum ModuleID id, moduleinit_fn init, modulestart_fn start,

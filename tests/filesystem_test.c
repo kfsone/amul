@@ -62,7 +62,8 @@ test_path_join_constraints(struct TestContext *t)
     EXPECT_SUCCESS(PathJoin(into, 4, ".//", "////a"));
     EXPECT_STR_EQUAL("./a", into);
 
-	EXPECT_SUCCESS(PathJoin(into, sizeof(into), "\\\\////\\\\//\\//a\\//b\\////\\c", "//////d////\\\\\\e//"));
+    EXPECT_SUCCESS(PathJoin(
+            into, sizeof(into), "\\\\////\\\\//\\//a\\//b\\////\\c", "//////d////\\\\\\e//"));
     EXPECT_STR_EQUAL(into, "/a/b/c/d/e");
 }
 

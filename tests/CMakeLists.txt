@@ -3,6 +3,7 @@ SET(TESTS_SOURCES
 
     hashmap_test.c
     filesystem_test.c
+	modules_test.c
 )
 
 SET(TESTS_HEADERS

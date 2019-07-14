@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "modules.h"
 #include "system.h"
 
@@ -7,34 +9,35 @@
 
 #include <h/amigastubs.h>
 
-extern error_t InitCommandLine(const struct CommandLine *);
-
-static struct Module *s_modulesHead;
-static struct Module *s_modulesTail;
+struct Module *s_modulesHead;
+struct Module *s_modulesTail;
 
 // If there's ever a memory management module, it won't want to have the
 // module system first try and allocate memory for a module... So there
 // is a pool of static modules.
 
 enum { NUM_STATIC_MODULES = 4 };
-static struct Module s_staticModules[4];
+struct Module s_staticModules[NUM_STATIC_MODULES];
 
-static struct Module *s_freeModules;
+struct Module *s_freeModules;
+
+bool s_modulesInitialized;
+bool s_modulesClosed;
 
 static const char *moduleNames[MAX_MODULE_ID] = {
         // hard-coded names for modules
-        "INVALID",
-        "cmdline",
-        "runtime",
-        "compiler",
+        "INVALID", "logging", "cmdline", "runtime", "compiler",
 };
 
 void
 InitModules()
 {
+    if (s_modulesInitialized == true)
+        abort();
+    s_modulesInitialized = true;
     s_freeModules = &s_staticModules[0];
     for (size_t i = 1; i < NUM_STATIC_MODULES; ++i) {
-        s_freeModules[i - 1].links.next = (struct DoubleLinkedNode *)&s_freeModules[i];
+        s_staticModules[i - 1].links.next = (struct DoubleLinkedNode *)&s_staticModules[i];
     }
 }
 
@@ -65,6 +68,8 @@ CloseModules(error_t err)
                     cur->name, reterr);
         }
     }
+
+    s_modulesClosed = true;
 }
 
 error_t
@@ -72,8 +77,8 @@ NewModule(
         bool useStatic, enum ModuleID id, moduleinit_fn init /*opt*/, modulestart_fn start /*opt*/,
         moduleclose_fn close /*opt*/, void *context /*opt*/, struct Module **ptr /*opt*/)
 {
-    REQUIRE(id && (context || (init || start || close)));
-    REQUIRE(id < MAX_MODULE_ID);
+    REQUIRE(id && id < MAX_MODULE_ID);
+    REQUIRE(context || (init || start || close));
 
     if (GetModule(id) != NULL) {
         alog(AL_DEBUG, "Tried to register duplicate module#%d: %s", id, moduleNames[id]);
@@ -123,6 +128,8 @@ NewModule(
         s_modulesTail = cur;
     } else {
         s_modulesTail->links.next = (struct DoubleLinkedNode *)cur;
+        cur->links.prev = (struct DoubleLinkedNode *)s_modulesTail;
+        s_modulesTail = cur;
     }
 
     error_t err = 0;
@@ -141,7 +148,6 @@ NewModule(
 struct Module *
 GetModule(enum ModuleID id)
 {
-    assert(id);
     for (struct Module *cur = s_modulesHead; cur; cur = (struct Module *)cur->links.next) {
         if (id == cur->id)
             return cur;
@@ -153,26 +159,35 @@ error_t
 CloseModule(struct Module *module, error_t err)
 {
     REQUIRE(module);
+
+    // Make sure this is a registered module
+    struct Module *cur = s_modulesHead;
+    while (cur && cur != module)
+        cur = (struct Module *)cur->links.next;
+    if (cur != module)
+        return EFAULT;
+
     error_t reterr = 0;
     if (module->close)
         reterr = module->close(module, err);
 
     if (module->links.prev)
-        module->links.prev->next = &module->links;
+        module->links.prev->next = module->links.next;
     if (module->links.next)
-        module->links.next->prev = &module->links;
+        module->links.next->prev = module->links.prev;
     if (s_modulesHead == module)
         s_modulesHead = (struct Module *)module->links.next;
     if (s_modulesTail == module)
         s_modulesTail = (struct Module *)module->links.prev;
 
-    memset(&module, 0, sizeof(module));
+    bool allocd = module->allocd;
+    memset(module, 0, sizeof(*module));
 
-    if (module->allocd)
-        ReleaseMem((void**)&module);
+    if (allocd)
+        ReleaseMem((void **)&module);
     else {
         // Put me at the front of the free list
-        module->links.next = s_freeModules->links.next;
+        module->links.next = (struct DoubleLinkedNode *)s_freeModules;
         s_freeModules = module;
     }
 

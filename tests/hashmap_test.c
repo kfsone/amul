@@ -1,5 +1,5 @@
-#include <h/amul.test.h>
 #include "src/hashmap.h"
+#include <h/amul.test.h>
 
 #include <stdint.h>
 
@@ -35,10 +35,10 @@ test_get_string_hash(struct TestContext *t)
 void
 test_get_string_hash_view(struct TestContext *t)
 {
-	hashval_t hash = get_string_hash("hello");
+    hashval_t   hash = get_string_hash("hello");
     const char *key = "helloworld";
-	EXPECT_FALSE(get_string_hash(key) == hash);
-	size_t length = 0;
+    EXPECT_FALSE(get_string_hash(key) == hash);
+    size_t length = 0;
     EXPECT_TRUE(get_string_hash_and_len(key, key + 5, &length) == hash);
     EXPECT_VAL_EQUAL(5, length);
 }
@@ -178,12 +178,12 @@ test_add_to_hash(struct TestContext *t)
     EXPECT_SUCCESS(NewHashMap(4, &map));
     EXPECT_NOT_NULL(map);
 
-	const char *key = "1234567890123456789012345678901234567890";
+    const char *key = "1234567890123456789012345678901234567890";
 
     EXPECT_ERROR(EINVAL, AddToHash(map, key, NULL, 0));
-    EXPECT_SUCCESS(AddToHash(map, key, key+8, 0));
+    EXPECT_SUCCESS(AddToHash(map, key, key + 8, 0));
 
-	CloseHashMap(&map);
+    CloseHashMap(&map);
 }
 
 void
