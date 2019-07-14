@@ -117,13 +117,25 @@ ParseCommandLine(const struct CommandLine *cmdline)
             return misuse(argv, "Not a directory", gameDir, EINVAL);
     }
 
+	if (gameDir[0] == 0) {
+        strcpy(gameDir, ".");
+	}
+
+	alogLevel(desiredLogLevel);
+
 	return 0;
+}
+
+error_t
+initCommandLine(const struct Module *module)
+{
+    return ParseCommandLine((struct CommandLine *)(module->context));
 }
 
 error_t
 InitCommandLine(const struct CommandLine *cmdline)
 {
-    return ParseCommandLine(cmdline);
+    return NewModule(false, MOD_CMDLINE, initCommandLine, NULL, NULL, cmdline, NULL);
 }
 
 error_t
