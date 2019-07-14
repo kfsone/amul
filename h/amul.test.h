@@ -45,20 +45,27 @@ struct TestContext {
     size_t       tests;
     size_t       passes;
     size_t       lineItems;
+    void *       userData;
+    void (*tearUp)(struct TestContext *);
+    void (*tearDown)(struct TestContext *);
 };
 
 typedef void(test_harness_fn)(struct TestContext *t);
 
 #    define LPRINTF(fmt, ...)                                                                      \
         fprintf(stderr, "\n%s:%d: error:%s: " fmt "\n", __FILE__, __LINE__, t->step,               \
-                ##__VA_ARGS__); \
+                ##__VA_ARGS__);                                                                    \
         fflush(stderr)
 
 #    define RUN_TEST(fn)                                                                           \
         do {                                                                                       \
             t->tests++;                                                                            \
             t->step = #fn;                                                                         \
+            if (t->tearUp)                                                                         \
+                t->tearUp(t);                                                                      \
             fn(t);                                                                                 \
+            if (t->tearDown)                                                                       \
+                t->tearDown(t);                                                                    \
             t->passes++;                                                                           \
         } while (false)
 
@@ -92,7 +99,7 @@ typedef void(test_harness_fn)(struct TestContext *t);
             t->lineItems++;                                                                        \
         } else {                                                                                   \
             LPRINTF(#actual " expecting %p; got %p", (void *)(expected), (void *)(actual));        \
-            assert((expected) == (actual));                                                        \
+            assert((void *)(expected) == (void *)(actual));                                        \
         }
 
 #    define EXPECT_NOT_NULL(actual)                                                                \
@@ -124,7 +131,7 @@ typedef void(test_harness_fn)(struct TestContext *t);
             t->lineItems++;                                                                        \
         } else {                                                                                   \
             LPRINTF(#actual " expecting false; got %" PRId64, (int64_t)(actual));                  \
-            assert(!(actual));                                                                      \
+            assert(!(actual));                                                                     \
         }
 
 #    define EXPECT_STR_EQUAL(expected, actual)                                                     \
