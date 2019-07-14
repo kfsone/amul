@@ -44,7 +44,7 @@ testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *e
 }
 
 error_t
-initStringModule(struct Module* module)
+initStringModule(struct Module *module)
 {
     REQUIRE(!stringFP);
     return 0;
@@ -69,14 +69,13 @@ closeStringModule(struct Module *module, error_t err)
     CloseFile(&stringFP);
     CloseHashMap(&stringIDs);
 
-	return 0;
+    return 0;
 }
 
 error_t
 InitStrings()
 {
-    NewModule(
-            false, MOD_STRINGS, NULL, startStringModule, closeStringModule, NULL, NULL);
+    NewModule(false, MOD_STRINGS, NULL, startStringModule, closeStringModule, NULL, NULL);
     return 0;
 }
 
@@ -130,7 +129,9 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
         if (p == NULL)
             continue;
         const char *end = p;
-		if (*p != '\n') {
+        if (*p == '\n' && stype != STRING_FILE)
+            break;
+        if (*p != '\n') {
             if (!indent && *p) {
                 indent = *p;
             }

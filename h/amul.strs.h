@@ -17,6 +17,7 @@ enum StringType {
     STRING_OBJECT_DESC = 0x04,  // description used by objects,
     STRING_ROOM_DESC = 0x08,    // room descriptions,
     STRING_FORMATTED = 0x10,    // if true: text has @ tokens
+	STRING_FILE = 0x20,			// contents of an entire file
 };
 
 // Fixed string IDs

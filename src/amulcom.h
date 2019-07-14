@@ -1,10 +1,11 @@
 #ifndef SRC_AMULCOM_H
 #define SRC_AMULCOM_H 1
 
-#include <h/amul.file.h>
+#include "filesystem.h"
+
 #include <h/amul.type.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 extern int amulcom_main();
 
@@ -22,7 +23,7 @@ extern bool  exiting, reuseRoomData, checkDmoves;
 void CloseOutFiles();
 
 // General purpose shutdown with an err (try to favor alog(AL_FATAL))
-void         Terminate(error_t err);
+void Terminate(error_t err);
 
 extern FILE *OpenGameFile(const char *filename, const char *mode);
 extern void  CloseFile(FILE **fpp);

@@ -1,8 +1,9 @@
 SET(TESTS_SOURCES
     testmain.c
 
-    hashmap_test.c
+    buffer_test.c
     filesystem_test.c
+    hashmap_test.c
 	modules_test.c
 )
 

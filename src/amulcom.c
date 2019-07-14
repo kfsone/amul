@@ -31,6 +31,7 @@
 #include "amulcom.h"
 #include "amulcom.strings.h"
 
+#include "filesystem.h"
 #include "modules.h"
 #include "system.h"
 
@@ -39,7 +40,6 @@
 #include <h/amul.alog.h>
 #include <h/amul.cons.h>
 #include <h/amul.defs.h>
-#include <h/amul.file.h>
 #include <h/amul.gcfg.h>
 #include <h/amul.hash.h>
 #include <h/amul.msgs.h>
@@ -138,8 +138,10 @@ getword(char *from)
         case 0:
         case ';':
         case ' ':
-        case '\t': goto broke;
-        default: ++from;
+        case '\t':
+            goto broke;
+        default:
+            ++from;
         }
     }
 
@@ -928,9 +930,12 @@ actualval(const char *s, int n)
             if (n == PREAL)
                 return actual[i].value;
             return -1;
-        case IADJ2: return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
-        case INOUN2: return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
-        default: return -1; /* Nah... Guru instead 8-) */
+        case IADJ2:
+            return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
+        case INOUN2:
+            return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
+        default:
+            return -1; /* Nah... Guru instead 8-) */
         }
     }
     return -2; /* It was no actual! */
@@ -975,23 +980,54 @@ chkp(char *p, char t, int c, int z, FILE *fp)
             goto write;
     }
     switch (t) {
-    case -6: x = onoff(token); break;
-    case -5: x = bvmode(toupper(*token)); break;
-    case -4: x = is_stat(token); break;
-    case -3: x = spell(token); break;
-    case -2: x = rdmode(toupper(*token)); break;
-    case -1: x = antype(token); break;
-    case PROOM: x = isroom(token); break;
-    case PVERB: x = is_verb(token); break;
-    case PADJ: break;
+    case -6:
+        x = onoff(token);
+        break;
+    case -5:
+        x = bvmode(toupper(*token));
+        break;
+    case -4:
+        x = is_stat(token);
+        break;
+    case -3:
+        x = spell(token);
+        break;
+    case -2:
+        x = rdmode(toupper(*token));
+        break;
+    case -1:
+        x = antype(token);
+        break;
+    case PROOM:
+        x = isroom(token);
+        break;
+    case PVERB:
+        x = is_verb(token);
+        break;
+    case PADJ:
+        break;
     case -70:
-    case PNOUN: x = isnounh(token); break;
-    case PUMSG: x = getTextString(token, true); break;
-    case PNUM: x = chknum(token); break;
-    case PRFLAG: x = isrflag(token); break;
-    case POFLAG: x = isoflag1(token); break;
-    case PSFLAG: x = isoflag2(token); break;
-    case PSEX: x = isgen(toupper(*token)); break;
+    case PNOUN:
+        x = isnounh(token);
+        break;
+    case PUMSG:
+        x = getTextString(token, true);
+        break;
+    case PNUM:
+        x = chknum(token);
+        break;
+    case PRFLAG:
+        x = isrflag(token);
+        break;
+    case POFLAG:
+        x = isoflag1(token);
+        break;
+    case PSFLAG:
+        x = isoflag2(token);
+        break;
+    case PSEX:
+        x = isgen(toupper(*token));
+        break;
     case PDAEMON:
         if ((x = is_verb(token)) == -1 || *token != '.')
             x = -1;
@@ -1192,7 +1228,7 @@ title_proc()
     getBlockNo("timescale=", &g_gameConfig.timeScale);
 
     // Make message 0 be the splash screen
-    if (TextStringFromFile("$title", ifp, STRING_MESSAGE, NULL) != 0) {
+    if (TextStringFromFile("$title", ifp, STRING_FILE, NULL) != 0) {
         alog(AL_FATAL, "Could not write splash text to message file");
     }
 }
@@ -1731,10 +1767,18 @@ objs_proc()
                     continue;
                 }
                 switch (bitset(idNo)) {
-                case OP_ADJ: set_adj(); break;
-                case OP_START: set_start(); break;
-                case OP_HOLDS: set_holds(); break;
-                case OP_PUT: set_put(); break;
+                case OP_ADJ:
+                    set_adj();
+                    break;
+                case OP_START:
+                    set_start();
+                    break;
+                case OP_HOLDS:
+                    set_holds();
+                    break;
+                case OP_PUT:
+                    set_put();
+                    break;
                 case OP_MOB:
                     set_mob();
                     g_gameInfo.numMobs++;
@@ -2188,26 +2232,38 @@ lang_proc()
         switch (n) {
         case WADJ:
         /* Need ISADJ() - do TT entry too */
-        case WNOUN: s = isnoun(Word); break;
-        case WPREP: s = isprep(Word); break;
+        case WNOUN:
+            s = isnoun(Word);
+            break;
+        case WPREP:
+            s = isprep(Word);
+            break;
         case WPLAYER:
             if (strcmp(Word, "me") == 0 || strcmp(Word, "myself") == 0)
                 s = -3;
             break;
-        case WROOM: s = isroom(Word); break;
+        case WROOM:
+            s = isroom(Word);
+            break;
         case WSYN:
             alog(AL_WARN, "Synonyms not supported yet");
             s = WANY;
             break;
-        case WTEXT: s = getTextString(Word, false); break;
-        case WVERB: s = is_verb(Word); break;
-        case WCLASS: s = WANY;
+        case WTEXT:
+            s = getTextString(Word, false);
+            break;
+        case WVERB:
+            s = is_verb(Word);
+            break;
+        case WCLASS:
+            s = WANY;
         case WNUMBER:
             if (Word[0] == '-')
                 s = atoi(Word + 1);
             else
                 s = atoi(Word);
-        default: alog(AL_ERROR, "Internal Error: Invalid w-type");
+        default:
+            alog(AL_ERROR, "Internal Error: Invalid w-type");
         }
 
         if (n == WNUMBER && (s > 100000 || -s > 100000)) {
@@ -2715,7 +2771,7 @@ compilerModuleStart(struct Module *module)
     alog(AL_DEBUG, "Check DMoves  : %s", checkDmoves ? "true" : "false");
     alog(AL_DEBUG, "Reuse Rooms   : %s", reuseRoomData ? "true" : "false");
 
-	struct stat sb;
+    struct stat sb;
 
     for (const struct CompilePhase *phase = &phases[0]; phase->name; ++phase) {
         if (phase->isText == false)
@@ -2741,7 +2797,7 @@ compilerModuleClose(struct Module *module, error_t err)
     CloseOutFiles();
     CloseFile(&ifp);
 
-	// If we didn't complete compilation, delete the profile file.
+    // If we didn't complete compilation, delete the profile file.
     if (err != 0 || !exiting) {
         UnlinkGameFile(gameDataFile);
     }

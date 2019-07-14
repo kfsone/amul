@@ -11,15 +11,11 @@ AlwaysBreakTemplateDeclarations: true
 AlignAfterOpenBracket: AlwaysBreak
 AlwaysBreakAfterReturnType: TopLevelDefinitions
 FixNamespaceComments: true
-AlignConsecutiveDeclarations: true
 BreakBeforeBraces: Linux
 AllowShortIfStatementsOnASingleLine: false
-AllowShortBlocksOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: true
 SpacesBeforeTrailingComments: 2
 BreakBeforeInheritanceComma: true
-AllowShortCaseLabelsOnASingleLine: true
 BreakInheritanceList: BeforeComma
 BreakConstructorInitializers: BeforeComma
 CompactNamespaces: true
@@ -27,10 +23,16 @@ ContinuationIndentWidth: 8
 ConstructorInitializerIndentWidth: 4
 IndentPPDirectives: AfterHash
 KeepEmptyLinesAtTheStartOfBlocks: false
-AlignConsecutiveAssignments: false
-AlwaysBreakBeforeMultilineStrings: true
 ColumnLimit: 100
+AlignConsecutiveDeclarations: true
 ...
+#AllowShortBlocksOnASingleLine: true
+#AllowShortFunctionsOnASingleLine: true
+#AllowShortCaseLabelsOnASingleLine: true
+#AlignConsecutiveAssignments: false
+#AlwaysBreakBeforeMultilineStrings: true
+
+
 #AllowAllParametersOfDeclarationOnNextLine: false
 #ConstructorInitializerAllOnOneLineOrOnePerLine: true
 #DerivePointerAlignment: false

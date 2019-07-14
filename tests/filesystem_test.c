@@ -1,5 +1,5 @@
-#include <h/amul.file.h>
 #include <h/amul.test.h>
+#include <src/filesystem.h>
 
 void
 test_path_copy(struct TestContext *t)
@@ -74,10 +74,9 @@ test_path_joiner(struct TestContext *t)
     EXPECT_SUCCESS(path_joiner(filepath, ".", "title.txt"));
     EXPECT_STR_EQUAL(filepath, "./title.txt");
 
-	char gameDir[MAX_PATH_LENGTH] = "c:\\users\\oliver\\\\//";
+    char gameDir[MAX_PATH_LENGTH] = "c:\\users\\oliver\\\\//";
     EXPECT_SUCCESS(gamedir_joiner("\\precious\\rooms.txt"));
     EXPECT_STR_EQUAL(filepath, "c:/users/oliver/precious/rooms.txt");
-
 }
 
 void

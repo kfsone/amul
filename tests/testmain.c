@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-test_harness_fn hashmap_tests;
+test_harness_fn buffer_tests;
 test_harness_fn filesystem_tests;
+test_harness_fn hashmap_tests;
 test_harness_fn modules_tests;
 
 void
@@ -24,8 +25,9 @@ main(int argc, const char **argv)
 {
     struct TestContext context = {argc, argv, NULL, false, 0, 0, 0};
 
-    harness("hashmap", hashmap_tests, &context);
+    harness("buffer", buffer_tests, &context);
     harness("filesystem", filesystem_tests, &context);
+    harness("hashmap", hashmap_tests, &context);
     harness("modules", modules_tests, &context);
 
     printf("SUCCESS: %zu/%zu tests passed, %zu evaluations\n", context.passes, context.tests,
