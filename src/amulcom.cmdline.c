@@ -1,55 +1,24 @@
-// Runtime environment (command line, shutdown, etc) functions
-
-#include <string.h>
+#include <stdio.h>
 #include <sys/stat.h>
+#if defined(_MSC_VER)
+#    include <direct.h>
+#else
+#    include <unistd.h>
+#endif
 
 #include "amulcom.h"
-#include "amulcom.runtime.h"
-#include "amulcom.strings.h"  // for CloseStrings();
-
 #include "modules.h"
 #include "system.h"
 
-#include <h/amul.alog.h>
 #include <h/amul.argp.h>
-#include <h/amul.cons.h>
-
-#if defined(_MSC_VER)
-#include <direct.h>
-#else
-#include <unistd.h>
-#endif
-
-FILE *ifp, *ofp1, *ofp2, *ofp3, *ofp4, *ofp5, *afp;
-
-bool exiting;
-bool reuseRoomData;
-bool checkDmoves;
-
-void
-CloseOutFiles()
-{
-    CloseFile(&ofp1);
-    CloseFile(&ofp2);
-    CloseFile(&ofp3);
-    CloseFile(&ofp4);
-    CloseFile(&ofp5);
-    CloseFile(&afp);
-}
-
-void
-terminate(error_t err)
-{
-    CloseModules(err);
-    exit(err);
-}
+#include <h/amul.alog.h>
 
 // For systems that support it: CTRL-C handler.
 void
 CXBRK()
 {
     fprintf(stderr, "*** CTRL-C pressed: terminating\n");
-    terminate(EINTR);
+    Terminate(EINTR);
 }
 
 error_t
@@ -123,14 +92,14 @@ ParseCommandLine(const struct CommandLine *cmdline)
             return misuse(argv, "Not a directory", gameDir, EINVAL);
     }
 
-    char    pwd[MAX_PATH_LENGTH];
-	if (getcwd(pwd, sizeof(pwd)) == NULL) {
+    char pwd[MAX_PATH_LENGTH];
+    if (getcwd(pwd, sizeof(pwd)) == NULL) {
         alog(AL_FATAL, "Cannot get CWD");
-	}
-	if (strncmp(gameDir, "./", 2) == 0) {
+    }
+    if (strncmp(gameDir, "./", 2) == 0) {
         path_concater(pwd, gameDir + 2);
         gameDir[0] = 0;
-	}
+    }
     if (gameDir[0] == 0 || strcmp(gameDir, ".") == 0) {
         path_copier(gameDir, pwd);
     }
@@ -149,30 +118,5 @@ initCommandLine(const struct Module *module)
 error_t
 InitCommandLine(const struct CommandLine *cmdline)
 {
-    return NewModule(false, MOD_CMDLINE, initCommandLine, NULL, NULL, (void*)cmdline, NULL);
-}
-
-error_t
-runtimeModuleStart(struct Module *module)
-{
-    alog(AL_DEBUG, "Game Directory: %s", gameDir);
-    alog(AL_DEBUG, "Log Verbosity : %s", alogGetLevelName());
-    alog(AL_DEBUG, "Check DMoves  : %s", checkDmoves ? "true" : "false");
-    alog(AL_DEBUG, "Reuse Rooms   : %s", reuseRoomData ? "true" : "false");
-    return 0;
-}
-
-error_t
-runtimeModuleClose(struct Module *module, error_t err)
-{
-    CloseOutFiles();
-    CloseFile(&ifp);
-
-    return 0;
-}
-
-error_t
-InitRuntimeModule()
-{
-    return NewModule(true, MOD_RUNTIME, NULL, runtimeModuleStart, runtimeModuleClose, NULL, NULL);
+    return NewModule(false, MOD_CMDLINE, initCommandLine, NULL, NULL, (void *)cmdline, NULL);
 }

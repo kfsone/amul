@@ -1,12 +1,12 @@
 #include "amulcom.strings.h"
 #include "amulcom.h"
+#include "modules.h"
 
 #include <h/amul.alog.h>
+#include <h/amul.cons.h>
 #include <h/amul.hash.h>
 #include <h/amul.test.h>
 #include <h/amul.xtra.h>
-
-static const char *strings_file = "strings.amulc";
 
 static FILE *          stringFP;
 static struct HashMap *stringIDs;  // string name -> {stypes and position in file}
@@ -44,24 +44,40 @@ testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *e
 }
 
 error_t
-InitStrings()
+initStringModule(struct Module* module)
 {
-    REQUIRE(stringFP == NULL);
+    REQUIRE(!stringFP);
+    return 0;
+}
 
+error_t
+startStringModule(struct Module *module)
+{
     error_t err = NewHashMap(1024, &stringIDs);
     if (err != 0)
         alog(AL_FATAL, "Unable to create string table");
 
-    stringFP = OpenGameFile(strings_file, "r");  // Note: text mode, translate \r please
+    stringFP = OpenGameFile(stringTextFile, "w");  // Note: text mode, translate \r please
+    REQUIRE(stringFP);
 
     return 0;
 }
 
-void
-CloseStrings()
+error_t
+closeStringModule(struct Module *module, error_t err)
 {
     CloseFile(&stringFP);
     CloseHashMap(&stringIDs);
+
+	return 0;
+}
+
+error_t
+InitStrings()
+{
+    NewModule(
+            false, MOD_STRINGS, NULL, startStringModule, closeStringModule, NULL, NULL);
+    return 0;
 }
 
 #define check_write_str(op, buffer, length, fp)                                                    \
@@ -112,21 +128,24 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
     while (!feof(fp)) {
         char *p = fgets(line, sizeof(line), fp);
         if (p == NULL)
-            break;
-        if (*p == '\n')
-            break;
-		if (!indent && *p) {
-            indent = *p;
-		}
-        if (isspace(*p) && *p == indent) {
-            p++;
+            continue;
+        const char *end = p;
+		if (*p != '\n') {
+            if (!indent && *p) {
+                indent = *p;
+            }
+            if (isspace(*p) && *p == indent) {
+                p++;
+            }
+            end = strstop(p, '\n');
+            if (end > p && *(end - 1) == '{')
+                --end;
         }
-        const char *end = strstop(p, '\n');
-        if (end > p && *(end - 1) == '{')
-            --end;
-        check_write_str("text line", p, end - p, fp);
+        if (*end == '\n')
+            ++end;
+        check_write_str("text line", p, end - p, stringFP);
     }
-    check_write_str("eol", "", 1, fp);
+    check_write_str("eos", "", 1, stringFP);
 
     if (idp)
         *idp = entry.offset;

@@ -29,7 +29,6 @@
 */
 
 #include "amulcom.h"
-#include "amulcom.runtime.h"
 #include "amulcom.strings.h"
 
 #include "modules.h"
@@ -68,7 +67,6 @@ int    dmoves = 0; /* How many DMOVEs to check?	*/
 int    rmn = 0;    /* Current room no.		*/
 size_t FPos;       /* Used during TT/Lang writes	*/
 char   Word[64];   /* For internal use only <grin>	*/
-int    errorCount; /* Number of AL_ERRORs logged */
 int    proc;       /* What we are processing	*/
 char * syntab;     /* Synonym table, re-read	*/
 long   wizstr;     /* Wizards strength		*/
@@ -79,16 +77,29 @@ char block[1024];  // scratch pad
 
 struct _OBJ_STRUCT *obtab2, *objtab2, obj2, *osrch, *osrch2;
 
-#if defined(_AMIGA_)
-long ohd; /* Output handle for direct dos	*/
-#endif
-
 // counters
 struct GameInfo   g_gameInfo;
 struct GameConfig g_gameConfig;
 
+FILE *ifp, *ofp1, *ofp2, *ofp3, *ofp4, *ofp5, *afp;
+
+bool exiting;
+bool reuseRoomData;
+bool checkDmoves;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+void
+CloseOutFiles()
+{
+    CloseFile(&ofp1);
+    CloseFile(&ofp2);
+    CloseFile(&ofp3);
+    CloseFile(&ofp4);
+    CloseFile(&ofp5);
+    CloseFile(&afp);
+}
 
 void
 checkErrorCount()
@@ -536,8 +547,8 @@ chkline(const char *p)
 void
 statinv(const char *s)
 {
-    alog(AL_FATAL, "Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameInfo.numNouns + 1, obj2.id, s,
-         block);
+    alog(AL_FATAL, "Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameInfo.numNouns + 1,
+         obj2.id, s, block);
 }
 
 int
@@ -1165,20 +1176,20 @@ title_proc()
     nextc(true);
 
     getBlock("name=", _getAdventureName);
-    getBlockNo("gametime=", &g_gameConfig.gameDuration_m);
+    getBlockNo("resettime=", &g_gameConfig.gameDuration_m);
     if (g_gameConfig.gameDuration_m < 15) {
         g_gameConfig.gameDuration_m = 15;
-        alog(AL_WARN, "gametime= too short: falling back to %" PRIu64 " minutes",
+        alog(AL_WARN, "resettime= too short: falling back to %" PRIu64 " minutes",
              g_gameConfig.gameDuration_m);
     }
 
-    getBlockNo("invisible=", &g_gameConfig.seeInvisRank);
-    getBlockNo("super invisible=", &g_gameConfig.seeSuperInvisRank);
+    getBlockNo("seeinvis=", &g_gameConfig.seeInvisRank);
+    getBlockNo("seesuperinvis=", &g_gameConfig.seeSuperInvisRank);
 
-    getBlockNo("min sgo=", &g_gameConfig.superGoRank);
+    getBlockNo("sgorank=", &g_gameConfig.superGoRank);
 
     getBlockNo("rankscale=", &g_gameConfig.rankScale);
-    getBlockNo("rankscale=", &g_gameConfig.timeScale);
+    getBlockNo("timescale=", &g_gameConfig.timeScale);
 
     // Make message 0 be the splash screen
     if (TextStringFromFile("$title", ifp, STRING_MESSAGE, NULL) != 0) {
@@ -1253,10 +1264,33 @@ saveRoomDmove(const char *dmove)
     /// TODO: Implement
 }
 
+void
+load_rooms()
+{
+    fopenr(roomDataFile);  // load rooms
+    if (reuseRoomData) {
+        fseek(ifp, 0, SEEK_END);
+        g_gameInfo.numRooms = ftell(ifp) / sizeof(*rmtab);
+        fseek(ifp, 0, SEEK_SET);
+        rewind(ifp);
+    }
+    rmtab = (struct _ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameInfo.numRooms);
+    if (rmtab == NULL) {
+        alog(AL_FATAL, "Out of memory for room id table");
+    }
+    size_t roomsInFile = fread(rmtab, sizeof(*rmtab), g_gameInfo.numRooms, ifp);
+    if (roomsInFile != g_gameInfo.numRooms) {
+        alog(AL_FATAL, "Room table appears to be corrupted. Recompile.");
+    }
+}
+
 // Process ROOMS.TXT
 void
 room_proc()
 {
+    if (reuseRoomData)
+        return;
+
     nextc(true);
 
     fopenw(roomDataFile);
@@ -1324,6 +1358,8 @@ room_proc()
 void
 checkdmoves()
 {
+    if (!checkDmoves || dmoves == 0)
+        return;
     /// TODO: Check dmoves
 }
 
@@ -1345,7 +1381,8 @@ rank_proc()
             continue;
 
         if (strlen(Word) < 3 || p - block > RANKL) {
-            alog(AL_FATAL, "Rank %" PRIu64 ": Invalid male rank: %s", g_gameInfo.numRanks + 1, Word);
+            alog(AL_FATAL, "Rank %" PRIu64 ": Invalid male rank: %s", g_gameInfo.numRanks + 1,
+                 Word);
         }
         int n = 0;
         do {
@@ -1675,7 +1712,7 @@ objs_proc()
         obj2.contains = 0;
         obj2.flags = 0;
         obj2.putto = 0;
-        obj2.rmlist = (roomid_t*)ftell(ofp3);
+        obj2.rmlist = (roomid_t *)ftell(ofp3);
         strncpy(obj2.id, Word, sizeof(obj2.id));
         /// TODO: Register noun
 
@@ -1772,6 +1809,7 @@ void
 trav_proc()
 {
     int strip, i;
+    proc = 0;
 
     nextc(true); /* Move to first text */
     fopenw(travelTableFile);
@@ -1932,7 +1970,7 @@ trav_proc()
 
             // this is some weird-ass kind of encoding where -1 means "more", and "-2" means "last"
             for (int verbNo = 0; verbNo < ttNumVerbs; ++verbNo) {
-				opparam_t paramid = (verbNo + 1 < ttNumVerbs) ? -1 : -2;
+                opparam_t paramid = (verbNo + 1 < ttNumVerbs) ? -1 : -2;
                 tt.pptr = (opparam_t *)(uintptr_t)paramid;
                 tt.verb = verbsUsed[verbNo];
                 fwrite(&tt.verb, sizeof(tt), 1, ofp1);
@@ -1949,7 +1987,7 @@ trav_proc()
     }
     while (!feof(ifp))
         ;
-    if (errorCount == 0 && ntt != g_gameInfo.numRooms) {
+    if (al_errorCount == 0 && ntt != g_gameInfo.numRooms) {
         roomtab = rmtab;
         for (i = 0; i < g_gameInfo.numRooms; i++, roomtab++) {
             if (roomtab->tabptr == -1 && (roomtab->flags & DEATH) != DEATH) {
@@ -2277,7 +2315,7 @@ lang_proc()
 
         vbslot.ents++;
         r = -1;
-        vt.pptr = (opparam_t*)FPos;
+        vt.pptr = (opparam_t *)FPos;
 
         /* Process the condition */
     notloop:
@@ -2574,40 +2612,6 @@ mob_proc1()
 
 /*---------------------------------------------------------*/
 
-void
-checkFileExists(char *filename)
-{
-    struct stat sb;
-
-    char filepath[MAX_PATH_LENGTH];
-    safe_gamedir_joiner(filename);
-
-    int err = stat(filepath, &sb);
-    if (err != 0)
-        alog(AL_FATAL, "Missing file (%d): %s", err, filepath);
-}
-
-void
-checkFilesExist()
-{
-    alog(AL_INFO, "Checking for files");
-
-    checkFileExists("Title.TXT");
-    checkFileExists("Rooms.TXT");
-    checkFileExists("Ranks.TXT");
-    checkFileExists("Obdescs.TXT");
-    checkFileExists("Objects.TXT");
-    checkFileExists("Lang.TXT");
-    checkFileExists("Travel.TXT");
-    checkFileExists("SysMsg.TXT");
-    checkFileExists("UMsg.TXT");
-    checkFileExists("Reset.TXT");
-    checkFileExists("Syns.TXT");
-    checkFileExists("Mobiles.TXT");
-
-    alog(AL_INFO, "All files found");
-}
-
 /*
 struct Context {
     const char  filename[512];
@@ -2634,22 +2638,49 @@ NewContext(const char *filename)
 }
 */
 
+struct CompilePhase {
+    const char *name;
+    bool        isText;
+    void (*handler)();
+};
+
+struct CompilePhase phases[] = {
+        {"title", true, title_proc},      // game "title" (and config)
+        {"sysmsg", true, smsg_proc},      // system messages
+        {"umsg", false, umsg_proc},       // user-defined string messages
+        {"obdescs", true, obds_proc},     // object description strings
+        {"rooms", true, room_proc},       // room table
+        {"roomread", false, load_rooms},  // re-load room table
+        {"dmoves", false, checkdmoves},   // check cemeteries
+        {"ranks", false, rank_proc},      // rank table
+        {"mobiles", true, mob_proc1},     // npc classes so we can apply to objects
+        {"objects", true, objs_proc},     // objects
+        {"lang", true, lang_proc},        // language
+        {"travel", true, trav_proc},      // travel table
+        {"syns", true, syn_proc},         // synonyms for other things
+        {NULL, false, NULL}               // terminator
+};
+
 void
-compileSection(const char *name, bool isText, void (*procFn)())
+compilePhase(const struct CompilePhase *phase)
 {
-    alog(AL_NOTE, "Compiling: %s", name);
-    if (isText) {
+    alog(AL_INFO, "Compiling: %s", phase->name);
+    if (phase->isText) {
         char filename[MAX_PATH_LENGTH];
-        snprintf(filename, sizeof(filename), "%s.txt", name);
+        snprintf(filename, sizeof(filename), "%s.txt", phase->name);
         ifp = OpenGameFile(filename, "r");
     }
-    procFn();
+
+    phase->handler();
+
     if (ifp) {
         fclose(ifp);
         ifp = NULL;
     }
+
     CloseOutFiles();
-    if (errorCount > 0) {
+
+    if (al_errorCount > 0) {
         alog(AL_FATAL, "Terminating due to errors.");
     }
 }
@@ -2657,62 +2688,9 @@ compileSection(const char *name, bool isText, void (*procFn)())
 void
 compileGame()
 {
-    // title section defines the core game parameters, so we check it first
-    compileSection("title", true, title_proc);
-
-    // next check the system message file because this probably won't change
-    // often and so should be fairly fire-and-forget
-    compileSection("sysmsg", true, smsg_proc);
-
-    // Next, rooms, they're kind of fundamental
-    if (!reuseRoomData) {
-        compileSection("rooms", true, room_proc);
+    for (size_t phaseNo = 0; phases[phaseNo].name; ++phaseNo) {
+        compilePhase(&phases[phaseNo]);
     }
-    fopenr(roomDataFile); /* Check DMOVE ptrs */
-    if (reuseRoomData) {
-        fseek(ifp, 0, SEEK_END);
-        g_gameInfo.numRooms = ftell(ifp) / sizeof(*rmtab);
-        fseek(ifp, 0, SEEK_SET);
-        rewind(ifp);
-    }
-    rmtab = (struct _ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameInfo.numRooms);
-    if (rmtab == NULL) {
-        alog(AL_FATAL, "Out of memory for room id table");
-    }
-    size_t roomsInFile = fread(rmtab, sizeof(*rmtab), g_gameInfo.numRooms, ifp);
-    if (roomsInFile != g_gameInfo.numRooms) {
-        alog(AL_FATAL, "Room table appears to be corrupted. Recompile.");
-    }
-    if (checkDmoves && dmoves != 0) {
-        compileSection("DMOVEs", false, checkdmoves);
-    }
-
-    // list of available player ranks
-    compileSection("ranks", true, rank_proc);
-
-    // user-defined messages next so that we can reference them in
-    // subsequent files.
-    compileSection("umsg", true, umsg_proc);
-
-    // descriptions of npc classes (aka mobiles) needs to come
-    // next so we can imbue objects with them later
-    compileSection("mobiles", true, mob_proc1);
-
-    // long and shared object descriptions
-    compileSection("obdescs", true, obds_proc);
-
-    // the actual object definitions
-    compileSection("objects", true, objs_proc);
-
-    // now we can declare language structure, esp verbs
-    compileSection("lang", true, lang_proc);
-    proc = 0;  // done processing language
-
-    // compile the links between rooms
-    compileSection("travel", true, trav_proc);
-
-    // define synonyms (aliases)
-    compileSection("syns", true, syn_proc);
 }
 
 error_t
@@ -2731,23 +2709,57 @@ compilerModuleStart(struct Module *module)
     mytask = FindTask(0L);
     mytask->tc_Node.ln_Name = compilerVersion;
     alog(AL_INFO, "AMUL Compiler %s", compilerVersion);
+
+    alog(AL_DEBUG, "Game Directory: %s", gameDir);
+    alog(AL_DEBUG, "Log Verbosity : %s", alogGetLevelName());
+    alog(AL_DEBUG, "Check DMoves  : %s", checkDmoves ? "true" : "false");
+    alog(AL_DEBUG, "Reuse Rooms   : %s", reuseRoomData ? "true" : "false");
+
+	struct stat sb;
+
+    for (const struct CompilePhase *phase = &phases[0]; phase->name; ++phase) {
+        if (phase->isText == false)
+            continue;
+
+        char filename[MAX_PATH_LENGTH];
+        snprintf(filename, sizeof(filename), "%s.txt", phase->name);
+
+        char filepath[MAX_PATH_LENGTH];
+        safe_gamedir_joiner(filename);
+
+        int err = stat(filepath, &sb);
+        if (err != 0)
+            alog(AL_FATAL, "Missing file (%d): %s", err, filepath);
+    }
+
     return 0;
 }
 
 error_t
 compilerModuleClose(struct Module *module, error_t err)
 {
-    // If we didn't complete compilation, delete the profile file.
-    if (err != 0) {
+    CloseOutFiles();
+    CloseFile(&ifp);
+
+	// If we didn't complete compilation, delete the profile file.
+    if (err != 0 || !exiting) {
         UnlinkGameFile(gameDataFile);
     }
 
-    ReleaseMem((void**)&obtab2);
-    ReleaseMem((void**)&vbtab);
-    ReleaseMem((void**)&mobp);
-    ReleaseMem((void**)&rmtab);
+    ReleaseMem((void **)&obtab2);
+    ReleaseMem((void **)&vbtab);
+    ReleaseMem((void **)&mobp);
+    ReleaseMem((void **)&rmtab);
 
     return 0;
+}
+
+void
+InitCompilerModule()
+{
+    NewModule(
+            false, MOD_COMPILER, compilerModuleInit, compilerModuleStart, compilerModuleClose, NULL,
+            NULL);
 }
 
 /*---------------------------------------------------------*/
@@ -2755,19 +2767,11 @@ compilerModuleClose(struct Module *module, error_t err)
 error_t
 amulcom_main()
 {
-    InitRuntimeModule();
-    NewModule(
-            false, MOD_COMPILER, compilerModuleInit, compilerModuleStart, compilerModuleClose, NULL,
-            NULL);
+    InitStrings();
+
+    InitCompilerModule();
 
     StartModules();
-
-#if defined(_AMIGA_)
-    ohd = Output();
-#endif
-
-    /* Check the files/directories */
-    checkFilesExist();
 
     compileGame();
 

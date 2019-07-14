@@ -12,6 +12,7 @@ typedef error_t (*moduleclose_fn)(struct Module *, error_t);
 enum ModuleID {
     MOD_LOGGING = 1,
     MOD_CMDLINE,
+    MOD_STRINGS,
     MOD_RUNTIME,
     MOD_COMPILER,
 

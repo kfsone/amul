@@ -19,13 +19,6 @@ harness(const char *name, test_harness_fn fn, struct TestContext *t)
     t->tearDown = NULL;
 }
 
-void
-terminate(int err)
-{
-    fprintf(stderr, "terminate called with %d\n", err);
-    abort();
-}
-
 int
 main(int argc, const char **argv)
 {

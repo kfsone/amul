@@ -36,6 +36,7 @@ extern const char *   syntax[NSYNTS];
 extern const uint16_t syntl[NSYNTS];
 
 extern const char *gameDataFile;
+extern const char *stringTextFile;
 extern const char *roomDataFile;
 extern const char *rankDataFile;
 extern const char *travelTableFile;

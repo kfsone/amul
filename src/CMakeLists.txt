@@ -21,15 +21,14 @@ SET(AMUL_LIB_HEADERS
 
 SET(AMULCOM_SOURCES
         amulcom.c
+		amulcom.cmdline.c
         amulcom.main.c
 		amulcom.extras.c
-		amulcom.runtime.c
 		amulcom.strings.c
 )
 
 SET(AMULCOM_HEADERS
         amulcom.h
-		amulcom.runtime.h
 		amulcom.strings.h
 
         ${AMUL_HEADERS}

@@ -26,8 +26,15 @@ bool s_modulesClosed;
 
 static const char *moduleNames[MAX_MODULE_ID] = {
         // hard-coded names for modules
-        "INVALID", "logging", "cmdline", "runtime", "compiler",
+        "INVALID", "logging", "cmdline", "strings", "runtime", "compiler",
 };
+
+void
+Terminate(error_t err)
+{
+    CloseModules(err);
+    exit(err);
+}
 
 void
 InitModules()
@@ -48,8 +55,11 @@ StartModules()
         if (cur->start) {
             alog(AL_DEBUG, "Starting Module #%d: %s", cur->id, cur->name);
             error_t err = cur->start(cur);
-            if (err != 0)
-                return err;
+            if (err != 0) {
+                alog(AL_ERROR, "Module initialization failed: aborting.");
+                DEBUG_BREAK;
+                Terminate(err);
+            }
         }
     }
     return 0;
