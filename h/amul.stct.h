@@ -94,7 +94,7 @@ struct _VBTAB /* Verb Table struct */
 {
     int32_t  condition; /* Condition		 */
     int32_t  action;    /* #>0=action, #<0=room  */
-    int32_t *pptr;      /* Param ptr. -1 = none  */
+    opparam_t *pptr;      /* Param ptr. -1 = none  */
 };
 
 struct _RANK_STRUCT /* Rank information */

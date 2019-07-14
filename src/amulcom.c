@@ -1675,7 +1675,7 @@ objs_proc()
         obj2.contains = 0;
         obj2.flags = 0;
         obj2.putto = 0;
-        obj2.rmlist = (long *)ftell(ofp3);
+        obj2.rmlist = (roomid_t*)ftell(ofp3);
         strncpy(obj2.id, Word, sizeof(obj2.id));
         /// TODO: Register noun
 
@@ -1832,7 +1832,7 @@ trav_proc()
         roomtab->tabptr = t;
         roomtab->ttlines = 0;
     vbproc: /* Process verb list */
-        tt.pptr = (long *)-1;
+        tt.pptr = (opparam_t *)-1;
         p = block;
         ttNumVerbs = 0;  // number of verbs in this tt entry
         /* Break verb list down to verb no.s */
@@ -1932,7 +1932,8 @@ trav_proc()
 
             // this is some weird-ass kind of encoding where -1 means "more", and "-2" means "last"
             for (int verbNo = 0; verbNo < ttNumVerbs; ++verbNo) {
-                tt.pptr = verbNo + 1 == ttNumVerbs ? (long *)-2 : (long *)-1;
+				opparam_t paramid = (verbNo + 1 < ttNumVerbs) ? -1 : -2;
+                tt.pptr = (opparam_t *)(uintptr_t)paramid;
                 tt.verb = verbsUsed[verbNo];
                 fwrite(&tt.verb, sizeof(tt), 1, ofp1);
                 roomtab->ttlines++;
@@ -2276,7 +2277,7 @@ lang_proc()
 
         vbslot.ents++;
         r = -1;
-        vt.pptr = (long *)FPos;
+        vt.pptr = (opparam_t*)FPos;
 
         /* Process the condition */
     notloop:
@@ -2741,10 +2742,10 @@ compilerModuleClose(struct Module *module, error_t err)
         UnlinkGameFile(gameDataFile);
     }
 
-    ReleaseMem(&obtab2);
-    ReleaseMem(&vbtab);
-    ReleaseMem(&mobp);
-    ReleaseMem(&rmtab);
+    ReleaseMem((void**)&obtab2);
+    ReleaseMem((void**)&vbtab);
+    ReleaseMem((void**)&mobp);
+    ReleaseMem((void**)&rmtab);
 
     return 0;
 }

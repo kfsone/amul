@@ -6,12 +6,16 @@
 
 #include <h/amul.alog.h>
 
+#ifndef __has_builtin
+# define __has_builtin(x) 0
+#endif
+
 #if !defined(DEBUG_BREAK) && defined(_MSC_VER)
 #    define DEBUG_BREAK __debugbreak()
 #endif
 #if !defined(DEBUG_BREAK) && !defined(_MSC_VER)
-#    if defined(__has_builtin) && __has_builtin(__builtin_debugtrap)
-#        define DEBUG_BREAK __builting_debugtrap
+#    if __has_builtin(__builtin_debugtrap)
+#        define DEBUG_BREAK __builtin_debugtrap
 #    endif
 #    if !defined(DEBUG_BREAK) && defined(POSIX)
 #        include <signal.h>

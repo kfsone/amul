@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#if !defined(_MSC_VER)
+#include <unistd.h>		// for unlink
+#endif
+
 char gameDir[MAX_PATH_LENGTH];
 
 // File names

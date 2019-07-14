@@ -11,6 +11,7 @@
 #include "system.h"
 
 #include <h/amul.alog.h>
+#include <h/amul.argp.h>
 #include <h/amul.cons.h>
 
 FILE *ifp, *ofp1, *ofp2, *ofp3, *ofp4, *ofp5, *afp;
@@ -115,6 +116,8 @@ ParseCommandLine(const struct CommandLine *cmdline)
         if (S_ISREG(sb.st_mode))
             return misuse(argv, "Not a directory", gameDir, EINVAL);
     }
+
+	return 0;
 }
 
 error_t
@@ -129,6 +132,7 @@ runtimeModuleStart(struct Module *module){
     alog(AL_DEBUG, "Log Verbosity : %s", alogGetLevelName());
     alog(AL_DEBUG, "Check DMoves  : %s", checkDmoves ? "true" : "false");
     alog(AL_DEBUG, "Reuse Rooms   : %s", reuseRoomData ? "true" : "false");
+    return 0;
 }
 
 error_t

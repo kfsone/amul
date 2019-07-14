@@ -1,6 +1,5 @@
 #include <h/amul.cons.h>
 #include <h/amul.defs.h>
-#include <h/amul.incs.h>
 #include <h/amul.stct.h>
 
 const char *rflag[NRFLAGS] = {  // Remember to update amul.defs.h

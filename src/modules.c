@@ -30,18 +30,12 @@ static const char *moduleNames[MAX_MODULE_ID] = {
 };
 
 void
-InitModules(const struct CommandLine *cmdline)
+InitModules()
 {
     s_freeModules = &s_staticModules[0];
     for (size_t i = 1; i < NUM_STATIC_MODULES; ++i) {
         s_freeModules[i - 1].links.next = (struct DoubleLinkedNode *)&s_freeModules[i];
     }
-
-    InitLogging();
-
-    error_t err = InitCommandLine(cmdline);
-    if (err != 0)
-        exit(err);
 }
 
 error_t
@@ -175,7 +169,7 @@ CloseModule(struct Module *module, error_t err)
     memset(&module, 0, sizeof(module));
 
     if (module->allocd)
-        ReleaseMem(&module);
+        ReleaseMem((void**)&module);
     else {
         // Put me at the front of the free list
         module->links.next = s_freeModules->links.next;

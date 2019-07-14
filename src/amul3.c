@@ -23,7 +23,6 @@
 #define PORTS 1
 
 #include <h/amul.defs.h>
-#include <h/amul.incs.h>
 #include <h/amul.vars.h> /* all INTERNAL variables	*/
 
 #define dtx(x)                                                                                     \

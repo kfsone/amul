@@ -4,6 +4,7 @@
 #include <h/amul.list.h>
 #include <h/amul.type.h>
 
+struct Module;
 typedef error_t (*moduleinit_fn)(struct Module *);
 typedef error_t (*modulestart_fn)(struct Module *);
 typedef error_t (*moduleclose_fn)(struct Module *, error_t);
@@ -20,7 +21,7 @@ enum ModuleID {
 struct Module {
     struct DoubleLinkedNode links;
 
-    enum ModuleIDs id;
+    enum ModuleID id;
     const char *   name;
 
     moduleinit_fn  init;
@@ -32,13 +33,7 @@ struct Module {
     bool allocd;  // false if this is a static module object
 };
 
-struct CommandLine {
-    int          argc;
-    const char **argv;
-    const char **envp;
-};
-
-void           InitModules(const struct CommandLine *cmdline);
+void           InitModules();
 error_t        StartModules();
 void           CloseModules(error_t err);
 
