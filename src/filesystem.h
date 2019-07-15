@@ -8,9 +8,6 @@
 
 extern char gameDir[MAX_PATH_LENGTH];
 
-struct SourceFile;
-void CloseSourceFile(struct SourceFile **sourcefilep);
-
 void UnlinkGameFile(const char *gamefile);
 
 error_t PathCopy(char *into, size_t limit, size_t *offset, const char *path);

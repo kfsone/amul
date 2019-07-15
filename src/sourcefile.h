@@ -12,4 +12,7 @@ struct SourceFile {
     size_t         size;
 };
 
+extern error_t NewSourceFile(const char *filename, struct SourceFile **sourcefilep);
+extern void CloseSourceFile(struct SourceFile **sourcefilep);
+
 #endif

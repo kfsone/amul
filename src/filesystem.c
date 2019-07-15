@@ -211,9 +211,9 @@ NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
     if (err != 0)
         return ENOENT;
 
-    if (sb.st_size == 0) {
+    if (sb.st_size == 0)
         return ENODATA;
-    }
+
     s_sourceFile.size = sb.st_size;
 
     struct SourceFile *sourcefile = &s_sourceFile;
