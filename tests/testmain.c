@@ -3,6 +3,7 @@
 //
 // See README.md for instructions
 
+#include <h/amul.alog.h>
 #include <h/amul.test.h>
 
 testsuite_fn buffer_tests, filesystem_tests, hashmap_tests, modules_tests;

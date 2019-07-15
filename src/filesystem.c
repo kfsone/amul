@@ -138,6 +138,7 @@ error_t
 NewFileMapping(const char *filepath, void **datap, size_t size)
 {
     REQUIRE(filepath && datap && size);
+    REQUIRE(*datap == NULL);
 
     int fd = open(filepath, O_RDONLY);
     if (fd < 0)
@@ -154,13 +155,19 @@ NewFileMapping(const char *filepath, void **datap, size_t size)
     void *data = MapViewOfFile(maph, FILE_MAP_READ, 0, 0, 0);
     CloseHandle(maph);
 #else
-    const int flags = MAP_SHARED | MAP_DENYWRITE | MAP_FILE | MAP_POPULATE;
-    void *data = mmap(NULL, 0, PROT_READ,  flags, fd, 0);
+    const int flags = MAP_PRIVATE | MAP_DENYWRITE | MAP_FILE | MAP_POPULATE;
+    void *data = mmap(NULL, size, PROT_READ, flags, fd, 0);
+    if (data == MAP_FAILED) {
+        alog(AL_FATAL, "Failed to load file %s: %d: %s", filepath, errno, strerror(errno));
+        return errno;
+    }
     close(fd);
 #endif
 
-    if (data == NULL)
+    if (data == NULL) {
         alog(AL_FATAL, "Unable to load file %s", filepath);
+        return EINVAL;
+    }
 
     *datap = data;
 
@@ -184,7 +191,7 @@ struct SourceFile s_sourceFile;
 bool s_sourceFileInUse;
 
 error_t
-makeTextFileName(const char* filename, struct SourceFile *sourcefile)
+makeTextFileName(struct SourceFile *sourcefile, const char *filename)
 {
     char txtFilename[MAX_PATH_LENGTH];
     snprintf(txtFilename, sizeof(txtFilename), "%s.txt", filename);
@@ -192,31 +199,40 @@ makeTextFileName(const char* filename, struct SourceFile *sourcefile)
 }
 
 error_t
+GetFileSize(const char *filepath, size_t *sizep)
+{
+    REQUIRE(filepath && sizep);
+
+    struct stat sb = {0};
+    error_t err = stat(filepath, &sb);
+    if (err != 0)
+        return ENOENT;
+    *sizep = sb.st_size;
+    return 0;
+}
+
+error_t
 NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
 {
-    REQUIRE(filename && sourcefilep);
+    REQUIRE(filename && *filename && sourcefilep);
     if (s_sourceFileInUse)
         return ENFILE;
 
-    memset(&s_sourceFile, 0, sizeof(s_sourceFile));
+    struct SourceFile *sourcefile = &s_sourceFile;
+    memset(sourcefile, 0, sizeof(*sourcefile));
 
-    error_t err = makeTextFileName(filename, &s_sourceFile);
+    error_t err = makeTextFileName(sourcefile, filename);
     if (err != 0) {
         alog(AL_FATAL, "Full filename too long for %s/%s", gameDir, filename);
         return err;
     }
 
-    struct stat sb = {0};
-    err = stat(s_sourceFile.filepath, &sb);
+    err = GetFileSize(sourcefile->filepath, &sourcefile->size);
     if (err != 0)
-        return ENOENT;
-
-    if (sb.st_size == 0)
+        return err;
+    if (sourcefile->size == 0)
         return ENODATA;
 
-    s_sourceFile.size = sb.st_size;
-
-    struct SourceFile *sourcefile = &s_sourceFile;
     err = NewFileMapping(sourcefile->filepath, &sourcefile->mapping, sourcefile->size);
     if (err != 0) {
         CloseSourceFile(&sourcefile);

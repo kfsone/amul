@@ -1,6 +1,10 @@
 #include <h/amul.test.h>
 #include <src/filesystem.h>
 
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
+
 void
 test_path_copy(struct TestContext *t)
 {
@@ -80,14 +84,74 @@ test_path_joiner(struct TestContext *t)
 }
 
 void
-test_file_mapping(struct TestContext *t)
+test_get_file_size(struct TestContext *t)
 {
+    EXPECT_ERROR(EINVAL, GetFileSize(NULL, NULL));
+    EXPECT_ERROR(EINVAL, GetFileSize(t->argv[0], NULL));
+    size_t size = 0;
+    EXPECT_SUCCESS(GetFileSize(t->argv[0], &size));
+    EXPECT_FALSE(size == 0);
+
+    const char *datafile = "getfilesize_test_file1.txt";
+    unlink(datafile);
+    EXPECT_ERROR(ENOENT, GetFileSize(datafile, &size));
+
+    FILE *fp = fopen(datafile, "w");
+    EXPECT_NOT_NULL(fp);
+    fclose(fp);
+
+    EXPECT_SUCCESS(GetFileSize(datafile, &size));
+    EXPECT_VAL_EQUAL(0, size);
+
+    unlink(datafile);
+
+    // check nothing gets cached
+    EXPECT_ERROR(ENOENT, GetFileSize(datafile, &size));
+}
+
+void
+test_file_mapping_checks(struct TestContext *t)
+{
+    // all of these should produce contract failures
+    void *data = NULL;
     EXPECT_ERROR(EINVAL, NewFileMapping(NULL, NULL, 1));
     EXPECT_ERROR(EINVAL, NewFileMapping("", NULL, 1))
     EXPECT_ERROR(EINVAL, NewFileMapping("a", NULL, 1));
-
-    void *data = NULL;
     EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 0));
+    data = (void*)(uintptr_t)0xdeadbeef;
+    EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 1));
+}
+
+void
+test_file_mapping(struct TestContext *t)
+{
+    const char *datafile = "mapping_test_file1.txt";
+    const char *first = "Mapping test.";
+    const char *second = "Second sentence.";
+
+    FILE *fp = fopen(datafile, "w");
+    EXPECT_NOT_NULL(fp);
+    fprintf(fp, "%s %s", first, second);
+    fclose(fp);
+
+    size_t expectedSize = strlen(first) + 1 + strlen(second);
+    size_t size = 0;
+    EXPECT_SUCCESS(GetFileSize(datafile, &size));
+    EXPECT_VAL_EQUAL(expectedSize, size);
+
+    // with everything ready, make sure passing a 0 size fails.
+    void *data = NULL;
+    EXPECT_ERROR(EINVAL, NewFileMapping(datafile, &data, 0));
+    EXPECT_NULL(data);
+
+    EXPECT_SUCCESS(NewFileMapping(datafile, &data, size));
+    EXPECT_NOT_NULL(data);
+    EXPECT_SUCCESS(strncmp(first, data, strlen(first)));
+    unlink(datafile);
+
+    EXPECT_SUCCESS(strncmp(first, data, strlen(first)));
+    CloseFileMapping(&data, size);
+    EXPECT_NULL(data);
 }
 
 void
@@ -98,5 +162,7 @@ filesystem_tests(struct TestContext *t)
     RUN_TEST(test_path_join);
     RUN_TEST(test_path_join_constraints);
     RUN_TEST(test_path_joiner);
+    RUN_TEST(test_get_file_size);
+    RUN_TEST(test_file_mapping_checks);
     RUN_TEST(test_file_mapping);
 }
