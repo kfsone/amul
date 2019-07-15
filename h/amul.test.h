@@ -10,10 +10,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#ifndef HAVE_ERROR_T
-typedef int error_t;
-#define HAVE_ERROR_T
-#endif
+#include <h/amul.errs.h>
 
 #ifndef NDEBUG
 #    include <assert.h>
@@ -46,9 +43,7 @@ typedef int error_t;
 //
 // These only have any effect with NDEBUG is not defined, the same convention that assert.h uses.
 
-#ifndef NDEBUG
-
-// TestContext is passed to every test harness to provide them with the testing environment, such
+// TestContext is passed to every test suite to provide them with the testing environment, such
 // as command line, number of tests, etc, as well as a means to share data between tests
 // (userData) and to provide tearUp/tearDown functions for tests.
 
@@ -65,7 +60,9 @@ struct TestContext {
     void (*tearDown)(struct TestContext *);
 };
 
-typedef void(test_harness_fn)(struct TestContext *t);
+typedef void(testsuite_fn)(struct TestContext *t);
+
+#ifndef NDEBUG
 
 #    define LPRINTF(fmt, ...)                                                                      \
         fprintf(stderr, "\n%s:%d: error:%s: " fmt "\n", __FILE__, __LINE__, t->step,               \

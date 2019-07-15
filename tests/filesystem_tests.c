@@ -80,6 +80,17 @@ test_path_joiner(struct TestContext *t)
 }
 
 void
+test_file_mapping(struct TestContext *t)
+{
+    EXPECT_ERROR(EINVAL, NewFileMapping(NULL, NULL, 1));
+    EXPECT_ERROR(EINVAL, NewFileMapping("", NULL, 1))
+    EXPECT_ERROR(EINVAL, NewFileMapping("a", NULL, 1));
+
+    void *data = NULL;
+    EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 0));
+}
+
+void
 filesystem_tests(struct TestContext *t)
 {
     RUN_TEST(test_path_copy);
@@ -87,4 +98,5 @@ filesystem_tests(struct TestContext *t)
     RUN_TEST(test_path_join);
     RUN_TEST(test_path_join_constraints);
     RUN_TEST(test_path_joiner);
+    RUN_TEST(test_file_mapping);
 }

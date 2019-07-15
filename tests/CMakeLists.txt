@@ -1,10 +1,10 @@
 SET(TESTS_SOURCES
     testmain.c
 
-    buffer_test.c
-    filesystem_test.c
-    hashmap_test.c
-	modules_test.c
+    buffer_tests.c
+    filesystem_tests.c
+    hashmap_tests.c
+	module_tests.c
 )
 
 SET(TESTS_HEADERS

@@ -10,8 +10,18 @@ extern char gameDir[MAX_PATH_LENGTH];
 
 void UnlinkGameFile(const char *gamefile);
 
+// Create a memory mapping of a file.
+error_t NewFileMapping(const char *filepath, void **datap, size_t size);
+
+// Close a mapping
+void CloseFileMapping(void **datap, size_t length);
+
+// Copy and normalize a path into another location
 error_t PathCopy(char *into, size_t limit, size_t *offset, const char *path);
 #define path_copier(into, from) PathCopy(into, sizeof(into), 0, from)
+
+// Normalize and append one path onto another, adding a separator between them
+// if need be.
 static inline error_t
 _path_concater(char *into, size_t limit, const char *path)
 {

@@ -1,34 +1,47 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// kf1test : kfsone's homebrew C unit testing system
+//
+// See README.md for instructions
+
 #include <h/amul.test.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-test_harness_fn buffer_tests;
-test_harness_fn filesystem_tests;
-test_harness_fn hashmap_tests;
-test_harness_fn modules_tests;
+testsuite_fn buffer_tests, filesystem_tests, hashmap_tests, modules_tests;
 
-void
-harness(const char *name, test_harness_fn fn, struct TestContext *t)
-{
-    size_t passes = t->passes;
-    printf("%s...: ", name);
-    fflush(stdout);
-    fn(t);
-    printf("OK (%zu passes)\n", t->passes - passes);
-    t->userData = NULL;
-    t->tearUp = NULL;
-    t->tearDown = NULL;
-}
+static struct Suite {
+    const char *name;
+    testsuite_fn *suiteFn;
+} suites[] = {
+
+	// Each suite listed here must be registered via the test_suite_fn line above
+	{"buffer", 	    buffer_tests},
+	{"filesystem",  filesystem_tests},
+	{"hashmap", 	hashmap_tests},
+	{"modules", 	modules_tests},
+
+	{NULL, NULL},
+};
 
 int
 main(int argc, const char **argv)
 {
     struct TestContext context = {argc, argv, NULL, false, 0, 0, 0};
 
-    harness("buffer", buffer_tests, &context);
-    harness("filesystem", filesystem_tests, &context);
-    harness("hashmap", hashmap_tests, &context);
-    harness("modules", modules_tests, &context);
+    for (size_t i = 0; suites[i].suiteFn; ++i) {
+        // capture the current pass count so we can delta later.
+        size_t passes = context.passes;
+
+        printf("%s...: ", suites[i].name);
+        fflush(stdout);
+
+        suites[i].suiteFn(&context);
+
+        printf("OK (%zu passes)\n", context.passes - passes);
+        fflush(stdout);
+
+        context.userData = NULL;
+        context.tearUp = NULL;
+        context.tearDown = NULL;
+    }
 
     printf("SUCCESS: %zu/%zu tests passed, %zu evaluations\n", context.passes, context.tests,
            context.lineItems);
