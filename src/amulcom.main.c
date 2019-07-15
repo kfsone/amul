@@ -3,6 +3,7 @@
 
 #include <h/amul.argp.h>
 #include <h/amul.alog.h>
+#include <h/amul.test.h>
 
 int
 main(int argc, const char **argv)
@@ -11,11 +12,8 @@ main(int argc, const char **argv)
 
     InitModules();
 
-    InitLogging();
-
-    error_t err = InitCommandLine(&cmdline);
-    if (err != 0)
-        return err;
+	ERROR_CHECK(InitLogging());
+	ERROR_CHECK(InitCommandLine(&cmdline));
 
     error_t retval = amulcom_main();
 

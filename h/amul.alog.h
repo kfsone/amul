@@ -3,6 +3,11 @@
 
 #include <inttypes.h>
 
+#ifndef HAVE_ERROR_T
+typedef int error_t;
+#define HAVE_ERROR_T
+#endif
+
 #ifndef __has_builtin
 #    define __has_builtin(x) 0
 #endif
@@ -13,7 +18,7 @@
 #endif
 #if !defined(DEBUG_BREAK) && !defined(_MSC_VER)
 #    if __has_builtin(__builtin_debugtrap)
-#        define DEBUG_BREAK __builtin_debugtrap
+#        define DEBUG_BREAK __builtin_debugtrap()
 #    endif
 #    if !defined(DEBUG_BREAK) && defined(POSIX)
 #        include <signal.h>
@@ -46,6 +51,6 @@ void            alogLevel(enum LogLevel level);
 enum LogLevel   alogGetLevel();
 const char *    alogGetLevelName();
 
-void InitLogging();
+error_t InitLogging();
 
 #endif

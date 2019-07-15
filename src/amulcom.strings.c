@@ -80,8 +80,10 @@ InitStrings()
 }
 
 #define check_write_str(op, buffer, length, fp)                                                    \
-    if (fwrite(buffer, 1, (length), fp) != (length))                                               \
-    alog(AL_FATAL, "Unable to write %s", op)
+	do { \
+    if (fwrite(buffer, 1, (length), fp) != (length)) \
+    	alog(AL_FATAL, "Unable to write %s", op); \
+	} while (0)
 
 error_t
 AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
@@ -96,10 +98,11 @@ AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
     stringid_t id = getStringID(end - start);
 
     check_write_str("text string", start, end - start, stringFP);
-    if (isLine)
+    if (isLine) {
         check_write_str("newline", "\n", 2, stringFP);
-    else
+	} else {
         check_write_str("eos", "", 1, stringFP);
+	}
 
     *idp = id;
 
@@ -119,6 +122,7 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
     error_t              err = testLabelEntry(label, stype, &entry);
     if (err != ENOENT)
         return err;
+	entry.offset = id;
 
     char indent = 0;
     char line[2048];

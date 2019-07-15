@@ -134,6 +134,21 @@ UnlinkGameFile(const char *gamefile)
     }
 }
 
+static const int MMAP_FLAGS =
+			MAP_PRIVATE | 
+			MAP_FILE |
+#ifdef MAP_POPULATE
+			MAP_POPULATE |
+#endif
+#ifdef MAP_DENYWRITE
+			MAP_DENYWRITE |
+#endif
+#ifdef MAP_NOCACHE
+			MAP_NOCACHE |
+#endif
+			0
+;
+
 error_t
 NewFileMapping(const char *filepath, void **datap, size_t size)
 {
@@ -155,8 +170,7 @@ NewFileMapping(const char *filepath, void **datap, size_t size)
     void *data = MapViewOfFile(maph, FILE_MAP_READ, 0, 0, 0);
     CloseHandle(maph);
 #else
-    const int flags = MAP_PRIVATE | MAP_DENYWRITE | MAP_FILE | MAP_POPULATE;
-    void *data = mmap(NULL, size, PROT_READ, flags, fd, 0);
+    void *data = mmap(NULL, size, PROT_READ, MMAP_FLAGS, fd, 0);
     if (data == MAP_FAILED) {
         alog(AL_FATAL, "Failed to load file %s: %d: %s", filepath, errno, strerror(errno));
         return errno;

@@ -159,7 +159,7 @@ struct _TT_ENT /* TT Entry */
 
 struct _MOB  // Runtime definition of a monster
 {
-    uint16_t       dmove;                           /* Move to when it dies	*/
+    int16_t        dmove;                           /* Move to when it dies	*/
     char           deadstate;                       /* State flags		*/
     char           speed, travel, fight, act, wait; /* speed & %ages	*/
     char           fear, attack;                    /* others		*/

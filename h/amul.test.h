@@ -25,18 +25,20 @@
 
 // Tests a predicate to determine if input parameters are valid, else returns EINVAL
 #define REQUIRE(predicate)                                                                         \
-    if (!(predicate))                                                                              \
-    return EINVAL
+    do { if (!(predicate)) { return EINVAL; } } while (0)
+
+// If X returns an error, return that.
+#define ERROR_CHECK(predicate) \
+	do { error_t _err##__LINENO__ = (predicate); if (_err ## __LINENO__ != 0) return _err ## __LINENO__; } while (0)
 
 // Tests a predicate to determine if parameter constraints are met, else returns EDOM
 #define CONSTRAIN(predicate)                                                                       \
-    if (!(predicate))                                                                              \
-    return EDOM
+    do { if (!(predicate)) return EDOM; } while (0)
 
 // Tests a predicate to confirm that an allocation was successful, else returns ENOMEM
 #define CHECK_ALLOCATION(predicate)                                                                \
-    if (!(predicate))                                                                              \
-    return ENOMEM
+    do { if (!(predicate)) return ENOMEM; } while (0)
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Unit testing macros

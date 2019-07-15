@@ -51,10 +51,10 @@
 #include <h/amulcom.h>
 
 #include <fcntl.h>
-#include <malloc.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <alloca.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Variables
@@ -2494,7 +2494,7 @@ syn_proc()
             alog(AL_ERROR, "Invalid synonym line: %s", block);
             continue;
         }
-        uint16_t id = isnoun(Word);
+        int id = isnoun(Word);
         if (id < 0) {
             id = is_verb(Word);
             if (id == -1) {

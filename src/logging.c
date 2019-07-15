@@ -45,10 +45,10 @@ loggingModuleClose(struct Module *module, error_t err)
     return 0;
 }
 
-void
+error_t
 InitLogging()
 {
-    error_t err = NewModule(
+    return NewModule(
             true, MOD_LOGGING, loggingModuleInit, loggingModuleStart, loggingModuleClose, NULL,
             NULL);
 }

@@ -4,6 +4,7 @@
 // Description of game configuration and properties (room count, etc)
 
 #include <stdint.h>
+#include <time.h>
 
 enum { GAME_NAME_LENGTH = 64 };
 
