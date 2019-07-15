@@ -19,6 +19,12 @@ extern error_t NewBuffer(const char *data, const size_t dataSize, struct Buffer 
 extern void CloseBuffer(struct Buffer **bufferp);
 
 // Inline helpers
+static inline size_t
+BufferSize(const struct Buffer *buffer)
+{
+    return buffer->end - buffer->start;
+}
+
 static inline bool
 BufferEOF(const struct Buffer *buffer)
 {

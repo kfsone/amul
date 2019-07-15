@@ -12,8 +12,10 @@ test_new_buffer(struct TestContext *t)
     EXPECT_ERROR(EINVAL, NewBuffer(NULL, 0, NULL));
     EXPECT_ERROR(EINVAL, NewBuffer(data, 0, NULL));
     EXPECT_ERROR(EINVAL, NewBuffer(data, sizeof(data), NULL));
+    buffer = (struct Buffer*)data;
     EXPECT_ERROR(EINVAL, NewBuffer(data, sizeof(data), &buffer));
 
+    buffer = NULL;
     EXPECT_SUCCESS(NewBuffer(data, sizeof(data), &buffer));
 
     EXPECT_NOT_NULL(buffer);

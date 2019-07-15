@@ -13,6 +13,7 @@
 
 #if !defined(_MSC_VER)
 #    include <unistd.h>  // for unlink
+#    include <sys/mman.h>
 #else
 #    define WIN32_LEAN_AND_MEAN
 #    define NOMINMAX
@@ -134,14 +135,9 @@ UnlinkGameFile(const char *gamefile)
 }
 
 error_t
-NewFileMapping(const char *filepath, void **datap, size_t *sizep)
+NewFileMapping(const char *filepath, void **datap, size_t size)
 {
-    REQUIRE(filepath && datap && sizep);
-
-    struct stat sb = {0};
-    error_t     err = stat(filepath, &sb);
-    if (err != 0)
-        return ENOENT;
+    REQUIRE(filepath && datap && size);
 
     int fd = open(filepath, O_RDONLY);
     if (fd < 0)
@@ -155,61 +151,86 @@ NewFileMapping(const char *filepath, void **datap, size_t *sizep)
         alog(AL_FATAL, "Unable to map file %s", filepath);
         return ENOENT;
     }
-    const void *data = MapViewOfFile(maph, FILE_MAP_READ, 0, 0, 0);
+    void *data = MapViewOfFile(maph, FILE_MAP_READ, 0, 0, 0);
     CloseHandle(maph);
-    if (data == NULL)
-        alog(AL_FATAL, "Unable to load file %s", filepath);
 #else
-#    error("Implement mmap")
+    const int flags = MAP_SHARED | MAP_DENYWRITE | MAP_FILE | MAP_POPULATE;
+    void *data = mmap(NULL, 0, PROT_READ,  flags, fd, 0);
+    close(fd);
 #endif
 
+    if (data == NULL)
+        alog(AL_FATAL, "Unable to load file %s", filepath);
+
     *datap = data;
-    *sizep = sb.st_size;
 
     return 0;
 }
 
 void
-CloseFileMapping(void **datap)
+CloseFileMapping(void **datap, size_t length)
 {
     if (datap && *datap) {
 #if defined(_MSC_VER)
         UnmapViewOfFile(*datap);
 #else
-#    error("Implement unmap");
+        munmap(*datap, length);
 #endif
     }
     *datap = NULL;
+}
+
+struct SourceFile s_sourceFile;
+bool s_sourceFileInUse;
+
+error_t
+makeTextFileName(const char* filename, struct SourceFile *sourcefile)
+{
+    char txtFilename[MAX_PATH_LENGTH];
+    snprintf(txtFilename, sizeof(txtFilename), "%s.txt", filename);
+    return path_joiner(s_sourceFile.filepath, gameDir, txtFilename);
 }
 
 error_t
 NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
 {
     REQUIRE(filename && sourcefilep);
+    if (s_sourceFileInUse)
+        return ENFILE;
 
-    char txtFilename[MAX_PATH_LENGTH];
-    snprintf(txtFilename, sizeof(txtFilename), "%s.txt", filename);
+    memset(&s_sourceFile, 0, sizeof(s_sourceFile));
 
-    struct SourceFile *sourcefile = calloc(1, sizeof(struct SourceFile));
-    CHECK_ALLOCATION(sourcefile);
-    error_t err = path_joiner(sourcefile->filepath, gameDir, txtFilename);
+    error_t err = makeTextFileName(filename, &s_sourceFile);
     if (err != 0) {
+        alog(AL_FATAL, "Full filename too long for %s/%s", gameDir, filename);
         return err;
     }
-    size_t size = 0;
-    err = NewFileMapping(sourcefile->filepath, &sourcefile->mapping, &size);
+
+    struct stat sb = {0};
+    err = stat(s_sourceFile.filepath, &sb);
+    if (err != 0)
+        return ENOENT;
+
+    if (sb.st_size == 0) {
+        return ENODATA;
+    }
+    s_sourceFile.size = sb.st_size;
+
+    struct SourceFile *sourcefile = &s_sourceFile;
+    err = NewFileMapping(sourcefile->filepath, &sourcefile->mapping, sourcefile->size);
     if (err != 0) {
         CloseSourceFile(&sourcefile);
         return err;
     }
 
-    if (size > 0) {
-        err = NewBuffer(sourcefile->mapping, size, &sourcefile->buffer);
-        if (err != 0) {
-            CloseSourceFile(&sourcefile);
-            return err;
-        }
+    err = NewBuffer(sourcefile->mapping, sourcefile->size, &sourcefile->buffer);
+    if (err != 0) {
+        CloseSourceFile(&sourcefile);
+        return err;
     }
+
+    *sourcefilep = sourcefile;
+
     return 0;
 }
 
@@ -218,7 +239,7 @@ CloseSourceFile(struct SourceFile **sourcefilep)
 {
     if (sourcefilep && *sourcefilep) {
         CloseBuffer(&(*sourcefilep)->buffer);
-        CloseFileMapping(&(*sourcefilep)->mapping);
+        CloseFileMapping(&(*sourcefilep)->mapping, (*sourcefilep)->size);
         free(*sourcefilep);
         *sourcefilep = NULL;
     }
