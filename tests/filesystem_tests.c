@@ -1,5 +1,7 @@
 #include <h/amul.test.h>
+#include <src/buffer.h>
 #include <src/filesystem.h>
+#include <src/sourcefile.h>
 
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -154,9 +156,106 @@ test_file_mapping(struct TestContext *t)
     EXPECT_NULL(data);
 }
 
+extern error_t makeTextFileName(struct SourceFile *, const char*);
+
+void
+test_make_test_file_name(struct TestContext *t)
+{
+    struct SourceFile sf = {};
+    EXPECT_STR_EQUAL(gameDir, "");
+    EXPECT_STR_EQUAL(sf.filepath, "");
+
+    EXPECT_ERROR(EINVAL, makeTextFileName(&sf, "/a/b/c"));
+    EXPECT_STR_EQUAL(sf.filepath, "");
+    strcpy(gameDir, ".");
+    EXPECT_ERROR(EINVAL, makeTextFileName(&sf, NULL));
+    EXPECT_STR_EQUAL(sf.filepath, "");
+    EXPECT_SUCCESS(makeTextFileName(&sf, "/a/b/c"));
+    EXPECT_STR_EQUAL(sf.filepath, "./a/b/c.txt");
+
+    gameDir[0] = 0;
+}
+
+extern struct SourceFile s_sourceFile;
+extern bool s_sourceFileInUse;
+
+void
+test_sourcefile(struct TestContext *t)
+{
+    EXPECT_FALSE(s_sourceFileInUse);
+
+    struct SourceFile* sourcefile = NULL;
+    EXPECT_ERROR(EINVAL, NewSourceFile(NULL, &sourcefile));
+    EXPECT_ERROR(EINVAL, NewSourceFile("a", NULL));
+
+    s_sourceFileInUse = true;
+    EXPECT_ERROR(ENFILE, NewSourceFile("a", &sourcefile));
+    s_sourceFileInUse = false;
+
+    size_t size = 0;
+    const char *filename = "sourcefile_test_file1";
+    const char *txtfile = "./sourcefile_test_file1.txt";
+    unlink(txtfile);
+
+    EXPECT_STR_EQUAL(gameDir, "");
+    EXPECT_ERROR(EINVAL, NewSourceFile(filename, &sourcefile));
+    EXPECT_NULL(s_sourceFile.buffer);
+
+    strcpy(gameDir, ".");
+    EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));
+    EXPECT_ERROR(ENOENT, NewSourceFile(filename, &sourcefile));
+    EXPECT_STR_EQUAL(txtfile, s_sourceFile.filepath);
+    EXPECT_NULL(s_sourceFile.buffer);
+
+    // Check for an empty file returning ENODATA.
+    FILE *fp = fopen(txtfile, "w");
+    EXPECT_NOT_NULL(fp);
+    fclose(fp);
+    EXPECT_ERROR(ENODATA, NewSourceFile(filename, &sourcefile));
+    EXPECT_FALSE(s_sourceFileInUse);
+    EXPECT_NULL(s_sourceFile.buffer);
+
+    // Now make the file bigger and check we get it mapped.
+    const char *test1 = "Test 1.";
+    const char *test2 = "Test 2.";
+    fp = fopen(txtfile, "w");
+    EXPECT_NOT_NULL(fp);
+    fprintf(fp, "%s %s", test1, test2);
+    fclose(fp);
+    EXPECT_SUCCESS(NewSourceFile(filename, &sourcefile));
+    EXPECT_PTR_EQUAL(&s_sourceFile, sourcefile);
+    EXPECT_TRUE(s_sourceFileInUse);
+    EXPECT_STR_EQUAL(sourcefile->filepath, txtfile);
+    EXPECT_NOT_NULL(sourcefile->mapping);
+    EXPECT_NOT_NULL(sourcefile->buffer);
+    EXPECT_VAL_EQUAL(0, sourcefile->lineNo);
+    EXPECT_VAL_EQUAL(strlen(test1) + 1 + strlen(test1), sourcefile->size);
+    EXPECT_VAL_EQUAL(sourcefile->buffer->start, sourcefile->mapping);
+    EXPECT_VAL_EQUAL(sourcefile->buffer->start, sourcefile->buffer->pos);
+    EXPECT_VAL_EQUAL(sourcefile->size, sourcefile->buffer->end - sourcefile->buffer->start);
+
+    EXPECT_STR_EQUAL((const char*)sourcefile->mapping, "Test 1. Test 2.");
+
+    // If we try to re-open the source file we should get a ENFILE
+    EXPECT_ERROR(ENFILE, NewSourceFile(filename, &sourcefile));
+    EXPECT_NOT_NULL(sourcefile);
+
+    unlink(txtfile);
+    EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));
+}
+
+void
+clearGameDir(struct TestContext *t)
+{
+    gameDir[0] = 0;
+}
+
 void
 filesystem_tests(struct TestContext *t)
 {
+    t->tearUp = clearGameDir;
+    t->tearDown = clearGameDir;
+
     RUN_TEST(test_path_copy);
     RUN_TEST(test_path_copy_offset);
     RUN_TEST(test_path_join);
@@ -165,4 +264,5 @@ filesystem_tests(struct TestContext *t)
     RUN_TEST(test_get_files_size);
     RUN_TEST(test_file_mapping_checks);
     RUN_TEST(test_file_mapping);
+    RUN_TEST(test_sourcefile);
 }

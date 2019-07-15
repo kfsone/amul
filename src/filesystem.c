@@ -245,6 +245,7 @@ NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
         return err;
     }
 
+    s_sourceFileInUse = true;
     *sourcefilep = sourcefile;
 
     return 0;

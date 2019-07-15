@@ -19,3 +19,6 @@ be better and more consistent for those that are builtins.
 "burnme -> .burnme
 "needtwo -> .needtwo
 "drop -> .drop
+
+- Check EXPECT_ERROR(EINVALs and make sure we're testing individual
+  invalid values rather than possible occlusions.
