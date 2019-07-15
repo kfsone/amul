@@ -1,13 +1,27 @@
 #ifndef AMUL_H_AMUL_TEST_H
-#define AMUL_H_AMUL_TEST_H 1
+#define AMUL_H_AMUL_TEST_H
 
-/*
- * Macros for rudimentary unit testing and conformance testing.
- */
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// "kfstest1": macros for contract checking and unit testing.
+// Copyright (C) Oliver 'kfsone' Smith 2019
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <errno.h>
 #include <inttypes.h>
 #include <stdlib.h>
+
+#ifndef HAVE_ERROR_T
+typedef int error_t;
+#define HAVE_ERROR_T
+#endif
+
+#ifndef NDEBUG
+#    include <assert.h>
+#    include <stdbool.h>
+#    include <stdint.h>
+#    include <stdio.h>
+#    include <string.h>
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Function contracts -- errno style return values.
@@ -29,13 +43,14 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Unit testing macros
+//
+// These only have any effect with NDEBUG is not defined, the same convention that assert.h uses.
 
 #ifndef NDEBUG
-#    include <assert.h>
-#    include <stdbool.h>
-#    include <stdint.h>
-#    include <stdio.h>
-#    include <string.h>
+
+// TestContext is passed to every test harness to provide them with the testing environment, such
+// as command line, number of tests, etc, as well as a means to share data between tests
+// (userData) and to provide tearUp/tearDown functions for tests.
 
 struct TestContext {
     int          argc;
@@ -82,6 +97,14 @@ typedef void(test_harness_fn)(struct TestContext *t);
             t->lineItems++;                                                                        \
         } else {                                                                                   \
             LPRINTF(#actual " expecting SUCCESS; got error#%d", (actual));                         \
+            assert(0 == (actual));                                                                 \
+        }
+
+#    define EXPECT_ZERO(actual)                                                                    \
+        if ((uintptr_t)(0) == (uintptr_t)(actual)) {                                               \
+            t->lineItems++;                                                                        \
+        } else {                                                                                   \
+            LPRINTF(#actual " expecting ZERO; got #%" PRid64 "", (int64_t)(actual));               \
             assert(0 == (actual));                                                                 \
         }
 
@@ -146,13 +169,15 @@ typedef void(test_harness_fn)(struct TestContext *t);
 
 #    define EXPECT_ERROR(...)
 #    define EXPECT_SUCCESS(...)
+#    define EXPECT_ZERO(...)
 #    define EXPECT_VAL_EQUAL(...)
 #    define EXPECT_PTR_EQUAL(...)
-#    define EXPECT_TRUE(...)
-#    define EXPECT_FALSE(...)
 #    define EXPECT_NOT_NULL(...)
 #    define EXPECT_NULL(...)
+#    define EXPECT_TRUE(...)
+#    define EXPECT_FALSE(...)
 #    define EXPECT_STR_EQUAL(...)
-#endif
 
 #endif
+
+#endif  // AMUL_H_AMUL_TEST_H
