@@ -3,6 +3,8 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+PROJECT("AMUL")
+
 SET(AMUL_LIB_NAME "amullib")
 SET(AMUL_COMPILER_NAME "amulcom")
 SET(AMUL_ENGINE_NAME "amul")

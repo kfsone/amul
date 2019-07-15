@@ -183,8 +183,7 @@ chkp(const char *p, char t, int c, int z, FILE *fp) noexcept
         return NULL;
     }
 write:
-    fwritesafe(x, fp);
-    FPos += 4;  // Writes a LONG
+    FPos += fwritesafe(x, fp);
     return skipspc(p + 1);
 }
 

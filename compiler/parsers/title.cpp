@@ -27,7 +27,7 @@ static void
 getBlock(const char *linetype, std::function<void(const char *prefix, const char *value)> callback)
 {
     for (;;) {
-        if (fgets(block, 1000, ifp) == nullptr) {
+        if (!fgets(block, 1000, ifp)) {
             GetLogger().fatalf("Invalid title.txt: Missing '%s' line", linetype);
         }
 
@@ -70,7 +70,7 @@ title_proc()
     getBlockNo("gametime=", &mins);
     if (mins < 15) {
         mins = 15;
-        GetLogger().warnf("gametime=%d too short: falling back to %d minutes", mins);
+        GetLogger().warnf("gametime= too short: falling back to %d minutes", mins);
     }
 
     getBlockNo("invisible=", &invis);
