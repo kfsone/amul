@@ -110,7 +110,7 @@ ParseCommandLine(const struct CommandLine *cmdline)
 }
 
 error_t
-initCommandLine(const struct Module *module)
+initCommandLine(struct Module *module)
 {
     return ParseCommandLine((struct CommandLine *)(module->context));
 }

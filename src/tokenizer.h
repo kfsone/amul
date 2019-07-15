@@ -2,6 +2,7 @@
 #define AMUL_SRC_TOKENIZER_H
 
 #include <h/amul.type.h>
+#include "sourcefile.h"
 
 enum TokenType {
     TOKEN_INVALID,

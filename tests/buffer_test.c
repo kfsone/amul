@@ -7,13 +7,13 @@ extern bool          s_bufferInUse[];
 void
 test_new_buffer(struct TestContext *t)
 {
+    struct Buffer *buffer = NULL;
     char data[64];
     EXPECT_ERROR(EINVAL, NewBuffer(NULL, 0, NULL));
     EXPECT_ERROR(EINVAL, NewBuffer(data, 0, NULL));
     EXPECT_ERROR(EINVAL, NewBuffer(data, sizeof(data), NULL));
-    EXPECT_ERROR(EINVAL, NewBuffer(data, sizeof(data), &(struct Buffer *)t));
+    EXPECT_ERROR(EINVAL, NewBuffer(data, sizeof(data), &buffer));
 
-    struct Buffer *buffer = NULL;
     EXPECT_SUCCESS(NewBuffer(data, sizeof(data), &buffer));
 
     EXPECT_NOT_NULL(buffer);
@@ -59,8 +59,11 @@ test_close_buffer(struct TestContext *t)
         EXPECT_NULL(buffer);
     }
 
-    CloseBuffer(&(struct Buffer *)(t->userData));
-    EXPECT_NULL(t->userData);
+    buffer = (struct Buffer *)(t->userData);
+    CloseBuffer(&buffer);
+    EXPECT_NULL(buffer);
+
+    t->userData = NULL;
 }
 
 void

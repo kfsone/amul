@@ -1,13 +1,14 @@
 #ifndef AMUL_SRC_FILESYSTEM_H
 #define AMUL_SRC_FILESYSTEM_H
 
+#include <h/amul.enum.h>
 #include <h/amul.type.h>
 
 #include <string.h>
 
-enum { MAX_PATH_LENGTH = 256 };
 extern char gameDir[MAX_PATH_LENGTH];
 
+struct SourceFile;
 void CloseSourceFile(struct SourceFile **sourcefilep);
 
 void UnlinkGameFile(const char *gamefile);

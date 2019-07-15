@@ -134,7 +134,7 @@ UnlinkGameFile(const char *gamefile)
 }
 
 error_t
-NewFileMapping(const char *filepath, const void **datap, size_t *sizep)
+NewFileMapping(const char *filepath, void **datap, size_t *sizep)
 {
     REQUIRE(filepath && datap && sizep);
 
@@ -160,7 +160,7 @@ NewFileMapping(const char *filepath, const void **datap, size_t *sizep)
     if (data == NULL)
         alog(AL_FATAL, "Unable to load file %s", filepath);
 #else
-#    pragma error("Implement mmap")
+#    error("Implement mmap")
 #endif
 
     *datap = data;
@@ -176,7 +176,7 @@ CloseFileMapping(void **datap)
 #if defined(_MSC_VER)
         UnmapViewOfFile(*datap);
 #else
-#    pragma error("Implement unmap");
+#    error("Implement unmap");
 #endif
     }
     *datap = NULL;
