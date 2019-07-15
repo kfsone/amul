@@ -23,10 +23,3 @@ ADD_EXECUTABLE(
 )
 
 TARGET_LINK_LIBRARIES(tests "${AMUL_LIB_NAME}")
-
-# Copy test data files to the build directory
-add_custom_command(
-  TARGET tests POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy 
-    ${CMAKE_CURRENT_SOURCE_DIR}/files/* 
-    $<TARGET_FILE_DIR:tests>)

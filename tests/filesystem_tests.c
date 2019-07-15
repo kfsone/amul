@@ -84,29 +84,29 @@ test_path_joiner(struct TestContext *t)
 }
 
 void
-test_get_file_size(struct TestContext *t)
+test_get_files_size(struct TestContext *t)
 {
-    EXPECT_ERROR(EINVAL, GetFileSize(NULL, NULL));
-    EXPECT_ERROR(EINVAL, GetFileSize(t->argv[0], NULL));
+    EXPECT_ERROR(EINVAL, GetFilesSize(NULL, NULL));
+    EXPECT_ERROR(EINVAL, GetFilesSize(t->argv[0], NULL));
     size_t size = 0;
-    EXPECT_SUCCESS(GetFileSize(t->argv[0], &size));
+    EXPECT_SUCCESS(GetFilesSize(t->argv[0], &size));
     EXPECT_FALSE(size == 0);
 
     const char *datafile = "getfilesize_test_file1.txt";
     unlink(datafile);
-    EXPECT_ERROR(ENOENT, GetFileSize(datafile, &size));
+    EXPECT_ERROR(ENOENT, GetFilesSize(datafile, &size));
 
     FILE *fp = fopen(datafile, "w");
     EXPECT_NOT_NULL(fp);
     fclose(fp);
 
-    EXPECT_SUCCESS(GetFileSize(datafile, &size));
+    EXPECT_SUCCESS(GetFilesSize(datafile, &size));
     EXPECT_VAL_EQUAL(0, size);
 
     unlink(datafile);
 
     // check nothing gets cached
-    EXPECT_ERROR(ENOENT, GetFileSize(datafile, &size));
+    EXPECT_ERROR(ENOENT, GetFilesSize(datafile, &size));
 }
 
 void
@@ -136,7 +136,7 @@ test_file_mapping(struct TestContext *t)
 
     size_t expectedSize = strlen(first) + 1 + strlen(second);
     size_t size = 0;
-    EXPECT_SUCCESS(GetFileSize(datafile, &size));
+    EXPECT_SUCCESS(GetFilesSize(datafile, &size));
     EXPECT_VAL_EQUAL(expectedSize, size);
 
     // with everything ready, make sure passing a 0 size fails.
@@ -162,7 +162,7 @@ filesystem_tests(struct TestContext *t)
     RUN_TEST(test_path_join);
     RUN_TEST(test_path_join_constraints);
     RUN_TEST(test_path_joiner);
-    RUN_TEST(test_get_file_size);
+    RUN_TEST(test_get_files_size);
     RUN_TEST(test_file_mapping_checks);
     RUN_TEST(test_file_mapping);
 }

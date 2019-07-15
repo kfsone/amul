@@ -199,7 +199,7 @@ makeTextFileName(struct SourceFile *sourcefile, const char *filename)
 }
 
 error_t
-GetFileSize(const char *filepath, size_t *sizep)
+GetFilesSize(const char *filepath, size_t *sizep)
 {
     REQUIRE(filepath && sizep);
 
@@ -227,7 +227,7 @@ NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
         return err;
     }
 
-    err = GetFileSize(sourcefile->filepath, &sourcefile->size);
+    err = GetFilesSize(sourcefile->filepath, &sourcefile->size);
     if (err != 0)
         return err;
     if (sourcefile->size == 0)
