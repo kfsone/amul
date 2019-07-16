@@ -55,33 +55,30 @@ PathCopy(char *into, size_t limit, size_t *offsetp, const char *path)
     REQUIRE(!offsetp || *offsetp < limit - 1);
     size_t offset = offsetp ? *offsetp : 0;
 
-    const char *end = into + limit - 1;
-    char *      dst = into + offset;
+    const char *end = into + limit;
+    char *dst = into + offset;
     REQUIRE(dst < end);
 
-    while (offset > 1 && isSeparator(end - 1)) {
-        --dst;
-    }
-    bool slashed = offset > 0 && dst == into + offset;
+    bool wantSlash = offset > 0 && !isSeparator(dst - 1);
 
     // only write single slashes, and only after seeing a
     // non-slash, so "////" => "" but "////a" => "/a"
     const char *src = path;
     for (; *src && dst < end;) {
         if (isSeparator(src)) {
-            slashed = true;
+            wantSlash = true;
             ++src;
             continue;
         }
-        if (slashed) {
+        if (wantSlash) {
             *(dst++) = '/';
-            slashed = false;
+            wantSlash = false;
             continue;
         }
         *(dst++) = *(src++);
     }
     // special case: /
-    if (slashed && dst == into) {
+    if (wantSlash && dst == into) {
         *(dst++) = '/';
     }
     if (*src && dst >= end)

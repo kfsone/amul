@@ -21,7 +21,7 @@ ELSE ()
 		SET(GCC true)
 	ENDIF ()
 
-	STRING(APPEND CMAKE_C_FLAGS_DEBUG " -Og -g3")
+	STRING(APPEND CMAKE_C_FLAGS_DEBUG " -O0 -g3")
 	STRING(APPEND CMAKE_C_FLAGS " -Wall")
 	STRING(APPEND CMAKE_C_FLAGS " -Wno-missing-braces")
 	OPTION(AMUL_SANITIZERS "Enable address/undefined sanitizers" ON)

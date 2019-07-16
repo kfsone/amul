@@ -1257,7 +1257,7 @@ check_smsg(const char *token)
     }
     int messageID = atoi(token + 1);
     if (messageID != currentSysMessage) {
-        alog(AL_ERROR, "Out-of-order system message ID: %s (expeted $%d)", token,
+        alog(AL_ERROR, "Out-of-order system message ID: %s (expected $%d)", token,
              currentSysMessage);
         return false;
     }
