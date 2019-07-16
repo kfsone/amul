@@ -7,7 +7,7 @@ const char *rflag[NRFLAGS] = {  // Remember to update amul.defs.h
         "nolook", "silent", "hide",     "sanctuary", "hideaway", "peaceful", "noexits"};
 
 const char *obflags1[NOFLAGS] = {  // Object flags
-        "opens", "scenery", "counter", "flamable", "shines", "fire", "invis", "smell"};
+        "opens", "scenery", "counter", "flammable", "shines", "fire", "invis", "smell"};
 
 const char *obparms[NOPARMS] = {  // Object parameters
         "adj=", "start=", "holds=", "put=", "mobile="};

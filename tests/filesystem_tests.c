@@ -161,7 +161,7 @@ extern error_t makeTextFileName(struct SourceFile *, const char*);
 void
 test_make_test_file_name(struct TestContext *t)
 {
-    struct SourceFile sf = {};
+    struct SourceFile sf = {0};
     EXPECT_STR_EQUAL(gameDir, "");
     EXPECT_STR_EQUAL(sf.filepath, "");
 
@@ -239,6 +239,9 @@ test_sourcefile(struct TestContext *t)
     // If we try to re-open the source file we should get a ENFILE
     EXPECT_ERROR(ENFILE, NewSourceFile(filename, &sourcefile));
     EXPECT_NOT_NULL(sourcefile);
+
+	CloseSourceFile(&sourcefile);
+    EXPECT_NULL(sourcefile);
 
     unlink(txtfile);
     EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));

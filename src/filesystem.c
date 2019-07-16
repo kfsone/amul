@@ -131,6 +131,7 @@ UnlinkGameFile(const char *gamefile)
     }
 }
 
+#ifndef _MSC_VER
 static const int MMAP_FLAGS =
 			MAP_PRIVATE | 
 			MAP_FILE |
@@ -145,6 +146,7 @@ static const int MMAP_FLAGS =
 #endif
 			0
 ;
+#endif
 
 error_t
 NewFileMapping(const char *filepath, void **datap, size_t size)
@@ -190,12 +192,15 @@ CloseFileMapping(void **datap, size_t length)
 {
     if (datap && *datap) {
 #if defined(_MSC_VER)
-        UnmapViewOfFile(*datap);
+        BOOL result = UnmapViewOfFile(*datap);
+        if (!result)
+            alog(AL_FATAL, "Error closing file mapping");
 #else
         munmap(*datap, length);
 #endif
     }
-    *datap = NULL;
+    if (datap)
+		*datap = NULL;
 }
 
 struct SourceFile s_sourceFile;
@@ -268,7 +273,6 @@ CloseSourceFile(struct SourceFile **sourcefilep)
     if (sourcefilep && *sourcefilep) {
         CloseBuffer(&(*sourcefilep)->buffer);
         CloseFileMapping(&(*sourcefilep)->mapping, (*sourcefilep)->size);
-        free(*sourcefilep);
-        *sourcefilep = NULL;
+        s_sourceFileInUse = false;
     }
 }

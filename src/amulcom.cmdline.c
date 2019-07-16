@@ -66,13 +66,13 @@ ParseCommandLine(const struct CommandLine *cmdline)
                 continue;
             }
             if (strncmp("-q", arg, 2) == 0) {
-                if (desiredLogLevel > 0)
-                    --desiredLogLevel;
+                if (desiredLogLevel < MAX_LOG_LEVEL - 1)
+                    ++desiredLogLevel;
                 continue;
             }
             if (strncmp("-v", arg, 2) == 0) {
-                if (desiredLogLevel < MAX_LOG_LEVEL - 1)
-                    ++desiredLogLevel;
+                if (desiredLogLevel > 0)
+                    --desiredLogLevel;
                 continue;
             }
             if (strcmp("-r", arg) == 0) {

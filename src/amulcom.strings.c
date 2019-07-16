@@ -80,10 +80,10 @@ InitStrings()
 }
 
 #define check_write_str(op, buffer, length, fp)                                                    \
-	do { \
-    if (fwrite(buffer, 1, (length), fp) != (length)) \
-    	alog(AL_FATAL, "Unable to write %s", op); \
-	} while (0)
+    do {                                                                                           \
+        if (fwrite(buffer, 1, (length), fp) != (length))                                           \
+            alog(AL_FATAL, "Unable to write %s", op);                                              \
+    } while (0)
 
 error_t
 AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
@@ -100,9 +100,9 @@ AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
     check_write_str("text string", start, end - start, stringFP);
     if (isLine) {
         check_write_str("newline", "\n", 2, stringFP);
-	} else {
+    } else {
         check_write_str("eos", "", 1, stringFP);
-	}
+    }
 
     *idp = id;
 
@@ -118,11 +118,13 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
     // string's id will be the current position, so snag it now.
     stringid_t id = getStringID(0);
 
-    struct StringIDEntry entry;
-    error_t              err = testLabelEntry(label, stype, &entry);
-    if (err != ENOENT)
-        return err;
-	entry.offset = id;
+	if (label) {
+        struct StringIDEntry entry;
+        error_t              err = testLabelEntry(label, stype, &entry);
+        if (err != ENOENT)
+            return err;
+        entry.offset = id;
+    }
 
     char indent = 0;
     char line[2048];
@@ -132,9 +134,9 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
         char *p = fgets(line, sizeof(line), fp);
         if (p == NULL)
             continue;
-        const char *end = p;
         if (*p == '\n' && stype != STRING_FILE)
             break;
+        const char *end = p;
         if (*p != '\n') {
             if (!indent && *p) {
                 indent = *p;
@@ -153,7 +155,7 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
     check_write_str("eos", "", 1, stringFP);
 
     if (idp)
-        *idp = entry.offset;
+        *idp = id;
 
     return 0;
 }

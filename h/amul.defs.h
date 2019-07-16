@@ -6,7 +6,7 @@
  */
 
 enum {
-	NRFLAGS = 15,
+	NRFLAGS = 14,
 	NOFLAGS = 8,
 	NOPARMS = 5,
 	NSFLAGS = 7,

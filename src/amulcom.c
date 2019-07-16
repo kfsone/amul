@@ -54,7 +54,11 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <alloca.h>
+#ifndef _MSC_VER
+#    include <alloca.h>
+#else
+#    include <malloc.h>
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Variables
@@ -123,7 +127,7 @@ getword(char *from)
     char *to = Word;
     *to = 0;
     from = skipspc(from);
-    for (const char *end = Word + sizeof(Word) - 1; to < end; ++to, ++from) {
+    for (const char *end = Word + sizeof(Word) - 1; *from && to < end; ++to, ++from) {
         char c = *to = tolower(*from);
         if (c == ' ' || c == '\t' || c == ' ') {
             c = *to = 0;
@@ -214,7 +218,7 @@ fopena(const char *filename)
 {
     if (afp != NULL)
         fclose(afp);
-    afp = OpenGameFile(filename, "rb+");
+    afp = OpenGameFile(filename, "ab+");
 }
 
 /* Open file for reading */
@@ -315,23 +319,20 @@ filesize()
 int
 isrflag(const char *s)
 {
-    int _x;
-    for (_x = 0; _x < NRFLAGS; _x++)
-        if (strcmp(s, rflag[_x]) == 0)
-            return _x;
+    for (int i = 0; i < NRFLAGS; i++)
+        if (strcmp(s, rflag[i]) == 0)
+            return i;
     return -1;
 }
 
 int
 isroom(const char *s)
 {
-    int r;
-    roomtab = rmtab;
-    for (r = 0; r < g_gameInfo.numRooms; r++)
-        if (strcmp(roomtab->id, s) == 0)
+    struct _ROOM_STRUCT *rp = rmtab;
+    for (int r = 0; r < g_gameInfo.numRooms; r++, rp++) {
+        if (strcmp(rp->id, s) == 0)
             return r;
-        else
-            roomtab++;
+    }
     return -1;
 }
 
@@ -961,7 +962,7 @@ chkp(char *p, char t, int c, int z, FILE *fp)
         lower = true;
     }
     size_t len = end - p;
-    char * token = (char *)alloca(len + 1);
+    char * token = (char *)alloca(len + 1);  /// TODO: Eliminate
     if (lower)
         WordCopier(token, p, end);
     else
@@ -1133,32 +1134,30 @@ mobmis(const char *s)
 }
 
 /* Fetch mobile message line */
-int
-getmobmsg(const char *s, char **p)
+stringid_t
+getmobmsg(const char *s)
 {
-    int n;
-
 loop:
-    while (isCommentChar(**p)) {
-        *p = skipline(*p);
-    }
-    if (**p == 0 || **p == '\n') {
+    char *p = getTidyBlock(ifp);
+    if (feof(ifp))
+        alog(AL_FATAL, "Mobile:%s: Unexpected end of file", mob.id);
+    if (*p == 0 || *p == '\n') {
         alog(AL_FATAL, "Mobile: %s: unexpected end of definition", mob.id);
     }
-    *p = skipspc(*p);
-    if (**p == 0 || **p == '\n' || isCommentChar(**p))
+    p = skipspc(p);
+    if (*p == 0 || *p == '\n' || isCommentChar(*p))
         goto loop;
 
-    if (!canSkipLead(s, p)) {
+    if (!canSkipLead(s, &p)) {
         mobmis(s);
         return -1;
     }
-    if (toupper(**p) == 'N') {
-        *p = skipline(*p);
+    if (toupper(*p) == 'N') {
+        p = skipline(p);
         return -2;
     }
-    n = getTextString(*p, true);
-    *p = skipline(*p);
+    stringid_t n = getTextString(p, true);
+    p = skipline(p);
     if (n == -1) {
         alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
     }
@@ -1172,7 +1171,7 @@ consumeMessageFile(
     if (!nextc(false))
         return ENOENT;
 
-    while (!feof(ifp)) {
+    while (!feof(ifp) && nextc(false)) {
         checkErrorCount();
 
         char *p = getTidyBlock(ifp);
@@ -1256,7 +1255,7 @@ check_smsg(const char *token)
         return false;
     }
     int messageID = atoi(token + 1);
-    if (messageID != currentSysMessage) {
+    if (messageID != currentSysMessage + 1) {
         alog(AL_ERROR, "Out-of-order system message ID: %s (expected $%d)", token,
              currentSysMessage);
         return false;
@@ -1268,10 +1267,9 @@ check_smsg(const char *token)
 void
 smsg_proc()
 {
-    currentSysMessage = 1;
-    consumeMessageFile(ifp, "msgid=", STRING_MESSAGE, check_smsg);
+    (void)consumeMessageFile(ifp, "msgid=", STRING_MESSAGE, check_smsg);
     if (currentSysMessage != NSMSGS)
-        alog(AL_FATAL, "sysmsg.txt is incomplete.");
+        alog(AL_ERROR, "sysmsg.txt is incomplete.");
 }
 
 void
@@ -1335,7 +1333,7 @@ room_proc()
         checkErrorCount();
 
         if (!nextc(false))
-            continue;
+            break;
 
         char *p = getTidyBlock(ifp);
         if (!p)
@@ -1348,6 +1346,7 @@ room_proc()
             skipblock();
             continue;
         }
+        memset(&room, 0, sizeof(room));
         strncpy(room.id, Word, sizeof(room.id));
 
         // If there are additional words on the line, they are room flags.
@@ -1358,7 +1357,7 @@ room_proc()
             if (!*p)
                 break;
             p = getword(p);
-            char *dmove = p;
+            char *dmove = Word;
             if (canSkipLead("dmove", &dmove)) {
                 if (room.dmove[0] != 0)
                     alog(AL_ERROR, "room:%s: duplicate dmove flag", room.id);
@@ -1366,7 +1365,7 @@ room_proc()
                     WordCopier(room.dmove, dmove, strstop(dmove, ' '));
                 continue;
             }
-            int no = isrflag(p);
+            int no = isrflag(Word);
             if (no == -1) {
                 alog(AL_ERROR, "room:%s: Invalid room flag: %s", room.id, Word);
                 continue;
@@ -1386,8 +1385,6 @@ room_proc()
         fwrite(room.id, sizeof(room), 1, ofp1);
 
         ++g_gameInfo.numRooms;
-
-        nextc(false);
     } while (!feof(ifp));
 }
 
@@ -1408,6 +1405,9 @@ rank_proc()
     fopenw(rankDataFile);
 
     while (!feof(ifp)) {
+        if (!nextc(false))
+            break;
+
         char *p = getTidyBlock(ifp);
         if (!p)
             continue;
@@ -1630,14 +1630,9 @@ state_proc()
     state.weight = state.value = state.flags = 0;
     state.descrip = -1;
 
-    tidy(block);
-    if (block[0] == 0)
-        return;
-
     /* Get the weight of the object */
-    striplead("weight=", block);
-    char *p = getword(block);
-    if (*p == 0)
+    char *p = getWordAfter("weight=", block);
+    if (Word[0] == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
         statinv("weight value on");
@@ -1646,43 +1641,39 @@ state_proc()
         state.weight = wizstr + 1;
 
     /* Get the value of it */
-    p = skipspc(p);
-    p = skiplead("value=", p);
-    p = getword(p);
-    if (*p == 0)
+    p = getWordAfter("value=", p);
+    if (Word[0] == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
         statinv("value entry on");
     state.value = atoi(Word);
 
     /* Get the strength of it (hit points)*/
-    p = skipspc(p);
-    p = skiplead("str=", p);
-    p = getword(p);
-    if (*p == 0)
+    p = getWordAfter("str=", p);
+    if (Word[0] == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
         statinv("strength entry on");
     state.strength = atoi(Word);
 
     /* Get the damage it does as a weapon*/
-    p = skipspc(p);
-    p = skiplead("dam=", p);
-    p = getword(p);
-    if (*p == 0)
+    p = getWordAfter("dmg=", p);
+    if (Word[0] == 0)
         statinv("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
         statinv("damage entry on");
     state.damage = atoi(Word);
 
     /* Description */
-    p = skipspc(p);
-    p = skiplead("desc=", p);
+    p = skiplead("desc=", skipspc(p));
     if (*p == 0)
         statinv("incomplete");
     if (*p == '\"' || *p == '\'') {
         state.descrip = getTextString(p, false);
-        p = block;
+        char quote = *p;
+        p = strstop(p + 1, *p);
+        if (*p == quote)
+            ++p;
     } else {
         p = getword(p);
         state.descrip = getObjectDescriptionID(Word);
@@ -1692,7 +1683,7 @@ state_proc()
         snprintf(tmp, sizeof(tmp), "desc= ID (%s) on", &Word[0]);
         statinv(tmp);
     }
-    while (*p != 0) {
+    while (*(p = skipspc(p)) != 0) {
         p = getword(p);
         if (Word[0] == 0)
             break;
@@ -1712,6 +1703,7 @@ objs_proc()
     fopenw(objectDataFile);
     fopenw(objectStateFile);
     fopenw(objectRoomFile);
+    fopena(adjectiveDataFile);
 
     obtab2 = (struct _OBJ_STRUCT *)AllocateMem(filesize() + 128 * sizeof(obj2));
     if (obtab2 == NULL)
@@ -1725,6 +1717,9 @@ objs_proc()
     while (!feof(ifp)) {
         checkErrorCount();
 
+        if (!nextc(false))
+            break;
+
         char *cur = getTidyBlock(ifp);
         if (!cur)
             continue;
@@ -1735,7 +1730,7 @@ objs_proc()
             skipblock();
             continue;
         }
-        if (strlen(Word) || strlen(Word) > IDL) {
+        if (strlen(Word) < 3 || strlen(Word) > IDL) {
             alog(AL_ERROR, "Invalid object name (length): %s", cur);
             skipblock();
             continue;
@@ -1822,7 +1817,7 @@ objs_proc()
             char *p = getTidyBlock(ifp);
             if (!p)
                 alog(AL_FATAL, "object:%s: unexpected end of file", obj2.id);
-            if (!*p)
+            if (!*p || *p == '\n')
                 break;
             state_proc();
         }
@@ -1869,7 +1864,10 @@ trav_proc()
     while (!feof(ifp)) {
         checkErrorCount();
 
-        char *p = getTidyBlock(ifp);
+        if (!nextc(false))
+            break;
+
+            char *p = getTidyBlock(ifp);
         if (!p)
             continue;
 
@@ -2026,11 +2024,9 @@ trav_proc()
         } while (strip == 0 && !feof(ifp));
         if (strip == 1 && !feof(ifp))
             goto vbproc;
-        nextc(false);
         ntt++;
     }
-    while (!feof(ifp))
-        ;
+
     if (al_errorCount == 0 && ntt != g_gameInfo.numRooms) {
         roomtab = rmtab;
         for (i = 0; i < g_gameInfo.numRooms; i++, roomtab++) {
@@ -2105,7 +2101,7 @@ lang_proc()
     size_t of3p = ftell(ofp3);
     FPos = ftell(ofp4);
 
-    while (!feof(ifp)) {
+    while (!feof(ifp) && nextc(false)) {
         checkErrorCount();
 
         char *p = getTidyBlock(ifp);
@@ -2127,9 +2123,10 @@ lang_proc()
 
         strcpy(verb.id, Word);
         ++g_gameInfo.numVerbs;
+        alog(AL_DEBUG, "verb:%04d:%s", ++g_gameInfo.numVerbs, verb.id);
 
         static char defaultChae[] = {-1, 'C', 'H', 'A', 'E', -1, 'C', 'H', 'A', 'E'};
-        memcpy((char *)(&verb.sort[0]), defaultChae, 10);
+        memcpy((&verb.sort[0]), defaultChae, 10);
 
         verb.flags = VB_TRAVEL;
         if (*p == 0 || *p == ';' || *p == '*')
@@ -2358,7 +2355,7 @@ lang_proc()
             if (!fgets(block, sizeof(block), ifp))
                 alog(AL_FATAL, "verb:%s: unexpected end of file", verb.id);
         } while (consumeComment(block));
-        if (!*p) {
+        if (block[0] || block[0] == '\n') {
             lastc = 1;
             goto writeslot;
         }
@@ -2480,7 +2477,7 @@ syn_proc()
     fopenw(synonymDataFile);
     fopenw(synonymIndexFile);
 
-    while (!feof(ifp)) {
+    while (!feof(ifp) && nextc(false)) {
         checkErrorCount();
 
         char *p = getTidyBlock(ifp);
@@ -2532,7 +2529,7 @@ mob_proc1()
     // "mobp" is a pointer to the runtime portion
     struct _MOB *mobd = &mob.mob;
 
-    while (!feof(ifp)) {
+    while (!feof(ifp) && nextc(false)) {
         checkErrorCount();
 
         char *p = getTidyBlock(ifp);
@@ -2628,22 +2625,22 @@ mob_proc1()
         p = getword(p);
         mobd->hitpower = atoi(Word);
 
-        if ((n = getmobmsg("arrive=", &p)) == -1)
+        if ((n = getmobmsg("arrive=")) == -1)
             continue;
         mobd->arr = n;
-        if ((n = getmobmsg("depart=", &p)) == -1)
+        if ((n = getmobmsg("depart=")) == -1)
             continue;
         mobd->dep = n;
-        if ((n = getmobmsg("flee=", &p)) == -1)
+        if ((n = getmobmsg("flee=")) == -1)
             continue;
         mobd->flee = n;
-        if ((n = getmobmsg("strike=", &p)) == -1)
+        if ((n = getmobmsg("strike=")) == -1)
             continue;
         mobd->hit = n;
-        if ((n = getmobmsg("miss=", &p)) == -1)
+        if ((n = getmobmsg("miss=")) == -1)
             continue;
         mobd->miss = n;
-        if ((n = getmobmsg("dies=", &p)) == -1)
+        if ((n = getmobmsg("dies=")) == -1)
             continue;
         mobd->death = n;
 
@@ -2703,12 +2700,12 @@ struct CompilePhase {
 struct CompilePhase phases[] = {
         {"title", true, title_proc},      // game "title" (and config)
         {"sysmsg", true, smsg_proc},      // system messages
-        {"umsg", false, umsg_proc},       // user-defined string messages
+        {"umsg", true, umsg_proc},        // user-defined string messages
         {"obdescs", true, obds_proc},     // object description strings
         {"rooms", true, room_proc},       // room table
         {"roomread", false, load_rooms},  // re-load room table
         {"dmoves", false, checkdmoves},   // check cemeteries
-        {"ranks", false, rank_proc},      // rank table
+        {"ranks", true, rank_proc},       // rank table
         {"mobiles", true, mob_proc1},     // npc classes so we can apply to objects
         {"objects", true, objs_proc},     // objects
         {"lang", true, lang_proc},        // language
