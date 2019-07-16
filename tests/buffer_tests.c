@@ -65,6 +65,11 @@ test_close_buffer(struct TestContext *t)
     CloseBuffer(&buffer);
     EXPECT_NULL(buffer);
 
+	// Lastly, call CloseBuffer with NULL.
+	CloseBuffer(&buffer);
+	CloseBuffer(NULL);
+
+
     t->userData = NULL;
 }
 
@@ -189,6 +194,16 @@ test_buffer_skip(struct TestContext *t)
 }
 
 void
+test_buffer_size(struct TestContext *t)
+{
+    char data[16];
+    struct Buffer buf = {&data[0], &data[0], &data[0]};
+    EXPECT_VAL_EQUAL(0, BufferSize(&buf));
+    buf.end += 15;
+    EXPECT_VAL_EQUAL(15, BufferSize(&buf));
+}
+
+void
 buffer_tests(struct TestContext *t)
 {
     RUN_TEST(test_new_buffer);
@@ -198,4 +213,5 @@ buffer_tests(struct TestContext *t)
     RUN_TEST(test_buffer_peek_nonprint);
     RUN_TEST(test_buffer_next);
     RUN_TEST(test_buffer_skip);
+    RUN_TEST(test_buffer_size);
 }

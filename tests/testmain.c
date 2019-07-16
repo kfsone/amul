@@ -31,7 +31,12 @@ main(int argc, const char **argv)
         // capture the current pass count so we can delta later.
         size_t passes = context.passes;
 
-        printf("%s...: ", suites[i].name);
+		char suitename[21];
+		snprintf(suitename, sizeof(suitename), "%-16s...:", suites[i].name);
+		for (char *p = suitename; *p != ':'; ++p) {
+			*p = (*p == ' ') ? '.' : *p;
+		}
+        printf("%s ", suitename);
         fflush(stdout);
 
         suites[i].suiteFn(&context);

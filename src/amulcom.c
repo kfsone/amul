@@ -1137,31 +1137,32 @@ mobmis(const char *s)
 stringid_t
 getmobmsg(const char *s)
 {
-loop:
-    char *p = getTidyBlock(ifp);
-    if (feof(ifp))
-        alog(AL_FATAL, "Mobile:%s: Unexpected end of file", mob.id);
-    if (*p == 0 || *p == '\n') {
-        alog(AL_FATAL, "Mobile: %s: unexpected end of definition", mob.id);
-    }
-    p = skipspc(p);
-    if (*p == 0 || *p == '\n' || isCommentChar(*p))
-        goto loop;
+	for (;;) {
+		char *p = getTidyBlock(ifp);
+		if (feof(ifp))
+			alog(AL_FATAL, "Mobile:%s: Unexpected end of file", mob.id);
+		if (*p == 0 || *p == '\n') {
+			alog(AL_FATAL, "Mobile: %s: unexpected end of definition", mob.id);
+		}
+		p = skipspc(p);
+		if (*p == 0 || *p == '\n' || isCommentChar(*p))
+			continue;
 
-    if (!canSkipLead(s, &p)) {
-        mobmis(s);
-        return -1;
-    }
-    if (toupper(*p) == 'N') {
-        p = skipline(p);
-        return -2;
-    }
-    stringid_t n = getTextString(p, true);
-    p = skipline(p);
-    if (n == -1) {
-        alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
-    }
-    return n;
+		if (!canSkipLead(s, &p)) {
+			mobmis(s);
+			return -1;
+		}
+		if (toupper(*p) == 'N') {
+			p = skipline(p);
+			return -2;
+		}
+		stringid_t n = getTextString(p, true);
+		p = skipline(p);
+		if (n == -1) {
+			alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
+		}
+		return n;
+	}
 }
 
 error_t

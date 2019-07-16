@@ -209,9 +209,10 @@ bool s_sourceFileInUse;
 error_t
 makeTextFileName(struct SourceFile *sourcefile, const char *filename)
 {
+    REQUIRE(sourcefile && filename);
     char txtFilename[MAX_PATH_LENGTH];
     snprintf(txtFilename, sizeof(txtFilename), "%s.txt", filename);
-    return path_joiner(s_sourceFile.filepath, gameDir, txtFilename);
+    return path_joiner(sourcefile->filepath, gameDir, txtFilename);
 }
 
 error_t
@@ -273,6 +274,7 @@ CloseSourceFile(struct SourceFile **sourcefilep)
     if (sourcefilep && *sourcefilep) {
         CloseBuffer(&(*sourcefilep)->buffer);
         CloseFileMapping(&(*sourcefilep)->mapping, (*sourcefilep)->size);
+		*sourcefilep = NULL;
         s_sourceFileInUse = false;
     }
 }

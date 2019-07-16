@@ -162,16 +162,20 @@ void
 test_make_test_file_name(struct TestContext *t)
 {
     struct SourceFile sf = {0};
-    EXPECT_STR_EQUAL(gameDir, "");
-    EXPECT_STR_EQUAL(sf.filepath, "");
+    EXPECT_ERROR(EINVAL, makeTextFileName(NULL, NULL));
+    EXPECT_ERROR(EINVAL, makeTextFileName(NULL, "a"));
+    EXPECT_ERROR(EINVAL, makeTextFileName(&sf, NULL));
+
+    EXPECT_STR_EQUAL("", gameDir);
+    EXPECT_STR_EQUAL("", sf.filepath);
 
     EXPECT_ERROR(EINVAL, makeTextFileName(&sf, "/a/b/c"));
-    EXPECT_STR_EQUAL(sf.filepath, "");
+    EXPECT_STR_EQUAL("", sf.filepath);
     strcpy(gameDir, ".");
     EXPECT_ERROR(EINVAL, makeTextFileName(&sf, NULL));
-    EXPECT_STR_EQUAL(sf.filepath, "");
+    EXPECT_STR_EQUAL("", sf.filepath);
     EXPECT_SUCCESS(makeTextFileName(&sf, "/a/b/c"));
-    EXPECT_STR_EQUAL(sf.filepath, "./a/b/c.txt");
+    EXPECT_STR_EQUAL("./a/b/c.txt", sf.filepath);
 
     gameDir[0] = 0;
 }
@@ -267,5 +271,6 @@ filesystem_tests(struct TestContext *t)
     RUN_TEST(test_get_files_size);
     RUN_TEST(test_file_mapping_checks);
     RUN_TEST(test_file_mapping);
+    RUN_TEST(test_make_test_file_name);
     RUN_TEST(test_sourcefile);
 }

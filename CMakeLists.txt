@@ -31,6 +31,7 @@ ELSE ()
 		#STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fsanitize=safe-stack")
 		STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fno-omit-frame-pointer")
 		#STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fsanitize-stats")
+		STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fprofile-instr-generate -fcoverage-mapping")
 	ENDIF ()
 ENDIF ()
 

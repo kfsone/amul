@@ -257,10 +257,6 @@ test_hash_large_population(struct TestContext *t)
     for (uint64_t i = 0; i < 256; ++i) {
         sprintf(key, "key%04" PRIu64, i);
         EXPECT_TRUE(HashContainsStr(map, key));
-    }
-    for (uint64_t i = 0; i < 256; ++i) {
-        sprintf(key, "key%04" PRIu64, i);
-        EXPECT_FALSE(HashContainsStr(map, key));
         sprintf(key, "notkey%04" PRIu64, i);
         EXPECT_FALSE(HashContainsStr(map, key));
         sprintf(key, "key%04" PRIu64, i + 256UL);
@@ -279,4 +275,5 @@ hashmap_tests(struct TestContext *t)
     RUN_TEST(test_add_str_to_hash);
     RUN_TEST(test_add_to_hash);
     RUN_TEST(test_lookup_str_hash_value);
+    RUN_TEST(test_hash_large_population);
 }

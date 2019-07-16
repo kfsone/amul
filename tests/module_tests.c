@@ -306,6 +306,7 @@ modules_tests(struct TestContext *t)
     RUN_TEST(test_get_module);
     RUN_TEST(test_close_module);
     RUN_TEST(test_new_static_module);
+    RUN_TEST(test_start_static_module);
     RUN_TEST(test_close_static_module);
     RUN_TEST(test_multiple_modules);
 }
