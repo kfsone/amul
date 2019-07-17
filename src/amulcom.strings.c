@@ -37,9 +37,9 @@ testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *e
 {
     REQUIRE(label && entryp);
     error_t err = LookupStrHashValue(stringIDs, label, (uint64_t *)entryp);
-    if (err != 0 && err != ENOENT)
+    if (err != 0)
         return err;
-    // If we found it, check the types
+    // we found it, check the types
     return (!stype || (entryp->types & stype)) ? EEXIST : ENOENT;
 }
 
@@ -66,6 +66,16 @@ startStringModule(struct Module *module)
 error_t
 closeStringModule(struct Module *module, error_t err)
 {
+    alog(AL_DEBUG, "Strings: cap %" PRIu64 ", size %" PRIu64, stringIDs->capacity, stringIDs->size);
+    for (size_t i = 0; i < stringIDs->capacity; ++i) {
+        const struct HashBucket *bucket = stringIDs->buckets[i];
+        if (!bucket) continue;
+        alog(AL_DEBUG, "bucket #%04" PRIu64 ": capacity: %04" PRIu64,
+                i, bucket->capacity);
+        for (size_t n = 0; n < bucket->capacity; ++n) {
+            alog(AL_DEBUG, "| %24s %" PRIu64, bucket->nodes[n].key, bucket->nodes[n].value);
+        }
+    }
     CloseFile(&stringFP);
     CloseHashMap(&stringIDs);
 
@@ -123,6 +133,8 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
         error_t              err = testLabelEntry(label, stype, &entry);
         if (err != ENOENT)
             return err;
+        entry.types |= stype;
+        err = AddStrToHash(stringIDs, label, *(uint64_t *)&entry);
         entry.offset = id;
     }
 
@@ -185,6 +197,7 @@ RegisterTextString(
     entry.types |= stype;
     entry.offset = *idp;
 
+    alog(AL_DEBUG, "register %s as %" PRIu64, label, entry);
     return AddStrToHash(stringIDs, label, *(uint64_t *)&entry);
 }
 
