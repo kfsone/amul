@@ -1868,7 +1868,7 @@ trav_proc()
         if (!nextc(false))
             break;
 
-            char *p = getTidyBlock(ifp);
+        char *p = getTidyBlock(ifp);
         if (!p)
             continue;
 
