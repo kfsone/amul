@@ -134,10 +134,10 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
         char *p = fgets(line, sizeof(line), fp);
         if (p == NULL)
             continue;
-        if (*p == '\n' && stype != STRING_FILE)
+        if (isEol(*p) && stype != STRING_FILE)
             break;
         const char *end = p;
-        if (*p != '\n') {
+        if (!isEol(*p)) {
             if (!indent && *p) {
                 indent = *p;
             }
@@ -145,10 +145,12 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
                 p++;
             }
             end = strstop(p, '\n');
+            if (end > p && *(end - 1) == '\r')
+                --end;
             if (end > p && *(end - 1) == '{')
                 --end;
         }
-        if (*end == '\n')
+        if (isEol(*end))
             ++end;
         check_write_str("text line", p, end - p, stringFP);
     }

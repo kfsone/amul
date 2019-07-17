@@ -245,7 +245,7 @@ skipblock()
 
     lc = 0;
     c = '\n';
-    while (c != EOF && !(c == lc && lc == '\n')) {
+    while (c != EOF && !(lc == '\n' && isEol(c))) {
         lc = c;
         c = fgetc(ifp);
     }
@@ -493,7 +493,7 @@ void
 stripNewline(char *text)
 {
     size_t len = strlen(text);
-    while (len-- > 0 && (text[len] == '\n' || text[len] == '\r')) {
+    while (len-- > 0 && isEol(text[len])) {
         text[len] = 0;
     }
 }
@@ -1141,11 +1141,11 @@ getmobmsg(const char *s)
 		char *p = getTidyBlock(ifp);
 		if (feof(ifp))
 			alog(AL_FATAL, "Mobile:%s: Unexpected end of file", mob.id);
-		if (*p == 0 || *p == '\n') {
+		if (*p == 0 || isEol(*p)) {
 			alog(AL_FATAL, "Mobile: %s: unexpected end of definition", mob.id);
 		}
 		p = skipspc(p);
-		if (*p == 0 || *p == '\n' || isCommentChar(*p))
+		if (*p == 0 || isEol(*p) || isCommentChar(*p))
 			continue;
 
 		if (!canSkipLead(s, &p)) {
@@ -1180,6 +1180,7 @@ consumeMessageFile(
             continue;
 
         p = getWordAfter(prefix, p);
+        alog(AL_DEBUG, "%s%s", prefix, Word);
         if (strlen(Word) < 2 || strlen(Word) > IDL) {
             alog(AL_ERROR, "Invalid %s ID: %s", prefix, Word);
             skipblock();
@@ -1818,7 +1819,7 @@ objs_proc()
             char *p = getTidyBlock(ifp);
             if (!p)
                 alog(AL_FATAL, "object:%s: unexpected end of file", obj2.id);
-            if (!*p || *p == '\n')
+            if (!*p || isEol(*p))
                 break;
             state_proc();
         }
@@ -1895,7 +1896,7 @@ trav_proc()
         do
             fgets(block, sizeof(block), ifp);
         while (block[0] != 0 && consumeComment(block));
-        if (block[0] == 0 || block[0] == '\n') {
+        if (block[0] == 0 || isEol(block[0])) {
             /* Only complain if room is not a death room */
             if ((roomtab->flags & DEATH) != DEATH) {
                 alog(AL_INFO, "No tt entries for room: %s", roomtab->id);
@@ -1940,7 +1941,7 @@ trav_proc()
             fgets(block, sizeof(block), ifp);
             if (feof(ifp))
                 break;
-            if (block[0] == 0 || block[0] == '\n') {
+            if (block[0] == 0 || isEol(block[0])) {
                 strip = -1;
                 continue;
             }
@@ -2356,7 +2357,7 @@ lang_proc()
             if (!fgets(block, sizeof(block), ifp))
                 alog(AL_FATAL, "verb:%s: unexpected end of file", verb.id);
         } while (consumeComment(block));
-        if (block[0] || block[0] == '\n') {
+        if (block[0] || isEol(block[0])) {
             lastc = 1;
             goto writeslot;
         }

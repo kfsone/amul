@@ -19,7 +19,7 @@ isCommentChar(char c)
 static inline bool
 isEol(char c)
 {
-    return c == '\n';
+    return (c == '\n' || c == '\r');
 }
 
 // Test for end-of-string (nul terminator)
