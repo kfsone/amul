@@ -953,20 +953,22 @@ chkp(char *p, char t, int c, int z, FILE *fp)
              (proc == 1) ? verb.id : roomtab->id, (z == 1) ? "condition" : "action",
              (z == 1) ? conds[c] : acts[c]);
     }
+    static char token[4096];
     char *end = NULL;
-    bool  lower = false;
     if (*p != '\"' && *p != '\'') {
         end = strstop(p, ' ');
-    } else {
-        end = strstop(p + 1, *p);
-        lower = true;
-    }
-    size_t len = end - p;
-    char * token = (char *)alloca(len + 1);  /// TODO: Eliminate
-    if (lower)
         WordCopier(token, p, end);
-    else
+    } else {
+		// Subsequent parsing will want to see the opening quote character
+        char quote = *p;
+        if (!*p || isEol(*p))
+            alog(AL_FATAL, "Unterminated string");
+        end = strstop(p+1, quote);
         StrCopier(token, p, end);
+        if (*end == quote)
+            ++end;
+    }
+    p = end;
 
     /* Processing lang tab? */
     if ((t >= 0 && t <= 10) || t == -70) {
@@ -1051,17 +1053,13 @@ chkp(char *p, char t, int c, int z, FILE *fp)
     }
 write:
     FPos += fwrite(&x, sizeof(x), 1, fp);
-    return skipspc(p + 1);
+    return *p ? skipspc(p + 1) : p;
 }
 
 char *
 chkaparms(char *p, int c, FILE *fp)
 {
-    int i;
-
-    if (nacp[c] == 0)
-        return p;
-    for (i = 0; i < nacp[c]; i++)
+    for (int i = 0; i < nacp[c]; i++)
         if ((p = chkp(p, tacp[c][i], c, 0, fp)) == NULL)
             return NULL;
     return p;
@@ -1070,11 +1068,7 @@ chkaparms(char *p, int c, FILE *fp)
 char *
 chkcparms(char *p, int c, FILE *fp)
 {
-    int i;
-
-    if (ncop[c] == 0)
-        return p;
-    for (i = 0; i < ncop[c]; i++)
+    for (int i = 0; i < ncop[c]; i++)
         if ((p = chkp(p, tcop[c][i], c, 1, fp)) == NULL)
             return NULL;
     return p;
@@ -1630,7 +1624,7 @@ void
 state_proc()
 {
     state.weight = state.value = state.flags = 0;
-    state.descrip = -1;
+    state.description = -1;
 
     /* Get the weight of the object */
     char *p = getWordAfter("weight=", block);
@@ -1671,16 +1665,16 @@ state_proc()
     if (*p == 0)
         statinv("incomplete");
     if (*p == '\"' || *p == '\'') {
-        state.descrip = getTextString(p, false);
+        state.description = getTextString(p, false);
         char quote = *p;
         p = strstop(p + 1, *p);
         if (*p == quote)
             ++p;
     } else {
         p = getword(p);
-        state.descrip = getObjectDescriptionID(Word);
+        state.description = getObjectDescriptionID(Word);
     }
-    if (state.descrip == -1) {
+    if (state.description == -1) {
         char tmp[128];
         snprintf(tmp, sizeof(tmp), "desc= ID (%s) on", &Word[0]);
         statinv(tmp);
@@ -2097,20 +2091,10 @@ getVerbFlags(struct _VERB_STRUCT *verbp, char *p)
             continue;
         }
         // So we expect it to be a precedence specifier
-        switch (precedence) {
-        case 0:
-            if (chae_proc(Word, verbp->sort) == -1)
-                return;
-            ++precedence;
-            break;
-        case 1:
-            if (chae_proc(Word, verbp->sort2) == -1)
-				return;
-            ++precedence;
-            break;
-        default:
-            alog(AL_ERROR, "Unrecognized verb flag: %s", Word);
-        }
+        if (precedence < 2 && chae_proc(Word, verbp->precedence[precedence]) == -1)
+            return;
+
+        alog(AL_ERROR, "Expected verb flag or precedence, got: %s", Word);
     }
 }
 
@@ -2159,28 +2143,24 @@ lang_proc()
             continue;
         }
 
-		memset(&verb, 0, sizeof(verb));
-		strncpy(verb.id, Word, sizeof(verb.id));
+        memset(&verb, 0, sizeof(verb));
+        strncpy(verb.id, Word, sizeof(verb.id));
 
         ++g_gameInfo.numVerbs;
-        alog(AL_DEBUG, "verb#%04d:%s", ++g_gameInfo.numVerbs, verb.id);
+        alog(AL_DEBUG, "verb#%04d:%s", g_gameInfo.numVerbs, verb.id);
 
         getVerbFlags(&verb, p);
 
-    stuffloop:
-        do {
-            if (!fgets(block, sizeof(block), ifp))
-                alog(AL_FATAL, "verb:%s: unexpected end of file", verb.id);
-        } while (consumeComment(block));
-        if (block[0] == 0) {
-            if (verb.ents == 0 && (verb.flags & VB_TRAVEL))
+        p = getTidyBlock(ifp);
+        if (!p)
+            alog(AL_ERROR, "Unexpected end of file during verb: %s", verb.id);
+        if (!*p || isEol(*p)) {
+            if (verb.ents == 0 && (verb.flags & VB_TRAVEL)) {
                 alog(AL_WARN, "Verb has no entries: %s", verb.id);
+            }
             goto write;
         }
-        tidy(block);
-        if (block[0] == 0)
-            goto stuffloop;
-        p = block;
+
         if (!canSkipLead("syntax=", &p)) {
             vbprob("no syntax= line", block);
             skipblock();
@@ -2365,16 +2345,14 @@ lang_proc()
         lastc = 'x';
         proc = 0;
 
-        do {
-            if (!fgets(block, sizeof(block), ifp))
-                alog(AL_FATAL, "verb:%s: unexpected end of file", verb.id);
-        } while (consumeComment(block));
-        if (block[0] || isEol(block[0])) {
+        p = getTidyBlock(ifp);
+        if (!p)
+            alog(AL_FATAL, "verb:%s: unexpected end of file", verb.id);
+        if (!*p || isEol(*p)) {
             lastc = 1;
             goto writeslot;
         }
-        tidy(block);
-        p = skipspc(block);
+
         if (canSkipLead("syntax=", &p)) {
             lastc = 0;
             goto writeslot;
