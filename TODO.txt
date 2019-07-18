@@ -1,3 +1,5 @@
+* Tests on amulcom.strings.c
+
 - memory allocation
 - use skip functions instead of replace
 - nacp/ncop -> structures like C++
@@ -22,3 +24,18 @@ be better and more consistent for those that are builtins.
 
 - Check EXPECT_ERROR(EINVALs and make sure we're testing individual
   invalid values rather than possible occlusions.
+
+- Normlize 'number of entry' value in structs to counts, size, or length
+- Replace C&A with a simpler VM model,
+- Replace negative actions (rooms) with a GOTO instruction,
+- Use [] instead of *ptr,
+- Collapse multiple files into single file with compound records,
+- Leverage "write-reserve" model to populate partial records:
+	size_t size = 0;
+	size_t countPosn = ftell(ofp);
+	fwrite(&size, sizeof(count), ofp);
+	readEntry();
+	size = sizeOfData();
+	frewriteAt(countPosn, &size, sizeof(size), ofp);
+- replace 'sex' with gender
+- replace _TT_ENT with { verb, vtab }
