@@ -4,32 +4,34 @@
 #include <h/amul.defs.h>
 #include <h/amul.type.h>
 
-struct _PLAYER /* Player def struct */
-{
-    char    name[NAMEL + 1]; /* Player's name	 */
-    char    passwd[23];      /* Password or User ID	 */
-    int32_t score;           /* Score to date...      */
-    int     rdmode;          /* Users RD Mode	 */
-    int16_t strength;        /* How strong is he?	 */
-    int16_t stamina;         /* Stamina		 */
-    int16_t dext;            /* Dexterity		 */
-    int16_t wisdom;          /* Wisdom		 */
-    int16_t experience;      /* Experience		 */
-    int16_t magicpts;        /* Magic points		 */
-    int16_t rank;            /* How he rates!	 */
-    int16_t plays;           /* Times played		 */
-    int16_t tries;           /* Bad tries since last	 */
-    int32_t tasks;           /* Tasks completed	 */
-    char    archetype;       /* Player class		 */
-    char    sex;             /* Players sex		 */
-    uint8_t flags;           /* Ansi, LF, Redo	 */
-    char    llen;            /* Line length		 */
-    char    slen;            /* Screen length	 */
-    char    rchar;           /* Redo character	 */
+// _PLAYER describes a human actor in the game world.
+/// TODO: Share common properties with NPCs into structs.
+struct _PLAYER {
+    char     name[NAMEL + 1];
+    char     passwd[23];  /// TODO: hash
+    int32_t  score;       // Total points scored
+    int      rdmode;      // Room Description mode (brief/verbose)
+    int16_t  strength;
+    int16_t  stamina;
+    int16_t  dext;
+    int16_t  wisdom;
+    int16_t  experience;
+    int16_t  magicpts;
+    int16_t  rank;
+    uint16_t plays;      // times played
+    uint16_t tries;      // failed login attempts since last login
+    uint32_t tasks;      // bitmask of tasks completed
+    char     archetype;  // Player class: unused yet
+    char     gender;     // gender
+    uint8_t  flags;      // preferences, really, and unused
+                         // client/terminal preferences
+    char llen;           // preferred line length
+    char slen;           // preferred screen length
+    char rchar;          // 'redo' character (refresh)
 };
 
-struct LS /* IO Driver Line Status Info */
-{
+// LS represents the "line status", reflecting modem/bbs handling terminology
+struct LS {
     char *          buf;       /* Pointer to output	 */
     struct MsgPort *rep;       /* My reply port	 */
     uint32_t        flags;     /* User's flags		 */
@@ -56,80 +58,93 @@ struct LS /* IO Driver Line Status Info */
     char            helped;    /* Getting help from	 */
     char            followed;  /* Who is following me	 */
     char            fighting;  /* Who I am fighting	 */
-    char            pre[80];   /* Pre-rank description	 */
-    char            post[80];  /* Post-rank description */
-    char            arr[80];   /* When player arrives	 */
-    char            dep[80];   /* When player leaves	 */
+                               /// TODO: normalize to stringids
+    char pre[80];              /* Pre-rank description	 */
+    char post[80];             /* Post-rank description */
+    char arr[80];              /* When player arrives	 */
+    char dep[80];              /* When player leaves	 */
 };
 
-struct _ROOM_STRUCT /* Room def struct */
-{
-    char       id[IDL + 1]; /* Room I.D.		   */
-    char       dmove[IDL + 1];
-    uint32_t   flags;   /* Room FIXED flags        */
-    stringid_t descid;  /* Ptr to des. in des file */
-    uint32_t   tabptr;  /* Ptr to T.T. data 	   */
-    uint32_t   ttlines; /* No. of TT lines	   */
+// _ROOM_STRUCT represents a room, or location, in the game world.
+struct _ROOM_STRUCT {
+    char       id[IDL + 1];
+    char       dmove[IDL + 1];  /// TODO: Rename CEMETERY
+    uint32_t   flags;           // static flags
+    stringid_t descid;
+    uint32_t   tabptr;   // offset to data in travel table
+    uint32_t   ttlines;  /// TODO: normalize 'count'
 };
 
-struct _VERB_STRUCT /* Verb def struct */
-{
-    char             id[IDL + 1]; /* The Verb itself       */
-    uint8_t          flags;       /* Travel? etc...	 */ 
+// _VBTAB represents an action (and optional condition) in the table of instructions
+// associated with a verb + syntax block.
+/// TODO: Allow multiple conditions, multiple actions.
+/// TODO: Rename from 'vbtab' to 'VMOp', 'Instruction', something .. better
+struct _VBTAB {
+    int32_t condition;
+    /// TODO: Replace negative actions with a GOTO action.
+    int32_t action;   /* #>0=action, #<0=room  */
+                      /// TODO: pptr[]
+    opparam_t *pptr;  // Parameter list, or -1 for none.
+};
+
+// _SLOTTAB represents a syntax slot that expands to a series of instructions
+struct _SLOTTAB {
+    char           wtype[5]; /* Type of word expected */
+    long           slot[5];  /* wtype specific values	 */
+    uint16_t       ents;     /// TODO: normalize 'count'
+    struct _VBTAB *ptr;      /// TODO: vbtab[]
+};
+
+// _VERB_STRUCT describes the verbs that operate as runtime commands from
+// players. Each verb has to describe the order in which it prefers to
+// resolve conflicting matches for noun tokens: for example, if there is
+// a "note" on the ground and a "note" in the player's inventory, then
+// the "get" and "drop" verbs will want to try those in opposite orders.
+//
+// History: 'CHAE' is 'Carried, Here, Another (player's inventory) and
+// Elsewhere (not in the room)'. This is really precedence or ordering,
+//
+struct _VERB_STRUCT {
+    char    id[IDL + 1];
+    uint8_t flags;
     union {
         struct Precedence {
-            char sort[5];  /* Sort method... (yawn) */
-            char sort2[5]; /* Sort #2!		 */
+            char precedence[2][5];
         };
         char precedences[10];
-	};
-    int16_t          ents;        /* No. of slot entries	 */
-    struct _SLOTTAB *ptr;         /* Pointer to slots tab	 */
+    };
+    int16_t          ents;  /// TODO: normalize 'count'
+    struct _SLOTTAB *ptr;   /// TODO: variants[]
 };
 
-struct _SLOTTAB /* Slot table def */
-{
-    char           wtype[5]; /* Type of word expected */
-    long           slot[5];  /* List of slots	 */
-    uint16_t       ents;     /* No. of entries	 */
-    struct _VBTAB *ptr;      /* Pointer to Verb Table */
+// Player ranks
+struct _RANK_STRUCT {
+    char     male[RANKL];    // Male title
+    char     female[RANKL];  // Female title
+    char     prompt[11];
+    int32_t  score;     // Score required to attain
+    int16_t  strength;  // Combat; does not affect carry capacity
+    int16_t  stamina;
+    int16_t  dext;
+    int16_t  wisdom;
+    int16_t  experience;
+    int16_t  magicpts;
+    int32_t  maxweight;
+    int16_t  numobj;
+    int32_t  minpksl;  // Base points for killing someone of this rank
+    uint32_t tasks;    // Bitmask of required tasks to attain rank
 };
 
-struct _VBTAB /* Verb Table struct */
-{
-    int32_t  condition; /* Condition		 */
-    int32_t  action;    /* #>0=action, #<0=room  */
-    opparam_t *pptr;      /* Param ptr. -1 = none  */
+// "Noun" is the name of an object so that it can be used as *a noun*.
+struct _NTAB_STRUCT {
+    char                id[IDL + 1];  /// TODO: Dictionary id
+    uint32_t            numInstances;
+    struct _OBJ_STRUCT *first;
 };
 
-struct _RANK_STRUCT /* Rank information */
-{
-    char    male[RANKL];   /* chars for male descrp */
-    char    female[RANKL]; /* Women! Huh!           */
-    long    score;         /* Score to date...      */
-    int16_t strength;      /* How strong is he?	 */
-    int16_t stamina;       /* Stamina		 */
-    int16_t dext;          /* Dexterity		 */
-    int16_t wisdom;        /* Wisdom		 */
-    int16_t experience;    /* Experience		 */
-    int16_t magicpts;      /* Magic points		 */
-    int32_t maxweight;     /* Maximum weight	 */
-    int16_t numobj;        /* Max. objects carried	 */
-    int32_t minpksl;       /* Min. pts for killin	 */
-    int32_t tasks;         /* Tasks needed for level*/
-    char    prompt[11];    /* Prompt 4 this rank	 */
-};
-
-struct _NTAB_STRUCT /* Noun table structure */
-{
-    char                id[IDL + 1]; /* Object's NAME	 */
-    int16_t             num_of;      /* Number of this type	 */
-    struct _OBJ_STRUCT *first;       /* First in the list	 */
-};
-
-struct _OBJ_STRUCT /* Object (proper) definition */
-{
-    char               id[IDL + 1];                   /* Object's NAME	 */
+// Object: Item or npc in the game world
+struct _OBJ_STRUCT {
+    char               id[IDL + 1];                   /// TODO: noun id
     int16_t            idno;                          /* Object's ID no	 */
     adjid_t            adj;                           /* Adjective. -1 = none	 */
     int16_t            inside;                        /* No. objects inside	 */
@@ -144,26 +159,27 @@ struct _OBJ_STRUCT /* Object (proper) definition */
     roomid_t *         rmlist; /* List of rooms	 */  /// TODO: rmlist[]
 };
 
-struct _OBJ_STATE /* State description */
-{
-    uint32_t   weight;   /* In grammes		 */
-    int32_t    value;    /* Whassit worth?	 */
-    uint16_t   strength; /* How strong is it?	 */
-    uint16_t   damage;   /* Amount of damage	 */
-    stringid_t descrip;  /* ptr to descrp in file */
-    uint16_t   flags;    /* State flags		 */
+// Object: State specific properties
+struct _OBJ_STATE {
+    uint32_t   weight;    // In grammes
+    int32_t    value;     // Base points for dropping in a swamp
+    uint16_t   strength;  // } Unclear: May be health of the item,
+    uint16_t   damage;    // } damage it does or damage done to it
+    stringid_t description;
+    uint16_t   flags;
 };
 
-struct _TT_ENT /* TT Entry */
-{
-    verbid_t   verb;      /* Verb no.		 */
-    int32_t    condition; /* Condition		 */
-    int32_t    action;    /* #>0=action, #<0=room  */
-    opparam_t *pptr;      /* Param ptr. -1 = none  */
+// Travel table entry, which you will note is a verb table entry with a verb.
+/// TODO: See above.
+struct _TT_ENT {
+    verbid_t   verb;
+    int32_t    condition;
+    int32_t    action; /* #>0=action, #<0=room  */
+    opparam_t *pptr;   /* Param ptr. -1 = none  */
 };
 
-struct _MOB  // Runtime definition of a monster
-{
+// _MOB is the "live" representation of a runtime NPC
+struct _MOB {
     int16_t        dmove;                           /* Move to when it dies	*/
     char           deadstate;                       /* State flags		*/
     char           speed, travel, fight, act, wait; /* speed & %ages	*/
@@ -176,20 +192,21 @@ struct _MOB  // Runtime definition of a monster
     struct _VBTAB *cmds;                             /* & ptr to cmds	*/
 };
 
-struct _MOB_ENT /* Mobile Character Entry */
-{
+// _MOB_ENT is the compile-time 'class' definition of an NPC
+struct _MOB_ENT {
     char        id[IDL + 1]; /* Name of mobile	*/
     struct _MOB mob;
 };
 
-struct _MOB_TAB /* Mobile table entry */
-{
+// _MOB_TAB is a component of runtime association of a mob with its controller.
+struct _MOB_TAB {
     uint16_t obj;    /* Object no.		*/
     uint16_t speed;  /* Secs/turn		*/
     uint16_t count;  /* Time till next	*/
     uint16_t pflags; /* Player style flags	*/
 };
 
+/// TODO: enumize
 #define boZONKED 0x0001   /* its out-of-play	*/
 #define boCREATURE 0x0002 /* its a creature	*/
 #define boGLOWING 0x0004  /* light-source		*/
@@ -204,8 +221,10 @@ struct _MOB_TAB /* Mobile table entry */
 
 #define SBOB struct _BOBJ
 
-struct _BOBJ /* Basic object struct */
-{
+// _BOBJ was a work-in-progress when I took this snapshot, I was effectively
+// starting to create a class hierarchy for tangible things in the game world,
+// and probably not doing a great job of it.
+struct _BOBJ {
     int8_t        type, state; /* Type of 'presence'	*/
     char *        name;
     const char *  archetype;
@@ -218,9 +237,9 @@ struct _BOBJ /* Basic object struct */
     void *        info;                 /* Pointer to REAL data	*/
 };
 
-struct _ROOM /* Room object struct */
-{
-    uint16_t   flags;   /* Room FIXED flags        */
+// _ROOM represents a room's extension of BOBJS
+struct _ROOM {
+    uint16_t   flags;   /* Room static flags        */
     stringid_t desptr;  /* Ptr to des. in des file */
     int32_t    tabptr;  /* Ptr to T.T. data 	   */
     uint16_t   ttlines; /* No. of TT lines	   */
@@ -228,14 +247,14 @@ struct _ROOM /* Room object struct */
 
 #define CRE struct _BEING /* Creature */
 
-struct _BEING /* Mobile/char struct */
-{
-    char *          buf;                     /* Where to put text	*/
-    struct MsgPort *rep;                     /* Notify me here	*/
-    uint32_t        flags;                   /* Flags		*/
-    int32_t         sctg;                    /* Points scd this game	*/
-    int16_t         strength, stamina, dext; /* Fators		*/
-    int16_t         wisdom, magicpts, wield; /* factors		*/
+// _BEING represents a player/mob
+struct _BEING {
+    char *          buf;   /* Where to put text	*/
+    struct MsgPort *rep;   /* Notify me here	*/
+    uint32_t        flags; /* Flags		*/
+    int32_t         sctg;  /* Points scd this game	*/
+    int16_t         strength, stamina, dext;
+    int16_t         wisdom, magicpts, wield;
     int16_t         dextadj;
     CRE *           helping;                          /* Who I'm helping	*/
     CRE *           nxthelp;                          /* Next person		*/
@@ -246,8 +265,8 @@ struct _BEING /* Mobile/char struct */
     void *          info;                             /* A bit more		*/
 };
 
-struct _LS /* IO Driver Line Status Info */
-{
+// Line-status
+struct _LS {
     int16_t rec, unum;
     char    line, iosup; /* Which line am I?	*/
     char    IOlock;      /* Device in use?	*/
@@ -257,8 +276,8 @@ struct _LS /* IO Driver Line Status Info */
     char    dep[80];     /* When player leaves	*/
 };
 
-struct _HUMAN /* Player def struct */
-{
+// Player
+struct _HUMAN {
     char *  name;       /* Player's name	 */
     char    passwd[9];  /* Password or User ID	 */
     long    score;      /* Score to date...      */
@@ -281,8 +300,8 @@ struct _HUMAN /* Player def struct */
     char    rchar;      /* Redo character	 */
 };
 
-struct _OBJ /* Object definition */
-{
+// Inanimate object bobj info
+struct _OBJ {
     uint16_t           id;      /* My name		*/
     int16_t            nrooms;  /* No. of rooms its in	*/
     int16_t            adj;     /* It's adjective	*/
