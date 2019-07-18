@@ -1137,32 +1137,32 @@ mobmis(const char *s)
 stringid_t
 getmobmsg(const char *s)
 {
-	for (;;) {
-		char *p = getTidyBlock(ifp);
-		if (feof(ifp))
-			alog(AL_FATAL, "Mobile:%s: Unexpected end of file", mob.id);
-		if (*p == 0 || isEol(*p)) {
-			alog(AL_FATAL, "Mobile: %s: unexpected end of definition", mob.id);
-		}
-		p = skipspc(p);
-		if (*p == 0 || isEol(*p) || isCommentChar(*p))
-			continue;
+    for (;;) {
+        char *p = getTidyBlock(ifp);
+        if (feof(ifp))
+            alog(AL_FATAL, "Mobile:%s: Unexpected end of file", mob.id);
+        if (*p == 0 || isEol(*p)) {
+            alog(AL_FATAL, "Mobile: %s: unexpected end of definition", mob.id);
+        }
+        p = skipspc(p);
+        if (*p == 0 || isEol(*p) || isCommentChar(*p))
+            continue;
 
-		if (!canSkipLead(s, &p)) {
-			mobmis(s);
-			return -1;
-		}
-		if (toupper(*p) == 'N') {
-			p = skipline(p);
-			return -2;
-		}
-		stringid_t n = getTextString(p, true);
-		p = skipline(p);
-		if (n == -1) {
-			alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
-		}
-		return n;
-	}
+        if (!canSkipLead(s, &p)) {
+            mobmis(s);
+            return -1;
+        }
+        if (toupper(*p) == 'N') {
+            p = skipline(p);
+            return -2;
+        }
+        stringid_t n = getTextString(p, true);
+        p = skipline(p);
+        if (n == -1) {
+            alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
+        }
+        return n;
+    }
 }
 
 error_t
@@ -2078,6 +2078,42 @@ chae_proc(const char *f, char *t)
     return 0;
 }
 
+void
+getVerbFlags(struct _VERB_STRUCT *verbp, char *p)
+{
+    static char defaultChae[] = {-1, 'C', 'H', 'A', 'E', -1, 'C', 'H', 'A', 'E'};
+    memcpy(verbp->precedences, defaultChae, sizeof(verbp->precedences));
+
+    verbp->flags = VB_TRAVEL;
+    int precedence = 0;
+    while (*(p = skipspc(p)) != 0 && !isCommentChar(*p)) {
+        p = getword(p);
+        if (strcmp("travel", Word) == 0) {
+            verbp->flags = 0;
+            continue;
+        }
+        if (strcmp("dream", Word) == 0) {
+            verbp->flags += VB_DREAM;
+            continue;
+        }
+        // So we expect it to be a precedence specifier
+        switch (precedence) {
+        case 0:
+            if (chae_proc(Word, verbp->sort) == -1)
+                return;
+            ++precedence;
+            break;
+        case 1:
+            if (chae_proc(Word, verbp->sort2) == -1)
+				return;
+            ++precedence;
+            break;
+        default:
+            alog(AL_ERROR, "Unrecognized verb flag: %s", Word);
+        }
+    }
+}
+
 /* Process LANG.TXT */
 void
 lang_proc()
@@ -2123,37 +2159,13 @@ lang_proc()
             continue;
         }
 
-        strcpy(verb.id, Word);
+		memset(&verb, 0, sizeof(verb));
+		strncpy(verb.id, Word, sizeof(verb.id));
+
         ++g_gameInfo.numVerbs;
-        alog(AL_DEBUG, "verb:%04d:%s", ++g_gameInfo.numVerbs, verb.id);
+        alog(AL_DEBUG, "verb#%04d:%s", ++g_gameInfo.numVerbs, verb.id);
 
-        static char defaultChae[] = {-1, 'C', 'H', 'A', 'E', -1, 'C', 'H', 'A', 'E'};
-        memcpy((&verb.sort[0]), defaultChae, 10);
-
-        verb.flags = VB_TRAVEL;
-        if (*p == 0 || *p == ';' || *p == '*')
-            goto noflags;
-        p = getword(p);
-        if (strcmp("travel", Word) == 0) {
-            verb.flags = 0;
-            p = getword(p);
-        }
-        if (strcmp("dream", Word) == 0) {
-            verb.flags += VB_DREAM;
-            p = getword(p);
-        }
-        if (Word[0] == 0 || Word[0] == ';' || Word[0] == '*')
-            goto noflags;
-
-        if (chae_proc(Word, verb.sort) == -1)
-            goto noflags;
-        p = getword(p);
-        if (Word[0] != 0 && Word[0] != ';' && Word[0] != '*')
-            chae_proc(Word, verb.sort2);
-
-    noflags:
-        verb.ents = 0;
-        verb.ptr = (struct _SLOTTAB *)of2p;
+        getVerbFlags(&verb, p);
 
     stuffloop:
         do {
