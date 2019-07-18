@@ -13,7 +13,6 @@ enum ModuleID {
     MOD_LOGGING = 1,
     MOD_CMDLINE,
     MOD_STRINGS,
-    MOD_RUNTIME,
     MOD_COMPILER,
 
     MAX_MODULE_ID,

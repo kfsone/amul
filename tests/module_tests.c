@@ -147,7 +147,7 @@ test_new_static_module(struct TestContext *t)
     struct ModuleState *ms = (struct ModuleState *)(t->userData);
     struct Module *     module = NULL;
 
-    EXPECT_SUCCESS(NewModule(true, MOD_RUNTIME, modInit, modStart, modClose, ms, &module));
+    EXPECT_SUCCESS(NewModule(true, MOD_COMPILER, modInit, modStart, modClose, ms, &module));
     EXPECT_NOT_NULL(module);
     EXPECT_PTR_EQUAL(s_modulesHead, module);
     EXPECT_PTR_EQUAL(s_modulesTail, module);
@@ -159,7 +159,7 @@ test_new_static_module(struct TestContext *t)
     // Shouldn't be linked to anything
     EXPECT_NULL(module->links.prev);
     EXPECT_NULL(module->links.next);
-    EXPECT_VAL_EQUAL(MOD_RUNTIME, module->id);
+    EXPECT_VAL_EQUAL(MOD_COMPILER, module->id);
 
     EXPECT_PTR_EQUAL(s_freeModules, &s_staticModules[1]);
 }
@@ -183,7 +183,7 @@ test_close_static_module(struct TestContext *t)
 {
     struct ModuleState *ms = (struct ModuleState *)(t->userData);
 
-    struct Module *module = GetModule(MOD_RUNTIME);
+    struct Module *module = GetModule(MOD_COMPILER);
     EXPECT_NOT_NULL(module);
     EXPECT_PTR_EQUAL(module, &s_staticModules[0]);
     EXPECT_PTR_EQUAL(ms, module->context);
@@ -221,7 +221,7 @@ test_multiple_modules(struct TestContext *t)
 
     struct ModuleState ms2 = (struct ModuleState){false, false, false};
     struct Module *    module2 = NULL;
-    EXPECT_SUCCESS(NewModule(true, MOD_RUNTIME, modInit, modStart, modClose, &ms2, &module2));
+    EXPECT_SUCCESS(NewModule(true, MOD_COMPILER, modInit, modStart, modClose, &ms2, &module2));
     EXPECT_NOT_NULL(module2);
     EXPECT_PTR_EQUAL(s_modulesTail, module2);  // FILO order
     EXPECT_PTR_EQUAL(s_modulesHead, module1);

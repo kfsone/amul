@@ -26,7 +26,7 @@ bool s_modulesClosed;
 
 static const char *moduleNames[MAX_MODULE_ID] = {
         // hard-coded names for modules
-        "INVALID", "logging", "cmdline", "strings", "runtime", "compiler",
+        "INVALID", "logging", "cmdline", "strings", "compiler",
 };
 
 void
