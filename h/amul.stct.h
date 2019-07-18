@@ -75,9 +75,14 @@ struct _ROOM_STRUCT /* Room def struct */
 struct _VERB_STRUCT /* Verb def struct */
 {
     char             id[IDL + 1]; /* The Verb itself       */
-    uint8_t          flags;       /* Travel? etc...	 */
-    char             sort[5];     /* Sort method... (yawn) */
-    char             sort2[5];    /* Sort #2!		 */
+    uint8_t          flags;       /* Travel? etc...	 */ 
+    union {
+        struct Precedence {
+            char sort[5];  /* Sort method... (yawn) */
+            char sort2[5]; /* Sort #2!		 */
+        };
+        char precedences[10];
+	};
     int16_t          ents;        /* No. of slot entries	 */
     struct _SLOTTAB *ptr;         /* Pointer to slots tab	 */
 };
