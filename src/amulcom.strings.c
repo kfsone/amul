@@ -246,8 +246,8 @@ WordCopy(char *into, size_t intoSize, const char *start, const char *end)
     while (into < intoEnd) {
         *(into++) = tolower(*(start++));
     }
-    into[copylen] = 0;
-    return into + copylen;
+    *into = 0;
+    return into;
 }
 
 void
