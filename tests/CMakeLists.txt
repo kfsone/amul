@@ -16,10 +16,13 @@ SET(TESTS_HEADERS
 )
 
 ADD_EXECUTABLE(
-    tests
+    libtests
 
     ${TESTS_SOURCES}
     ${TESTS_HEADERS}
 )
 
-TARGET_LINK_LIBRARIES(tests "${AMUL_LIB_NAME}")
+TARGET_LINK_LIBRARIES(libtests "${AMUL_LIB_NAME}")
+
+ADD_TEST(NAME unittests COMMAND libtests)
+
