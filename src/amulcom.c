@@ -2511,8 +2511,6 @@ syn_proc()
 void
 mob_proc1()
 {
-    long n;
-
     fopenw(mobileDataFile);
     if (!nextc(false))
         return;
@@ -2617,24 +2615,18 @@ mob_proc1()
         p = getword(p);
         mobd->hitpower = atoi(Word);
 
-        if ((n = getmobmsg("arrive=")) == -1)
+        if ((mobd->arr = getmobmsg("arrive=")) == -1)
             continue;
-        mobd->arr = n;
-        if ((n = getmobmsg("depart=")) == -1)
+        if ((mobd->dep = getmobmsg("depart=")) == -1)
             continue;
-        mobd->dep = n;
-        if ((n = getmobmsg("flee=")) == -1)
+        if ((mobd->flee = getmobmsg("flee=")) == -1)
             continue;
-        mobd->flee = n;
-        if ((n = getmobmsg("strike=")) == -1)
+        if ((mobd->hit = getmobmsg("strike=")) == -1)
             continue;
-        mobd->hit = n;
-        if ((n = getmobmsg("miss=")) == -1)
+        if ((mobd->miss = getmobmsg("miss=")) == -1)
             continue;
-        mobd->miss = n;
-        if ((n = getmobmsg("dies=")) == -1)
+        if ((mobd->death = getmobmsg("dies=")) == -1)
             continue;
-        mobd->death = n;
 
         fwrite(&mob, sizeof(mob), 1, ofp1);
         g_gameInfo.numMobPersonas++;
