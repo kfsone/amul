@@ -108,9 +108,7 @@ struct _VERB_STRUCT {
     char    id[IDL + 1];
     uint8_t flags;
     union {
-        struct Precedence {
-            char precedence[2][5];
-        };
+        char precedence[2][5];
         char precedences[10];
     };
     int16_t          ents;  /// TODO: normalize 'count'
