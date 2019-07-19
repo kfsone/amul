@@ -45,3 +45,30 @@ ENDIF ()
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(tests)
 
+
+# all:
+# 	ninja -j4
+# 
+# .PHONY : force
+# force::
+# 	ninja -j9 clean
+# 	ninja -j4
+# 
+# .PHONY : clean
+# clean::
+# 	ninja clean
+# 
+# .PHONY : tests
+# tests::
+# 	ninja -j4 tests
+# 	tests/tests
+# 
+# .PHONE : cov
+# cov::
+# 	ninja clean
+# 	ninja -j8 tests
+# 	LLVM_PROFILE_FILE="tests.profraw" tests/tests
+# 	llvm-profdata-6.0 merge -sparse tests.profraw -o tests.profdata
+# 	llvm-cov-6.0 show -format=html tests/tests -instr-profile=tests.profdata >cov.html
+# 	llvm-cov-6.0 report tests/tests -instr-profile=tests.profdata
+
