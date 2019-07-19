@@ -240,7 +240,7 @@ test_multiple_modules(struct TestContext *t)
 
     struct ModuleState ms3 = (struct ModuleState){false, false, false};
     struct Module *    module3 = NULL;
-    EXPECT_SUCCESS(NewModule(false, MOD_COMPILER, modInit, modStart, modClose, &ms3, &module3));
+    EXPECT_SUCCESS(NewModule(false, MOD_STRINGS, modInit, modStart, modClose, &ms3, &module3));
     EXPECT_NOT_NULL(module3);
     EXPECT_PTR_EQUAL(s_modulesTail, module3);  // FILO order
     EXPECT_PTR_EQUAL(s_modulesTail->links.prev, module2);
