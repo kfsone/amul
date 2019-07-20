@@ -2112,6 +2112,33 @@ getVerbFlags(struct _VERB_STRUCT *verbp, char *p)
     }
 }
 
+void
+registerTravelVerbs(char *p)
+{
+    while (!isEol(*p) && *p) {
+        p = skipspc(p);
+        p = getword(p);
+        if (Word[0] == 0)
+            break;
+        int extant = is_verb(Word);
+        if (extant != -1) {
+            if (vbptr[extant].flags | VB_TRAVEL) {
+                alog(AL_ERROR, "Redefinition of travel verb: %s", Word);
+                continue;
+            }
+            vbptr[extant].flags |= VB_TRAVEL;
+            alog(AL_DEBUG, "Added TRAVEL to existing verb %s", Word);
+            continue;
+        }
+        ///TODO: size check
+        strncpy(verb.id, Word, sizeof(verb.id));
+        checkedfwrite(verb.id, sizeof(verb), 1, ofp1);
+        proc = 0;
+        *(vbtab + (g_gameInfo.numVerbs++)) = verb;
+        alog(AL_DEBUG, "Added TRAVEL verb: %s", Word);
+    }
+}
+
 /* Process LANG.TXT */
 void
 lang_proc()
@@ -2143,6 +2170,13 @@ lang_proc()
         char *p = getTidyBlock(ifp);
         if (!p)
             continue;
+
+        // check for 'travel' line which allows specification of travel verbs
+
+        if (canSkipLead("travel=", &p)) {
+            registerTravelVerbs(p);
+            continue;
+        }
 
         p = getWordAfter("verb=", p);
         if (!Word[0]) {
@@ -2395,7 +2429,8 @@ lang_proc()
         /* If they forgot space between !<condition>, eg !toprank */
     notlp2:
         if (Word[0] == '!') {
-            strcpy(Word, Word + 1);
+            memmove(Word, Word+1, sizeof(Word) - 1);
+            Word[sizeof(Word) - 1] = 0;
             r = -1 * r;
             goto notlp2;
         }
