@@ -42,6 +42,9 @@ ELSE ()
     ENDIF ()
 ENDIF ()
 
+SET(CPPCHECK_EXE "cppcheck")
+SET(CMAKE_CXX_CPPCHECK "${CPPCHECK_EXE};--enable=warning,performance,portability,missingInclude;--template=\"[{severity}][{id}] {message} {callstack} \(On {file}:{line}\)\";--suppress=missingIncludeSystem;--quiet;--verbose;--force")
+
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(tests)
 
