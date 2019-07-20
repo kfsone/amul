@@ -7,6 +7,9 @@ out
 **/*.lib
 **/*.amulc
 **/*.amulo
+**/*.swp
+**/*.swo
+**/*~
 CMakeCache.txt
 CMakeFiles
 Makefile
