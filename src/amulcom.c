@@ -230,12 +230,32 @@ fopenr(const char *filename)
     ifp = OpenGameFile(filename, "rb");
 }
 
+int
+checkedfread(void *data, size_t objSize, size_t objCount, FILE *fp)
+{
+    int read = fread(data, objSize, objCount, fp);
+    if (read != objCount) {
+        alog(AL_FATAL, "Wrong write count: expected %d, got %d", objCount, read);
+    }
+    return read;
+}
+
+int
+checkedfwrite(void *data, size_t objSize, size_t objCount, FILE *fp)
+{
+    int written = fwrite(data, objSize, objCount, fp);
+    if (written != objCount) {
+        alog(AL_FATAL, "Wrong write count: expected %d, got %d", objCount, written);
+    }
+    return written;
+}
+
 /* Update room entries after TT */
 void
 ttroomupdate()
 {
     fseek(afp, 0, 0L);
-    fwrite(rmtab->id, sizeof(room), g_gameInfo.numRooms, afp);
+    checkedfwrite(rmtab->id, sizeof(room), g_gameInfo.numRooms, afp);
 }
 
 void
@@ -374,7 +394,7 @@ set_adj()
     }
     if (g_gameInfo.numAdjectives == 0) {
         ZeroPad(Word, sizeof(Word));
-        fwrite(Word, IDL + 1, 1, afp);
+        checkedfwrite(Word, IDL + 1, 1, afp);
         obj2.adj = 0;
         g_gameInfo.numAdjectives++;
         return;
@@ -384,7 +404,7 @@ set_adj()
     do {
         char id[IDL + 1];
         if (fread(id, IDL + 1, 1, afp) != 1)
-            continue; /* Read adj! */
+            break;
         if (strcmp(Word, id) == 0) {
             obj2.adj = i;
             return;
@@ -394,7 +414,7 @@ set_adj()
 
     fseek(afp, 0L, 2); /* Move to end! */
     ZeroPad(Word, sizeof(Word));
-    fwrite(Word, IDL + 1, 1, afp); /* Add this adjective */
+    checkedfwrite(Word, IDL + 1, 1, afp); /* Add this adjective */
     obj2.adj = g_gameInfo.numAdjectives++;
 }
 
@@ -427,9 +447,7 @@ set_holds()
 void
 set_put()
 {
-    int i;
-
-    for (i = 0; i < NPUTS; i++)
+    for (int i = 0; i < NPUTS; i++)
         if (stricmp(obputs[i], Word) == 0) {
             obj2.putto = i;
             return;
@@ -440,9 +458,8 @@ set_put()
 void
 set_mob()
 {
-    int i;
-    for (i = 0; i < g_gameInfo.numMobPersonas; i++)
-        if (stricmp(Word, (mobp + i)->id) == 0) {
+    for (int i = 0; i < g_gameInfo.numMobPersonas; i++)
+        if (stricmp(mobp[i].id, Word) == 0) {
             obj2.mobile = i;
             return;
         }
@@ -452,8 +469,7 @@ set_mob()
 int
 iscond(const char *s)
 {
-    int i;
-    for (i = 0; i < NCONDS; i++)
+    for (int i = 0; i < NCONDS; i++)
         if (strcmp(conds[i], s) == 0)
             return i;
     return -1;
@@ -462,8 +478,7 @@ iscond(const char *s)
 int
 isact(const char *s)
 {
-    int i;
-    for (i = 0; i < NACTS; i++)
+    for (int i = 0; i < NACTS; i++)
         if (strcmp(acts[i], s) == 0)
             return i;
     return -1;
@@ -472,8 +487,7 @@ isact(const char *s)
 int
 isprep(const char *s)
 {
-    int i;
-    for (i = 0; i < NPREP; i++)
+    for (int i = 0; i < NPREP; i++)
         if (strcmp(s, prep[i]) == 0)
             return i;
     return -1;
@@ -1052,7 +1066,7 @@ chkp(char *p, char t, int c, int z, FILE *fp)
         return NULL;
     }
 write:
-    FPos += fwrite(&x, sizeof(x), 1, fp);
+    FPos += checkedfwrite(&x, sizeof(x), 1, fp);
     return *p ? skipspc(p + 1) : p;
 }
 
@@ -1378,7 +1392,7 @@ room_proc()
             skipblock();
             continue;
         }
-        fwrite(room.id, sizeof(room), 1, ofp1);
+        checkedfwrite(room.id, sizeof(room), 1, ofp1);
 
         ++g_gameInfo.numRooms;
     } while (!feof(ifp));
@@ -1537,7 +1551,7 @@ rank_proc()
             WordCopier(rank.prompt, block, p);
 
         wizstr = rank.strength;
-        fwrite(rank.male, sizeof(rank), 1, ofp1);
+        checkedfwrite(rank.male, sizeof(rank), 1, ofp1);
         g_gameInfo.numRanks++;
     }
 }
@@ -1688,7 +1702,7 @@ state_proc()
             statinv("flag on");
         state.flags |= bitset(flag);
     }
-    fwrite(&state.weight, sizeof(state), 1, ofp2);
+    checkedfwrite(&state.weight, sizeof(state), 1, ofp2);
     obj2.nstates++;
 }
 
@@ -1800,7 +1814,7 @@ objs_proc()
                 if (roomNo == -1) {
                     alog(AL_ERROR, "object:%s: invalid room: %s", obj2.id, Word);
                 }
-                fwrite(&roomNo, 1, sizeof(roomNo), ofp3);
+                checkedfwrite(&roomNo, 1, sizeof(roomNo), ofp3);
                 obj2.nrooms++;
             }
         }
@@ -1830,7 +1844,7 @@ objs_proc()
     closeOutFiles();
     sort_objs();
     */
-    fwrite(obtab2, sizeof(obj2), g_gameInfo.numNouns, ofp1);
+    checkedfwrite(obtab2, sizeof(obj2), g_gameInfo.numNouns, ofp1);
 }
 
 /*
@@ -2011,7 +2025,7 @@ trav_proc()
                 opparam_t paramid = (verbNo + 1 < ttNumVerbs) ? -1 : -2;
                 tt.pptr = (opparam_t *)(uintptr_t)paramid;
                 tt.verb = verbsUsed[verbNo];
-                fwrite(&tt.verb, sizeof(tt), 1, ofp1);
+                checkedfwrite(&tt.verb, sizeof(tt), 1, ofp1);
                 roomtab->ttlines++;
                 g_gameInfo.numTTEnts++;
             }
@@ -2436,13 +2450,13 @@ lang_proc()
         vt.action = 0 - (vt.action + 1);
 
     writecna: /* Write the C & A lines */
-        fwrite((char *)&vt.condition, sizeof(vt), 1, ofp3);
+        checkedfwrite((char *)&vt.condition, sizeof(vt), 1, ofp3);
         proc = 0;
         of3p += sizeof(vt);
         goto commands;
 
     writeslot:
-        fwrite(vbslot.wtype, sizeof(vbslot), 1, ofp2);
+        checkedfwrite(vbslot.wtype, sizeof(vbslot), 1, ofp2);
         proc = 0;
         of2p += sizeof(vbslot);
         if (lastc > 1)
@@ -2452,7 +2466,7 @@ lang_proc()
 
         lastc = '\n';
     write:
-        fwrite(verb.id, sizeof(verb), 1, ofp1);
+        checkedfwrite(verb.id, sizeof(verb), 1, ofp1);
         proc = 0;
         *(vbtab + (g_gameInfo.numVerbs - 1)) = verb;
     }
@@ -2497,7 +2511,7 @@ syn_proc()
             p = getword(p);
             if (Word[0] == 0)
                 break;
-            fwrite(&id, 1, sizeof(id), ofp2);
+            checkedfwrite(&id, 1, sizeof(id), ofp2);
             fprintf(ofp1, "%s%c", Word, 0);
             g_gameInfo.numSynonyms++;
         }
@@ -2628,7 +2642,7 @@ mob_proc1()
         if ((mobd->death = getmobmsg("dies=")) == -1)
             continue;
 
-        fwrite(&mob, sizeof(mob), 1, ofp1);
+        checkedfwrite(&mob, sizeof(mob), 1, ofp1);
         g_gameInfo.numMobPersonas++;
     }
 
@@ -2638,8 +2652,9 @@ mob_proc1()
             alog(AL_FATAL, "Out of memory");
         }
         CloseOutFiles();
-        fopena(mobileDataFile);
-        fread((char *)mobp, sizeof(mob) * g_gameInfo.numMobPersonas, 1, afp);
+
+        fopenr(mobileDataFile);
+        checkedfread(mobp, sizeof(mob), g_gameInfo.numMobPersonas, ifp);
     }
 }
 
@@ -2824,8 +2839,8 @@ amulcom_main()
          g_gameInfo.numStrings);
 
     fopenw(gameDataFile);
-    fwrite(&g_gameConfig, sizeof(g_gameConfig), 1, ofp1);
-    fwrite(&g_gameInfo, sizeof(g_gameInfo), 1, ofp1);
+    checkedfwrite(&g_gameConfig, sizeof(g_gameConfig), 1, ofp1);
+    checkedfwrite(&g_gameInfo, sizeof(g_gameInfo), 1, ofp1);
     CloseOutFiles();
 
     exiting = true;
