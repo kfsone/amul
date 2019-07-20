@@ -1,0 +1,1 @@
+Acquire::Http::Proxy "http://wafer.lan:3142/";

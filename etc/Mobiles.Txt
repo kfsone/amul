@@ -1,0 +1,59 @@
+; ObDescs.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by
+; Oliver Smith & Richard Pike
+; KingFisher Software, 70 Legsby Avenue
+; Grimsby, South Humberside. DN32 0NE  England.
+;
+; This software is furnished on the understanding that it may be used and or
+; copied only with the inclusion of this notice. No title or ownership of
+; this software is hearby transferred. The information in this software is
+; subject to change without notice. No responsibility is assumed for the
+; use or reliability of this software.
+
+;
+; --- Commentary ---
+;
+;  This is one of those biggies! This file describes the personas of the
+; mobiles... An actual mobile is created by attaching a persona to an object
+; in Objects.Txt.
+;
+; --- Commentary ---
+
+; -- Firstly we need to tell AMUL what you've called your verbs!
+
+fight=none			; Haven't defined it yet...
+flee=none			; That neither!
+travel=north northeast east southeast south southwest west northwest +
+       up down in out
+
+!cat	dead=1 dmove=heaven
+	speed=10 travel=50 fight=0 act=40 wait=10 fear=0 attack=99 hitpower=0
+	arrive="A cute little cat slinks into a corner of the room."
+	depart="Somewhat disapointedly, the cat leaves..."
+	flee="After an impressive display of teeth and claws, the cat flees to the @vb."
+	strike=none	; it won't happen!
+	miss="The cat makes no attempt to retaliate, but merely looks at you acusingly."
+	dies="With a final, pitiful miaow, the cat keels over, dead."
+commands:		; actions this mobile can perform
+	action others "The cat wags its tail, impatiently."
+	action others "The cat rubs itself, lovingly, against your legs."
+	announce others "The cat purrs, loudly and lovingly."
+	announce others "The cat lets out a loud 'MIAAOOWWW'."
+	dark actionto myroom "Something nearby scratches itself."
+;	ishere bowl do "lapmilk		; drink the milk
+
+!dog	dead=1 dmove=heaven
+	speed=9 travel=40 fight=5 act=40 wait=15 fear=50 attack=0 hitpower=5
+	arrive="A small, fat dog has just arrived."
+	depart="The dog jumps up and scampers off into the distance."
+	flee="With a yelp of pain the dog runs off and flees by going @vb..."
+	strike="The dog sinks its fangs deep into your leg."
+	miss="The dog jumps at you, but you manage to dodge his attack."
+	dies="The dog howls, tragically, looks at you acusingly and then dies."
+commands:
+	alone announce outside "The dog howls, loudly."
+	action others "The dog scratches itself."
+	ishere cat action others "The dog snarls, angrily, at the cat."
+
+;end!

@@ -1,0 +1,45 @@
+" Because Its The Right Thing
+set encoding=utf-8
+
+" I tend to have a dark background
+set background=dark
+
+" expand tabs
+set ts=4 sw=4 expandtab backspace=2
+
+" preferred max line length
+"set colorcolumn=100
+
+" use = to advance thru errors/grep results
+nnoremap = :cn
+
+" Enable filetype recognition and syntax highlighting
+filetype on
+filetype plugin on
+filetype indent on
+syntax on
+
+" Enable wild-card menu when trying to find files.
+set wildmenu
+
+" Optimizations
+set lazyredraw modeline modelines=1 showtabline=1 laststatus=2
+
+augroup filetypedetect
+	au! BufNewFile,BufRead *.rc,*.sh setf sh
+	au! BufNewFile,BufRead *.ps1,*.pm1 setf powershell
+augroup end
+
+
+augroup configgroup
+    autocmd!
+    " remove trailing spaces
+    "autocmd FileType c,cpp,python,*.sh,.vimrc,.bashrc,*.xml,shell,html,go,txt,json,yaml,md,powershell,ps1,*.ps1 autocmd BufWritePre <buffer> %s/\s\+$//e
+
+    " tabs vs spaces
+    autocmd FileType python,vim                         setlocal ts=4 sw=4 expandtab number colorcolumn=100
+    autocmd FileType vim                                setlocal noexpandtab
+    autocmd FileType sh,shell               			setlocal ts=2 sw=2 expandtab number colorcolumn=100
+    autocmd FileType powershell,ps1,pm1     			setlocal ts=2 sw=2 expandtab number colorcolumn=80 colorcolumn=120
+    autocmd FileType c,cpp,java,go          			setlocal ts=4 sw=4 noexpandtab number colorcolumn=100
+augroup END

@@ -1,0 +1,6 @@
+# Some files in etc are linux-orinted and need to be LF not CRLF
+etc/02proxy text eol=lf
+etc/cmake.build.sh text eol=lf
+etc/Makefile text eol=lf
+etc/vimrc text eol=lf
+
