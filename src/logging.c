@@ -83,12 +83,15 @@ alog(enum LogLevel level, const char *fmt, ...)
         fflush(stdout);
 
         switch (level) {
-        case AL_ERROR: al_errorCount++; break;
+        case AL_ERROR:
+            al_errorCount++;
+            break;
         case AL_FATAL:
             DEBUG_BREAK;
             Terminate(-1);
             break;
-        default: break;
+        default:
+            break;
         }
     }
 }

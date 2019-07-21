@@ -1155,8 +1155,10 @@ stfull(register int st, register int p) /* full <st> <player> */
     you = (usr + p);
     you2 = (linestat + p);
     switch (st) {
-    case STSCORE: return NO;
-    case STSCTG: return NO;
+    case STSCORE:
+        return NO;
+    case STSCTG:
+        return NO;
     case STSTR:
         if (you2->strength < you->strength)
             return NO;
@@ -1378,6 +1380,8 @@ setmxy(register int Flags, register int Them)
             ioproc("A @gn voice in the distance");
         strcpy(mxy, ow);
         return;
-    default: strcpy(mxx, "Someone"); strcpy(mxy, "Someone");
+    default:
+        strcpy(mxx, "Someone");
+        strcpy(mxy, "Someone");
     }
 }

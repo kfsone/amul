@@ -333,13 +333,27 @@ inflict(register int x, register int s)
             you2->light++;
         }
         break;
-    case SINVIS: you2->flags = you2->flags | PFINVIS; break;
-    case SDEAF: you2->flags = you2->flags | PFDEAF; break;
-    case SBLIND: you2->flags = you2->flags | PFBLIND; break;
-    case SCRIPPLE: you2->flags = you2->flags | PFCRIP; break;
-    case SDUMB: you2->flags = you2->flags | PFDUMB; break;
-    case SSLEEP: you2->flags = you2->flags | PFASLEEP; break;
-    case SSINVIS: you2->flags = you2->flags | PFSINVIS; break;
+    case SINVIS:
+        you2->flags = you2->flags | PFINVIS;
+        break;
+    case SDEAF:
+        you2->flags = you2->flags | PFDEAF;
+        break;
+    case SBLIND:
+        you2->flags = you2->flags | PFBLIND;
+        break;
+    case SCRIPPLE:
+        you2->flags = you2->flags | PFCRIP;
+        break;
+    case SDUMB:
+        you2->flags = you2->flags | PFDUMB;
+        break;
+    case SSLEEP:
+        you2->flags = you2->flags | PFASLEEP;
+        break;
+    case SSINVIS:
+        you2->flags = you2->flags | PFSINVIS;
+        break;
     }
     calcdext();
     lighting(x, AHERE);
@@ -357,13 +371,27 @@ cure(register int x, register int s)
             you2->light--;
         }
         break;
-    case SINVIS: you2->flags = you2->flags & -(1 + PFINVIS); break;
-    case SDEAF: you2->flags = you2->flags & -(1 + PFDEAF); break;
-    case SBLIND: you2->flags = you2->flags & -(1 + PFBLIND); break;
-    case SCRIPPLE: you2->flags = you2->flags & -(1 + PFCRIP); break;
-    case SDUMB: you2->flags = you2->flags & -(1 + PFDUMB); break;
-    case SSLEEP: you2->flags = you2->flags & -(1 + PFASLEEP); break;
-    case SSINVIS: you2->flags = you2->flags & -(1 + PFSINVIS); break;
+    case SINVIS:
+        you2->flags = you2->flags & -(1 + PFINVIS);
+        break;
+    case SDEAF:
+        you2->flags = you2->flags & -(1 + PFDEAF);
+        break;
+    case SBLIND:
+        you2->flags = you2->flags & -(1 + PFBLIND);
+        break;
+    case SCRIPPLE:
+        you2->flags = you2->flags & -(1 + PFCRIP);
+        break;
+    case SDUMB:
+        you2->flags = you2->flags & -(1 + PFDUMB);
+        break;
+    case SSLEEP:
+        you2->flags = you2->flags & -(1 + PFASLEEP);
+        break;
+    case SSINVIS:
+        you2->flags = you2->flags & -(1 + PFSINVIS);
+        break;
     }
     calcdext();
     lighting(x, AHERE);
@@ -534,7 +562,9 @@ aadd(register int howmuch, register int stat, register int plyr)
                 }
             }
             break;
-        case STSTR: me2->strength += howmuch; break;
+        case STSTR:
+            me2->strength += howmuch;
+            break;
         case STSTAM:
             me2->stamina += howmuch;
             sprintf(block, "<STAM: %ld/%ld>\n", me2->stamina, me->stamina);
@@ -542,10 +572,18 @@ aadd(register int howmuch, register int stat, register int plyr)
             tx(block);
             ans("0;37m");
             break;
-        case STDEX: me2->dextadj += howmuch; break;
-        case STEXP: me->experience += howmuch; break;
-        case STWIS: me2->wisdom += howmuch; break;
-        case STMAGIC: me2->magicpts += howmuch; break;
+        case STDEX:
+            me2->dextadj += howmuch;
+            break;
+        case STEXP:
+            me->experience += howmuch;
+            break;
+        case STWIS:
+            me2->wisdom += howmuch;
+            break;
+        case STMAGIC:
+            me2->magicpts += howmuch;
+            break;
         }
     } else
         sendex(plyr, AADD, howmuch, stat, plyr); /* Tell them to clear up! */
@@ -595,7 +633,9 @@ asub(register int howmuch, register int stat, register int plyr)
                 died = 1;
             }
             break;
-        case STDEX: me2->dextadj -= howmuch; break;
+        case STDEX:
+            me2->dextadj -= howmuch;
+            break;
         case STWIS:
             me2->wisdom -= howmuch;
             if (me2->wisdom < 0)
@@ -625,14 +665,22 @@ afix(register int stat, register int plyr)
                     ((rktab + me->rank)->strength * (rktab + me->rank)->maxweight - me2->weight) /
                     (rktab + me->rank)->maxweight;
             break;
-        case STSTAM: me2->stamina = (rktab + me->rank)->stamina; break;
+        case STSTAM:
+            me2->stamina = (rktab + me->rank)->stamina;
+            break;
         case STDEX:
             me2->dextadj = 0;
             calcdext();
             break;
-        case STWIS: me2->wisdom = (rktab + me->rank)->wisdom; break;
-        case STEXP: me->experience = (rktab + me->rank)->experience; break;
-        case STMAGIC: me2->magicpts = (rktab + me->rank)->magicpts; break;
+        case STWIS:
+            me2->wisdom = (rktab + me->rank)->wisdom;
+            break;
+        case STEXP:
+            me->experience = (rktab + me->rank)->experience;
+            break;
+        case STMAGIC:
+            me2->magicpts = (rktab + me->rank)->magicpts;
+            break;
         }
     } else
         sendex(plyr, AFIX, stat, plyr, 0); /* Tell them to clear up! */
@@ -657,7 +705,9 @@ announce(register char *s, register int towho) /* Loud noises/events */
         x = 0;
         switch (towho) {
         case AALL:
-        case AEVERY1: x = 1; break;
+        case AEVERY1:
+            x = 1;
+            break;
         case AGLOBAL:
             if (i != Af)
                 x = 1;
@@ -740,7 +790,9 @@ action(char *s, int towho) /* Quiet actions/notices */
         x = 0;
         switch (towho) {
         case AALL:
-        case AEVERY1: x = 1; break;
+        case AEVERY1:
+            x = 1;
+            break;
         case AGLOBAL:
             if (i != Af)
                 x = 1;
@@ -1103,12 +1155,16 @@ exits()
                 }
                 ac = -1 - ttabp->action;
                 switch (ac) {
-                case AKILLME: txs("%s: It's difficult to tell...\n", vbptr->id);
+                case AKILLME:
+                    txs("%s: It's difficult to tell...\n", vbptr->id);
                 case AENDPARSE:
                 case AFAILPARSE:
                 case AABORTPARSE:
-                case ARESPOND: maxl = -1; break;
-                case ASKIP: i += TP1;
+                case ARESPOND:
+                    maxl = -1;
+                    break;
+                case ASKIP:
+                    i += TP1;
                 }
                 if (tt.condition == CANTEP || tt.condition == CALTEP || tt.condition == CELTEP)
                     maxl = -1;

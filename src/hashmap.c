@@ -124,9 +124,15 @@ AddToHash(struct HashMap *map, const char *key, const char *keyEnd, const hash_v
         // grow in 4s.
         size_t newCapacity;
         switch (capacity) {
-        case 0: newCapacity = 1; break;
-        case 1: newCapacity = 4; break;
-        default: newCapacity = capacity + 4; break;
+        case 0:
+            newCapacity = 1;
+            break;
+        case 1:
+            newCapacity = 4;
+            break;
+        default:
+            newCapacity = capacity + 4;
+            break;
         }
 
         size_t newSize = sizeof(struct HashBucket) + sizeof(struct HashNode) * newCapacity;

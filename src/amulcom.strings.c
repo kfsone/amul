@@ -69,9 +69,9 @@ closeStringModule(struct Module *module, error_t err)
     alog(AL_DEBUG, "Strings: cap %" PRIu64 ", size %" PRIu64, stringIDs->capacity, stringIDs->size);
     for (size_t i = 0; i < stringIDs->capacity; ++i) {
         const struct HashBucket *bucket = stringIDs->buckets[i];
-        if (!bucket) continue;
-        alog(AL_DEBUG, "bucket #%04" PRIu64 ": capacity: %04" PRIu64,
-                i, bucket->capacity);
+        if (!bucket)
+            continue;
+        alog(AL_DEBUG, "bucket #%04" PRIu64 ": capacity: %04" PRIu64, i, bucket->capacity);
         for (size_t n = 0; n < bucket->capacity; ++n) {
             alog(AL_DEBUG, "| %24s %" PRIu64, bucket->nodes[n].key, bucket->nodes[n].value);
         }
@@ -128,7 +128,7 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
     // string's id will be the current position, so snag it now.
     stringid_t id = getStringID(0);
 
-	if (label) {
+    if (label) {
         struct StringIDEntry entry;
         error_t              err = testLabelEntry(label, stype, &entry);
         if (err != ENOENT)

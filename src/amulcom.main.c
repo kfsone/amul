@@ -1,8 +1,8 @@
 #include "amulcom.h"
 #include "modules.h"
 
-#include <h/amul.argp.h>
 #include <h/amul.alog.h>
+#include <h/amul.argp.h>
 #include <h/amul.test.h>
 
 int
@@ -12,12 +12,12 @@ main(int argc, const char **argv)
 
     InitModules();
 
-	ERROR_CHECK(InitLogging());
-	ERROR_CHECK(InitCommandLine(&cmdline));
+    ERROR_CHECK(InitLogging());
+    ERROR_CHECK(InitCommandLine(&cmdline));
 
     error_t retval = amulcom_main();
 
     CloseModules(retval);
 
-	return retval;
+    return retval;
 }

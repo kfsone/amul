@@ -3,7 +3,7 @@
 
 #ifndef HAVE_ERROR_T
 typedef int error_t;
-#define HAVE_ERROR_T
+#    define HAVE_ERROR_T
 #endif
 
 #endif

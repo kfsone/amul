@@ -10,8 +10,8 @@
 #include "modules.h"
 #include "system.h"
 
-#include <h/amul.argp.h>
 #include <h/amul.alog.h>
+#include <h/amul.argp.h>
 
 // For systems that support it: CTRL-C handler.
 void

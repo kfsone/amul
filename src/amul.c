@@ -21,9 +21,9 @@
 #define FRAME 1
 #define PORTS 1
 
-#include <h/amul.h>        /* Version info etc. */
 #include <frame/amulinc.h> /* Main Include file */
 #include <h/amul.cons.h>   /* Predefined Constants etc */
+#include <h/amul.h>        /* Version info etc. */
 
 main(int argc, char *argv[]) /* Main Program */
 {
@@ -52,12 +52,16 @@ main(int argc, char *argv[]) /* Main Program */
             MyFlag = am_MOBS;
             iosup = LOGFILE;
             break;
-        case 'C': /* Custom screen */ switchC(argc, *(argv[1] + 2)); break;
+        case 'C': /* Custom screen */
+            switchC(argc, *(argv[1] + 2));
+            break;
         case 'S': /* Serial Device */
             switchS((argc > 2) ? argv[2] : NULL, (argc > 3) ? argv[3] : NULL,
                     (argc > 4) ? argv[4] : "0", (argc > 5) ? argv[5] : "Y");
             break;
-        case 'N': /* NTSC Screen */ switchC(argc, 'N'); break;
+        case 'N': /* NTSC Screen */
+            switchC(argc, 'N');
+            break;
         default
             : /* None specified */
         {
@@ -92,8 +96,12 @@ main(int argc, char *argv[]) /* Main Program */
     Am.mn_ReplyPort = amanrep;
     switch (MyFlag) /* What type of line? */
     {
-    case am_DAEM: Af = MAXU; break;
-    case am_MOBS: Af = MAXU + 1; break;
+    case am_DAEM:
+        Af = MAXU;
+        break;
+    case am_MOBS:
+        Af = MAXU + 1;
+        break;
     }
     *amanp = *amul;
     link = 1;

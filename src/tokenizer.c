@@ -1,9 +1,9 @@
 #include <ctype.h>
 
-#include "tokenizer.h"
 #include "buffer.h"
 #include "filesystem.h"
 #include "sourcefile.h"
+#include "tokenizer.h"
 
 #include <h/amul.test.h>
 

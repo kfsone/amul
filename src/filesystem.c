@@ -12,8 +12,8 @@
 #include <sys/types.h>
 
 #if !defined(_MSC_VER)
-#    include <unistd.h>  // for unlink
 #    include <sys/mman.h>
+#    include <unistd.h>  // for unlink
 #else
 #    define WIN32_LEAN_AND_MEAN
 #    define NOMINMAX
@@ -56,7 +56,7 @@ PathCopy(char *into, size_t limit, size_t *offsetp, const char *path)
     size_t offset = offsetp ? *offsetp : 0;
 
     const char *end = into + limit;
-    char *dst = into + offset;
+    char *      dst = into + offset;
     REQUIRE(dst < end);
 
     bool wantSlash = offset > 0 && !isSeparator(dst - 1);
@@ -132,20 +132,17 @@ UnlinkGameFile(const char *gamefile)
 }
 
 #ifndef _MSC_VER
-static const int MMAP_FLAGS =
-			MAP_PRIVATE | 
-			MAP_FILE |
-#ifdef MAP_POPULATE
-			MAP_POPULATE |
-#endif
-#ifdef MAP_DENYWRITE
-			MAP_DENYWRITE |
-#endif
-#ifdef MAP_NOCACHE
-			MAP_NOCACHE |
-#endif
-			0
-;
+static const int MMAP_FLAGS = MAP_PRIVATE | MAP_FILE |
+#    ifdef MAP_POPULATE
+                              MAP_POPULATE |
+#    endif
+#    ifdef MAP_DENYWRITE
+                              MAP_DENYWRITE |
+#    endif
+#    ifdef MAP_NOCACHE
+                              MAP_NOCACHE |
+#    endif
+                              0;
 #endif
 
 error_t
@@ -200,11 +197,11 @@ CloseFileMapping(void **datap, size_t length)
 #endif
     }
     if (datap)
-		*datap = NULL;
+        *datap = NULL;
 }
 
 struct SourceFile s_sourceFile;
-bool s_sourceFileInUse;
+bool              s_sourceFileInUse;
 
 error_t
 makeTextFileName(struct SourceFile *sourcefile, const char *filename)
@@ -221,7 +218,7 @@ GetFilesSize(const char *filepath, size_t *sizep)
     REQUIRE(filepath && sizep);
 
     struct stat sb = {0};
-    error_t err = stat(filepath, &sb);
+    error_t     err = stat(filepath, &sb);
     if (err != 0)
         return ENOENT;
     *sizep = sb.st_size;
@@ -274,7 +271,7 @@ CloseSourceFile(struct SourceFile **sourcefilep)
     if (sourcefilep && *sourcefilep) {
         CloseBuffer(&(*sourcefilep)->buffer);
         CloseFileMapping(&(*sourcefilep)->mapping, (*sourcefilep)->size);
-		*sourcefilep = NULL;
+        *sourcefilep = NULL;
         s_sourceFileInUse = false;
     }
 }

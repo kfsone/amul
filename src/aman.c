@@ -29,9 +29,9 @@
 #include <h/amul.defs.h>
 #include <h/amul.vars.h>
 #if defined(__AMIGA__)
-#include <devices/timer.h>
+#    include <devices/timer.h>
 #else
-#include <h/amigastubs.h>
+#    include <h/amigastubs.h>
 #endif
 #include <time.h>
 
@@ -104,8 +104,12 @@ main(int argc, char *argv[])
             sscanf(argv[2], "%ld", &mins);
         count[0] = mins;
         switch (toupper(*(argv[1] + 1))) {
-        case 'K': shutreq(0); break;
-        case 'R': shutreq(1); break;
+        case 'K':
+            shutreq(0);
+            break;
+        case 'R':
+            shutreq(1);
+            break;
         case 'X':
             if (argc != 3)
                 exit(0 * printf("** Missing parameter after -x option.\n"));
@@ -250,25 +254,55 @@ kernel()
         if ((amul = (struct Aport *)GetMsg((struct MsgPort *)port)) == NULL)
             continue;
         switch (At) {
-        case MKILL: kill(); break;
-        case MCNCT: cnct(); break;
-        case MDISCNCT: discnct(); break;
-        case MDATAREQ: data(); break;
-        case MLOGGED: login(); break;
-        case MRESET: rest(); break;
-        case MLOCK: lock(); break;
-        case MBUSY: busy[Af] = 1; break;
-        case MFREE: busy[Af] = 0; break;
-        case MDSTART: pstart(); break; /* Priv. daemon */
-        case MDCANCEL: dkill(Ad); break;
-        case MCHECKD: check(Ad); break;
-        case MMADEWIZ: logwiz(Af); break;
-        case MLOG: logit(Ap); break;
+        case MKILL:
+            kill();
+            break;
+        case MCNCT:
+            cnct();
+            break;
+        case MDISCNCT:
+            discnct();
+            break;
+        case MDATAREQ:
+            data();
+            break;
+        case MLOGGED:
+            login();
+            break;
+        case MRESET:
+            rest();
+            break;
+        case MLOCK:
+            lock();
+            break;
+        case MBUSY:
+            busy[Af] = 1;
+            break;
+        case MFREE:
+            busy[Af] = 0;
+            break;
+        case MDSTART:
+            pstart();
+            break; /* Priv. daemon */
+        case MDCANCEL:
+            dkill(Ad);
+            break;
+        case MCHECKD:
+            check(Ad);
+            break;
+        case MMADEWIZ:
+            logwiz(Af);
+            break;
+        case MLOG:
+            logit(Ap);
+            break;
         case MEXTEND:
             extend(Ad);
             forcereset = 0;
             break;
-        case MGDSTART: gstart(); break; /* Global daemon */
+        case MGDSTART:
+            gstart();
+            break; /* Global daemon */
         default:
             At = -1;
             sprintf(block, "$$ (X) %s: *INVALID Message Type, %ld!*\n", now(), At);
@@ -400,18 +434,42 @@ data() /* Sends pointers to database */
         Ad = verbs;
         Ap = (char *)vbtab;
         break;
-    case 5: Ap = (char *)desctab; break;
-    case 6: Ap = (char *)ormtab; break;
-    case 7: Ap = (char *)statab; break;
-    case 8: Ap = (char *)adtab; break;
-    case 9: Ap = (char *)ttp; break;
-    case 10: Ap = (char *)umsgip; break;
-    case 11: Ap = (char *)umsgp; break;
-    case 12: Ap = (char *)ttpp; break;
-    case 13: Ap = (char *)rctab; break;
-    case 14: Ap = (char *)slottab; break;
-    case 15: Ap = (char *)vtp; break;
-    case 16: Ap = (char *)vtpp; break;
+    case 5:
+        Ap = (char *)desctab;
+        break;
+    case 6:
+        Ap = (char *)ormtab;
+        break;
+    case 7:
+        Ap = (char *)statab;
+        break;
+    case 8:
+        Ap = (char *)adtab;
+        break;
+    case 9:
+        Ap = (char *)ttp;
+        break;
+    case 10:
+        Ap = (char *)umsgip;
+        break;
+    case 11:
+        Ap = (char *)umsgp;
+        break;
+    case 12:
+        Ap = (char *)ttpp;
+        break;
+    case 13:
+        Ap = (char *)rctab;
+        break;
+    case 14:
+        Ap = (char *)slottab;
+        break;
+    case 15:
+        Ap = (char *)vtp;
+        break;
+    case 16:
+        Ap = (char *)vtpp;
+        break;
     case 17:
         Ap = (char *)synp;
         Ad = (long)synip;
@@ -420,7 +478,8 @@ data() /* Sends pointers to database */
         Ap = lastres;
         Ad = (long)lastcrt;
         break;
-    default: Ap = (char *)-1;
+    default:
+        Ap = (char *)-1;
     }
 }
 
@@ -458,14 +517,29 @@ asend(int type, int data) /* Shutdown request */
     GetMsg((struct MsgPort *)reply);
     if (quiet == 0)
         switch (Ad) {
-        case 'R': printf("\x07*-- Reset Invoked --*\n\n"); break;
-        case 'O': printf("AMUL Manager removed!\n"); break;
-        case 'X': printf("Cannot remove with users connected.\n"); break;
-        case 'U': printf("AMAN error at other end!\n");
-        case -'X': printf("... Reset set for %ld seconds ...\n", Ap1); break;
-        case -'R': printf("... Reset in progress ...\n"); break;
-        case 'E': printf("... Game extended by %ld seconds ...\n", Ap1); break;
-        default: printf("** Internal AMUL error ** (Returned '%c')\n", Ad); break;
+        case 'R':
+            printf("\x07*-- Reset Invoked --*\n\n");
+            break;
+        case 'O':
+            printf("AMUL Manager removed!\n");
+            break;
+        case 'X':
+            printf("Cannot remove with users connected.\n");
+            break;
+        case 'U':
+            printf("AMAN error at other end!\n");
+        case -'X':
+            printf("... Reset set for %ld seconds ...\n", Ap1);
+            break;
+        case -'R':
+            printf("... Reset in progress ...\n");
+            break;
+        case 'E':
+            printf("... Game extended by %ld seconds ...\n", Ap1);
+            break;
+        default:
+            printf("** Internal AMUL error ** (Returned '%c')\n", Ad);
+            break;
         }
     ReleaseMem(&amul);
     DeletePort(reply);

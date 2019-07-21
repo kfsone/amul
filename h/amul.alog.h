@@ -5,7 +5,7 @@
 
 #ifndef HAVE_ERROR_T
 typedef int error_t;
-#define HAVE_ERROR_T
+#    define HAVE_ERROR_T
 #endif
 
 #ifndef __has_builtin
@@ -13,22 +13,22 @@ typedef int error_t;
 #endif
 
 #ifndef NDEBUG
-#if !defined(DEBUG_BREAK) && defined(_MSC_VER)
-#    define DEBUG_BREAK __debugbreak()
-#endif
-#if !defined(DEBUG_BREAK) && !defined(_MSC_VER)
-#    if __has_builtin(__builtin_debugtrap)
-#        define DEBUG_BREAK __builtin_debugtrap()
+#    if !defined(DEBUG_BREAK) && defined(_MSC_VER)
+#        define DEBUG_BREAK __debugbreak()
 #    endif
-#    if !defined(DEBUG_BREAK) && defined(POSIX)
-#        include <signal.h>
-#        if defined(SIGTRAP)
-#            define DEBUG_BREAK raise(SIGTRAP)
-#        else
-#            define DEBUG_BREAK raise(SIGABRT)
+#    if !defined(DEBUG_BREAK) && !defined(_MSC_VER)
+#        if __has_builtin(__builtin_debugtrap)
+#            define DEBUG_BREAK __builtin_debugtrap()
+#        endif
+#        if !defined(DEBUG_BREAK) && defined(POSIX)
+#            include <signal.h>
+#            if defined(SIGTRAP)
+#                define DEBUG_BREAK raise(SIGTRAP)
+#            else
+#                define DEBUG_BREAK raise(SIGABRT)
+#            endif
 #        endif
 #    endif
-#endif
 #endif
 
 #if !defined(DEBUG_BREAK)
@@ -45,11 +45,11 @@ enum LogLevel {
     MAX_LOG_LEVEL,
 };
 
-extern uint32_t al_errorCount;
-extern void            alog(enum LogLevel level, const char *fmt, ...);
-extern void            alogLevel(enum LogLevel level);
-extern enum LogLevel   alogGetLevel();
-extern const char *    alogGetLevelName();
+extern uint32_t      al_errorCount;
+extern void          alog(enum LogLevel level, const char *fmt, ...);
+extern void          alogLevel(enum LogLevel level);
+extern enum LogLevel alogGetLevel();
+extern const char *  alogGetLevelName();
 
 extern error_t InitLogging();
 

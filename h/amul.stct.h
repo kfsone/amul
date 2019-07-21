@@ -107,7 +107,7 @@ struct _SLOTTAB {
 struct _VERB_STRUCT {
     char    id[IDL + 1];
     uint8_t flags;
-    union {
+    union Predecence {
         char precedence[2][5];
         char precedences[10];
     };

@@ -38,8 +38,10 @@ Special_Proc() /* Special Processor core */
         if ((i = isverb("\"boot")) != -1)
             lang_proc(i, 0);
         Daem_Proc(); /* Daemon Processor */
-    case am_MOBS: printf("-- Mobile processor loaded\n");
-    default: printf("-- Unsupported special processor requested\n");
+    case am_MOBS:
+        printf("-- Mobile processor loaded\n");
+    default:
+        printf("-- Unsupported special processor requested\n");
     }
     quit(); /* Don't go anywhere */
 }

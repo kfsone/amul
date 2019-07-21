@@ -26,7 +26,7 @@ struct GameConfig {
 
 struct GameInfo {
     time_t compiled;        // When the game was compiled
-    size_t numStrings;		// Number of strings in the string table
+    size_t numStrings;      // Number of strings in the string table
     size_t numRooms;        // Size of room table
     size_t numRanks;        // Size of rank table
     size_t numVerbs;        // Size of verb table

@@ -19,6 +19,6 @@ typedef int16_t adjid_t;
 
 typedef int16_t verbid_t;
 
-typedef int32_t opparam_t;	// parameter to an operation
+typedef int32_t opparam_t;  // parameter to an operation
 
 #endif
