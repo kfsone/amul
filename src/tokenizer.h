@@ -6,8 +6,9 @@
 
 enum TokenType {
     TOKEN_INVALID,
-    TOKEN_EOL,
-    TOKEN_WHITESPACE,
+	TOKEN_EOB,			// End of a block (paragraph), i.e. \n{2,}
+	TOKEN_EOL,			// End of a line
+    TOKEN_WHITESPACE,	// tab or space
     TOKEN_COMMENT,
     TOKEN_STRING_LITERAL,
     TOKEN_LABEL,		// SOMETHING=<next token>
@@ -15,6 +16,8 @@ enum TokenType {
     TOKEN_WORD,
 	TOKEN_IDENTIFIER,	// begins with a symbol
     TOKEN_SYMBOL,		// one or more non-alpha-numeric characters
+
+	NUM_TOKEN_TYPES,
 };
 
 struct Token {
@@ -25,7 +28,8 @@ struct Token {
     const char *   end;
 };
 
-extern error_t ScanParseable(
+// Handle a block of structure text (as opposed to a block of raw text)
+extern error_t TokenizeParseable(
         struct SourceFile *file, struct Token *tokens, size_t tokensSize, size_t *tokensScanned);
 
 #endif  // AMUL_SRC_TOKENIZER_H

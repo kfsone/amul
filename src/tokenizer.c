@@ -10,34 +10,33 @@
 void
 _consumeEol(struct Buffer *buf, struct Token *token)
 {
-    token->type = TOKEN_EOL;
-
     // allow for \r\n, \n and \n\r
     const char first = BufferNext(buf);
     if (!BufferEOF(buf)) {
         const char second = BufferPeek(buf);
-        if ((second == '\r' || second == '\n') && second != first)
+        if ((second == '\n' || second == '\r') && second != first)
             BufferSkip(buf);
     }
 
     token->end = buf->pos;
+    token->type = TOKEN_EOL;
 }
 
 void
 _consumeWhitespace(struct Buffer *buf, struct Token *token)
 {
-    token->type = TOKEN_WHITESPACE;
     char c = 0;
 	do {
         c = BufferSkip(buf);
     } while (c == ' ' || c == '\t');
-    token->end = buf->pos;
+
+	token->end = buf->pos;
+    token->type = TOKEN_WHITESPACE;
 }
 
 void
 _consumeQuote(struct Buffer *buf, struct Token *token)
 {
-    token->type = TOKEN_STRING_LITERAL;
     // grab the first character
     char quote = BufferNext(buf);
     token->start = buf->pos;
@@ -46,29 +45,31 @@ _consumeQuote(struct Buffer *buf, struct Token *token)
         if (c == quote) {
             token->end = buf->pos;
             BufferSkip(buf);
-            return;
+            break;
         }
-        switch (c) {
-        case 0:
-        case '\r':
-        case '\n':
+        if (c == '\n' || c == '\r' || c == 0) {
             token->end = buf->pos;
-            return;
+            break;
         }
         BufferSkip(buf);
     }
+    token->type = TOKEN_STRING_LITERAL;
 }
 
 void
 _consumeComment(struct Buffer *buf, struct Token *token)
 {
-    token->type = TOKEN_COMMENT;
     for (;;) {
         const char c = BufferSkip(buf);
-        if (c == '\n' || c == '\r' || c == 0)
+        if (c == '\n' || c == '\r') {
+            _consumeEol(buf, token);
+            break;
+        }
+        if (c == 0)
             break;
     }
     token->end = buf->pos;
+    token->type = TOKEN_COMMENT;
 }
 
 void
@@ -117,11 +118,12 @@ _consumeText(struct Buffer *buf, struct Token *token)
 }
 
 error_t
-ScanParseable(
+TokenizeParseable(
         struct SourceFile *file, struct Token *tokens, size_t tokensSize, size_t *tokensScanned)
 {
     REQUIRE(file);
     REQUIRE(tokens && tokensSize && tokensScanned);
+    REQUIRE(file->buffer);
 
     *tokensScanned = 0;
 
@@ -130,23 +132,34 @@ ScanParseable(
     if (BufferEOF(buffer))
         return ENOENT;
 
-    // we always start a new line.
-    file->lineNo++;
-
     const struct Token *tokensStart = tokens;
     struct Token *      endToken = tokens + tokensSize;
     struct Token *      prevToken = NULL;
     const char *        lineStart = buffer->pos;
+    bool                endOfBlock = false;
 
-    while (!BufferEOF(buffer) && tokens < endToken) {
-        tokens->lineNo = file->lineNo;
+    while (!BufferEOF(buffer) && tokens < endToken && !endOfBlock) {
         tokens->lineOffset = (uint16_t)(buffer->pos - lineStart);
+        if (tokens->lineOffset == 0)
+            ++file->lineNo;
+        tokens->lineNo = file->lineNo;
         tokens->start = buffer->pos;
 
         switch (BufferPeek(buffer)) {
         case '\r':
         case '\n':
             _consumeEol(buffer, tokens);
+			// Potential upgrade to end-of-block
+            for (;;) {
+                char nextChar = BufferPeek(buffer);
+                if (nextChar != '\n' && nextChar != '\r')
+                    break;
+                ++file->lineNo;
+                _consumeEol(buffer, tokens);
+                tokens->type = TOKEN_EOB;
+            }
+            endOfBlock = true;
+            lineStart = buffer->pos;
             break;
         case ' ':
         case '\t':
@@ -155,6 +168,7 @@ ScanParseable(
         case '"':
         case '\'':
             _consumeQuote(buffer, tokens);
+            lineStart = buffer->pos;
             break;
         case ';':
             // Discard whitespace in-front of comments
