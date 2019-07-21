@@ -1,10 +1,19 @@
-* Tests on amulcom.strings.c
-
 - memory allocation
 - use skip functions instead of replace
-- nacp/ncop -> structures like C++
 - bools
 - eliminate warnings
+- allow users to name states and then test for them:
+	template=torch flammable
+		; note: no rooms
+		.defaults weight=250 value=1 hitpoints=3 damage=1 state=.unlit
+		.lit	  default torch_lit flags=light
+		.unlit    default torch_unlit
+		.doused   weight=300 value=0 hitpoints=1 damage=1 torch_doused
+- implement "isa" object flag:
+	object=torch523 isa=torch
+		firstroom
+- implement inline synonyms in lang.txt (documented as [syns=...] but make it aliases, please)
+- implement "usage=" in lang.txt (inline documentation for help)
 
 Done in the .txt files, these need converting in code,
 but also they need some better names; perhaps '$x' would
