@@ -2088,7 +2088,7 @@ syntax=verb
 	action others "You watch in horror as @me is de-animated, mapped and then removed."
 	inflict me blind,inflict me deaf,inflict me sleep,inflict me sinvis
 	move store,start .deepsleep 50
-	action cansee "The body of @me the @mr appears, slumped on the floor. Blue sparks arc across his body, which twitches agitatedly."
+	action cansee "The body of @me the @mr appears, slumped on the floor. Blue sparks arc across @go body, which twitches agitatedly."
 	start .eleyna 30
 
 verb=set_pre,syntax=any,!toprank error $38
