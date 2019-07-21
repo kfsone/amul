@@ -16,7 +16,6 @@ AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 SpacesBeforeTrailingComments: 2
 BreakBeforeInheritanceComma: true
-BreakInheritanceList: BeforeComma
 BreakConstructorInitializers: BeforeComma
 CompactNamespaces: true
 ContinuationIndentWidth: 8
@@ -26,6 +25,7 @@ KeepEmptyLinesAtTheStartOfBlocks: false
 ColumnLimit: 100
 AlignConsecutiveDeclarations: true
 ...
+#BreakInheritanceList: BeforeComma
 #AllowShortBlocksOnASingleLine: true
 #AllowShortFunctionsOnASingleLine: true
 #AllowShortCaseLabelsOnASingleLine: true
