@@ -7,7 +7,7 @@
 
 enum { NUM_BUFFERS = 16 };
 struct Buffer s_buffer[NUM_BUFFERS];
-bool s_bufferInUse[NUM_BUFFERS];
+bool          s_bufferInUse[NUM_BUFFERS];
 
 error_t
 NewBuffer(const char *data, const size_t dataSize, struct Buffer **receiver)

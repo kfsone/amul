@@ -77,7 +77,8 @@ void
 test_buffer_eof(struct TestContext *t)
 {
     char          data[8] = {0};
-    struct Buffer b = {&data[0], &data[0], NULL};  // start shouldn't matter
+    struct Buffer b;
+    b.start = b.end = b.pos = &data[0];
     EXPECT_TRUE(BufferEOF(&b));
 
     // make the available space larger
