@@ -47,6 +47,7 @@
 #include <h/amul.strs.h>
 #include <h/amul.test.h>
 #include <h/amul.vars.h>
+#include <h/amul.vmop.h>
 #include <h/amul.xtra.h>
 #include <h/amulcom.h>
 
@@ -304,21 +305,19 @@ getTidyBlock(FILE *ifp)
 int
 is_verb(const char *s)
 {
-    int i;
-
-    if (g_gameInfo.numVerbs == 0) {
-        alog(AL_FATAL, "Attempted to look up verb '%s' with no verbs defined", s);
-    }
     if (strlen(s) > IDL) {
         printf("Invalid verb ID (too long): %s", s);
         return -1;
     }
 
     vbptr = vbtab;
-    for (i = 0; i < g_gameInfo.numVerbs; i++, vbptr++) {
+    for (int i = 0; i < g_gameInfo.numVerbs; i++, vbptr++) {
         if (stricmp(vbptr->id, s) == 0)
             return i;
     }
+    if (stricmp(verb.id, s) == 0)
+        return g_gameInfo.numVerbs + 1;
+
     return -1;
 }
 
@@ -470,7 +469,7 @@ int
 iscond(const char *s)
 {
     for (int i = 0; i < NCONDS; i++)
-        if (strcmp(conds[i], s) == 0)
+        if (strcmp(conditions[i].name, s) == 0)
             return i;
     return -1;
 }
@@ -479,7 +478,7 @@ int
 isact(const char *s)
 {
     for (int i = 0; i < NACTS; i++)
-        if (strcmp(acts[i], s) == 0)
+        if (strcmp(actions[i].name, s) == 0)
             return i;
     return -1;
 }
@@ -660,27 +659,29 @@ preact(char *s)
     return s;
 }
 
-long
-chknum(const char *p)
+long chknum(const char *s) /* Check a numeric arguments */
 {
     long n;
 
-    if (!isdigit(*p) && !isdigit(*(p + 1)))
+    /// TODO: This tries to cope with, e.g. ">#rank", except
+    /// this can't work because we're using atoi here...
+    /* Is this a variable? (less than, greater than, etc) */
+    if (*s == '>' || *s == '<' || *s == '-' || *s == '=')
+        n = atoi(s + 1);
+    else if (!isdigit(*s) && !isdigit(*(s + 1)))
         return -1000001;
-    if (*p == '>' || *p == '<' || *p == '-' || *p == '=')
-        n = atoi(p + 1);
     else
-        n = atoi(p);
+        n = atoi(s);
     if (n >= 1000000) {
-        alog(AL_ERROR, "Number too large: %d", n);
+        alog(AL_ERROR, "Number too large: %s", s);
         return -1000001;
     }
-    if (*p == '-')
+    if (*s == '-')
         return (long)-n;
-    if (*p == '>')
-        return (long)(n + LESS);
-    if (*p == '<')
-        return (long)(n + MORE);
+    if (*s == '>')
+        return (long)(n | LESS);
+    if (*s == '<')
+        return (long)(n | MORE);
     return n;
 }
 
@@ -716,22 +717,16 @@ isgen(char c)
     return -1;
 }
 
+static const char *announceType[MAX_ANNOUNCE_TYPE] = {"global", "everyone", "outside", "here",
+                                                      "others", "all",      "cansee",  "notsee"};
 int
 antype(const char *s)
 {
-    if (strcmp(s, "global") == 0)
-        return AGLOBAL;
-    if (strcmp(s, "everyone") == 0)
-        return AEVERY1;
-    if (strcmp(s, "outside") == 0)
-        return AOUTSIDE;
-    if (strcmp(s, "here") == 0)
-        return AHERE;
-    if (strcmp(s, "others") == 0)
-        return AOTHERS;
-    if (strcmp(s, "all") == 0)
-        return AALL;
-    alog(AL_ERROR, "Invalid announcement-group: %s", s);
+    for (int i = 0; i < MAX_ANNOUNCE_TYPE; ++i) {
+        if (stricmp(s, announceType[i]))
+            return i;
+    }
+    alog(AL_ERROR, "Invalid announcement target: %s", s);
     return -1;
 }
 
@@ -890,16 +885,26 @@ actualval(const char *s, int n)
 {
     int i;
 
-    if (n != -70 && (*s == '?' || *s == '%' || *s == '^' || *s == '~' || *s == '`')) {
-        if (n != WNUMBER)
+    // you can prefix runtime-variable references with these characters to modify the
+    // resulting value, e.g. choosing a random number based on your rank.
+    /// TODO: replace with something akin to SQL aggregate functions.
+    /// TODO: rand(myrank)
+    if (n != PREAL && strchr("?%^~`*#", *s)) {
+        // These can only be applied to numbers except '*' which can be applied to rooms
+        if (n != WNUMBER && !(n == WROOM && *s == '*'))
             return -1;
+        // calculate random numbers based on the parameter
         if (*s == '~')
             return RAND0 + atoi(s + 1);
         if (*s == '`')
             return RAND1 + atoi(s + 1);
-        i = actualval(s + 1, -70);
+        // then it's a modifier: recurse and add our flags.
+        i = actualval(s + 1, PREAL);
         if (i == -1)
             return -1;
+        // The remaining prefixes can only be attached to properties of the player.
+        if (*s == '#' && (i & IWORD || (i & MEPRM && i & (SELF | FRIEND | HELPER | ENEMY))))
+            return PRANK + i;
         if ((i & IWORD) == 0)
             return -1;
         if (*s == '?')
@@ -921,7 +926,7 @@ actualval(const char *s, int n)
             continue;
         /* If its not a slot label, and the wtypes match, we's okay! */
         if (!(actual[i].value & IWORD))
-            return (actual[i].wtype == n || n == -70) ? actual[i].value : -1;
+            return (actual[i].wtype == n || n == PREAL) ? actual[i].value : -1;
 
         /* Now we know its a slot label... check which: */
         switch (actual[i].value - IWORD) {
@@ -946,9 +951,9 @@ actualval(const char *s, int n)
                 return actual[i].value;
             return -1;
         case IADJ2:
-            return (vbslot.wtype[3] == n || n == -70) ? actual[i].value : -1;
+            return (vbslot.wtype[3] == n || n == PREAL) ? actual[i].value : -1;
         case INOUN2:
-            return (vbslot.wtype[4] == n || n == -70) ? actual[i].value : -1;
+            return (vbslot.wtype[4] == n || n == PREAL) ? actual[i].value : -1;
         default:
             return -1; /* Nah... Guru instead 8-) */
         }
@@ -956,28 +961,43 @@ actualval(const char *s, int n)
     return -2; /* It was no actual! */
 }
 
-char *
-chkp(char *p, char t, int c, int z, FILE *fp)
+void
+badParameter(
+        const struct VMOP *op, size_t paramNo, const char *category, const char *issue,
+        const char *token)
 {
-    int32_t x = -1;
+    char msg[256];
+    if (token) {
+        snprintf(msg, sizeof(msg), "%s: '%s'", issue, token);
+        issue = msg;
+    }
+    alog(AL_FATAL, "%s=%s: %s=%s: parameter#%" PRIu64 ": %s", proc ? "verb" : "room",
+         proc ? verb.id : roomtab->id, category, op->name, paramNo + 1, issue);
+}
+
+// Check the parameters accompanying a vmop
+char *
+checkParameter(char *p, const struct VMOP *op, size_t paramNo, const char *category, FILE *fp)
+{
+    int32_t      value = -1;
+    const int8_t parameterType = op->parameters[paramNo];
 
     p = skipOptionalPrefixes(p);
     if (*p == 0) {
-        alog(AL_FATAL, "%s '%s' has incomplete C&A line: (%s='%s')", (proc == 1) ? "Verb" : "Room",
-             (proc == 1) ? verb.id : roomtab->id, (z == 1) ? "condition" : "action",
-             (z == 1) ? conds[c] : acts[c]);
+        badParameter(op, paramNo, category, "Unexpected end of arguments", NULL);
     }
     static char token[4096];
-    char *end = NULL;
+    char *      end = NULL;
     if (*p != '\"' && *p != '\'') {
         end = strstop(p, ' ');
         WordCopier(token, p, end);
     } else {
-		// Subsequent parsing will want to see the opening quote character
+        // Subsequent parsing will want to see the opening quote character
         char quote = *p;
         if (!*p || isEol(*p))
-            alog(AL_FATAL, "Unterminated string");
-        end = strstop(p+1, quote);
+            badParameter(
+                    op, paramNo, category, "Unexpected end of string (missing close quote?)", NULL);
+        end = strstop(p + 1, quote);
         StrCopier(token, p, end);
         if (*end == quote)
             ++end;
@@ -985,107 +1005,106 @@ chkp(char *p, char t, int c, int z, FILE *fp)
     p = end;
 
     /* Processing lang tab? */
-    if ((t >= 0 && t <= 10) || t == -70) {
-        x = actualval(token, t);
-        if (x == -1) {
+    if ((parameterType >= 0 && parameterType <= 10) || parameterType == PREAL) {
+        value = actualval(token, parameterType);
+        if (value == -1) {
             /* it was an actual, but wrong type */
-            alog(AL_ERROR, "Invalid slot label, '%s', after %s '%s' in verb '%s'", token,
-                 (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c], verb.id);
-            return NULL;
+            badParameter(op, paramNo, category, "Invalid syntax slot label", token);
         }
-        if (x != -2)
+        if (value != -2)
             goto write;
     }
-    switch (t) {
+    switch (parameterType) {
     case -6:
-        x = onoff(token);
+        value = onoff(token);
         break;
     case -5:
-        x = bvmode(toupper(*token));
+        value = bvmode(toupper(*token));
         break;
     case -4:
-        x = is_stat(token);
+        value = is_stat(token);
         break;
     case -3:
-        x = spell(token);
+        value = spell(token);
         break;
     case -2:
-        x = rdmode(toupper(*token));
+        value = rdmode(toupper(*token));
         break;
     case -1:
-        x = antype(token);
+        value = antype(token);
         break;
     case PROOM:
-        x = isroom(token);
+        value = isroom(token);
         break;
     case PVERB:
-        x = is_verb(token);
+        value = is_verb(token);
         break;
     case PADJ:
         break;
-    case -70:
+    case PREAL:
     case PNOUN:
-        x = isnounh(token);
+        value = isnounh(token);
         break;
     case PUMSG:
-        x = getTextString(token, true);
+        value = getTextString(token, true);
         break;
     case PNUM:
-        x = chknum(token);
+        value = chknum(token);
         break;
     case PRFLAG:
-        x = isrflag(token);
+        value = isrflag(token);
         break;
     case POFLAG:
-        x = isoflag1(token);
+        value = isoflag1(token);
         break;
     case PSFLAG:
-        x = isoflag2(token);
+        value = isoflag2(token);
         break;
     case PSEX:
-        x = isgen(toupper(*token));
+        value = isgen(toupper(*token));
         break;
     case PDAEMON:
-        if ((x = is_verb(token)) == -1 || *token != '.')
-            x = -1;
+        if ((value = is_verb(token)) == -1 || *token != '.')
+            value = -1;
         break;
     default: {
-        if (!(proc == 1 && t >= 0 && t <= 10)) {
-            alog(AL_FATAL, "Internal error: Invalid PTYPE (val: %d) in %s %s (%s = %s)", t,
-                 (proc == 1) ? "verb" : "room", (proc == 1) ? verb.id : (rmtab + rmn)->id,
-                 (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c]);
+        if (!(proc == 1 && parameterType >= 0 && parameterType <= 10)) {
+            char param[32];
+            snprintf(param, sizeof(param), "%d", parameterType);
+            badParameter(op, paramNo, category, "INTERNAL ERROR: Unhandled parameter type", param);
         }
     }
     }
-    if (t == -70 && x == -2)
-        x = -1;
-    else if (((x == -1 || x == -2) && t != PNUM) || x == -1000001) {
-        alog(AL_ERROR, "Invalid parameter '%s' after %s '%s' in %s '%s'", token,
-             (z == 1) ? "condition" : "action", (z == 1) ? conds[c] : acts[c],
-             (proc == 1) ? "verb" : "room", (proc == 1) ? (verb.id) : (rmtab + rmn)->id);
-        return NULL;
+    if (parameterType == PREAL && value == -2)
+        value = -1;
+    else if (((value == -1 || value == -2) && parameterType != PNUM) || value == -1000001) {
+        badParameter(op, paramNo, category, "Invalid/unrecognized value for position", token);
     }
 write:
-    FPos += checkedfwrite(&x, sizeof(x), 1, fp);
+    FPos += checkedfwrite(&value, sizeof(value), 1, fp);
     return *p ? skipspc(p + 1) : p;
 }
 
 char *
-chkaparms(char *p, int c, FILE *fp)
+checkParameters(char *p, const struct VMOP *op, FILE *fp, const char *category)
 {
-    for (int i = 0; i < nacp[c]; i++)
-        if ((p = chkp(p, tacp[c][i], c, 0, fp)) == NULL)
+    for (size_t i = 0; i < op->parameterCount; i++) {
+        if (!(p = checkParameter(p, op, i, category, fp)))
             return NULL;
+    }
     return p;
 }
 
 char *
-chkcparms(char *p, int c, FILE *fp)
+checkActionParameters(char *p, const struct VMOP *op, FILE *fp)
 {
-    for (int i = 0; i < ncop[c]; i++)
-        if ((p = chkp(p, tcop[c][i], c, 1, fp)) == NULL)
-            return NULL;
-    return p;
+    return checkParameters(p, op, fp, "action");
+}
+
+char *
+checkConditionParameters(char *p, const struct VMOP *op, FILE *fp)
+{
+    return checkParameters(p, op, fp, "condition");
 }
 
 void
@@ -1110,21 +1129,27 @@ setslots(unsigned char i)
 int
 iswtype(char *s)
 {
-    int i;
-
-    for (i = 0; i < NSYNTS; i++) {
-        if (strcmp(s, syntax[i]) == 0) {
+    for (int i = 0; i < NSYNTS; i++) {
+        char *end = s;
+        if (!canSkipLead(syntax[i], &end))
+            continue;
+        switch (*end) {
+        // exact match
+        case 0:
             *s = 0;
-            return i - 1;
+            break;
+        // x=y
+        case '=':
+            memmove(s, end + 1, strlen(end));
+            break;
+        // partial match, ignore
+        default:
+            continue;
         }
-        if (strncmp(s, syntax[i], syntl[i]) != 0)
-            continue;
-        if (*(s + syntl[i]) != '=')
-            continue;
-        strcpy(s, s + syntl[i] + 1);
+        // this makes 'WNONE' become -1 and 'WANY' become 0. Ick.
         return i - 1;
     }
-    return -3;
+    return -3;  /// TODO: INVALID_WTYPE
 }
 
 /* Declare a PROBLEM, and which verb its in! */
@@ -1989,7 +2014,7 @@ trav_proc()
                 goto gotohere;
             }
             p = skipspc(p);
-            if ((p = chkcparms(p, tt.condition, ofp2)) == NULL) {
+            if ((p = checkConditionParameters(p, &conditions[tt.condition], ofp2)) == NULL) {
                 goto next;
             }
             if (r == 1)
@@ -2013,7 +2038,7 @@ trav_proc()
                 goto xloop;
             }
             p = skipspc(p);
-            if ((p = chkaparms(p, tt.action, ofp2)) == NULL) {
+            if ((p = checkActionParameters(p, &actions[tt.action], ofp2)) == NULL) {
                 goto next;
             }
             tt.action = 0 - (tt.action + 1);
@@ -2130,7 +2155,7 @@ registerTravelVerbs(char *p)
             alog(AL_DEBUG, "Added TRAVEL to existing verb %s", Word);
             continue;
         }
-        ///TODO: size check
+        /// TODO: size check
         strncpy(verb.id, Word, sizeof(verb.id));
         checkedfwrite(verb.id, sizeof(verb), 1, ofp1);
         proc = 0;
@@ -2429,7 +2454,7 @@ lang_proc()
         /* If they forgot space between !<condition>, eg !toprank */
     notlp2:
         if (Word[0] == '!') {
-            memmove(Word, Word+1, sizeof(Word) - 1);
+            memmove(Word, Word + 1, sizeof(Word) - 1);
             Word[sizeof(Word) - 1] = 0;
             r = -1 * r;
             goto notlp2;
@@ -2453,11 +2478,11 @@ lang_proc()
         }
         p = skipspc(p);
         proc = 1;
-        if ((p = chkcparms(p, vt.condition, ofp4)) == NULL) {
+        if ((p = checkConditionParameters(p, &conditions[vt.condition], ofp4)) == NULL) {
             goto commands;
         }
         if (*p == 0) {
-            if ((vt.action = isact(conds[vt.condition])) == -1) {
+            if ((vt.action = isact(conditions[vt.condition].name)) == -1) {
                 vbprob("Missing action", block);
                 goto commands;
             }
@@ -2479,7 +2504,7 @@ lang_proc()
         }
     doaction:
         p = skipspc(p);
-        if ((p = chkaparms(p, vt.action, ofp4)) == NULL) {
+        if ((p = checkActionParameters(p, &actions[vt.action], ofp4)) == NULL) {
             goto commands;
         }
         vt.action = 0 - (vt.action + 1);

@@ -18,22 +18,7 @@ extern const char *obputs[NPUTS];
 // Prepositions
 extern const char *prep[NPREP];
 
-// Language conditionals
-extern const char *conds[NCONDS];
-// Parameter count for each condition
-extern const char ncop[NCONDS];
-// Actual parameter list
-extern const char tcop[NCONDS][MAX_COND_PARMS];
-
-// Language actions
-extern const char *acts[NACTS];
-// Parameter count for each condition
-extern const char nacp[NACTS];
-// Actual parameter list
-extern const char tacp[NACTS][MAX_ACT_PARMS];
-
 extern const char *   syntax[NSYNTS];
-extern const uint16_t syntl[NSYNTS];
 
 extern const char *gameDataFile;
 extern const char *stringTextFile;
