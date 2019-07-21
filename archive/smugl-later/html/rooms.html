@@ -1,0 +1,126 @@
+<!-- $Id: rooms.html,v 1.5 1997/11/28 09:46:29 oliver Exp $ --!>
+<HTML>
+<HEAD>
+ <meta name="Author" content="$Author: oliver $">
+ <meta name="Description" content="SMUGL: Rooms: rooms.txt, travel.txt">
+ <meta name="Keywords" content="smugl, text files, files, rooms, rooms.txt">
+ <TITLE> SMUGL: Rooms </TITLE>
+</HEAD>
+<BODY BACKGROUND="http://www.kfs.org/gifs/paper.gif">
+
+<A NAME="top">
+<CENTER> <HR> <A HREF="index.html"><IMG SRC="smugl-logo.gif" ALT="SMUGL: the Simple Multi-User Game Language" WIDTH=460 HEIGHT=55></A> <H1> Rooms </H1> <HR> </CENTER>
+
+<A NAME="rooms">
+<H3> 1. <TT>rooms.txt</TT> Description </H3>
+
+<H4> 1.1 Brief </H4>
+
+<TT>rooms.txt</TT> defines the rooms that will exist, their properties,
+and their descriptions. The relationships between rooms (exits) are
+defined seperately in <A HREF="#travel"><TT>travel.txt</TT></A>.<P>
+
+The rooms file is one of the simplest, consisting mostly of
+<A HREF="index.html#freetext">free format text</A>.<P>
+
+Despite the simplicity of this file, within the game itself, rooms
+are treated as objects with reduced functionality.<P>
+
+<H4> 1.2 Content and Format </H4>
+
+Each element in the file defines a room which must have a unique identifier
+or Room ID. Room Identifiers The template for a room element is as follows:<P>
+
+<PRE>
+  [room=]id [&lt;flags&gt;]
+  Short Description (One line)
+  Long Description (Many Lines)
+</PRE>
+
+Both 'Short Description' and 'Long Description' are optional; you must
+specify a Short Description of you want to include a Long Description.<P>
+
+Explanation:
+
+<UL>
+<LI> <TT>[room=]id</TT>: defines the room's identifier; the phrase
+     '<TT>room=</TT>' is optional. </LI>
+<LI> <TT>&lt;flags&gt;</TT>: A combination of the flags/parameters
+     listed below, specifying the type and behaviour of the room.</LI>
+<LI> <TT>Short Description</TT>: Is a single line (but no limit on the
+     length of the line) which is always displayed when the room is
+     described. Optional unless you want to specify a Long Description.
+     Typically something briefly identifying the room such as "Cave" or
+     "Central Hall". </LI>
+<LI> <TT>Long Description</TT>: This is a full description of the location.
+     This will not be displayed if the player is in "brief" mode or if
+     the player is in "room count" mode and has already visited this room. <BR>
+     <B> NOTE: </B> For clarities sake, you can indent each line of the
+     room description with a single tab; these will be stripped from the
+     text when it is compiled into the game data. </LI>
+
+There is no limit to the number of rooms you can define.<P>
+
+Currently defined flags are:<P>
+
+<UL>
+DEATH
+LIGHT
+SHINES
+LIT
+SILENT
+HIDECRE
+HIDEOBJ
+SANCTRY
+NOLOOK
+PEACEFUL
+SCALED
+STARTL
+RANDOB
+SMALL
+NOEXITS
+ANTERM
+NOGORM
+DARK
+DMOVE
+
+</UL>
+
+<H4> 1.3 Example Rooms </H4>
+
+An example excerpt from a rooms.txt file:
+
+<PRE>
+  ;; Sample rooms.txt
+
+  ; This is a 'startloc', so the game will begin here
+  room=begining startloc
+  A Beginning.
+  This is the begining of the game.
+  The description can be as long as I like.
+
+  ; We won't bother giving the dark hall a clever description
+  ; because you probably can't see it
+  room=darkhall dark
+  Dark Hall.
+
+  ; End of file
+</PRE>
+
+<CENTER> <H5> <A HREF="#toc"> Back to Table of Contents </A> </H6> </CENTER>
+
+<HR>
+
+<A NAME="travel">
+<H3> 2. <TT>travel.txt</TT> Description </H3>
+
+<H4> 2.1 Brief </H4>
+
+<P>
+
+<H4> 2.2 Content and Format </H4>
+
+ <CENTER> <HR> <H4> SMUGL <I> Copyright &copy; Oliver Smith/KingFisher Software 1996-1997 </H4> <A HREF="http://www.kfs.org/"><IMG SRC="kfs-ban.gif" ALT="Kingfisher Software - www.kfs.org" WIDTH=400 HEIGHT=40></A> <H5> Contact: <A HREF="mailto:smugl@kfs.org">smugl@kfs.org</A> for more information </H5> <HR> </CENTER>
+
+</BODY>
+</HTML>

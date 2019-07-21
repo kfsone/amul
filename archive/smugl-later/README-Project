@@ -1,0 +1,42 @@
+                                                  January, 2012
+                                                  Bedford, TX
+
+This is "SMUGL" - the Simple Multi-User Game Language.
+
+If you were planning to kill WoW, you've come to the wrong place; SMUGL
+is for writing text-based, adventures-style MUDs and talkers.
+
+SMUGL is based on a project from another live, "AMUL", an Amiga based
+language. It started out as an experiment to convert AMUL to C++, and
+now after many more years of experience with C++, I'm reviving it as a
+project to port it to real C++ using STL and etc.  Heck, I may even go
+all out and port it to C#.
+
+But I'm also planning to explore various technologies with it; while
+having my own language parser is cool, it's not tell-anyone-else cool.
+So maybe I'll finally break down and learn to use Antlr or Yacc.
+
+I'm also going to remove my home-grown container classes and instead
+use something like STL or Boost.
+
+Because memory was tight on the amiga, AMUL was split into three discrete
+processes: Compiler, Client and Manager (which used literal memory
+sharing *cringe*). Having the compiler in the manager was prohibitive
+in terms of the amount of memory required.
+
+SMUGL 1 has a compiler, a verifier, and a server which you telnet into
+to play.
+
+For SMUGL 2 I am contemplating an all-in-one, allowing for more dynamic
+games, with some sort of backend storage system that will allow me to
+toy with various storage technologies that I've had no more inviting
+reason to look at.
+
+However: I'm not wholly sold on that yet, because ultimately smugl is
+about the text-file language that generates the game, and having mixed
+persistent and non-persistent content might be a tad annoying.
+
+
+
+-- Oliver "kfsone" Smith
+

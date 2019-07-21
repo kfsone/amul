@@ -1,0 +1,798 @@
+; $Id: objects.txt,v 1.4 1997/05/07 01:40:30 oliver Exp $
+; Objects.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by Oliver Smith / KingFisher Software (oliver@kfs.org)
+;
+; This software is furnished on the understanding that it may be used and or
+; copied  only  with the inclusion of this notice.  No title or ownership of
+; this  software is hearby transferred.  The information in this software is
+; subject  to  change  without notice.  No responsibility is assumed for the
+; use or reliability of this software.
+
+; Doors:  State 0 = Open,   State 1 = Closed,   State 2 = Locked.
+; Flames: State 0 = Lit,    State 1 = Doused,   State 2 = Exhausted. 
+; NOTE: The 'fire' flag can ALSO be used for burning objects...
+
+; To be added:
+;	dice, rose, soap, key, trowel, pot, box, bowl, iron, flag,
+;	cape, lower-mine level with valve, shed, clock, watch,
+;	purse, doubloons, quill, lamp-post, wardrobe (don't think too hard)
+;	leash (for the dog), goat, bottle, tablets, potion, pendant,
+;	crystals, vampire, mirror, curtain, boat, crossbow, bolts,
+;	cello, drill, cage, medallion, ring, handkerchief, bust,
+;	birdbath, clover, tooth, rake, mug, dishcloth, rocks.
+; Also, AMUL 0.9.07+ will feature a file called CLASS.TXT, which will define
+; groups of related objects as classes. I need to do this in order to support
+; the words "all" and "everything". The format of CLASS.TXT is the same as
+; SYNS.TXT:
+; 	<class name>	<objects>
+; Note that <objects> can, in turn, include class names. Objects can appear
+; in SEVERAL classes. For instance:
+;	food		fruit cakes potatoe kipper wafer
+;	cakes		cake pancake
+;	fruit		apple pear orange banana kiwi peach plum
+; The player could type "get fruit", and any of the objects in the list would
+; be picked up. "get food" would allow a greater range.
+; You will also be able to make use of classes in Lang.Txt:
+; Class.Txt:
+;	flame		fire stove brand stick book (etc...)
+; Lang.Txt:
+;	IF ! noun1 IS A flame THEN error "You can't light the @n1!"
+
+
+; ---------------------------- Main Objects -------------------------------- ;
+
+; Object name and flags
+dummy  scenery counter
+; location list
+  store
+; state list
+	none
+
+
+cup,tvroom,250 10 0 0 "There is a cup on the floor." scaled
+
+brush,bathroom,75 6 0 0 "Someone has dropped an little ornate brush nearby." scaled
+
+dish
+  bathroom
+	25 6 0 2 "On the floor sits a small milk dish."
+	120 10 0 2 "On the floor is a small dish, full of milk!"
+	175 50 0 0 "On the floor is a small dish of pure gold."
+
+rope	flamable fire
+  soundroom
+	8 1 0 0 "A short length of rope has been thrown to one side."
+	8 1 0 0 "A short length of rope has been tied in a knot and thrown to one side."
+
+button adj=brass
+  bedrm3
+	6 14 0 0 "A tiny brass button catches the light near your feet." scaled
+
+coin adj=silver
+  hroom6
+	1 20 0 0 "Glistening in the light lies a small, silver coin." scaled
+
+coin adj=brass
+  blackc
+	1 25 0 0 "Someone has dropped a brass coin here." scaled
+
+coin	adj=gold
+  wlake
+	10 60 0 0 "Glistening in the light lies a small, golden coin." scaled
+
+nugget adj=gold
+  wideface
+	10 70 0 0 "Lying on the floor is a small, golden nugget." scaled
+
+book	fire flamable adj=hymn
+  prayroom
+	60 25 1 2 "Carelessly, someone has dropped an ornate little hymn book nearby." scaled
+
+paper	fire flamable
+  presbunk
+	10 70 0 1 "On the floor is an aged and fragile sheet of paper, with some writing on it." scaled
+
+spade	art=the adj=rusty
+  dingerm
+	200 15 6 20 "A rusty spade has been left here." scaled weapon
+
+whistle
+  bhayloft
+	8 4 0 0 "On the floor nearby is a small whistle."
+	10 23 0 0 "On the floor nearby glistens a small, golden whistle." scaled
+
+whistle
+  plandep
+	8 4 0 0 "On the floor nearby is a small whistle."
+	10 24 0 0 "On the floor nearby glistens a small, golden whistle." scaled
+
+horn	adj=hunting start=3
+  dghouse
+	250 100 0 0 "Someone has carelessly dropped a gleaming, golden horn here!"
+	250 50 0 0 "Someone has carelessly dropped a gleaming hunting horn here!" scaled
+	200 26 0 0 "Nearby lies a dull brass horn." scaled
+	200 6 0 0 "Nearby lies an aged and filthy looking horn." scaled
+
+violin	flamable fire
+  bank1
+	450 20 0 0 "A delicate violin has been carelessly dropped nearby." scaled
+	440 5 0 0 "A worthless, tattered violin has been discarded nearby."
+	450 50 0 0 "Some oaf has dropped a violin of solid gold here."
+
+brooch	start=1
+  bhayloft
+	25 50 0 0 "Carelessly dropped nearby is a dazzling brooch." scaled
+	25 2 0 0 "Cast aside lies a filthy and neglected brooch."
+
+brand	flamable start=1
+  patio
+	0 0 0 0 torch0 lit
+	0 0 0 0 torch1
+	0 0 0 0 torch2		; Useless in this state.
+
+brand flamable start=1,wlane1,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,gclear,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,caven2,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,cpass4e1,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,ughilltop,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,ugorchd2,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,ugmoor2,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,slopetun1,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=0,wavenue4,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,thicket2,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,ugmeadow,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,ugwood32,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,ugwood21,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=0,dingerm,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,forest2,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=0,deadt1,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,elms,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=1,oaks,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+brand flamable start=0,clrg1,0 0 0 0 torch0 lit,0 0 0 0 torch1,0 0 0 0 torch2
+
+sign art=the,gcliff,200 10 0 0 SignDesc
+
+seebelow scenery,gcliff
+	none
+	0 0 0 0 "You can just make out someone moving about amongst the trees at the foot of the cliff."
+	0 0 0 0 "You can just make out people moving about amongst the trees at the bottom of the cliff."
+
+bone
+  cpass4w2		; the pit
+	190 5 5 12 "A larged, heavily chewed bone has been discarded nearby." weapon
+
+bear	adj=teddy
+  copse1
+	120 30 0 2 "Some heartless person has abandoned an adorable little teddy bear here!" scaled
+	80 2 0 1 "A small, tattered teddy bear sits to one side, almost unrecognisable."
+
+diamond	start=1	; NOTE: !boot destroys this - attack teddy to get it
+  store
+	40 60 0 0 "A huge, glistening diamond sparkles at your feet." scaled
+	none
+
+bow	flamable fire
+  greencr
+	10 2 0 0 "On the floor lies a violin bow."
+
+ruby
+  sqroom
+	40 50 0 0 "A deep-red ruby sparkles at you, tantalisingly, nearby."
+
+necklace
+  bank2
+	230 47 0 0 "Glittering in the light is a most beautiful necklace." scaled
+
+vase	adj=porcelain
+ tavrm4
+	150 31 0 1 "Somebody has discarded an ornate little porcelain vase here." scaled
+
+portrait fire flamable,tavrm5,650 38 0 1 "A large portrait of an unhappy looking gent rests uneasily on the floor nearby." scaled
+
+chain,tavrm6,700 21 2 8 "A thick, brass chain has been left here." weapon scaled
+
+statue	adj=wooden fire flamable
+ tavrm7
+	1100 37 0 0 "There is a large, wooden statue of an ox here." scaled
+
+bracelet,tavrm9,80 22 0 0 "A discarded bracelet lies on the floor." scaled
+
+trophy,tavrm9,900 26 0 0 "Carelessly dropped nearby is a large, silver trophy." scaled
+
+swatter,confessnl,115 8 0 0 "On the floor is a fly swatter." scaled
+
+crucifix adj=silver
+  gclear
+	120 62 1 6 "Someone has dropped a crucifix of solid silver here." scaled
+
+earring	art=an
+  dgpriv
+	30 44 0 0 "Glistening in the light is a dainty little earring." scaled
+
+staff	adj=oak fire flamable
+  mojclerk
+	51 10 3 21 "Nearby is a large, sturdy, oak staff." weapon scaled
+
+wand	start=1 fire flamable
+  monrm
+	90 60 7 40 "A powerful looking wand has been carelessly left here, just within your reach." weapon scaled
+	11 2 1 3 "A filthy, dilapidated and useless looking wand has been dropped here."
+
+umbrella art=an start=1 opens
+  preslob
+	110 15 1 0 "An umbrella has been left here, open." weapon open scaled
+	110 13 4 0 "An umbrella has been rolled up and left here." weapon
+
+baton fire flamable
+  bandstand
+	12 10 2 7 "Someone has dropped a conductor's baton here." weapon
+
+ruby
+  monrm1
+	100 85 0 0 "Light sparkles and shines off a fine ruby lying, neglected, to one side." scaled
+
+!fring	scenery start=1		; x-marks the spot
+  ugfring
+	0 0 0 0 "Someone has dug a large hole in the middle of the fairy ring."
+	0 0 0 0 "The ground in the center of the ring seems quite earthy."
+
+tiara
+  store
+	400 70 0 0 "A deliciously bejewelled tiara sits at your feet." scaled
+
+tie	flamable fire
+  presbed
+	25 13 0 0 "Someone has dropped a trendy looking tie here." scaled
+
+coat	flamable fire
+  tavs3
+	130 25 0 0 "A large, scruffy overcoat has been left here." scaled
+
+cufflink
+  presbed
+	11 20 0 0 "Nearby is a small buy shiny cufflink." scaled
+
+clipboard
+  monrm
+	83 24 0 0 "Someone has left a clipboard here." scaled
+
+crown	adj=gold start=1
+  monrm6
+	none
+	700 400 0 0 "An awe-inspiring, golden crown rests precariously on the floor nearby." scaled
+
+topaz
+  prmn
+	120 31 0 0 "A topaz glitters in the light, near your feet." scaled
+
+pearl
+  tavs1
+	70 41 0 0 "On the floor lies a small, shiny pearl." scaled
+
+branch flamable,elms,78 0 3 4 branch weapon
+
+branch flamable,deadt2,78 0 3 4 branch weapon
+
+branch flamable,ugorchd3,78 0 3 4 branch weapon
+
+branch flamable,ughillsw,78 0 3 4 branch weapon
+
+circle start=1,tavpse
+	0 0 0 0 "Inscribed in the floor is a circle, which glows, magically."
+	0 0 0 0 "Inscribed in the floor is a circle."
+
+cloak flamable fire,icellar
+	6010 100 0 1 "A huge, heavy looking cloak, interwoven with precious medals and ornate jewelry, has been left here." scaled
+
+; ------------------------------- Weapons! --------------------------------- ;
+
+axe	art=an
+  insidehut
+	200 25 11 0 "A sharp axe lies here, gleaming in the light." weapon
+
+cutlass
+  underlake
+	160 70 16 60 "Someone has dropped a deadly-looking cutlass here." weapon
+
+dagger
+  sqroom
+	220 30 9 30 "The blade of a dagger glistens in the light." weapon
+
+hammer
+  tavcaretk
+	550 28 5 22 "A small, well-used hammer has been left here." scaled weapon
+
+hammer adj=judges
+  mojcourt
+	600 32 2 10 "There is a sturdy judges hammer near you." weapon scaled
+
+pan adj=frying	start=1
+  preskitch
+	800 44 3 20 "Someone has left a sparkling-clean frying pan here." weapon scaled
+	990 5 2 4 "Someone has left a frying pan here, encrusted with years of mould and filth." weapon
+
+chissel
+  wideface
+	270 30 5 7 "For some reason someone has left a chissel here." weapon  scaled
+
+knife adj=kitchen
+  preskitch
+	75 25 7 0 "To one side is a shiny, sharp-looking kitchen knife." weapon scaled
+
+fork,tavpne
+	12 20 7 10 "An ordinary looking fork has been left here." weapon scaled
+
+club
+  redrm
+	250 51 8 32 "A grotesque, evil-looking club has been cast aside here."
+
+axe	art=an
+  island1
+	200 25 11 0 "A sharp axe lies here, gleaming in the light." weapon
+
+; ---------------------------- !!!Mobiles!!! ------------------------------- ;
+
+cat	art=the mobile=cat
+  bathroom
+	700 0 4 12 "A cute little cat sits contentedly nearby." alive
+	700 0 0 0 "The battered and bleeding remains of a small cat lie at your feet."
+
+dog	art=the mobile=dog
+  junk1
+	1200 0 12 20 "A scruffy-looking, flea-infested, dog is wandering around here." alive
+	1200 0 0 0 "Near your feet lies a pile of blood-matted fur which was once presumably a very unpleasant dog."
+
+cow	art=the mobile=cow
+  fallow1
+	20000 0 10 40 "There is a cow nearby, happily chewing the cud." alive
+	20000 0 0 0 "The remains of a large cow lie messily, to one side."
+
+fly	art=the mobile=fly
+  caves1
+	5 20 0 2 "An annoying little fly buzzes around your head." alive
+
+toad	art=the mobile=toad
+  wlake
+	450 0 0 4 "A huge, slimy toad sits nearby, eyeing you up." alive
+
+rat	art=the mobile=rat
+  cpass4w2
+	500 80 0 5 "There is a big, ugly rat running too and fro." alive
+
+alien	art=the mobile=alien
+  sqroom
+	20000 350 22 75 "A short, squat alien wobbles around nearby." alive scaled
+
+fly	art=the mobile=fly
+  reception
+	5 20 0 1 "A fly buzzes busily around your head." alive
+
+fly	art=the mobile=fly
+  bandstand
+	5 22 0 1 "There is a revoltingly fat fly making a nuisance of itself here." alive
+
+ghost	art=the mobile=ghost shines
+  tavcaretk
+	0 120 0 0 "A miserable looking spectre bathes the room in an eerie glow." lit alive
+
+frog	art=the mobile=frog
+  ugmarsh1
+	350 50 0 4 "Wallowing in the marsh is a large frog." alive
+
+badger	art=the mobile=badger
+  oaks
+	700 120 18 72 "Sniffling around in the undergrouth, nearby, is a large badger."
+
+; ---------------------------- Edible Items! ------------------------------- ;
+
+potatoe,fallow2,18 16 0 0 "Nearby lies a neglected potatoe."
+
+carrot,uggrass,18 20 0 0 "Lying on the floor is a tasty-looking carrot."
+
+carrot adj=old,insidehut,14 10 0 0 "Lying on the floor is a old carrot." scaled
+
+carrot adj=mouldy,dgpriv,16 8 0 0 "Discarded by it's previous owner, a mouldy carrot lies at your feet." scaled
+
+wafer,bhayloft,2 6 0 0 Wafer
+
+wafer,botshute,2 6 0 0 Wafer
+
+wafer,sqroom,2 6 0 0 Wafer
+
+wafer,tavrm11,2 6 0 0 Wafer
+
+wafer,home,2 6 0 0 Wafer
+
+wafer,store,2 6 0 0 Wafer
+
+wafer,preskitch,2 6 0 0 Wafer
+
+wafer,track2,2 6 0 0 Wafer
+
+apple art=an,tavrm11,20 25 0 0 "Someone has left an apple here." scaled
+
+plum,mofstore,29 25 0 0 "You see a plum here." scaled
+
+apricot art=an,mofof,30 28 0 0 "A fresh looking apricot has been left here." scaled
+
+biscuit,kitchen,4 6 0 0 "On the floor, nearby, is a dry biscuit."
+
+kipper adj=smoked,preskitch,80 30 2 0 "Someone has left a smoked kipper here."
+
+; --------------------------- Doors & Portals ------------------------------ ;
+
+; Various multi-located objects which are used to 'lead' between various rooms
+; doors being the most common. For ALL portals it is assumed:
+;	state 0 = open, state 1 = closed, state 2 = locked
+
+door	art=the opens scenery adj=front start=1 flamable fire
+  hallway drive1,0 0 0 0 doorop,0 0 0 0 doorcl,0 0 0 0 doorlk
+
+door	art=the opens scenery adj=patio
+  patio dining
+
+door	art=the scenery
+  cpass4e1 sqroom
+
+door	art=the scenery adj=tavern	flamable fire opens
+  yard1 tavfrnt,0 0 0 0 dooraop,0 0 0 0 dooracl,0 0 0 0 dooralk
+
+door	art=the scenery 	flamable fire start=1 opens
+  pressecof preslob,0 0 0 0 doorop,0 0 0 0 doorcl,0 0 0 0 doorlk
+
+door	art=the scenery		start=1 opens
+  presof presbunk,0 0 0 0 doorop,0 0 0 0 doorcl,0 0 0 0 doorlk
+
+door	art=the scenery start=1 opens
+  stairbot dingerm,0 0 0 0 doorop,0 0 0 0 doorcl,0 0 0 0 doorlk
+
+door	art=the scenery	adj=cellar flamable fire start=2 opens
+  yard3 icellar,0 0 0 0 dooraop,0 0 0 0 dooracl,0 0 0 0 dooralk
+
+trapdoor art=the scenery start=1 opens
+  prmsw,0 0 0 0 "The trapdoor is open.",0 0 0 0 "The trapdoor is closed."
+
+!trapdoor scenery counter,prmsw bandstand
+
+gates	art=the opens scenery flamable start=1 adj=mansions fire
+  drive3 wlane2
+	0 0 0 0 "The mansion's gates are open."
+	0 0 0 0 "The mansion's gates are closed."
+	0 0 0 0 "Strewn about are the charred remains of the gates."
+
+; --------------------------- Related Objects ------------------------------ ;
+;
+; Any objects which are related to each other in some means... Best to keep
+; birds of a feather nicely stuck together... HEHEHE.
+;
+
+phone art=the scenery,caves1,0 0 0 0 phone,0 0 0 0 phone,0 0 0 0 phone
+
+phonering	scenery		; Allow people outside to hear the phone ring.
+  caven1 caven2 cavee cavew cavec1 cavec2 caves2 caves3 caves4 cpass1 cpass2 +
+  cpass3 slopetun1 slopetun2 slopetun3 slopetun4 gstairs1 gstairs2
+
+phonedist scenery		; For those in the distance
+  shute botshute bedrm2 cpass4w1 cpass4w2 cpass4e1 cpass5 slopetun4 slopetun5 +
+  ladbot ladmid gardwell confessnl ugpath0 spring1 ughilltop
+
+transhere scenery		; Specifies where to send the 'spook' messages.
+  botshute confessnl prayroom ugmoor2 ugfring insidehut insidebarn ladbot +
+  cpass4w2 cavec2 bedrm3 hroom4 hroom1 tavpse
+
+fire art=the scenery flamable
+  dghouse
+	0 0 0 0 "There is a cheery fire burning in the hearth." lit
+
+fire art=the scenery flamable
+  tavbar
+	0 0 0 0 "A real log fire burns away happily in the hearth." lit
+
+; ------------------ Unplaced Objects & Master's Toys ---------------------- ;
+;
+; Stuff which hasn't yet found a home, and things for masters to play with...
+;
+
+crown	adj=gold
+  store
+	700 500 0 0 "An awe-inspiring, golden crown rests precariously on the floor nearby." scaled
+
+sceptre
+  store
+	800 300 0 0 "A majestic, jewel-encrusted sceptre sparkles tantalisingly before you."
+
+glasses art=some
+  store
+	30 10 0 0 "Someone has cast-aside a pair of bifocals, minus lenses." scaled
+	30 -10 0 0 "Someone has cast-aside a pair of badly-damaged, lenseless bifocals."
+
+ruby
+  store
+	100 150 0 0 "Light sparkles and shines off a fine ruby lying, neglected, to one side."
+
+coin	adj=gold
+  store
+	10 120 0 0 "Glistening in the light lies a small, golden coin." scaled
+
+brand	flamable start=1
+  store
+	0 0 0 0 torch0 lit
+	0 0 0 0 torch1
+	0 0 0 0 torch2		; Useless in this state.
+
+duck	flamable fire
+  store
+	130 60 0 0 "There is a stuffed duck here."
+
+herring	adj=red
+  store
+	90 0 0 0 "You spot a red herring just here."
+
+cake	adj=fruit
+  store
+	250 75 0 0 "For some reason someone has left a delicious looking fruit cake here." scaled
+
+; --------------------------- Counter Objects ------------------------------ ;
+;
+; These objects are PURELY present for the sake of counting things or acting
+; as flags for other objects/commands.
+
+msgcount	start=4 counter scenery
+  store,none,none,none,none,none
+
+all counter scenery,store
+
+; ---------------------------- Group Objects ------------------------------- ;
+;
+; these simply act as an additional room flag. any room where HOTELRMS is, is
+; a hotel room! So you can send a message to all hotel rooms by doing
+;	objaction hotelrms ... or ... objannounce hotelrms
+;
+
+hotelrms	counter scenery
+  gueste guestw hroom1 hroom2 hroom3 hroom4 hroom5 hroom6 eloos junk1 reception
+
+; This controls the cave-in in the 'cpass' series of tunnels.
+cavein scenery
+  cavew cpass1 cpass2 cpass3 cpass4 cpass5 cpass4w1 cpass4e1
+	none,0 0 0 0 "A recent cave-in has blocked the passageway off."
+
+tavrms		counter scenery
+  tavfrnt tavbar tavlounge tavpriv tavland1 tavland2 tavrm1 tavrm2 tavrm3 +
+  tavrm4 tavrm5 tavrm6 tavrm7 tavrm8 tavrm9 tavrm10 tavclos tavpas1 tavpas2 +
+  tavroom tavrm11 tavpas1b tavpas1c tavpne tavpse
+
+doorport scenery,cpass4e1 sqroom
+
+island scenery
+  island1 island2 island3 island4 island5 island6 island7 island8 island9
+
+belowcliff scenery
+  cliffbot rail1 rail2 rail3 rail4 rail5 clrg1 track1 track2 deadt1 deadt2 +
+  elms oaks forest1 forest2
+
+; --------------------------- Scenery Objects ------------------------------ ;
+
+; The Doorway: This kind of object (scenery, no description) is used to make
+; up for the fact that users will ALWAYS try to tinker with objects which are
+; described in room descriptions ("You can leave via a doorway to the south")
+; which don't ACTUALLY need to exist. Walls, winds, rivers, trees and etc
+; will need similar treatment. 
+; Notice that the doorway is present in several rooms.
+
+doorway art=the scenery
+  startrm landing tvroom soundroom landing2 bedrm1 bedrm3 hallway dining kitchen +
+  hroom1 hroom2 hroom3 hroom4 hroom5 hroom6 gueste guestw eloos wloos drive1 +
+  dghouse drive3 cpass4e1 yard1 tavfrnt tavlounge tavbar tavpriv tavland1 +
+  tavland2 tavrm1 tavrm2 tavrm3 tavrm4 tavrm5 tavrm6 tavrm7 tavrm8 tavrm9 +
+  tavrm10 tavrm11 tavpas1 tavpas2 tavclos tavroom coun2 councch pressecof +
+  presof presbunk preslob monrm monrm1 tavpas1c tavpne tavpse yard3 icellar
+
+; Another pure-scenery object: the landing describes a faint breeze, so you
+; need to add 'breeze' to the vocabulary.
+
+breeze scenery smell,landing ladmid gstairs2
+
+; If the player tries to return to the START room, a force field flashes up
+; to prevent it. Doubtlessly people will try to examine it, so you have to
+; tell AMUL that it exists.
+
+forcefield	scenery,landing
+
+stairs	art=some scenery
+  landing stairs1 stairs2 landing2 cpass5 confessnl cavew gstairs1 gstairs2 +
+  ugpath0 tavfrnt tavland1 tavland2 dghouse dgpriv icellar
+
+wallpaper art=the scenery,tvroom
+
+button	art=the scenery,bedrm2
+	0 0 0 0 "Set into the wall is a simple, unlabeled button."
+
+button	art=the adj=red scenery,councch
+	0 0 0 0 'Set into the doorway marked "Way Out" is a small, red, button.'
+
+shute	art=the scenery,shute botshute
+
+stove	art=the flamable opens scenery
+  kitchen
+	0 0 0 0 "In the middle of the room stands a huge, solitary stove. The door has been opened, revealing a cheery flame within." lit
+	0 0 0 0 "A huge stove stands in the middle of the room, looking quite undamaged. The door on it's front is closed."
+
+wall	art=the scenery
+  startrm landing stairs1 stairs2 bathroom tvroom soundroom landing2 hallway +
+  reception junk1 dining guestw gueste hroom1 hroom2 hroom3 hroom4 hroom5 +
+  hroom6 bedrm1 bedrm2 shute botshute bedrm3 store heaven limbo cavee     +
+  caven1 caven2 caves1 caves2 caves3 caves4 cavec1 cavec2 cavew cpass1    +
+  cpass2 cpass3 cpass4 cpass4w1 cpass4w2 cpass4e1 cpass5 confessnl prayroom +
+  gardorchd gardwell gardens patio outsidehut insidehut outsidebarn +
+  dgpriv sqroom tavfrnt tavbar tavlounge tavpriv tavland1 tavland2 tavrm1 +
+  tavrm2 tavrm3 tavrm4 tavrm5 tavrm6 tavrm7 tavrm8 tavrm9 tavrm10  +
+  tavrm11 dghouse tavclos tavpas1 tavpas2 tavroom tavcaretk coun1  +
+  insidebarn coun2 councch modof modstore mofof mofstore cavetax mojcourt +
+  mojof mojclerk depelect mojcells plandep pressecof presof presbunk preslob +
+  gstairs1 gstairs2 nart1 nart2 stairbot dingerm pstairs1 pstairs2 pstairs3 +
+  prmn prmsw widet1 widet2 widet3 widet4 widet5 wideface nsidep nsidepe +
+  blackc greenc greencr yellowc redrm monrm monrm1 monrm2 monrm3 monrm4 +
+  monrm5 monrm6 monrm7 ssidep ssidepe tavp2e tavs1 tavs2 tavs3 tavs4 tavs5 +
+  uppass dnpass tavpas1b tavpas1c tavpne tavpse yard3 icellar
+
+graffiti art=some scenery,tavrm2
+
+well art=the scenery,gardwell ladmid ladbot
+
+spring art=the scenery,spring1
+
+hut art=the scenery,outsidehut insidehut
+
+barn art=the scenery,outsidebarn insidebarn
+
+rungs art=the scenery,ladbot ladmid
+
+water art=some scenery
+  gardwell spring1 bathroom eloos wloos wlake1 wlake2 wlake3 wlake underlake +
+  bank1 heath1 heath2 bank2 rail4 rail5 island1 island2 island3 island4 +
+  island5 island6 island7 island8 island9 island10 nthbank nbankw1 nbankw2 +
+  nbanke1 nbanke2
+
+marsh art=the scenery,ugmarsh1 ugmarsh2
+
+seesaw art=the scenery,beergarden
+	0 0 0 0 "The seesaw has been tipped to the left."
+	0 0 0 0 "The seesaw has been tipped to the right."
+
+hedge scenery,gardwell gardorchd yard3
+
+wheat art=some scenery,ugwheat
+
+hay art=some scenery,insidebarn bhayloft
+
+ladder art=the scenery flamable fire
+  insidebarn bhayloft
+	0 0 0 0 "A wooden ladder runs between the barn and the hayloft."
+
+loft art=the scenery,insidebarn bhayloft
+
+basin art=the scenery,eloos	; wash basin
+
+ring art=the adj=fairy scenery,ugfring
+
+loo art=the scenery,wloos		; toilet
+	none,0 0 0 0 "The toilet is full of, <cough>, it's been used."
+
+cliff art=the scenery,gcliff fallcliff cliffbot
+
+archway art=an scenery,archway
+
+pictures art=some scenery,cpass4e1 sqroom
+
+symbols art=some scenery,sqroom
+
+window art=the scenery,cpass4e1 tavs1
+
+view art=the scenery,tavs1
+
+river art=the scenery
+  bank1 bank2 heath1 heath2 rail4 rail5 island1 island2 island3 island4 +
+  island5 island6 island7 island8 island9 island10
+
+bus art=the scenery,heaven
+
+shelves art=some scenery,tavclos tavpne
+
+cosy scenery,tavrm8 bedrm2 bhayloft hroom5 gwoodn
+
+bed art=the scenery flamable fire
+  tavrm8
+	0 0 0 0 "A large bed occupies most of the room. The bed is unmade, as though someone has been sleeping on it."
+	0 0 0 0 "A large bed occupies most of the room."
+
+notices art=some scenery,tavpriv
+	0 0 0 0 "Pinned to the walls are dozens of small notices, all apparently relating to The Land."
+
+lost scenery,store
+
+portcullis scenery start=1
+  coun1 coun2
+	0 0 0 0 "The portcullis has been raised."
+	0 0 0 0 'The portcullis has been lowered. Written on it are the words "To pass you must sawsee".'
+
+footprints art=some scenery,tavclos
+
+dust art=some scenery,modstore uglane2 uglane3 tavclos tavrm7 clrg1
+
+crack scenery,slopetun3
+
+chimney scenery,tvroom
+
+wagon scenery,wideface,0 0 0 0 "There is a small wagon here, just large enough to carry one person."
+
+!wagon scenery,widet1 widet2 widet3 widet4 widet5
+
+trees art=some
+  ugwood11 ugwood21 ugwood31 ugwood41 ugwood12 ugwood22 ugwood32 paddock +
+  ugwood33 ugwood34 spring1 wavenue1 wavenue2 wavenue3 wavenue4 copse1 +
+  copse2 gwoods gwoodn gwoode gclear spinney thicket1 thicket2 ughillw +
+  ughille ughills ughillsw ughilln wlane1 wlane2 wlane3 ugorchd1 ugorchd2 +
+  ugorchd3 ughilltop wlake wlake1 wlake2 wlake3 wpath gcliff bank1 bank2 +
+  outsidebarn outsidehut bandstand cliffbot oaks track1 track2 rail1 rail2 +
+  rail3 rail4 rail5 deadt1 deadt2 forest1 forest2 elms yard3
+
+oaks art=some scenery,oaks
+
+elms art=some scenery,elms
+
+rain scenery art=the
+  drive1 drive2 drive3 patio gardens gardwell lawn wlake wlake1 wlake2 wlake3 +
+  wpath gcliff ugmarsh2 ugorchd3 ugmarsh1 ugpath0 ugpath2 ugmoor3 bank1 bank2 +
+  ugmoor2 ugtmead2 ugtmead1 ugpath3 ugspast ugpath1 ugmoor1 ugepast outsidebarn +
+  ugfring ugwpast bandstand paddock uggrass ugwheat yard1 ughilltop outsidehut +
+  ugnpast beergarden gardorchd ugorchd2 heath1 heath2 ugorchd1 wlane1 wlane2 +
+  ugavenue3 ugavenue2 ugavenue1 ugwood41 ugwood31 ugwood32 ugwood33 ugwood34 +
+  ugwood21 ugwood22 spring1 ugwood11 ugwood12 wlane3 wavenue1 wavenue2 copse1 +
+  wavenue3 wavenue4 fallow1 fallow2 copse2 gwoods gwoodn gwoode gclear ughilln +
+  spinney thicket1 thicket2 ughillw ughille ughills ughillsw archway ugmeadow +
+  clrg1 track1 rail1 rail2 rail3 rail4 rail5 deadt1 deadt2 island1 island2 +
+  island3 island4 island5 island6 island7 island8 island9 island10 nthbank +
+  nbankw1 nbankw2 nbanke1 nbanke2 yard3
+	none,0 0 0 0 "It is raining."
+
+shaft scenery art=the
+  wideface nsidep ssidep ladbot ladmid tavrm6 uppass dnpass
+
+cave scenery art=the
+  dnpass botshute cavee caven1 caven2 cavec1 cavec2 caves1 caves2 caves4 +
+  cavew pstairs3 prmn slopetun1 dingerm gstairs1
+
+railway scenery
+  cliffbot rail1 rail2 rail3 rail4 rail5 island1 island2 island6 island7 +
+  island8 nthbank
+
+ashes scenery smell art=some
+  clrg1 track1 track2
+	0 0 0 0 "A faint smell of smoke lingers in the air."
+
+bridge scenery
+  rail5 island1 island8 nthbank
+
+mud scenery,nbankw1 nbankw2 nbanke1 nbanke2
+
+; <End of file>

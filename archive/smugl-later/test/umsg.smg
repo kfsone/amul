@@ -1,0 +1,791 @@
+; $Id: umsg.txt,v 1.2 1997/04/25 01:13:51 oliver Exp $
+; UMsg.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by Oliver Smith / KingFisher Software (oliver@kfs.org)
+;
+; This software is furnished on the understanding that it may be used and or
+; copied  only  with the inclusion of this notice.  No title or ownership of
+; this  software is hearby transferred.  The information in this software is
+; subject  to  change  without notice.  No responsibility is assumed for the
+; use or reliability of this software.
+
+; All this text can get a bit clumsy, so use a decent text editor like CEd
+; and indent message text using a SINGLE TAB infront of each line. The leading
+; tab will be removed by AMULCom.
+;
+; All UMsg's are word-wrapped as they are outputted. It is best to place
+; paragraphs of text on single lines whenever possible, allowing the user to
+; get most out of their OWN terminal settings!
+;
+; *I always find it tidier to seperate LONG messages with 2 or 3 blank lines
+;
+; * MSGID= isn't REQUIRED, but helps when searching through the larger msgs!
+
+YourBlind		; You can't see when you're blind
+	You can't see anything - you're blinded; remember?
+
+Crippled		; Can't move when you're crippled
+	You can't move an inch - you're crippled; remember?
+
+NoAllYet
+	Sorry - 'ALL' not implemented YET...
+
+IEmote			; I'm performing an emotion
+	OK, @me @vbs.
+
+UEmote			; Tell others of my emotion
+	@xy @vbs.
+
+IEmoteX			; IEmote but add text
+	OK, @me @vbs @n1.
+
+UEmoteX			; UEmote but add text
+	@xy @vbs @n1.
+
+MEVbsYou
+	@me @vbs you.
+
+XYVbsYou
+	@xy @vbs you.
+
+PCDown
+	The portcullis is lowered, you would have to slice yourself into tiny pieces and post yourself through it. Find some way to raise it.
+
+Rofl			; Roll on the floor with laughter
+	@xy rolls on the floor with laughter.
+
+CantExam		; Can't examine something like 'breeze'
+	I think you should get yourself examined...
+
+ExamDWay		; Examine a doorway...
+	You'd never guess, but it leads to another room!
+
+ExamFField		; Examine the forcefield.
+	It's gone - it only lasted long enough to stop you entering the room; the basic idea is that you CAN'T go back in there.
+
+ExamStairs
+	You've seen stairs before, numbskull. If you want to go UP them, type UP. If you want to go DOWN them; well, can you guess?
+
+ExamWPaper
+	You can travel through time and space or the ninety-two dimensions, and in every place, time or plane you visit you will find one thing common to all; the format of a TV timetable. They are universally illegible and a waste of time, except those of yVard!thestron in the 400th era of the 18th dimension, where the native TV timetables (with a little imaginative interpretation) often prove to be invaluable receipe guides. If you do happen to visit yVard!thestron though, never have dinner with a TV producer.
+
+ExamCup
+	It's empty, and if you don't believe me, maybe the hole where the bottom will convince you?
+
+ExamTorch
+	It's a long, wooden stick with some lint soaked in oil, wrapped around the top - like you see in films. You can light it and use it as a torch. Good, eh?
+
+ExamBone
+	Despite being disgusting and heavily chewed, it's looks like it could do someone quite an injury - and it's quite easy to grip ...
+
+ExamSign
+	It reads, "If you have any ideas for this part of the game (or any part), please use SUGGEST to tell us! We'd REALLY appreciate your help". You can also use the BUG command to report any bugs you find!
+
+ExamPDoor
+	It's a very good painting, something about it makes it look almost real, but its definitely only a painting.
+
+ExamShelf
+	What's left of it is mainly rotten wood. There's nothing of interest about it, though.
+
+ExamGraf
+	So many generations of graffiti artists have passed through here and left their marks that no particular image stands out on its own as a whole. Instead the general effect is something of an optical illusion with images seeming to come and go, to fade in and out of the general melee of colours.
+
+ExamFPrts
+	Out of all the many footprints in the dust, one set seems especially fresh, although their path is curiously interrupted by a wall.
+
+ExamClosW
+	It looks fairly ordinary... Maybe it's hollow?
+
+ExamPan
+	It's caked in so much disgusting filth that you're surprised it doesn't have a more pungent odour!
+
+ExamWag
+	It's small and old-fashioned, but it looks rideable.
+
+ExamW1
+	It's a painting, not even a good one at that.
+
+ExamW2
+	In the distance, to the north, The Land is cut short by a vast ocean, which continues, across the horizon, as far as the eye can see. Not far from the shore there appear to be several small islands, but distance makes it difficult to tell much about them. Between the tavern and the sea, however, is a most peculiar landscape, for the most part tree covered. Some way to the northeast is a large castle, and further north of that, near the ocean shore, is what looks like a lookout tower. Here and there, amongst the trees, there are other, smaller buildings, scattered around the generally picturesque view.
+
+ReadPaper
+	The paper seems to be an instruction sheet for a wand! It starts by quite adamantly trying to dismiss the myth that wands are in any way magical, but that they use previously undiscovered scientific principals, which the makers have described as Eel-Trikity, and they deny a rumour that it is operated by waving. Aparently the wand can be used to "Zap" and to set fire to things with. There are a stack of other details which are now illegible. The only other text you can read is in tiny print near the bottom. As you desperately try to make it out, the paper begins to crumble, and just before it completely disintegrates, you manage to make out: "Keep clean! The wand will ... filth prevents it from recharging itself".
+
+PassOut
+	Your head swims, a wave of pain bursts over you, and you pass out...
+
+SleepArr
+	Out of nowhere @me materialises slumped in a heap on the floor.
+
+ModeFail		; Tried to re-select current RD Mode
+	'@ve' mode was already selected!
+
+verbWhat		; <verb> what?
+	@vb WHAT?
+
+DontBeDaft		; Tried to do something stupid.
+	Don't be silly, you can't do that!
+
+NotGotNoun		; You aren't carrying it.
+	You aren't carrying the @n1!
+
+NotGotTool		; You aren't carrying noun2.
+	You aren't holding the @n2!
+
+NeedWand
+	You need a wand to zap things, dingelbert.
+
+PlyrNotHere		; Player isn't here
+	I can't see @n1 here!
+
+Plyr2NotHere		; Player (noun2) isn't here
+	I can't see @n2 here!
+
+NotThatKind		; It's not THAT sort of <noun>
+	No, no, no! It's not THAT kind of @n1, dunderhead!
+
+NoWallEre		; STORE/LIMBO/HEAVEN -- spieling with walls!
+	Be credible, boyo, the only walls HERE are your imagination!
+
+CantGetClose		; Trying to approach cat or for nasty operations!
+	The @n1 won't let you get close enough to @vb it!
+
+SniffDC1		; Sniff Dog/Cat in state 1.
+	YEUCH! If you revived it the SMELL would probably knock it dead again!
+
+BugSug			; Bug/Suggestions
+	Your comment has been duly recorded. Thank you.
+
+UseBugSug
+	It doesn't work like that, try using @vb "<what you want to say>".
+
+ClimbCWall		; Try to climb cave wall - plonkers!
+	Nice idea, but the cave walls here are FAR too steep to climb. Good excercise though...
+
+CWallBlock		; Blocked by the cave wall.
+	The cavern wall prevents you going @vb.
+
+CantVbThat
+	You can't @vb that!
+
+UseHands		; Can't open/close things WITH something...
+	If you can't @vb it with your hands, it won't open any other way...
+
+TalkSelf
+	Talking to yourself is a sign of madness...
+
+MakeMag
+	@me makes some magical gestures...
+
+Success
+	Your spell was successful!
+
+PeepsOnly
+	The spell will ONLY work on people.
+
+AnswerPhone
+	You clear your throat, lift the receiver, and ...
+	 @me> "Hello?"
+	 Caller> "Wrfhf Puevfg zrnaf fnyingvba sbe nyy zna-xvaq!"
+	 @me> [Cough] "HELLO???"
+	 Caller> "Sorry!   Schmee,  Jo!   Just phoning you from Southampton.
+		  I'm  supposed to be revising for my exam, and I just tried
+		  to  phone  my  mum,  but  she wasn't in, and no-one else I
+		  tried  was  answering  the  phone,  so  I thought I'd call
+		  Oliver.  But since he's not in, I'll go.  Sorry.  BYE!"
+	<Click>
+
+DoorCl
+	The door is closed!
+
+NoClPatio
+	The patio doors have been open for a LONG time, and the elements have seen to it that they will remain so for ever more...
+
+MoveStove
+	You make a valiant attempt, but for a start it's quite gigantic and secondly its been specially fitted just so it can't be pilfered... I don't know, these would-be-thieves...
+
+GoneSleep
+	@me has just fallen asleep.
+
+MovePhone
+	PHEW! The description says "Firmly attached" and, boy, DID IT MEAN IT!
+
+MagicFlames
+	Try as you might, something more powerful than you keeps it burning...
+
+NotLit
+	The @n1 isn't alight anyway!
+
+IBidYou
+	@me bids you '@vb'!
+
+YouBid
+	You bid @n1 '@vb'!
+
+YouBidAll
+	And @ve from me, too!
+
+SyntVPT
+	Whoops! Try @vb <player> "<text>"
+
+BadTrans
+	Suddenly a ghostly human figure appears before you; it's face contorted as if in agony. It throws its hands upwards and then vanishes in a brilliant flash of light, leaving you feeling somewhat distressed.
+
+TTHotel
+	Your way is blocked by the building; find the entrance if you want to go inside!
+
+TavWall
+	The tavern walls turn out to be quite solid, and you fail to walk through them.
+
+TTTrees
+	The trees become so closely packed that progress is impossible and you turn back.
+
+BkTooSteep
+	After a short while the muddy river banks become too steep to walk along safely, and you end up back where you started.
+
+StandUp
+	Fool! You can't go anywhere until you stand up... Tsk tsk...
+
+FenceDrive
+	Someone has built a whopping great fence along the sides of the driveway to stop people like you trampling his precious grounds!
+
+GatesClosed
+	Unfortunately the gates are both solid AND closed...
+
+ItsNow
+	The @n1 is now @vb.
+
+ItsNowD
+	The @n1 is now @vbd.
+
+ItsNowEd
+	The @n1 is now @vbed.
+
+IDidItE
+	@xy has @vbed the @n1.
+
+IDidIt
+	@xy has @vbd the @n1.
+
+HeDidItE
+	@xy has @vbed the @n1.
+
+HeDidIt
+	@xy has @vbd the @n1.
+
+AlreadyDone
+	It's already been done!
+
+DontBeVulg
+	Don't be so vulgar, thankyou.
+
+Vulgar			; The word 'vulgar'
+	vulgar
+
+LooFlush		; Toilet flushing
+	In the distance you hear the sound of a toilet flushing...
+
+NoMobile
+	Sorry - mobiles aren't implemented! Do you want them to be? Then help fund AMUL and @ad development - contact the SysOp for details!
+
+TooDeep
+	The lake rapidly becomes too deep to continue safely and you go back.
+
+drown
+	The water become deeper still, and before you can surface, you drown...
+
+wokenfall			; Woken up falling off a cliff!
+	Your eyes open to reveal the most awesome scene you have EVER seen. For a moment you savour the view. You notice that you feel awfully light. But then travelling downwards at the speed you're going usually does that to a person.
+
+wieldexp			; Not enough experience to wield
+	You aren't experienced enough to wield the @n1.
+
+CavedIn
+	The passage has caved in, so you can't go that way.
+
+DoorPic
+	It's only a painting of a door, even though it LOOKS very real.
+
+Vanishes
+	@me vanishes from before your very eyes!
+
+Appears
+	@me suddenly appears, out of nowhere!
+
+RiverFast
+	The river is too fast to cross.
+
+RiverSwollen
+	The recent rains have swollen the river making it far too turbulent to cross.
+
+RiverDnstrm
+	The current is so fast and vicious, that you would instantly be swept off downstream, and probably out to sea.
+
+CanFeedSelf
+	They are perfectly capable of feeding themselves.
+
+SteepMount
+	The mountain rises far too steeply to be climbable, so you give up.
+
+SheerRock
+	The sheer rock face presents an unclimbable and unpassable barrier. You end up back where you started.
+
+ReadToGhost
+	As you read, the ghost seems to get awfully agitated. It seems to be motioning you to read aloud, so you do. As you continue to read, a smile begins to develop on the spectres otherwise tortured visage, until you reach a hymn titled 'My Shepherd (Psalm 23)'. When you look up at the ghost you notice him smiling, blissfully at you, in full, restored flesh. He silently thanks you, reaches over and takes the hymnbook from you. Then with a shout of joy, he vanishes, for ever.
+
+MKissFrog	; male kisses frog
+	At first the frog seems reluctant to let you kiss it, but eventually it gives up, seemingly desperate to be kissed by anyone. No sooner do your lips touch it marsh-covered skin, than there is a loud CLAP and you find yourself choking in a thick, purple cloud of smoke. As it begins to clear, you see the fading silhouete of a large man, dressed in regal clothing, desperately wiping your saliva off his cheek.
+
+FKissFrog	; female
+	At first you can hardly bring yourself to kiss that slimy, wart-ridden face. But the frog seems keen to get on with the whole thing. No sooner does your face meet it's than there is a loud CLAP and the air is filled with purple smoke, but you hardly notice. You find yourself pationately embracing the most hunksome lurvegod you've ever met, and he seems to be every bit as enthusiastic. Then, as the purple cloud begins to clear, he turns, waves, and vanishes into the distance, leaving you dazed and dreamy.
+
+WaitPhone
+	It's not even connected! Mind you, that wouldn't stop BT charging you for the pleasure of waiting...
+
+WaitPhLong
+	You could wait till you're blue in the face, but unless someone calls you, you aren't gonna get any phone calls!
+
+WaitMobile
+	It could be HOURS before it arrives!
+
+WaitLeave
+	Well, umm, OK... But I'll tell you when if leaves anyway!
+
+WaitBad
+	You don't NEED to ASK to wait. Just sit there and do nothing. We are dealing with REAL TIME here, not some quirky time-only-passes-when-you-press-return thing.
+
+GoodThen
+	Well that's alright then.
+
+TuffLuck
+	Well thats just tuff luck!
+
+FirmTell
+	@me the @mr declares @vb to you.
+
+HeyDiddle
+	Hey diddle diddle, the cat and the fiddle et al, I suppose... OH NO! SOME fool will think that's some kind of clue! IT ISN'T.
+
+JumpPlayer
+	Let's keep that kind of thing where it belongs - Channel 4 - please.
+
+Whistle
+	!PEEEEEEEEEEEEP!
+
+PatCat
+	The poor creature is several dozen times smaller than yourself, and one pat sends it scurrying into another corner of the room. Cats prefer to be stroked, you know.
+
+PatDog
+	You find yourself saying 'Good Boy' as you do so, and the dog simply wags its tail lots.
+
+PatCow
+	You're expecting some joke about cow pats, aren't you? I wouldn't stoop so low!
+
+StrDog
+	The dog doesn't seem so sure about being stroked... Apparently he's more of the old fashioned 'Give the dog a bone' breed.
+
+StrCow
+	As you run your hands along its hide visions of leather coats run through your mind. Judging by the look the cow gives you, it can probably read your thoughts.
+
+StrPCat
+	That's better! The cat seems much happier being stroked than being patted. Well, atleast you're learning.
+
+StrCat
+	The moment you put hand to fur the cat starts to get excited. As you continue it stands up, begins to wag its tail (in delight) and paces up and down. In doing so it becomes extremely hard to stroke. Eventually you give up, wishing the cat would just have sat still, and the cat, dissapointedly, sits down. Cats are (generally) EXTREMELY stupid, and this one is no exception. No matter how many times this happens, the cat will always start pacing about when someone strokes it and will never realise that's why it never gets stroked for long. SIGH...
+
+DogNoBone
+	The dog turns his nose up at the aged and meatless bone - obviously he's never heard (or atleast understood) the expression: "Beggars can't be choosers".
+
+Refreshed
+	You are too invigorated to sleep any more, and you wake up again.
+
+MagTingle
+	A sudden, curious tingling sensation runs through your body, but nothing appears to happen...
+
+Heads
+	It comes up heads.
+
+Tails
+	It comes up tails.
+
+RainStop
+	It has stopped raining.
+
+RainDisp
+	Overhead the storm clouds begin to disperse.
+
+RainEase
+	The rain has started to ease up.
+
+RainStart
+	It has started to rain.
+
+RainThund
+	In the distance you hear a rumble of thunder...
+
+RainClouds
+	Dark clouds begin to gather over head.
+
+Uncomfy0
+	You @vb down on the bed, but its so extremely uncomfortable that you quickly get off again.
+
+Uncomfy1
+	You plonk yourself on the nicely made bed, messing the sheets up, and then decide that it's too uncomfortable to @vb, and get off again.
+
+GoDoor
+	If you want to go through the doorway just use IN or OUT, or move in its general direction.
+
+Gates1
+	The gates heave, suddenly, and with an terrific groan the flaming timbers come crashing down on you...
+
+Gates2
+	In the distance you hear the terrific >>>CRASH!<<< of a large wooden structure collapsing.
+
+PrayPray	; Pray in the prayerroom
+	With an unexpected boldness, you begin to complain and groan at God. But as you begin, there is a strange sense that you ARE being heard! You begin to switch into a more reverent form of prayer, making pertinent demands and cries from your very heart. Eventually, on the verge of tears, you stop, feeling as if you almost touched the very throne of heaven, and somehow, this leaves a tinge of shame, somewhere deep within...
+
+PrayConf	; Pray in confess room.
+	You start to blame God for all your failures and those things that went wrong years back when you were a kid. As you do, long-forgotten memories seem to surface, that explain, or atleast re-point the finger, back at you, and even though you didn't mean to, you end up confessing your "sins". And when you've finished, you feel that a burden has been lifted from your shoulders.
+
+Confess
+	You have a momentary burst of guilt about something you once said to your Aunt Agatha, but no sooner start to confess it, than you decide that God would probably agree with what you said, and stop again.
+
+PrayPers
+	Hero worship in it's literal sense, eh? We'll have none of that, thank you.
+
+PrayHome
+	You can't manage it as the possibility that God himself might just poke his head around a door and say "Hi! Did you call me?" leaves you feeling just a little uncomfortable.
+
+JustPray
+	Try as you might, you can't think what to pray, so you make do with "God save the Queen".
+
+ConfPray
+	No, you're supposed to PRAY here, not wallow in gloating over the naughty things you managed to stock pile over the last fifteen minutes.
+
+OUCH
+	OUCH! It's on fire and your burn yourself fiddling with it!
+
+playvio1
+	As you put bow to string, you stir something in the air, and find your fingers weaving a spellbinding tune of incredible depth and passion. For a moment the music completely enthralls you and then, suddenly stops. When you look at the violin, you notice that it has, magically, been turned into solid gold!
+
+playvio2
+	For a moment you are completely taken up in a sensuous violin solo which flots, magically through the air, and then it stops.
+
+RedHerr
+	It's just a red herring!
+
+Dodges
+	It dodges and you miss.
+
+KickDoor
+	Oh I see! There's a moron playing! You could have just opened it or closed it, or even knocked on it, but no... Flippin thugs, get everywhere! It's people like you that have made the doors of this once great nation what they are today. The Great Green Fairy of Door-protection appears and kicks YOU into kingdom come.
+
+DigRing1a
+	You don't have to dig far before you uncover a glittering tiara!
+
+DigRing2a
+	You dig the soft earth at the center of the ring, but find nothing. Somehow you feel cheated...
+
+DigRing1b
+	@xx digs up the center of the fairy ring and uncovers a glittering tiara!
+
+DigRing2b
+	@xx has dug up the center of the ring, but @ge finds nothing special.
+
+WaterDirty
+	The water isn't that clean, and doesn't help much at all!
+
+Washed
+	It doesn't come out any cleaner than it already was!"
+
+DipWand1
+	You dip the fully charged wand into the horrible, nasty water. It shorts and fizzles out of existance, giving you a nasty electric shock while it's at it.
+
+DipWand2
+	As the filth comes off the wand, you feel a strange power surging through it. You take it out of the water just in time, as a large, blue spark arcs across the wand, narrowly missing you. It sparkles in the light, and you realise that you have restored it to its full glory; a lethal, deadly weapon.
+
+WandLight	; Light something from the want
+The wand issues a large bolt of blue light and sends you reeling backwards, knocking you unconcious in the process.
+
+SniffST1
+	It turns out that they are soaked in a highly toxic substance which, if inhaled, is fatal...
+
+SniffST2
+	How can I describe it? It smells like, well, if you set it on fire, it would burn. How's that!
+
+RideWag
+	No sooner are you seated on the wagon, than it shoots forward, down the passage...
+
+GoWagon
+	@me climbs into the wagon, which promptly dissapears westward, down the tunnel.
+
+WagInvis
+	You climb into the wagon, but nothing happens, so you climb out again. There doesn't seem to be a steering mechanism, so you can assume it's automated. Perhaps it didn't realise it had a passenger?
+
+WagPass1
+	@me whizzes past you down the tunnel, on a small wagon!
+
+WagPass2
+	A small wagon dissapears eastward, along the tunnel.
+
+WagArr1
+	A small wagon shoots out of the eastern tunnel and stops abruptly, dumping it's passenger, @n1, onto the floor. The wagon then dissapears back into the gloom of the tunnel.
+
+WagArr2
+	A small wagon wheels in from the west and pulls up nearby.
+
+WagStop
+	Suddenly the wagon pulls to a halt, dumping you with a bump on the floor, and dissapears off again up the tunnel.
+
+PickedUp
+	@xx has picked up the @n1.
+
+GotIt
+	@n1 taken.
+
+NoOCWin
+	It doesn't open or close, it's just a large window.
+
+OnlyPaint
+	It's only a painting of a window, you can't actually do anything with it!
+
+IZapMob
+	The wand emits a beam of bright-red light, and the @n1 vanishes...
+
+SeeZapMob
+	A bolt of bright-red light hits the @n1 and it vanishes, instantly.
+
+ZapGhost
+	What? Zap a GHOST? Who do you think you are, a ghost buster?
+
+DanceTgthr
+	@me and @n1 dance a merry little jig together. How sweet.
+
+MGas1
+	A flame catches hold of the highly-flamable marsh gas, which promptly explodes, killing you out right.
+
+MGas2
+	In the distance you hear a loud <==KKKAAAABBBBOOOOOMMM==>.
+
+Nothing
+	Nothing special happens.
+
+CircStop
+	The circle has stopped glowing.
+
+CloakShim
+	The cloak shimmers, strangely, and then it stops.
+
+NoTchMob
+	The @n1 doesn't appear keen to let you touch it, and it evades you.
+
+; ----------------------------- Help Texts ---------------------------------;
+
+msgid=hints
+	GENERAL PLAYING HINTS :
+	 1: Always VALUE an object when you pick it up.
+	 2: Look out for objects with 'scaled' values; these are worth MORE nearer to a RESET.
+	 3: When moving IN/OUT of a GROUP of locations use IN to work your way to the heart of the group or OUT if you're in a hurry to leave.
+	 4: Whilst exploring @ad, use the AUTOEXITS facility and when in doubt, list EXITS out.
+	 5: Try to be nice to other players; you may need their help some times.
+	 6: ALWAYS read room descriptions; if a description pays specific detail to one part of the room, it may be a clue.
+	 7: Always TRY and tell @ad what you want in YOUR TERMS. If it doesn't understand, use the BUG or SUGgest commands.
+	 8: It's rude not to answer the phone!
+	 9: The cat is thirsty...
+	10: If you're battle weary, find somewhere restful to sleep or some food!
+	11: The frog generously prefers females, but anyone can do.
+	12: The spring's water is slightly magical; good for cleaning!
+	13: The circle is like a magic slot machine! Touch it whilst working...
+
+
+msgid=spells
+	  Spell               | Rank | MPTS | Purpose
+	  --------------------+------+------+----------------------------------------
+	  GLOW player         |   4  |   1  | Cause someone to start glowing
+	  SLEEP player        |   6  |   1  | Cause another player to sleep
+	  WAKE player         |   2  |   1  | Awaken another player
+	  UNGLOW player       |   4  |   1  | Stops a player glowing
+	  CHANGE player       |   4  |   1  | Change player's sex
+	  SUMMON player       |   6  |   1  | Summons another player
+	  FORCE player "text" |   7  |   1  | MAKE someone do something
+	  WHERE object        |   5  |   2  | Locate the whereabouts of an object
+	  CRIPPLE player      |  5/6 |   1  | Stop someone from walking
+	  CURE player         |  4/5 |   1  | Undo the cripple spell
+	  INVIS player        |  5/6 |   1  | Make someone invisible
+	  UNINVIS player      |  5/9 |   1  | Make someone visible again
+	  SINVIS player       | 9/10 |   1  | Make a player super-invisible
+	  UNSINVIS player     | 7/10 |   1  | Undo a super-invis spell
+	  --------------------+------+------+----------------------------------------
+	  MPTS = Magical Points used to cast the spell
+	  When two ranks are given, the first is to cast the spell on yourself and the
+	  second is to cast the spell on another player.
+
+
+msgid=levels
+	  Male           | Female        |  Score  | PFKSTL | MPTS |Tasks
+	  ---------------+---------------+---------+--------+------+-----
+	  Novice         | Novice        |       0 |     10 |    0 |    0
+	  New Boy        | New Girl      |     150 |     20 |    5 |    0
+	  Cadet          | Trainee       |     300 |     40 |   10 |    1
+	  Explorer       | Explorer      |     600 |     80 |   20 |    1
+	  Adventurer     | Adventuress   |    1200 |    160 |   30 |    2
+	  Scout          | Guide         |    2400 |    320 |   70 |    2
+	  Challenger     | Challenger    |    4800 |    640 |  120 |    3
+	  Hero           | Heroine       |    9600 |   1280 |  200 |    3
+	  Tasker         | Tasker        |   19200 |   2560 |  300 |    4
+	  Old Boy        | Old Girl      |   38400 |   5120 |  500 |    5
+	  Chief          | Lady          |   76800 |  10240 | 1000 |    6
+	  Master         | Mistress      |  160000 |  40960 | 2000 |    7
+	  ---------------+---------------+---------+--------+------+-----
+	  PFKSTL = Points For Killing Someone of this Level
+	  MPTS   = Magical Points
+
+
+msgid=commands
+	Below is a list of explanations of the main @ad commands. Suggested abbreviations for the commands are given in CAPITALS (eg: 'QuickWho' could be 'qw').^M
+	Command(s)              |Explanation                |Example(s)
+	------------------------+---------------------------+------------------------
+	EXits                   |List exits from room       |exits  or  ex
+	Get object              |Pick up the object         |g dish,brush
+	DRop object             |Put an object down         |dr dish,brush,coin
+	GIve object [to] player |Give object to someone     |gi coin fred
+	LIght object1 object2   |Light object1 from object2 |li brand [from] fire
+	DOUse/EXTinguish object |Extinguish flame           |douse brand
+	VALue/WEIgh object	|Report value/weight        |val coin,weight it
+	OP/CLose object		|Open/Close an object       |op door,cl it
+	WIeld weapon            |Choose your weapon         |wi cutlass
+	SHout text              |Shout a LOUD message       |sh 'hi!',sh "Hello!"
+	TELL/ASK [player] text  |tell/ask something         |ask "Anyone there?"
+	                        |                           |tell fred "I'm home!"
+	KIll player [weapon]    |Start a fight with someone |ki fred [with] dagger
+	FLee direction          |Run away from a fight      |fl w  or  flee west
+	DRInk object            |Take a drink of something  |dri water
+	PLAY object             |Play an instrument         |play violin
+	BLOW object             |Blow on/through an item    |blow whistle
+	WELCome player          |Greet a player             |welc fred
+	BUG/SUGgest text        |Informs US of a problem!   |sug "Stroke cat!"
+
+
+msgid=scoring
+	@ad Point Scoring Tips!
+	---------------------------------
+	In @ad your 'score' indicates your character's level of experience in the land. As your level of experience increases, so will your 'rank'. Obviously, then, it would help to know HOW you can achieve this!
+	^MThere are THREE ways of scoring points:
+	^M  1) Dropping Objects Into The Spring.
+	Whenever you become the owner of an object, you should always 'VALUE' it. Some objects have 'scaled' values, which means that the higher your rank the less they are worth. Also, their values change based on the 'time till reset'. There are several ways to the spring, but you will have to find them.
+	^M  2) Performing A 'Task' or 'Operation'.
+	There are various actions in @ad which, when performed, will reward the player with some points; for example, somewhere in the underground caverns is a telephone. Occasionally this rings, and the first player to answer it gets 50 points. However, @ad also contains several more complex operations. The more complex they are, usually, the more points they score.
+	^MSome of these operations demonstrate that the player has a degree of basic knowledge of @ad which is required of ALL players. These are known as TASKS. You are required to complete certain of these before you can achieve certain ranks, and all of them before you can become a Master/Mistress. Once you have completed one, it is stored alongside your other details, meaining you only ever HAVE to complete them once. However, since they are worth some points, you are welcome to perform them as many times as you please.
+	^MCurrently there are THREE tasks - any suggestions for more would be welcomed!
+	^M  3) Player interaction.
+	Since @ad is a multi-user game, naturally you can score points through your interaction with other players. For example, if a higher-ranking player WELCOMEs you, you gain a few points. If you kill another player in combat, or if you flee from a fight, points are gained or lost. Also, there are several operations within the game which can ONLY be performed when two or three players work together.
+	^MCurrently there are no Multi-Player tasks. Any ideas or suggestions would be welcomed.
+
+
+msgid=about
+	^MAbout @ad!
+	--------------------
+	             @ad -- Copyright (C) @an, 1991.^M 
+	"@ad" is an Amiga Based, multi-user, role-playing/adventure game. It is neither a role-playing game OR a computer adventure, but includes many features of both types of games. At the same time it differs greatly from both in many ways too!^M 
+	The addition of Multi-User interaction and communications makes @ad much more than just a game. It can be a meeting place and an EXCELLENT way of chatting with other comms users. It is one of many steps down the long road to virtual reality, allowing you to happily communicate with, help, hinder or downright destroy other people within the game.^M 
+	@ad is not written in a conventional programming language, but instead using a system called AMUL - THE Amiga Multi-User games Language. AMUL is available as SHAREWARE from *THIS* System!^M^M
+
+
+msgid=acting
+	One of the least significant but most essential differences between the old style of computer adventure people are used to and a game such as @ad is that the characters have the ability to become more- or less- involved with each other and the game.^M
+	@ad has a fleet of 'emotion' or 'acting' commands which enable you to express emotions, reactions, atmospheres or even to perform the impossible.^M
+	* @ad SHOULD UNDERSTAND ANY BASIC 'EMOTION' YOU TRY TO EXPRESS *
+	If you find one we've missed, PLEASE let us know using SUGGEST "<idea>".^M
+	The main emotion commands are (there are more!):
+	Blink, Blush, Cheer, Chuckle, Clap, Cower, Duck, Frown, Giggle, Grimace, Grin, Growl, Grunt, Laugh, Moan, Nod, ROFL, Scream, Shout, Sigh, Stagger, Wail, Wave, Wince, Wobble, Yawn, Yell.
+	And there are several 'sentiment' commands:
+	Welcome, Greet, Hug, Kiss, Console, Bless, Introduce, Cuddle, Pat, Hi, Hello, Bye, Ciao, Farewell.^M
+	In order to perform an action @ad doesn't understand (eg long ones) you should use the ACT "<text>" command. Other users nearby will see '@me the @mr <text>' so the text should explain the action you are performing, eg:^M
+		act "thinks @ad is wonderful."
+	becomes
+		@me the @mr thinks @ad is wonderful.^M
+	The ACT command can be abreviated to a colon (:) eg:^M
+		: "thinks @ad is wonderful."
+
+
+msgid=comms
+	The REAL meat of any Multi-User game is the interaction with other REAL people. In @ad there are many ways of making yourself heard amongst other people in the Land.^M
+	It is important that you remember that speech must ALWAYS be indicated like other text with a single or double speech mark (' or "). The simplest form of speech is simply putting a quote infront of some text:^M
+	        > "Hello everyone.                 (assuming > is the prompt)
+	Would respond:
+	        OK, @me the @mr says "Hello everyone."
+	and people nearby would see:
+	        @me the @mr says "Hello everyone."^M
+	However, if you want to talk to people who aren't in the same room, you have to raise your voice and SHOUT or use telepathy and TELL them your message.^M
+		> shout "Anyone for tennis?"
+	would send:
+		A @gn voice in the distance shouts "Anyone for tennis?"
+	and
+		> tell fred "I didn't know you were telepathic?"
+	would send:
+		@me tells you "I didn't know you were telepathic?"
+	to Fred (presuming he was online at the time).^M
+	Alternatively, if you just wish to speak, you can enter CHAT MODE by typing *CHAT at a prompt. During chat mode EVERYTHING you type will be 'said'. Any lines prefixed with an asterisk (*) will be treated as commands - e.g: "*wave" will perform the wave command. To leave chat mode type *ENDCHAT.^M
+	Finally, there are several 'sentiment' commands. For example, you can 'welcome fred', 'bless fred', 'hug fred', 'console fred' etc.
+
+
+msgid=tasks
+	@ad -- Help text no. 9 -- Tasks!
+	------------------------------------------
+	Current tasks in @ad are:
+		---------------------------------------------------
+		 1	See the feline has some liquid refreshment
+		 2	Relieve the misery of a lost soul
+		 3	Fiddle a melody in a musicians gazebo
+		 4	Transfer the crown from Twilight to Spring
+		---------------------------------------------------
+	Suggestions for more would be GREATLY welcomed!
+
+
+msgid=notices
+^M[14-June-92:]
+^Ia) Added MOBILES and a couple of tasks relating to them.
+^Ib) The combat routines now work COMPLETELY differently.
+^Ic) Several potential weapons (e.g: VASE) will BREAK if you try to
+^I   use them as weapons!
+^Id) If you loose stamina, you can now regain it by sleeping. There
+^I   are four 'cosy' rooms where your stamina will go up 2 points
+^I   every 5 seconds. In any other room it goes up at 1 point/6 secs.
+^Ie) A player who DIES in a fight will COMPLETELY lose their character!
+^I   This makes it more worthwhile NOT getting yourself killed...
+^M[27-Sept-92:]
+^Ia) Added Council chambers to bottom of Well & Portcullis, plus a
+^I   stack of objects, polished up several commands and added a few
+^I   new 'uns.
+^Ib) 'knock on', 'pee on','sit on' etc all work now.
+^Ic) Stamina, dexterity, etc, are all STORED, and are only refreshed
+^I   after the next reset.
+^Id) ChatMode no-longer forces lower-case!
+^M[30-May-93:]
+^Ia) Added another 20 odd rooms at the bottom of the cliff/mine area.
+^Ib) Tidied up lots of little bugs/typos
+^Ic) Added several new objects, verbs and effects.
+^Id) The ZAP command now works properly, also the LIGHT command.
+^Ie) Drop something in the circle and then touch it...
+^If) The cloak has a peculiar property.
+^Ig) You'll have to find the rest for yourself!
+^M
+There are several small notes pinned up here and there...
+^M^IHELLO? Is there anyone out there? Well where's your suggestions then?
+^M^IComing soon: combat with mobiles etc.
+^M^ICongratulations to the users who worked out what to do in the toilet,
+^Ibut could I PLEASE ask people to stop drinking out of the bowl?
+^M^IFootprints ARE significant...
+^M^IGod can hear you now, if you pray, and the confessional can be used.
+^M^IA new task! See 'tasks' for a, hmmm, cryptic clue.
+^M^ISee 'NorthEast' from the Bottom of the well. Who spotted the seesaw?
+^M^ILate tips: Be wary of kicking walls and doors, especially in public.
+^IIf you're stamina's low, the right food can help.
+^IThe wand can be used to zap various objects as well as players...
+^IBow and Baton waving can be useful.
+^MIn the center of the display is a large notice, which reads:
+^M^I^IWant to see PRECIOUS available on the InterNet?
+^M^IThen write a message to cms@@gate.demon.co.uk and tell HIM!!!
+
+;----------------------------------------------------------------------------
+; <End of file>

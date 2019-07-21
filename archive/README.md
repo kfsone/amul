@@ -19,6 +19,7 @@ So I changed to AMUD.
 
 "AGH" is incomplete and represents AMUL v0.9.06. Unknown functionality.
 "AMUD" is also incomplete and represents AMUL 0.9.10.
+"SMUGL" is a later project:
 
 Later in the 90s, I wanted to refactor AMUL as a Linux-based project to
 explore Linux-based development using "C with classes" (C++). I wanted to
@@ -38,3 +39,6 @@ to clean up the mess I'd made of learning it thru SMUGL.
 SMUGL is included here largely because it is based on the last working
 versions of AMUL source that I no-longer have access to.
 
+"smugl-src" is one of the earlier snapshots of smugl, while "smugl-later"
+is from some unknown later period when I'd discovered CMake. It is at an
+unknown level of functionality.

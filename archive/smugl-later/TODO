@@ -1,0 +1,13 @@
+$Id: TODO,v 1.2 1997/04/25 01:13:14 oliver Exp $
+
+ESSENTIAL:
+
+. Must make SMUGLCom use 'Basic Objects', probably means introducing
+  some C++ into SMUGLCom -- or else smugl is going to have to
+  reprocess the objects as it goes.
+
+General:
+
+. Fix problem whereby a space as the last character on the last line of a
+  long output causes a blank line.
+
