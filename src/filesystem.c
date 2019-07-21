@@ -100,6 +100,8 @@ PathJoin(char *into, size_t limit, const char *lhs, const char *rhs)
 
     size_t  length = 0;
     error_t err = PathCopy(into, limit, &length, lhs);
+	if (err != 0)
+		return err;
     if (length == 0) {
         into[length++] = '.';
     }

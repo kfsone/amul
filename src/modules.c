@@ -142,11 +142,11 @@ NewModule(
         s_modulesTail = cur;
     }
 
-    error_t err = 0;
     if (cur->init) {
-        err = cur->init(cur);
+        error_t err = cur->init(cur);
         if (err != 0) {
             alog(AL_FATAL, "Module #%d: %s: initialization failed: %d", id, cur->name, err);
+			return err;
         }
     }
     if (ptr)
