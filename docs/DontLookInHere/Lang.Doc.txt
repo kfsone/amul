@@ -1,0 +1,56 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            games
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+             Lang.DOC - Lang.TXT, Travel.TXT/Conditions&Actions
+             --------------------------------------------------
+
+
+                              1)  Introduction
+                              ----------------
+
+
+ When KingFisher Software sat down to design their original M.U.A, in 1987, we
+decided  the first objective was to put the AMUL user in FULL control over his
+system.   User friendliness wasn't quite such a high ranking figure.  Over 250
+functions  were  defined  to  execute  every  conceivable action required, and
+nearly 200 of them had matching conditional statements, giving the user nearly
+450 commands to remember...  Plus all of the other file formats to remember.
+
+ That  first,  archaic  language,  MT-ON  (Master  Terminal ON), was a mass of
+brackets,  braces and percentage signs.  Although it would have made the basis
+for  a  VERY  powerful in house system, it was doubtful that anyone would ever
+really get to grips with it.
+
+ AMUL  consists  of  as  many  .TXT files as it does, in order to give you the
+fullest  control;  without  having  to  write  your own multi-user interaction
+routines!
+
+ So  far  we  have discussed file formats, and so far that is all that most of
+the files have been.
+
+ Now  we  come  to  the crunch.  The centre of an AMUL game.  The Language and
+Travel  tables.   Between them they instruct your game how to behave depending
+on  what  the  user  types.   The  AMUL  system  provides the shell, the front
+end/frame; you have to provide the guts (the kernel as many people call it).
+
+ Don't  worry  if  you  have never used any programming languages before.  You
+don't  need  to  have done!  The only bonus a programmer can expect is that he
+may be able to type a little faster.
+
+ AMUL  deals in objects, people and relations.  Some would call it a glorified
+relational  database.   AMUL's  programming  language  simply  deals,  in near
+English  terms, with the sort of thing that the human brain deals with all the
+time!   It  should  come  pretty  naturally to anyone.  All you need is a good
+imagination and a lot of patience!
+

@@ -1,0 +1,1140 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            games
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+      Func.DOC - Conditions & Actions for AMUL (Lang.TXT & Travel.TXT)
+      ----------------------------------------------------------------
+
+                    1)  Condition & Action Line Formation
+                    -------------------------------------
+
+ First of all, it MUST be stated that the compiler is NOT case sensitive,
+and that you should use case to make text more legible.
+
+ The base of writing an AMUL game is the C&A line. It is almost self
+explanatory. If consists of two parts. A condition, which can be either
+TRUE or FALSE, and an instruction to perform when this condition is TRUE.
+
+ The basic C&A line is VERY simple, but to make getting to know AMUL a bit
+easier, we have allowed DOZENS of extra, optional 'decoration words'.
+
+C&A Line:
+	[<condition> [<parms>]]		<action> [<parms>]
+or	]<condition> [<parms>]]		<room ID>
+
+ The second example sends the player to a room. This, then, is the simplest
+level of C&A line. This can be enhanced, though, to make for a more readable
+set of files; closer to English...
+
+    [[IF] <condition> [<x>] [<parms>] [THEN]] <action> [<x>] [<parms>]
+or  [[IF] <condition> [<x>] [<parms>] [THEN]] [GO TO] <room ID>
+
+ Here, X represents one of many words, such as:
+    has, got, was, is, of, from, to, on, for, with, the, in, at, and, etc...
+ Also, many of these words can be scattered through the parameters... So,
+a possible C&A line could look like:
+
+    if the state of the door is 0 then give the keys to the player
+
+ Simplified, this would read:
+	state door 0			give keys player
+
+ It must be pointed out here that 'slot labels' such as "noun", "player"
+or "text" can only be used in Lang.TXT... See Lang.DOC for details of these.
+
+ Finally, a note needs to be made that a C&A line doesn't HAVE to contain
+a condition. The two conditions 'always' is ASSUMED if you only specify an
+action. So you could have:
+
+	give keys player
+or	give the keys to the player
+or	always give the keys to the player
+
+ which all perform the same action.
+
+
+                         2)  Quick reference 'cards'
+                         ---------------------------
+
+Key... o=object id. n=number|<number|>number. v=verb. r=room ID. x=player|me
+       s=magic spell. d=daemon. a=announcement group. m=message ID or text.
+       st=player stat.
+Magic spells are:
+	glow	 - makes player shine
+	deaf	 - player can't hear noises (announces)
+	blind	 - player can't see (don't hear actions either)
+	dumb	 - player cant speak
+	cripple	 - prevents player moving
+	sleep	 - invokes a magical sleep
+Announcement groups are:
+	global	 - everyone but me
+	everyone - global + me
+	outside	 - everyone not in this room
+	others	 - everyone in this room but me
+	here	 - "others" + me
+	cansee	 - "others" + they must be  ABLE  to SEE ME.
+	notsee   - "others" + they must be UNABLE to SEE ME.
+Player stats are:
+  score, sctg, strENGTH, stamINA, dextERITY, wisDOM, expERIENCE, magic, rank
+Parts of names in capitals are optional.
+(note: sctg = points SCored This Game)
+
+                              ** Conditions **
+
+	&		inroom r	else		opens o
+	always (or -)	burns o		light		gotnothing
+	ishere o	carrying o	myrank n	state o n
+	nearto o	mysex M|F	hidden o	lastverb v
+	cangive o x	lastdir v	inflICTED x s	lastroom r
+	sameroom x	asleep		someonehas o	sitting
+	toprank		lying		gota o s	rand n1 n2
+	rdmode <mode>	onlyuser	active d	alone
+	timer d n	container o	empty o		objsin o n
+	->		&>		helping x	givinghelp
+	gothelp		attrib st n	objinv o	fighting x
+	taskdone n	cansee x	visibleto x	noun1 o
+	noun2 o		autoexits	debug		full st x
+	time d		dec o		inc o		lit o
+	fire o		health x n	magic rk sc %	spell x %
+	in r o
+
+                                ** Actions **
+
+	quit		save		wield o		score v|b
+	state o n	where o		who v|b		treatas v
+	finishparse	abortparse	failparse	endparse
+	killme		wait n		bleep n		get o
+	drop o		invent		whereami	message (or reply)
+	announce a m	action a m	announceto r m	actionto r m
+      announcefrom o m  actionfrom o m	objannounce o m	objaction o m
+	send o r	changesex x	sleep		wake
+	sit		stand		lie		rdmode <mode>
+	reset		move r		travel		tell x m
+	addval o	give o x	inflict x s	cure x s
+	summon x	add n st x	sub n st x	hurt x n
+	checknear o	checkget o	destroy o	recover o
+	start d n	cancel d	begin d		showtimer d
+	contents o	force x m	help x		stophelp
+	objinvis o	objshow o	fight x		flee
+	combat		log m		settask n	showtasks
+	syntax n1 n2	setpre x test	setpost x text	setarr x text
+	setdep x text	do vb		interact x	senddaemon x d n
+      autoexits on|off	burn o		douse o		inc o
+	dec o		toprank		deduct x %	damage o n
+	repair o n
+
+                          3)  Detailed explanations
+                          -------------------------
+
+ To test if a condition is false, use:
+    NOT <condition> or ! <condition>. The latter is for 'C' proggrammers!
+
+ If you are using the minimal format of the C&A lines, we recommend that you
+use the following tab positions in Lang.TXT:
+	<condition>			<action>
+
+ Finally... The item <value> indicates a POSITIVE INTEGER VALUE. <number>
+indicates either a value, or an operator followed by a value:
+	<value>s:	0, 1, 10, 20
+       <number>s:	0, -5, <10, >20
+
+ In both cases you can use variables such as:
+	?<noun>		-	Value of object
+	%<noun>		-	Strength of object
+	^<noun>		-	Weight of object.
+        *<noun>		-	Current room of object.
+
+ Also, note that in Lang.TXT <noun> can be a slot label aswell as a noun ID.
+
+
+=============================================================================
+
+                               ** Conditions **
+
+-----------------------------------------------------------------------------
+Condition..: &			Parameters: None.
+Description: Returns the same as the previous condition. Used when more than
+           :one action wanted per condition.
+Example(s).:
+...........:    IF carrying keys THEN reply "The key grates in the lock."
+...........:    &		      SET state OF THE door TO 1
+-----------------------------------------------------------------------------
+Condition..: &>			Parameters: None.
+Description: Returns the same as the previous condition. Used when more than
+           :one action wanted per condition. After the action is executed,
+           :an ENDPARSE is also executed
+Example(s).:
+...........:    &>		   reply "You can't do that!"
+...........:replaces
+...........:	&                  reply "You can't do that!"
+...........:    &                  endparse
+-----------------------------------------------------------------------------
+Condition..:  INROOM		Parameters: <room>
+Description: TRUE if player is currently in <room>
+Example(s).:
+...........:    IF inroom basement THEN reply "There isn't enough room!"
+-----------------------------------------------------------------------------
+Condition..:  ELSE		Parameters: None.
+Description: Opposite of &. Only FALSE when last condition was FALSE.
+Example(s).:
+...........:    IF carrying keys THEN reply "The key grates in the lock."
+...........:    else		      reply "You need keys to do that!"
+-----------------------------------------------------------------------------
+Condition..:  OPENS		Parameters: <noun>
+Description: TRUE if the object has the OPENS flag (i.e. its openable).
+Example(s).:
+...........:    IF not opens noun1 THEN reply "You can't open that!"
+See........: Objects.DOC->Object Flags...
+-----------------------------------------------------------------------------
+Condition..:  ALWAYS/-		Parameters: None.
+Description: Both return a value of TRUE, regardless.
+Example(s).:
+...........:    always		reply "Hello".
+...........:    -		endparse
+-----------------------------------------------------------------------------
+Condition..:  ->		Parameters: None.
+Description: Same as always, but after the action is executed, an ENDPARSE is
+           : is executed.
+Example(s).:
+...........:    ->		reply "You can't do that!"
+...........:replaces
+...........:	-		reply "You can't do that!"
+...........:	-		endparse
+-----------------------------------------------------------------------------
+Condition..:  BURNS		Parameters: <noun>
+Description: TRUE if the object is flamable.
+Example(s).:
+...........:    IF not burns noun1 THEN reply "You can't set fire to that!"
+...........:    else			reply "It catches fire easily."
+See........: Objects.DOC->Object Flags...
+-----------------------------------------------------------------------------
+Condition..:  LIGHT		Parameters: None.
+Description: TRUE if the room is currently illuminated either by having the
+           :room flag, or if something in the room is lit.
+Example(s).:
+...........:    IF light THEN action others "@xx closes the door."
+...........:    else	      anmounce others "You hear a door slam shut nearby."
+-----------------------------------------------------------------------------
+Condition..:  GOTNOTHING	Parameters: None.
+Description: TRUE if the player is currently carrying nothing.
+Example(s).:
+...........:    IF ! gotnothing reply "You'll have to drop everything first!"
+-----------------------------------------------------------------------------
+Condition..:  ISHERE		Parameters: <noun>
+Description: TRUE if the object is in the same ROOM as the player. FALSE is
+	   :someone else is carrying it.
+Example(s).:
+...........:    IF ishere banana reply "You slip on something on you way!"
+See........: NearTo
+-----------------------------------------------------------------------------
+Condition..:  CARRYING		Parameters: <noun>
+Description: TRUE if the player is carrying the object.
+Example(s).:
+...........:    IF carrying A bible THEN reply "The vampire shies away..."
+-----------------------------------------------------------------------------
+Condition..:  MYRANK		Parameters: <number>
+Description: TRUE if players rank fits <number>.
+Example(s).:
+...........:    IF myrank <5 THEN reply "You aren't experienced enough!"
+See........: TopRank
+-----------------------------------------------------------------------------
+Condition..:  STATE		Parameters: <noun> <value>
+Description: TRUE if the object is currently in state <number>.
+Example(s).:
+...........:    IF state OF door IS 1 THEN reply "!THUD! The door is closed!"
+...........:    else			   reply "You walk through..."
+-----------------------------------------------------------------------------
+Condition..:  NEARTO		Parameters: <noun>
+Description: TRUE if EITHER Carrying <noun> or IsHere <noun> are TRUE.
+Example(s).:
+...........:    IF nearto bible THEN reply "Something frightens the vampire."
+See........: Carrying, IsHere
+-----------------------------------------------------------------------------
+Condition..:  MYSEX		Parameters: M|F
+Description: TRUE depending on the players sex. You can put as MANY letters
+	   :as you want, the compiler only notices the first...
+Example(s).:
+...........:    IF mysex IS m THEN reply "But thats the ladies loos!"
+...........:    IF mysex IS female THEN reply "But those are the gents!"
+-----------------------------------------------------------------------------
+Condition..:  HIDDEN		Parameters: None.
+Description: TRUE if the room is dark or if the player is invisible.
+Example(s).:
+...........:    IF not hidden THEN announce others "@me shamefacedly burps!"
+...........:    else	           announce others "@xx just burped."
+Notes......: If you want to hide the players identity from people who can't
+           : see him/her, use the escape codes '@xx' and '@xy'.
+-----------------------------------------------------------------------------
+Condition..:  LASTVERB		Parameters: <verb>
+Description: TRUE if the last command the player typed was <verb>.
+Example(s).:
+...........:    IF lastverb WAS hello THEN reply "I know, you said that..."
+-----------------------------------------------------------------------------
+Condition..:  CANGIVE		Parameters: <noun> <player>
+Description: TRUE if the player has enough 'space' to carry the object.
+Example(s).:
+...........:    IF cangive noun TO player THEN reply "You pass it over."
+...........:    else reply "@n1 can't carry anymore."
+-----------------------------------------------------------------------------
+Condition..:  LASTDIR		Parameters: <verb>
+Description: TRUE if the last direction command the player used was <verb>.
+Example(s).:
+...........:    IF lastdir west THEN reply "You can't turn around!"
+-----------------------------------------------------------------------------
+Condition..:  INFLicted		Paramters: <player> <spell>
+Description: Checks if a spell has been cast upon a player.
+Example(s).:
+...........:    IF inflicted player WITH blind THEN reply "He's blind!"
+...........:    IF infl me glow THEN reply "You are glowing at the moment."
+-----------------------------------------------------------------------------
+Condition..:  LASTROOM		Parameters: <room>
+Description: TRUE if the player was last in <room>.
+Example(s).:
+...........:    IF lastroom WAS tomb  reply "No way! Not after last time!"
+-----------------------------------------------------------------------------
+Condition..:  SAMEROOM		Parameters: <player>
+Description: TRUE if you are in the sameroom as <player>.
+Example(s).:
+...........:    IF ! sameroom AS player reply "You can't reach him!"
+-----------------------------------------------------------------------------
+Condition..:  ASLEEP		Parameters: None.
+Description: TRUE if you are sleeping.
+Example(s).:
+...........:    IF asleep THEN reply "You can't move until you wake up!"
+-----------------------------------------------------------------------------
+Condition..:  SOMEONEHAS	Parameters: <noun>
+Description: TRUE if the object is currently being carried by ANYONE.
+Example(s).:
+...........:    IF someonehas THE keys  reply "There are no keys in the car."
+-----------------------------------------------------------------------------
+Condition..:  SITTING		Parameters: None.
+Description: TRUE if the player is currently sat down.
+Example(s).:
+...........:    IF sitting THEN reply "You can't move until you stand up."
+-----------------------------------------------------------------------------
+Condition..:  TOPRANK		Parameters: None.
+Description: TRUE if the player's rank is the top one. Use this rather than
+	   :say "myrank 10", incase you change your ranks.
+Example(s).:
+...........:    IF not toprank THEN reply "Only wizards can do that!"
+-----------------------------------------------------------------------------
+Condition..:  LYING		Parameters: None.
+Description: TRUE is the player is currently lying down.
+Example(s).:
+...........:    IF not lying THEN reply "You need to lie down to sleep..."
+-----------------------------------------------------------------------------
+Condition..:  GOTA		Parameters: <noun> <number>
+Description: TRUE if you are carrying a noun whose state equates to number
+Example(s).:
+...........:    IF gota flame 0 reply "KAABOOM!! You flame ignites the gas!"
+-----------------------------------------------------------------------------
+Condition..:  RAND		Parameters: <value> <number>
+Description: TRUE when a random number between 1-value equates to number.
+Example(s).:	       AMUL	        	BBC Basic
+...........:    IF rand 10 <5 THEN ...	  if int(rnd(10))<5 then...
+...........:    IF rand 200 100 THEN ...  if int(rnd(200))=100 then...
+...........:    IF rand 300 >50 THEN ...  if int(rnd(300))>50 then...
+-----------------------------------------------------------------------------
+Condition..:  RDMODE		Parameters: B|V|R
+Description: TRUE depending on the players current room-description mode.
+	   :B=Brief, V=Verbose, R=RoomCount (each room is described only the
+           :first time the player enters each game).
+Example(s).:
+...........:    IF rdmode IS r THEN reply "You're IN roomcount mode already!"
+-----------------------------------------------------------------------------
+Condition..:  ONLYUSER		Parameters: None.
+Description: TRUE when there is only you on-line.
+Example(s).:
+...........:    IF onlyuser THEN respond "Shout all you like, no-one hears."
+-----------------------------------------------------------------------------
+Condition..:  ACTIVE		Parameters: <Daemon>
+Description: TRUE when that daemon is active for this user.
+Example(s).:
+...........:    IF active .death THEN reply "The witch predicts death, soon."
+-----------------------------------------------------------------------------
+Condition..:  ALONE		Parameters: None.
+Description: TRUE if no-one else is in this room.
+Example(s).:
+...........:    IF alone THEN reply "Luckily no-one sees you act so dumb!"
+-----------------------------------------------------------------------------
+Condition..:  TIMER		Parameters: <Daemon> <number>
+Description: TRUE if the time remaining on the daemon equates to number...
+Example(s).:
+...........:    IF timer .poison <10 THEN reply "Too late, you're gonna die!"
+-----------------------------------------------------------------------------
+Condition..:  CONTAINER		Parameters: <noun>
+Description: TRUE if the object is a container.
+Example(s).:
+...........:	IF ! container noun1 THEN reply "You can't put it into that!"
+-----------------------------------------------------------------------------
+Condition..:  EMPTY		Parameters: <noun>
+Description: TRUE if the object is empty.
+Example(s).:
+...........:	IF empty basket THEN reply "There's nothing in it!"
+-----------------------------------------------------------------------------
+Condition..:  OBJSIN		Parameters: <noun> <number>
+Description: TRUE if the number of objects in <noun> equates to <number>
+Example(s).:
+...........:	IF objsin gun > 6 THEN reply "The six-shooter is fully loaded!"
+...........:	IF objsin gun IS 0 THEN reply "'Click' 'Click' - Its empty!"
+-----------------------------------------------------------------------------
+Condition..:  HELPING		Parameters: <player>
+Description: TRUE is you are helping <player>
+Example(s).:
+...........:	IF helping player THEN reply "You already are helping @n1."
+...........:    ELSE                   reply "OK, you are now helping @n1."
+...........:	&                      help player
+...........:    &                      tell player "@me is now helping you."
+-----------------------------------------------------------------------------
+Condition..:  GIVINGHELP	Parameters: <none>
+Description: TRUE if you are helping someone.
+Example(s).:
+...........:	IF not givinghelp THEN reply "You aren't helping anyone!"
+-----------------------------------------------------------------------------
+Condition..:  GOTHELP		Parameters: <none>
+Description: TRUE if someone is helping you.
+Example(s).: (taken from MUD. Two players are need to open the Portcullis).
+...........:	IF not gothelp THEN reply "The portcullis is too heavy..."
+...........:	ELSE reply "With ease you lift the portcullis..."
+-----------------------------------------------------------------------------
+Condition..:  ATTRIB		Parameters: <stat> <number>
+Description: TRUE if the players statstics equates to the number.
+Example(s).:
+...........:	if attrib strength <50 then reply "You are too weak!"
+...........:	else reply "You easily push the gate aside."
+-----------------------------------------------------------------------------
+Condition..:  OBJINV		Parameters: <noun>
+Description: TRUE if the object is currently invisible.
+Example(s).:
+...........:	verb=hide
+...........:	syntax=verb noun
+...........:		if objinv noun then reply "It already is!"
+-----------------------------------------------------------------------------
+Condition..:  FIGHTING		Parameters: <player>
+Description: TRUE if the specified player is currently in a fight.
+Example(s).:
+...........:	verb="travel
+...........:	syntax=verb any
+...........:		fighting me reply "Flee if you MUST leave!"
+-----------------------------------------------------------------------------
+Condition..:  TASKDONE		Parameters: <task no>
+Description: TRUE if the player has completed the task.
+Example(s).:
+...........:    <omitted for time being>
+-----------------------------------------------------------------------------
+Condition..:  CANSEE  		Parameters: <player>
+Description: TRUE if you can currently see <player>
+Example(s).:
+...........:    IF not cansee player THEN respond "I can't see @n1 here!"
+-----------------------------------------------------------------------------
+Condition..:  VISIBLETO		Parameters: <player>
+Description: TRUE if <player> can currently see you.
+Example(s).:
+...........:    IF visibleto player THEN tell player "@me waves to you."
+-----------------------------------------------------------------------------
+Condition..:  NOUN1    		Parameters: <noun>
+Description: TRUE if NOUN1 = <noun>
+Example(s).:
+...........:    IF noun1 IS fridge THEN error "You don't eat fridges!"
+...........:or  IF noun1 IS noun2 THEN error "You can't do it to itself!"
+-----------------------------------------------------------------------------
+Condition..:  NOUN2   		Parameters: <noun>
+Description: TRUE if NOUN2 = <noun>
+Example(s).:
+...........:    IF NOT noun2 IS key THEN error "You need a KEY to unlock it."
+-----------------------------------------------------------------------------
+Condition..:  AUTOEXITS		Parameters: None.
+Description: TRUE if AUTOEXITS has been enabled.
+Example(s).:
+...........:    verb=autoexits
+...........:    syntax=verb none
+...........:        IF autoexits THEN error "Autoexits is already enabled."
+...........:        reply "Autoexits is now enabled. Type UNAUTO to disable."
+...........:        autoexits        ; Note: here it is an ACTION!
+Notes......: AutoExits can be EITHER a condition OR an action! See example!
+-----------------------------------------------------------------------------
+Condition..:  DEBUG   		Parameters: None.
+Description: TRUE if the player has enabled DEBUG mode by typing "***debug".
+Example(s).:
+...........:    IF debug THEN reply "[ About to move the player ]"
+-----------------------------------------------------------------------------
+Condition..:  INC		Parameters: <noun>
+Description: If the objects state is not MAXIMUM, it is increased by ONE
+           : and TRUE returned.
+Example(s).:
+...........:    IF inc door THEN reply "The door is now open."
+...........:    else respond "The door is already open!"
+...........: is the same as saying:
+...........:    IF state door 0 THEN state door 1
+...........:    &                    reply "The door is now open."
+...........:    else respond "The door is already open!"
+-----------------------------------------------------------------------------
+Condition..:  DEC		Parameters: <noun>
+Description: If the objects state is not MINIMUM (0), it is decreased by ONE
+           : and TRUE returned.
+Example(s).:
+...........:    IF dec door THEN reply "The door is now closed."
+...........:    else respond "The door is already closed!"
+See........: INC
+-----------------------------------------------------------------------------
+Condition..:  LIT   		Parameters: <noun>
+Description: TRUE if <noun> is 'LIT' (see object flags)
+Example(s).:
+...........:    IF lit noun1 THEN error "It's already alight!"
+-----------------------------------------------------------------------------
+Condition..:  FIRE   		Parameters: <noun>
+Description: TRUE if <noun> has been lit/set on-fire with the BURN action
+Example(s).:
+...........:    IF fire noun1 THEN douse noun1
+-----------------------------------------------------------------------------
+Condition..:  TIME		Parameters: <number>
+Description: TRUE if <number> equates with time till reset.
+Example(s).:
+...........:    IF time <300 THEN reply "Less than 5 minutes till reset!"
+-----------------------------------------------------------------------------
+Condition..:  FULL              Parameters: <stat> <player>
+Description: TRUE if player's <stat> is at MAXIMUM
+Example(s).:
+...........:	verb=kill
+...........:	syntax=verb player
+...........:    	IF full stamina player THEN respond "He's too strong!"
+-----------------------------------------------------------------------------
+health x n	TRUE if players health equates to n%
+magic lv sc %	Checks for cast spell: LeVel  SCore  &  % chance.
+		(Note: % gives the likelihood of TRUE if player is at LEVEL)
+spell x	%	Checks player x defence %. Used with magic.
+in <room> <obj>	Checks if object is in room
+
+Full descriptions & examples will be added later.
+
+=============================================================================
+
+                               ** Actions **
+
+=============================================================================
+
+
+-----------------------------------------------------------------------------
+Action.....:  QUIT		Parameters: None.
+Description: Prompts the user if they are sure, and exits the program.
+Example(s).: Note.. The second line will only be processed if they say 'No'.
+...........:	always quit
+...........:	always reply "Be more careful next time, then!"
+-----------------------------------------------------------------------------
+Action.....:  SAVE		Parameters: None.
+Description: Stores users current details (except inventory and location).
+Example(s).: Note.. This is done automatically when a player quits.
+...........:	always save
+-----------------------------------------------------------------------------
+Action.....:  SCORE		Parameters: Verbose | Brief
+Description: Displays the players details, score and statistics.
+           :  Verbose gives a detailed list of the players status.
+           :  Brief gives the players statistics and score.
+Example(s).:
+...........:	always score ver
+...........:    always score b
+-----------------------------------------------------------------------------
+Action.....:  STATE		Parameters: <noun> <value>
+Description: Sets the object to a particular state.
+Example(s).:
+-----------------------------------------------------------------------------
+Action.....:  WHERE		Parameters: <noun>
+Description: Searches the land for occurances of object.
+Example(s).:
+...........:	IF not carrying stick THEN reply "You'll need a torch..."
+...........:	& where stick
+-----------------------------------------------------------------------------
+Action.....:  WHO		Parameters: Verbose | Brief.
+Description: Displays a list of other people playing. Invisible users are
+	   :show in brackets. Verbose lists players ranks as well as names,
+           :Brief simply lists names. "erbose" and "rief" are ignored, only
+           :the initial is paid any attention.
+Example(s).:
+...........:	-	reply "Players currently online: {"
+...........:    -       who b
+-----------------------------------------------------------------------------
+Action.....:  TREATAS		Parameters: <verb>
+Description: Forces parser to process a different verb's entries.
+Example(s).:
+...........:	verb=look
+...........:	syntax=verb noun
+...........:		-		treatas examine
+-----------------------------------------------------------------------------
+Action.....:  ABORTPARSE	Parameters: None.
+Description:Aborts parsing of current input, COMPLETELY. Stacked phrases
+           :and/or pass-loops (eg for ALL) are terminated.
+Example(s).:
+...........:  When the parser fails to understand a sentence from the user,
+...........: AMUL automatically ABORTPARSE to prevent attempted execution
+...........: of stacked phrases. An example entry might be:
+...........: > go north, get the bucket, loawd the gun, go north
+...........: failure to understand LOAWD means that going north could be
+...........: fatal for the player.
+-----------------------------------------------------------------------------
+Action.....:  FAILPARSE		Parameters: None.
+Description: Ends parsing of the current pass of the current phrase with an
+...........:error returned. This stops the parser trying to continue the
+...........:current pass-loop, and tells it to proceed to the next phrase.
+...........:Use this end processing of nouns such as 'ALL' which require
+...........:multiple parse-passes.
+Example(s).:
+...........: verb=get
+...........: syntax=verb noun
+...........: 	if not cangive noun to me then reply "You can't carry anymore"
+...........:    & failparse
+...........:
+Notes......: If you were to use ENDPARSE in the above, unless the object
+...........: was the last in the room, the player would get several messages
+...........: saying "You can't carry anymore" until the last object was
+...........: reached.
+-----------------------------------------------------------------------------
+Action.....:  ENDPARSE		Parameters: None.
+Description: Terminates the CURRENT pass of the parser. If the parser has
+           : more passes to execute (for example if the player has used
+           : ALL as a noun, or has typed several stacked commands) the parser
+           : may continue. FAILPARSE will terminate parsing of the CURRENT
+           : phrase. ABORTPARSE will terminate parsing COMPLETELY.
+Example(s).:
+...........:	IF not burns noun2 reply "You can't light the @n1 with that!"
+...........:	& endparse
+...........:	IF not burns noun1 reply "You can't set fire to the @n1!"
+...........:	& endparse
+...........: If the player types '<verb> stick water' processing will stop at
+...........: the first endparse.
+Notes......: Instead of 'always endparse' or '- endparse' you can put '---'
+-----------------------------------------------------------------------------
+Action.....:  KILLME		Parameters: None.
+Description: Kills the player, drops any objects he is carrying, and exits.
+	   :The players record is kept, but any points earnt since last save
+	   :are lost. No endparse required.
+Example(s).:
+...........:	IF gota flame 0 THEN reply "Your flame ignites the gas!"
+...........:	& killme
+-----------------------------------------------------------------------------
+Action.....:  WAIT		Parameters: <value>
+Description: Pauses the user for x seconds. ** DO NOT USE IN A DAEMON **
+Example(s).:
+...........:	always reply "The ground shakes... {"
+...........:	always wait 5
+...........:	always reply "There is a clap of thunder... {"
+...........:	always wait 4
+...........:	always reply "And then, BOOOOM!"
+...........:	always reset
+Notes......: Can also be achieved using the @pN escape sequence. N=0-9
+-----------------------------------------------------------------------------
+Action.....:  BLEEP		Parameters: <value>
+Description: Prints a '.' every second, x times. **USE WITH CARE IN DAEMONS**
+Example(s).:
+...........:	always reply "The ground shakes{"
+...........:	always bleep 4
+...........:	always reply "Then there is a rumble of thunder{"
+...........:	always bleep 4
+...........:	always reply "And then BOOOOOOMMMMM!!!"
+...........:	always reset
+-----------------------------------------------------------------------------
+Action.....:  GET		Parameters: <noun>
+Description: Adds an object the players inventory. There are no checks to see
+	   :that the player can manage! Use CHECKGET before using GET.
+Example(s).:
+...........:	verb=get
+...........:	syntax=verb noun
+...........:		-		checkget noun
+...........:		-		get noun
+...........:		-		reply "@n1 taken."
+...........:		! hidden	action others "@me has taken the @n1"
+See........: Drop, Invent, CheckGet
+-----------------------------------------------------------------------------
+Action.....:  DROP		Parameters: <noun>
+Description: Removes an object from the players inventory.
+Example(s).:
+...........:	verb=drop
+...........:	syntax=verb noun
+...........:		! carrying noun	reply "You haven't got it!"
+...........:		else		drop noun
+See........: Get, Invent. Condition Carrying.
+-----------------------------------------------------------------------------
+Action.....:  INVENT		Parameters: None.
+Description: Lists the players current inventory.
+Example(s).:
+...........:	always invent
+See........: Get, Drop. Condition GotNothing.
+-----------------------------------------------------------------------------
+Action.....:  WHEREAMI		Parameters: None.
+Description: Displays the users current room ID.
+Example(s).:
+...........:	always whereami
+-----------------------------------------------------------------------------
+Action.....:  MESSAGE/REPLY	Parameters: <message|text>
+Description: Sends a text message to the users display.
+Example(s).:
+...........:	always message "Hello there, @me."
+...........:	always reply 'Hi there "buddy"!'
+...........:	always reply $40
+...........:	always message UMsgNo10
+-----------------------------------------------------------------------------
+Action.....:  ANNOUNCE		Parameters: <AG> <message|text>
+Description: (AG=announcement group). Sends a message to a group of users.
+	   :Consider announcements as noises. They wake up players who are
+	   :asleep and are not received by deaf players.
+Example(s).:
+...........:	always announce others '@me shouts "@n1".'
+...........:	always announce outside 'In the distance a @ge voice shouts!'
+...........:	always announce everyone "Something magical is happening..."
+-----------------------------------------------------------------------------
+Action.....:  ACTION		Parameters: <AG> <message|text>
+Description: Similar to announce, but isn't received by sleepers or blinds.
+Example(s).:
+...........:	always action others "@me has opened the door."
+...........:	always action here "The killer is here, in this room!"
+-----------------------------------------------------------------------------
+Action.....:  ANNOUNCETO	Parameters: <room> <message|text>
+Description: Same as ANNOUNCE, except sends the message to a specific room.
+Example(s).:
+...........:	always announceto Exchange "RING RING! RING RING!"
+-----------------------------------------------------------------------------
+Action.....:  ACTIONTO		Parameters: <room> <message|text>
+Description: Same as ACTION, but sends text to a specific room.
+Example(s).:
+...........:	always actionto Ship "A small, black light starts flashing..."
+-----------------------------------------------------------------------------
+Action.....:  ANNOUNCEFROM	Parameters: <noun> <message|text>
+Description: Sends text to users near object that can't see YOU.
+           : (Use to perform an action carried out ON an object).
+Example(s).:
+...........:	always announcefrom noun 'The tannoy declares "@n1".'
+-----------------------------------------------------------------------------
+Action.....:  ACTIONFROM	Parameters: <noun> <message|text>
+Description: Sends text to users near object that can't see YOU.
+           : (Use to perform an action carried out ON an object).
+Example(s).:
+...........:	always actionfrom noun "Someone has opened the door."
+-----------------------------------------------------------------------------
+Action.....:  OBJANNOUNCE	Parameters: <noun> <message|text>
+Description: Sends a message to ANYONE who can see the object.
+           : (Use to perform actions originating FROM an object).
+Example(s).:
+...........:	always objannounce noun "The @n1 dissapears with a FOOP!"
+-----------------------------------------------------------------------------
+Action.....:  OBJACTION		Parameters: <noun> <message|text>
+Description: Sends a message to anyone who can see the object.
+           : (Use to perform actions originating FROM an object).
+Example(s).:
+...........:	always objaction match "The match has gone out."
+-----------------------------------------------------------------------------
+Action.....:  SEND		Parameters: <noun> <room>
+Description: Sends an object to another room.
+Example(s).:
+...........:	always send book ChuteBotm
+-----------------------------------------------------------------------------
+Action.....:  CHANGESEX		Parameters: <player>
+Description: Togglers the players sex between male/female.
+Example(s).:
+...........:	always reply "The crystals smell beautiful, but wait a moment!"
+...........:	always changesex me
+-----------------------------------------------------------------------------
+Action.....:  SLEEP		Parameters: None.
+Description: Sends the player to sleep. Sleeping does nothing, but other
+	   :players will see him described as 'asleep'. Any special effects
+           :are left to you.
+Example(s).:
+...........:    - reply "You drift, gently to sleep..."
+...........:	- sleep
+...........:    - action others "@me has fallen asleep."
+-----------------------------------------------------------------------------
+Action.....:  WAKE		Parameters: None.
+Description: Wakes a sleeping player up.
+Example(s).:
+...........:    IF asleep THEN wake
+...........:	else reply "You aren't asleep anyway!"
+-----------------------------------------------------------------------------
+Action.....:  SIT		Parameters: None.
+Description: Sits the player down. This, again, does nothing, but the player
+	   :will be described as sitting down.
+Example(s).:
+...........:	IF not sitting THEN sit
+...........:	else reply "You already are!"
+-----------------------------------------------------------------------------
+Action.....:  STAND		Parameters: None.
+Description: If the player was sitting or lying, it stands him up.
+Example(s).:
+...........:	IF sitting THEN stand
+...........:	& endparse
+...........:    IF lying THEN stand
+...........:	else reply "You already are!"
+-----------------------------------------------------------------------------
+Action.....:  LIE		Parameters: None.
+Description: Lies the player down. This has no actual effect except on the
+	   :players description.
+Example(s).:
+...........:	IF ! lying THEN lie
+...........:	else reply "You already are!"
+-----------------------------------------------------------------------------
+Action.....:  RDMODE		Parameters: B|V|R
+Description: Sets the way rooms are described to the player.
+Example(s).:
+...........:	IF ! rdmode r THEN rdmode r
+...........:	else reply "RoomCount mode already in use."
+See........: Condition 'rdmode'.
+-----------------------------------------------------------------------------
+Action.....:  RESET		Parameters: None.
+Description: Resets the game - similar to doing AMAN -R
+Example(s).:
+...........:	IF toprank THEN reset
+-----------------------------------------------------------------------------
+Action.....:  MOVE		Parameters: <room>
+Description: Moves player to room without notifying other players. Used when
+	   :you want them to make an exit...
+Example(s).:
+...........:	- reply "The dog explodes and sends you flying!!!"
+...........:	- announce others "The dog explodes, and @me is sent flying!"
+...........:	- move frontrm
+...........:	- action others "@me lands with a thud behind you."
+-----------------------------------------------------------------------------
+Action.....:  TRAVEL		Parameters: None.
+Description: Forces AMUL to processes the Travel table instead of Lang.TXT...
+Example(s).:
+...........:	IF asleep THEN reply "You can't move until you wake up."
+...........:    &              endparse
+...........:    else           travel
+-----------------------------------------------------------------------------
+Action.....:  TELL		Parameters: <player> <message|text>
+Description: Sends text to another user (although player can be 'me').
+Example(s).:
+...........:    - tell player "@me slaps you around the head with a kipper."
+...........:	- tell player '@me says "@n1".'
+...........:	- tell player UMsgNo1
+-----------------------------------------------------------------------------
+Action.....:  GIVE		Parameters: <noun> <player>
+Description: Transfers an object to another players inventory.
+Example(s).:
+...........:	- give noun TO player
+-----------------------------------------------------------------------------
+Action.....:  INFLICT		Parameters: <player> <spell>
+Description: Casts a spell on a player.
+Example(s).:
+See........: Cure.
+-----------------------------------------------------------------------------
+Action.....:  CURE		Parameters: <player> <spell>
+Description: Removes a spell from a player.
+Example(s).:
+See........: Inflict.
+-----------------------------------------------------------------------------
+Action.....:  SUMMON		Parameters: <player>
+Description: Brings a player to your room.
+Example(s).:
+...........:	IF not sameroom AS player THEN summon player
+...........:	& tell player "@me waves at you, wickedly."
+...........:	else reply "But @n1 is already here!!!"
+-----------------------------------------------------------------------------
+Action.....:  ADD		Parameters: <value> <stat> <player>
+Description: Adds x points to a players statistic.
+Example(s).:
+...........:	IF carrying noun THEN add ?noun score TO player
+...........:	always add %noun strength TO me
+...........:	always add ^book stamina TO player
+-----------------------------------------------------------------------------
+Action.....:  SUB		Parameters: <value> <stat> <player>
+Description: Subtracts x points from a players statistic.
+Example(s).:
+...........:	IF carrying noun THEN sub ?noun score TO player
+...........:	always sub %noun strength TO me
+...........:	always sub ^book stamina TO player
+-----------------------------------------------------------------------------
+Action.....:  HURT		Parameters: <player> <value>
+Description: Deducts x points from players strength.
+Example(s).:
+...........:	IF carrying noun THEN tell player "@me hit you with a @n1!"
+...........:	& hurt player %noun
+-----------------------------------------------------------------------------
+Action.....:  CHECKNEAR		Parameters: <noun>
+Description: Checks if the object is NEARTO the player. If not it displays
+	   :system message $40 and does an ENDPARSE ($40=Can't do that!).
+Example(s).:
+...........:	-		checknear noun
+...........:	-		reply "It looks like every other @n1!"
+-----------------------------------------------------------------------------
+Action.....:  CHECKGET		Parameters: <noun>
+Description: Checks that the player can pick an object up. If the player has
+	   :too many objects already, too much weight, or the object is
+	   :scenery, the relevant message is displayed and an ENDPARSE done.
+	   :This is seperate from GET to allow you to do any extra processing
+Example(s).:
+...........:	-	checkget noun
+...........:	-	get noun
+-----------------------------------------------------------------------------
+Action.....:  DESTROY		Parameters: <noun>
+Description: Renders an object 'non-existant'.
+Example(s).:
+...........:	IF burns book THEN reply "The book burns away to nothing..."
+...........:	& destroy book
+-----------------------------------------------------------------------------
+Action.....:  RECOVER		Parameters: <noun>
+Description: Restores an object from oblivion.
+Example(s).:
+...........:	- recover bolt
+-----------------------------------------------------------------------------
+Action.....:  START		Parameters: <Daemon> <value>
+Description: Sets a countdown of x seconds until a daemon starts.
+Example(s).:
+...........:	reply "The match is now alight."
+...........:	state match 0
+...........:	start .burnmatch 30
+See........: Cancel, Begin, ShowTimer. Conditions Active and Timer.
+-----------------------------------------------------------------------------
+Action.....:  CANCEL		Parameters: <Daemon>
+Description: Aborts a daemon before it happens.
+Example(s).:
+...........:	reply "The match is now out."
+...........:	cancel .burnmatch
+See........: Start, Begin, ShowTimer. Conditions Active and Timer.
+-----------------------------------------------------------------------------
+Action.....:  BEGIN		Parameters: <Daemon>
+Description: Forces a daemon to be processed immediately.
+Example(s).:
+...........:	IF active .burnmatch THEN begin .burnmatch
+See........: Start, Cancel, ShowTimer. Conditions Active and Timer.
+-----------------------------------------------------------------------------
+Action.....:  SHOWTIMER		Parameters: <Daemon>
+Description: Displays the remaining time on a daemon in minute/seconds.
+Example(s).:
+...........:	IF active .burnmatch THEN reply "The match will go out in {"
+...........:	&			  showtimer .burnmatch
+...........:	&			  reply "..."
+See........: Start, Cancel, Begin. Conditions Active and Timer.
+-----------------------------------------------------------------------------
+Action.....:  CONTENTS		Parameters: <Noun>
+Description: Displays the contents of an object.
+Example(s).:
+...........:	IF ! empty noun1 THEN contents noun1
+...........:	else reply "The @n1 is empty!"
+-----------------------------------------------------------------------------
+Action.....:  FORCE		Parameters: <Noun> <Message|Text>
+Description: Forces someone to execute a command, as though it was typed from
+           : their console. (Good for showing new players around).
+Example(s).:
+...........:	force noun1 "drop stick,light stick,get stick"
+...........:	force me "shout 'Im a wally!'."
+-----------------------------------------------------------------------------
+Action.....:  HELP		Parameters: <player>
+Description: Indicates you want to help <player>. Allows you to create tasks
+           : which require players to co-operate with each other.
+Example(s).:
+...........:	help noun1
+...........:	reply "You are now helping @n!"
+...........:	tell noun1 "@me is now helping you!"
+Notes......: See action StopHelp and conditions Helping, GivingHelp, GotHelp.
+-----------------------------------------------------------------------------
+Action.....:  STOPHELP		Parameters: <None>
+Description: Stop giving assistance to whoever you are helping.
+Example(s).:
+...........:	stophelp
+...........:	tell noun1 "@me is no longer helping you..."
+...........:	reply "You are no longer helping @n1."
+-----------------------------------------------------------------------------
+Action.....:  LOG		Parameters: <Message|Text>
+Description: Writes text to AMUL.Log
+Example(s).:
+...........:    log "User reached the ultimate room."
+...........:    log "@me activated reset."
+-----------------------------------------------------------------------------
+Action.....:  DO		Parameters: <verb>
+Description: Executes another part of Lang.Txt as a SUBROUTINE; equivalent
+           : to GOSUB in BASIC. NOTE: If the SUBROUTINE executes a FAIL or
+           : ERROR command, then parsing is stopped.
+Example(s).:
+...........:    ; First the subroutine...
+...........:    verb="cast		; so the player can't type this in
+...........:    syntax=verb any
+...........:        action cansee "@xx makes some magical gestures."
+...........:        IF myrank IS <5 THEN error "The spell failed."
+...........:        reply "The spell was successful!"
+...........:
+...........:    verb=glow		; make the player glow
+...........:    syntax=verb any
+...........:        do "cast		; See if they can cast the spell
+...........:        infl me glow        ; If it worked, make them glow.
+...........:
+...........:    verb=unglow             ; stop the player glowing
+...........:    syntax=verb any
+...........:        do "cast
+...........:        cure me glow
+Notes......: The 'cast' command could be called from SEVERAL spells, cutting
+           : down on repetition of code. Because of the 'ERROR' action, the
+           : INFL an CURE lines in GLOW and UNGLOW will not be carried out if
+           : the player is less than rank 5.
+-----------------------------------------------------------------------------
+Action.....:  TOPRANK		Parameters: None.
+Description: Upgrades the player, instantly, to the TOP RANK.
+Example(s).:
+...........:    reply "Congratulations! You have made it to the top!"
+...........:    toprank
+-----------------------------------------------------------------------------
+Action.....:  SETPRE		Parameters: <player> <message|text>
+Description: Places extra text before the players rank.
+Example(s).:
+...........: If the player is "Fred the novice"
+...........:	setpre me "angry"
+...........: he becomes       "Fred the angry novice"
+...........:    setpre me ""
+...........: will clear the 'pre-rank' description.
+Notes......: Not a good idea to give this ability to ALL players.
+-----------------------------------------------------------------------------
+Action.....:  SETPOST		Parameters: <player> <message|text>
+Description: Places extra text after the players rank.
+Example(s).:
+...........: If the player is "Fred the green"
+...........:    setpre me "totally"
+...........:    setpost "with envy"
+...........: will make him "Fred the totally green with envy"
+Notes......: Not a good idea to give this ability to ALL players.
+-----------------------------------------------------------------------------
+Action.....:  SETARR		Parameters: <player> <message|text>
+Description: Changes the players 'has just arrived' text.
+Example(s).:
+...........:    setarr "With a horrid squelching noise, @me has just arrived."
+-----------------------------------------------------------------------------
+Action.....:  SETDEP		Parameters: <player> <message|text>
+Description: Changes the players 'has just left' text.
+Example(s).:
+...........:    setdep "You'll be glad to know that @me has just left."
+-----------------------------------------------------------------------------
+Action.....:  SHOWTASKS		Parameters: None.
+Description: Lists tasks completed by the player.
+Example(s).:
+...........:    showtasks
+-----------------------------------------------------------------------------
+Action.....:  SYNTAX		Parameters: <noun> <noun>
+Description: Replaces noun1 and noun2 variables with specified values.
+...........: Noun1 and noun2 can be variables (eg noun1, player2 etc)
+...........: instead of actual noun names. Once the change has been made,
+...........: the parser reprocesses the entire verb.
+Example(s).:
+...........:    verb=give
+...........:	syntax=verb noun player		; Wrong way round!
+...........:		syntax player noun
+...........:	syntax=verb player noun		; Normal method
+...........:		etc...
+Notes......: The above example avoids repeating the code for processing
+           : BOTH formats of input, ie: player noun/noun player. Both
+           : are treated in exactly the same way.
+-----------------------------------------------------------------------------
+Action.....:  FIGHT             Parameters: <player>
+Description: Tells AMUL to initiate combat between you and <player>
+Example(s).:
+...........:    verb=kill
+...........:	syntax=verb player
+...........:		IF not sameroom AS player THEN error NOTHERE
+...........:		interact player		; Don't ACTION to them
+...........:		tell player "@xy is attacking you!"
+...........:		action others "@xy has started to fight!"
+...........:		start .combat 5		; Initiate combat daemon
+...........:		respond "You are now fighting @n1!"
+Notes......: The '.combat' daemon is required for the actual fighting.
+           : See the 'flee' action for ending fights.
+-----------------------------------------------------------------------------
+Action.....:  COMBAT            Parameters: None.
+Description: Executes one turn of fighting. This would usually be used within
+           : a daemon called when 'fight' is called (see above action's
+           : example followed by the one below).
+Example(s).:
+...........:    verb=.combat
+...........:	syntax=verb any
+...........:		IF not fighting THEN endparse
+...........:		combast
+...........:		IF fighting THEN start .combat 5	; next turn!
+Notes......: See FIGHT
+-----------------------------------------------------------------------------
+Action.....:  FLEE              Parameters: None.
+Description: Cancels a fight.
+Example(s).:
+...........:    	IF not fighting THEN error "You aren't fighting!"
+...........:		flee			; finish the fight
+...........:		cancel .combat		; Kill the combat daemon
+...........:		setpre me "cowardly"	; Change my 'title'
+...........:		; You may wish to inform other players here too..
+-----------------------------------------------------------------------------
+Action.....:  WIELD             Parameters: <noun>
+Description: Changes the player's current weapon, used by 'combat'.
+Example(s).:
+...........:    verb=kill
+...........:	syntax=verb player noun		; eg: kill fred with the axe
+...........:		IF not CARRYING noun THEN error NOTGOT2
+...........:		wield noun
+...........:		reply "You are now wielding the @n2."
+...........:		syntax player none	; Now treat as 'kill fred'
+-----------------------------------------------------------------------------
+Action.....:  INTERACT          Parameters: <player>
+Description: Tells ANNOUNCE, ACTION and etc, that we are controlling the
+...........: messaging of this player and prevents ANNOUNCE and ACTION etc
+...........: from sending text to them until the end of parsing.
+Example(s).:
+...........:    verb=greet
+...........:	syntax=verb player
+...........:		interact player		; *WE* are talking to them.
+...........:		action cansee "@xx greets @n1."
+...........:		tell player "@xx greets you."
+...........:		respong "You greet @n1."
+Notes......: In the above example, ACTION CANSEE would cause 'player' to
+           : receive BOTH the 'action' text AND the 'tell' text, if he came
+           : under 'cansee' parameters.
+-----------------------------------------------------------------------------
+Action.....:  SENDDAEMON        Parameters: <player> <daemon> <number>
+Description: Causes a daemon to be processed by another player.
+Use........: Code, such as magic spells like 'invis' etc, often needs to work
+...........: on other players, allowing you, for example, to 'invis <player>'
+...........: However, this can cause problems, since it is not easy to make
+...........: AMUL do all the relevant processing for INVIS on another player.
+...........: So instead, what you can now do, is something like the below
+...........: example...
+Example(s).:
+...........:	verb=.invis
+...........:		< code for handling 'invis me' >
+...........:
+...........:	verb=invis
+...........:	syntax=verb player=me
+...........:		treatas invis
+...........:	syntax=verb player		; someone else...
+...........:		senddaemon player .invis 0	; Make them do it NOW
+...........:		reply "You're spell worked..."
+-----------------------------------------------------------------------------
+Action.....:  AUTOEXITS         Parameters: ON|OFF  
+Description: Enables/disables the automatic displaying of exits.
+Example(s).:
+...........:	verb=autoexits
+...........:	syntax=verb none	; toggle on/off
+...........:		IF autoexits THEN autoexits off
+...........:		else autoexits on
+-----------------------------------------------------------------------------
+Action.....:  SETTASK		Parameters: <number>
+Description: Flag player as having completed task <n>.
+Example(s).:
+...........:    settask 1		; mark task 1 completed
+...........:    showtasks		; list completed tasks
+-----------------------------------------------------------------------------
+
+New actions:
+
+objinvis <noun> turns a noun invisible.
+objshow <noun>  makes it reappear again.
+burn o		Sets an object alight
+douse o		Extinguishes an object
+inc o		Same as condition but no return
+dec o		Same as condition but no return
+deduct p n	Reduces player p score by n percent.
+damage o n	Inflict n points of damage on object o.
+repair o n	Repair n points of damage on object o.
+
+Full descriptions and examples will be added later... Most will be explained
+in Updates.xxx documents.
+
+=============================================================================

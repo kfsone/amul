@@ -1,0 +1,96 @@
+= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+                AMUL - The Amiga Multi-User games Language
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                             Quick Setup Guide
+                             ~~~~~~~~~~~~~~~~~
+
+	Well, you've obviously followed SOME of the basics to installing
+	AMUL quickly, simply by unarchiving this file. However, for the
+	sake of a simple life you should follow these simple guide lines.
+
+	The following quick-installation guide assumes you are installing
+	AMUL on a Hard Drive based system... If not, don't worry, follow
+	the same procedure, but have a flask of coffee ready.
+
+	Step 1: Create a directory called 'ADV' or 'AMUL' somewhere on your
+		system, eg: "dh0:adv" or "dh1:amul".
+
+	Step 2: Re-extract the AMUL archive into that directory. Once that
+		has finished, unarchive any 'sub-archives' eg std.lzh.
+		Note that the sub-archives will automatically create sub-
+		directories.
+
+	Step 3: In your startup-sequence add the following lines, or merge
+		them with existing lines:
+
+			assign adv: dh0:adv
+			path adv: add
+
+		*ONLY* change the 'dh0:adv' if your AMUL system lies in a
+		different path; PLEASE keep the 'adv:' assign if possible.
+		Now either reboot your system or enter these lines manually.
+
+	Step 4: You now need to compile the example adventure provided in
+		the archives. The sample adventure will either be in the
+		'Precious' or 'std' or 'game' archive. You need to run a
+		program called AMULCOM to compile the game. The parameters
+		to AMULCOM are simply: amulcom <directory>, so you might
+		type:
+
+			amulcom precious
+		or	amulcom std
+		or	amulcom game
+
+		depending on the name of the directory.
+
+		The sample adventure should now compile. Once it is finished
+		type:
+
+			run aman adv:<path>
+		eg:	run aman adv:game
+		or	run aman adv:precious
+
+		[NOTE: If you want AMAN to load automatically each time your
+		 system starts, add the above line to your startup-sequence]
+
+	Step 5:	Once the AMUL Manager is loaded (AMAN) you can type:
+
+			run amul
+
+	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	To remove AMAN type:
+
+		aman -k
+
+	To 'reset' a game (and throw all current users off) type:
+
+		aman -r
+	or	aman -r X	to reset in X seconds time.
+
+	To 'extend' a game by X number of seconds type:
+
+		aman -x X	where X is the number of seconds to add
+
+	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	* NOTE *
+
+		To install AMUL as a StarNet door, you will need some ARexx
+	or DOS script files; contact Jon Witty on MetNet Triangle UK BBS if
+	you want these files...
+
+	** second note **
+
+		Please forgive the scruffines of this doc, but my keyboard
+	has no 's' key, I have to poke a match into the hole where it used
+	to be, or install it as a macro within CED (Amiga-D at the mo)!
+
+	** final note **
+
+		AMUL and Precious Days ARE STILL being developed.
+
+	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+

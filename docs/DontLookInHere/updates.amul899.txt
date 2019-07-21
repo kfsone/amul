@@ -1,0 +1,148 @@
+Updates from version 0.8.90 -> 0.8.99x
+
+[0.8.91]
+* New AMAN command : AMAN -r [<delay to reset>] resets in <delay> seconds
+  -- Note ... This gives the users warning of the coming reset.
+* New AMAN command : AMAN -x <time in seconds> extends current game time
+* Bug fix:  'skip' command now works properly, in Lang.Txt and Travel.Txt.
+
+[0.8.93]
+
+* Fixed some HORRIBLE glitches in AMULCOM'S processing of Travel.Txt
+* Fixed AMULCOM so that its FAR more flexible with comments.
+* Fixed the software failure which happened with '*' comments in Travel.Txt!
+* AMAN will no longer die if there are no objects in the adventure.
+* Various minor modifications to internal workings of AMAN & AMULCOM.
+* AMUL will now ask new users if they want to adjust their settings
+  (screen width, ansi, redo-character, etc)
+* Minor internal changes to AMUL itself.
+* __ THE SOFTWARE FAIL IN AMUL'S SERIAL HANDLER WAS DEFINITELY FIXED in 891 __
+  (it's not recurred since)
+* Removed some 'upgrade' code left in from version 0.8.18 (about 1ks worth)
+
+[0.8.94]
+
+* Fixed some HORRENDOUS glitches in AMULCOM'S treatment of comments!
+* Comments can now be placed just about anywhere (although they effectively
+  end the current line)
+* Various minor fixes
+
+[0.8.95]
+
+* Various tiny polishes
+* New ESCape code .. @ve .. Unlike @VB which displays the verb which the
+  PLAYER ENTERED @VE displays the verb set by the last treatas.
+* Minor feature: LOOK command now tells TopRank players the super-go name of
+  each location!
+* Version 1.0 of AMUL-Ed - the User-Editor - nearing completion, a few minor
+  alterations and it'll be ready! (Total coding time to date: 4 hrs 52 mins)
+
+[0.8.96]
+
+* Fixed a small problem in AMAN which slowly ate system memory ...
+* Cured a bug in SendAT (Sends text to the serial port) which wasted 128
+  bytes of memory each time the program ran.
+
+	* --v MAJOR NOTE v-- *
+
+   AMAN will now look for a script file called 'Reset.Bat'. This file must
+   be _IN THE DIRECTORY WHICH AMAN IS LOADED FROM_. If this file exists AMAN
+   will execute it after EACH reset. A sample reset.bat is included.
+ 
+	* --^ MAJOR NOTE ^-- *
+* Fixed a bug where AMUL was case insensitive to words with an 'A' in them!
+
+[0.8.99]
+
+* Increased maximum number of lines possible to 14.
+* Implemented GLOBAL daemons! PLEASE READ THE FILE MAJOR.NOTE.
+* Implemented Global Daemon processor.
+* New special command "boot. This is executed by the global daemon processor
+  as a kind of startup command.
+* New condition: in <room> <object> .. tests is <object> in a certain room
+* New action: gstart <daemon> <time> -- activates global daemon
+* Increased efficency of Daemon timers. (30% less processor usage overall!)
+* "action others <text>" only sends to text those nearby who can SEE you!
+* AMULCom now REQUIRES Mobiles.Txt to complete compilation. The file need
+  not contain any data, but MUST exist.
+* Two new 'labels':
+	*<object>	-	location of object
+	#<player>	-	rank of player
+* Improved 'count down' display function. When you display '@re', the
+  format should be better, and the same for a daemon-counter!
+* Minor increase in speed
+* Minor internal changes thru a change of compile-time command lines.
+* Minor changes to AMan - compiled with new command line.
+* Memory fragmentation greatly reduced.
+* AMan command line bug fixed: Drive or Path names are now PROPERLY accepted;
+	aman df1:	was treated as aman df1:/
+	aman df1:adv/	was treated as aman df1:adv//
+  both instances now fixed.
+* AMan command line: Added '-s[path]' option. Allows you to specify a new
+  game to be loaded after next reset...
+* Change to AMUL.Log layout:
+  AMan messages are now indicated by (#) instead of a line number.
+  AMan message types now more organised: The two letter types are:
+	Prefix	Meaning
+	  ##	Start-Game
+	  >>	Shutdown/Reset Request Received
+	   <	All users disconnected (Reset)
+	  <<	Reset completed
+	  **	General Error (ShutDown request denied or setup error)
+	  ->	User Connected
+	  <-	User Disconnected
+	  []	User Achieved Top-Rank
+	  @@	User-Logged Transaction (from game etc).
+  This should allow you to keep a better track of whats happening in ya log!
+* AMULCom: 'Label' bug... Trying to say "IF value IS >label" would produce
+  an error. This is now fixed, so lines such as: "if myrank >#player" or
+  "if rand 10 <myrank" are now acceptable.
+* Doccumentation updated.
+* AMULCom: Fixed a bug with
+	syntax player noun
+ or	syntax text player  etc ...
+
+* New Action/Announcement groups:
+
+	action CANSEE "text"   - send text to only those who can see me
+	announce NOTSEE "text" - send only to those HERE who CANT see me
+* Various changes to the combat routines to improve fight quality.
+* Changes to the way that rank-changes are made.
+* Fixed a bug whereby certain conditions would return stray values!
+  (inc, dec, fire, lit, magic etc)
+* Revamped the COMBAT function. The fights should be more interesting now!
+
+******************************************************************************
+******************************************************************************
+ New  escape  codes:   @xx  &  @xy.  These are used in interaction sitautions
+ where you want to send different text to users depending on whether they can
+ or  can't  see  you.   There  are  several reasons these are needed:  If the
+ player is in a dark room, others nearby can't see him so wouldn't know, say,
+ WHO had performed an action.  However, if the player was invivisble, certain
+ players  wouldn't  be  able to see him, whilst others MIGHT.  This obviously
+ causes  a  certain amount of confusion and the conditions and actions to get
+ around  it  seemed  pointless  when  all that would change was perhaps 'Fred
+ burps' becomes 'Someone nearby burps'.
+
+ The result of @xx and @xy is changed depending on the RECEIVER of the text.
+
+ @xx is used for 'players name', @xy is for 'players name [and rank]'
+
+	same room	same room	diff room	diff room
+	visible to	! visible	< top-rank	top-rank
+	---------------------------------------------------------
+@xx:
+act.:	player's name	Someone nearby	Someone		Someone very powerful
+ann.:	player's name	Someone nearby	Someone		Someone
+@xy:
+ann.:	@me the @mr	Someone nearby
+					A powerful @gn voice in the distance
+							A @gn voice in the distance
+ann.:	@me the @mr	A @gn voice nearby
+					A powerful @gn voice in the distance
+							A @gn voice in the distance
+
+Using  these codes you can produce very good interactive code with a minimum
+of effort.
+******************************************************************************
+******************************************************************************

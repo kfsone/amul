@@ -1,0 +1,245 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            games
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+            MISC.Doc - Title, Reset, Scenario, Syns and Ranks.TXT
+            -----------------------------------------------------
+
+
+ These five files are the simplest (excluding Rooms.TXT) in AMUL. They create
+the atmosphere in your games.
+
+1	TITLE.TXT  -  Basic details about the game & the title screen!
+2       RESET.TXT  -  Displayed to users when a reset happens!
+3    SCENARIO.TXT  -  Displayed to a user the first time they login!
+4        SYNS.TXT  -  Alternative words...
+5       RANKS.TXT  -  List of the player ranks, scores and so forth.
+
+ All of these files are once onlys... The blocks defined below are used only
+once in each file.
+
+
+                                1)  Title.TXT
+                                -------------
+
+ The bulk of this file is the game's title. However, before you can put
+that, you need two lines with 'label indicators'. The structure is:
+
+---Start---Title.TXT---Start---
+name=<title; upto 40 characters>
+gametime=<how long till automatic reset in minutes>
+invisible=<invis 1> <invis 2>
+min sgo=<Minimum rank to use Super GO>
+rankscale=<r%> TimeScale=<t%>
+<title>
+----End----Title.TXT----End----
+
+Invis 1: Minimum rank for INVISIBLE people to see OTHER invisible people or
+	 objects.
+Invis 2: Minimum rank for VISIBLE people to see INVISIBLE people/objects.
+Min Sgo: The minimum required rank to use the Super GO facility; the ability
+	 to jump to ANY room simply by entering its ID at the prompt.
+
+ The RankScale and TimeScale variables are probably the most complex part of
+the Title.Txt configuration. By default an AMUL object has a scaled value.
+This means that through the duration of the game the objects value changes,
+and as the players rank changes so do object values. The two scale variables
+allow you to specify how much these two factors affect object values. Giving
+two values of ZERO (0) will disable object scaling.
+
+ RankScale is the percentage to deduct from an objects value if the player
+has achieved the top rank. If RankScale=100, the players rank is top then
+any scaled objects will be worth nothing to him. If RankScale=50, the player
+is top rank and the object has a value of 100 points, it will be worth 50
+points to him. Players of lower ranks will have a smaller amount deducted,
+with nothing being deducted from the lowest rank of player.
+
+ TimeScale is the percentage to deduct from an objects value based upon the
+time till next reset. Objects are only affected for the first 9/10ths of the
+games duration.
+
+ The gametime value cannot go below 15 minutes. Ideal game times (for the
+more normal sized game) would be around 45-60 minutes.
+
+
+Example:
+
+ The following example assumes that rank 5 is the TOP rank in the game...
+
+---Start---Title.TXT---Start---
+; Comments are allowed BEFORE the text...
+
+name=The Sample Adventure
+
+;the word minutes is optional, but I think it looks tidier...
+gametime=50 minutes
+;rank 4+ invisible players can see other invisible people/objects
+;ONLY Top Rank players (rank 5) can see invisible things whilst VISIBLE.
+invisible=4 5
+;Only top rank players can use Super GO facility.
+min sgo=5
+
+Welcome to my first AMUL game!!
+Last compiled: @lc  Last reset: @lr
+This game automatically resets itself every 50 minutes!
+----End----Title.TXT----End----
+
+
+                                2)  Reset.TXT
+                                -------------
+
+ When the game is reset, any one on-line is thrown off. Rather than simply
+have them told 'bye bye... resetting', you can add your own little note before
+they get chucked off... For example, if you are running AMUL through a BBS,
+you might like to detail other online doors etc available. Or you might want
+to continue the atmosphere of the game, by making the reset sound like the
+apocolypse... Or you might just want to explain that they can get back in
+again in about a minute and a half...
+
+ Reset.TXT and Scenario.TXT are the two most basic files in AMUL. Both of them
+are nothing more than text files. The ENTIRE contents of Reset.TXT is dumped
+out at reset. Don't use ANSI codes in this text file!
+
+
+                              3)  Scenario.TXT
+                              ----------------
+
+ The first time a new-user logs in, after creating his personna, he wants
+to know what the game is about. If he goes straight into the game, unless
+he has played other multi-user adventures, he is going to be stuck. How you
+use this file will depend on what kind of game you have written. If it leans
+heavily toward the role-playing type, your Scenario.TXT will brief the player
+on the background of the world, and give a few basic details on how to use
+your adventure. Other people will use it to explain basic pricinples of
+multi-user adventuring to their guests.
+
+ Again, this is a straight text file, whatevers in it is whats going to come
+out. Don't use ANSI codes in this text file!
+
+
+                                4)  Syns.TXT
+                                ------------
+
+ The chances of setting up an game with one comman<->one meaning, and having
+EVERY user get the right commands for the right actions is very low.
+Depending what the last adventure they saw was, the first difference is almost
+immediate. Some will try 'NORTH', 'SOUTH' etc, whilst others will expect it
+to understand 'n','ne','e' etc... One or two will try 'go north'... Also,
+when you reach the stage where users are poking about with objects, they will
+try different names for things, and they will also want to abbreviate them
+aswell as spell things wrongly. Medicine is often mis-spelt medicin.
+
+ 'book', 'volume', 'tome' are possible synonyms of the word 'libram'. They
+mean the same thing, but unless you tell AMUL this, they are seperate objects.
+
+ Syns.TXT is simple in construction. It consists of x number of lines of:
+
+   <real word>  <alternative list>
+
+Example:
+
+---Start---Syns.TXT---Start---
+; Verbs...
+n	north	go_north
+e	east	go_east
+s	south	go_south
+w	west	go_west
+; Objects
+door	portal doorway opening 
+forest	trees wood greenery foilage woodland
+longsword ls lswd sword
+banshee bsh ghoul
+----End----Syns.TXT----End----
+
+
+                               5)  Ranks.TXT
+                               -------------
+
+ Since AMUL games are continually resetting, there can be no 'overall' goal
+within the adventure itself. The main objective of these games is to gain as
+high a score as possible, but this, in itself, is pointless. Some extra goal
+is needed. This is a simple on... To achieve a higher rank! This is further
+complicated by the ability to set Tasks which the player MUST complete before
+he can progrress to the next Rank.
+
+ As you write your AMUL games, it is a good idea to give bonus commands at
+different levels, with novice users being able to do the least. One way to do
+this is to allow higher level users to have magical spells at their command!
+Such as summoning people, changing their sex etc...
+
+ However, in order to distinguish the different levels, you have to define
+them in Ranks.TXT... Along with their names for both male and female players
+you define strength, stamina and various other capabilities...
+
+ The file is constructed by x many lines of rank detail... The layout for a
+rank line is:
+    mn fnsc str stam dext wsdm exp mag.pts max.g max.ob pkill task prompt
+
+mn     male rank name. If you want spaces in the name use an underscore, e.g.
+       "stock_broker" would be treated as "stock broker".
+fn     female name. If it is the same as the male equivalent, simply put an
+       equals sign (=)
+str    When the player 'makes' this rank, he is given this much strength.
+       Strength dictates how well a player does in a fight.
+stam   Same, but for players stamina - players life force remaining.
+dext   Ditto, for dexterity - players ability to fight.
+wsdm   Ditto, for wisdom - also affects fighting ability.
+exp    Ditto, for experience - can be used to make players achieve goals.
+magpts No. of magic points given. These allow you to control how much
+       magic they can use.
+max.g  Maximum weight of objects players can carry - in grammes!
+max.ob Maximum number of objects a player can carry.
+pkill  Points given for killing a player of this rank
+task   Number of a task the player MUST complete before he can reach this rank
+prompt Optional 1-10 character string outputed as a prompt. Default is ">".
+
+
+Example:
+
+---Start---Ranks.TXT---Start---
+;male       female  	 score  str stam dext wsdm exp mag kg obj p/kill task prompt
+;-----------------------------------------------------------------------------------
+Novice	    =		     0  100  100  100  100  10  10  600  5     0    0 "* "
+Warrior	    =		   400  200  200  200  200  20  20  700  6   100    0 "* "
+Hero	    Heroine 	   800  300  300  300  300  30  30  800  8   200    0 "* "
+;as of here the prompt is the default, "$ ".
+Champion    =		  1600  400  400  400  400  40  40  900 10   400    1
+Superhero   Superheroine  3200  500  500  500  500  50  50 1000 12   800    1
+Enchanter   Enchantress   6400  600  600  600  600  60  60 1200 14  1600    2
+Sorcerer    Sorceress	 12800  700  700  700  700  70  70 1400 16  3200    3
+Necromancer Necromancess 25600  800  800  800  800  80  80 1500 18  6400    4
+Legend	    =		 51200  900  900  900  900  90  90 1600 19 12800    5
+;finally the Wizard prompt! The magic wand!
+Wizard	    Witch       102400 1000 1000 1000 1000 100 100 2000 20 25600    6 "--* "
+----End----Ranks.TXT----End----
+
+These ranks are based on those used in MUD - Multi-user Dungeon.
+MUD, Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ...
+
+
+                                 6)  Summary
+                                 -----------
+
+ Once these files have been established, you can usually forget about them,
+until you start on your next game.
+
+ Make sure you are familiar with the format of these files, and then you are
+ready to go onto the next step of development - rooms!
+
+
+              A M U L -- The Amiga Multi-User games Language
+             ------------------------------------------------
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.

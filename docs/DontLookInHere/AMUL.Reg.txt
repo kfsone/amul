@@ -1,0 +1,142 @@
+
++=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+         Registration form for AMUL Adventure/RPG Language System	30042
++=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+
+
+You are licensed to use the AMUL Adventure/RPG System for 60 days as of
+extracting the contents of the AMUL archive. Continuing to run the system
+beyond this period, WITHOUT registering, is a breach of contract, and
+renders your copy/copies ILLEGAL, making your posession THEFT.
+
+PLEASE understand: AMUL has cost MYSELF an AWFUL lot of time & money, and
+if you want to use it, if there is something you want changing, PLEASE help
+me keep at it!
+
+Send registration fee of 15 GB Pounds (or more) to:
+
+KingFisher Software D&EG International (Ref: AASSUB)
+70 Legsby Avenue
+Grimsby
+South Humberside
+ENGLAND                    DN32 0NE
+
+
+
++=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+
+                                                        Date: ___/___/___
+
+
+   Name: ___________________________________
+
+Address: ___________________________________
+
+   City: ______________________ State/Province: ________________
+
+Country: _________             Postal/ZIP Code: ________________
+
+
+
+Amiga Model:   3000    2500    2000    1000    500     Other
+
+  Processor:   68000   68010   68020   68030   Other (Specify) _____________
+
+     Memory: __________ Drives: ______________________________
+
+                                ______________________________
+
+                                ______________________________
+
+
+Bulletin Board Specs:
+
+BBS Name: ___________________________________
+
+ Phone #: ___________________________________  Fido Address: (__:____/____)
+                                               Amiga+Net   : (____/____)
+    UUCP: _________________________________________________________________
+
+  Others: _________________________________________________________________
+
+Baud Rates: (Mark all that apply)
+
+  * 300  * 1200  * 2400  * 4800  * 9600  * 14k  * HST  * v32  * v42  * PEP
+
+  Others (please specify): ________________________________________________
+
+(specify HST, v32, v42 or Dual-Standard on rates higher than 2400)
+
+
+
+Comments/Suggestions:
+
+_____________________________________________________________________________
+
+_____________________________________________________________________________
+
+_____________________________________________________________________________
+
+_____________________________________________________________________________
+
+_____________________________________________________________________________
+
+_____________________________________________________________________________
+
+
+      Please make sure you understand the following terms:
+
+      "The author" indicates Oliver G. Smith of KingFisher Software, Grimsby.
+      AMUL is copyright (C) Oliver Smith. The original concept, design
+      and development of AMUL are Copyright (C) Oliver Smith.
+
+      1.    The author, Oliver Smith, reserves the right to cease further
+            developments of AMUL beyond that of correcting errors in the
+            registered version of AMUL.
+
+      2.    The author, Oliver Smith, is in no way legally or otherwise
+            bound to make alterations or corrections to AMUL, but until
+            such time as the cessation of AMUL development occurs, will
+            attempt to make any such alterations in good faith.
+
+      3.    The author, Oliver Smith, neither assumes nor accepts any
+            responsibility for the use or misuse of the AMUL System. The
+            author, Oliver Smith, will not be held liable for damages or
+            any compensation beyond the original registration fee due to
+            loss of profit or any other damages arising from the use, or
+            inability to use the AMUL System.
+
+      4.    The author, Oliver Smith, is in no way required nor responsible
+            for providing you with anything except (a) proof of registration,
+            (b) a complete copy of The AMUL System as per the date of issue.
+            This may be achieved either by electronic media (such as a
+            Bulletin Board, Fax or Telephone conversation) OR via means of a
+            3.5" diskette issued through the British Postal Service. 
+
+        I, the undersigned, agree to all terms stated above and in the
+        documentation included with the AMUL System.
+
+
+        Signature: __________________________________ Date: ___/___/___
+
+        Registration applications and fees (minus postage) will be returned
+        if the SIGNATURE is missing.  Thank you!
+
+	NOTE:
+
+	  UK RESIDENTS PLEASE INCLUDE A _STAMPED_ ADDRESSED ENVELOPE AND
+	  A SINGLE AMIGA-COMPATIBLE 3.5" DISK;  THIS IS REQUIRED TO SEND
+	  YOUR COPY OF THE LATEST RELEASE VERSION, AND YOUR REIGSTRATION
+	  DETAILS. USE A *PADDED* ENVELOPE.
+
+	  OVERSEAS USERS PLEASE INCLUDE A *FULLY* ADDRESSED ENVELOPE (IN
+	  ENGLISH AND YOUR OWN LANGUAGE) CONTAINING AN AMIGA-COMPATIBLE
+	  3.5" DISK; THIS IS REQUIRED TO SEND YOUR COPY OF THE LATEST
+	  RELEASE VERSION, AND YOUR REGISTRATION DETAILS. USE A PADDED
+	  ENVELOPE IF YOU WANT YOUR DATA TO ARRIVE *INTACT*. ALSO, PLEASE
+	  SEND AN ADDITIONAL TWO (2) BRITISH POUNDS TO COVER THE RETURN
+	  POSTAGE! THANKS!
+
+
+           Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+               Designed, Developed & Written By Oliver Smith.

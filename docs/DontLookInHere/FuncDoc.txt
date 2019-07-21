@@ -1,0 +1,583 @@
+
+  General notes
+  -------------
+
+When talking to AMUL in the Language table, you can use various labels to
+refer to the internal variables, and the components of the sentence.
+The words adj1, noun1, prep, adj2 and noun2 refer to the seperate words in
+the sentence... A quick example:
+	"get the brown dog"	adj1=brown, noun1=dog
+	"put bat in red box"	adj1=none, noun1=bat, prep=in
+				adj2=red,  noun2=box
+
+You can refer to the different words by refering to them using the same
+labels as you used in your syntax line.
+To demonstrate, here are a few ways of telling AMUL how to understand the
+basic 'give obj to player' command:
+
+	verb=give
+	syntax=verb noun player
+		always give noun1 to noun2
+		always give noun to player
+		always give noun1 to player
+
+Any of the valid 'types' can be used as labels. However, in the situation
+where you have two of the same type, e.g. "verb player player", you must
+suffix the SECOND reference with its number (e.g. player2).
+
+The above can be used wherever the <noun> label indicator is used.
+
+The label <msg> refers to either (i) a UMsg label, or (ii) a text string
+in quotes ("...").
+
+To display one of the players variables, there are several 'escape' seqeunces
+you can put in <msg> texts, i.e. UMSG's, System Messages, or text strings.
+These are: (See Esc.Doc for a FULLY UPTO DATE list)
+	@me		my name
+	@mr		my rank's name
+	@gn		my gender (male or female)
+	@ge		he or she depending on sex
+	@go		his or her depending on sex
+	@gh		him or her depending on sex
+	@vb		current verb
+	@n1		noun1
+	@n2		noun2
+	@a1		adjective 1
+	@a2		adjective 2
+	@pp		PrePosition
+	@v1		Value of noun1
+	@v2		Value of noun2
+	@w1		Weight of noun1
+	@w2		Weight of noun2
+	@pw		Password
+	@gp		Games Played
+	@sc		Players Score
+	@sg		Points scored this game.
+	@lr		Last reset
+	@lc		Last compile
+
+Please note, that in the examples ALL options are included, and are entered
+in uppercase. AMUL is _NOT_ case sensitive.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  QUIT
+
+Parameters: None.
+Purpose...: Updates the users record on disc, and logs him out normally.
+Example...:
+            verb=quit
+	    syntax=verb
+	    	always quit
+
+Notes.....: None.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  SAVE
+
+Parameters: None.
+Purpose...: Updates the users record on disc.
+Example...:
+	    verb=quit
+	    syntax=verb
+	        IF myrank is 1 then reply "You've not ACHIEVED anything yet."
+	    	IF myrank is >1 then save
+
+Notes.....: In the example new users (rank 1) cannot save their records.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  ADDSCORE
+
+Parameters: <n>
+Purpose...: Adds n points to the players score. If n is negative, it
+	   subtracts it.
+Example...:
+	    verb=sing
+	    syntax=verb
+		always reply "You sing loudly! }"
+	        IF ishere troll then reply "It scares the troll away!!!"
+		& addscore 50
+		& endparse
+		If not ishere troll then reply "ooooh! What a din!"
+	        & addscore -10
+
+Notes.....: The score WILL NOT fall below 0.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  SCORE
+
+Parameters: None.
+Purpose...: Displays players details to him.
+Example...: verb=score
+	        always score
+Notes.....: None.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  STATE
+
+Parameters: <noun> <n>
+Purpose...: Sets object to state n.
+Example...:
+	    verb=open
+	    syntax=verb noun
+	        IF not ishere noun then reply "I don't see a @n1!"
+		& endparse
+		IF stateof noun1 is 0 then reply "It's already open, pratt."
+                else set state of noun1 to 0
+		& reply "With a lot of effort, you fling the @n1 open!"
+		& anounce to others "@me opens the @n1."
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  LOOK
+
+Parameters: None.
+Purpose...: Display the players current location in FULL.
+Example...:
+	    verb=look
+	    syntax=verb
+		always look
+
+Notes.....: None.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ WHAT
+
+Parameters: None.
+Purpose...: Lists -objects- only in current location.
+Example...:
+	    verb=search
+	    syntax=verb
+		always what
+
+Notes.....: None.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ WHO
+
+Parameters: None.
+Purpose...: List other players on-line.
+Example...:
+	    verb=summon
+	    syntax=verb !player
+	        always reply "You can only summon players, try one of these:"
+		always who
+
+Notes.....: AMUL only knows the names of players logged in. If the player
+	   types "summon fred" and fred isn't on-line, it won't be known as
+	   a players name. The above checks for this - !player means anything
+	   but a players name.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ TREATAS
+
+Parameters: <verb>
+Purpose...: To process the verb as another.
+Example...: verb=get
+	    syntax=verb noun=well
+	    -	reply "Your not sick!"
+	    syntax=verb noun
+	    treatas take
+Notes.....:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ MESSAGE     (or  REPLY)
+
+Parameters: <msg>
+Purpose...: Send a response/message to the plager.
+Example...:
+            verb=burp
+            syntax=any
+                if myrank <2 reply "Well, since you are fairly new round here, I'll let you off!"
+		else reply "Tut tut! Well, you should have known better!"
+		& killme
+
+            verb=drink
+	    syntax=verb noun=water
+		if ishere water then reply DRINKMSG
+		else reply "You slurp a lot, but all you get is a mouthful of dust."
+
+Notes.....: REPLY is synonymous for MESSAGE, they BOTH have EXACTLY the same
+           effect...
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ ANNOUNCE 
+
+Parameters: <to> <msg>
+Purpose...: Sends message to group of users. Where the group is:
+	    global   - everyone excluding the player.
+	    everyone - ALL players.
+	    outside  - everyone outside room excluding the player.
+	    here     - everyone in this room.
+	    others   - everyone in this room excluding the player.
+Example...: verb=say
+	    else anounce here '@me says "@n1"'
+Notes.....: The  @  functions  can  be  used  in  the output string.  The
+	    announce  is treated as a SOUND announce therefore not heard by
+	    deaf players and wakes up sleeping players.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ SKIP
+
+Parameters: [next] <n>
+Purpose...: Skips next N line of instructions.
+Example...: verb turn wind
+	    syntax=verb noun=key
+	    state door 1 skip 2
+	    state door 0 state door 1
+	    state door 1 skip 1
+	    state door 1 state door 0
+	    always reply "The key turns in the lock..."
+Notes.....: I  must  admit this is not the best example of this function,
+	    but  it shows one way that skip can be used to alternate the
+	    state of an object.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ ENDPARSE
+
+Parameters: None.
+Purpose...: Stops the Parser from parsing this phrase.
+Example...: verb=open
+	    syntax=verb noun=door
+	    state door 1 reply "It IS open!"
+	    &	endparse
+	    -	state door 1
+	    &	reply "The door opens....."
+Notes.....: This  stops  the  parser  from  processing  anything from the
+	    current sentance only.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ FINISHPARSE
+
+Parameters: None.
+Purpose...: Disregards the rest of the users input.
+Example...:
+
+Notes.....:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ ABORTPARSE
+
+Parameters: None
+Purpose...: Disregards rest of users input.
+Example...:
+
+Notes.....:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ FAILPARSE
+
+Parameters: None
+Purpose...: Stops parsing this phrase.
+Example...:
+
+Notes.....:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ WAIT 
+
+Parameters: <n>
+Purpose...: Waits for <n> seconds
+Example...: verb=wait
+	    - message "Time passes."
+	    wait 3
+Notes.....: None.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ BLEEP <n>		-	Prints a '.' every second, n times...
+
+Parameters: <n>
+Purpose...: Prints a '.' every second, for <n> seconds.
+Example...: verb=wait
+	    - message "Time passes{"
+	    bleep 3
+Notes.....: The  is mearly a more visual wait command.  Note the { on the
+	    end  of  the  message...  this prevents a carriage return after
+	    the  message  so  that  the '.' signs appear straight after the
+	    message.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ KILLME
+
+Parameters: None.
+Purpose...: Kills the player.
+Example...: verb=n
+	    -	message "You take a run and jump, slip  and fall....."
+	    -	addscore -50
+	    &	killme
+Notes.....: This  only  removes  the player from the game...  you have to
+	    take into account of any score changes etc.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ DESTROYME		-	Kills player, removes record from disk.
+
+Parameters:
+Purpose...:
+Example...:
+
+Notes.....:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ WHERE <noun>		-	Lists where objects with id noun are.
+
+Parameters:
+Purpose...:
+Example...:
+
+Notes.....:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ SEND <noun> <room>	-	Sends object away.
+
+Parameters:
+Purpose...:
+Example...:
+
+Notes.....:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ SAYTO	<user> <msg>	-	Give 'msg' to 'user'...
+
+Parameters:
+Purpose...:
+Example...:
+
+Notes.....:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ CHANGESEX
+
+Parameters: None.
+Purpose...: Toggle the players sex from male<->female
+Example...:
+	    verb=sniff
+            syntax=verb noun=crystals
+		if not carrying the crystals "You don't have them!"
+		else reply "They smell VILE! You are filled with a murderous pain!"
+		& changesex
+		& reply "You are now @ge!"
+
+Notes.....: Its usually a good idea to inform the player...
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ WHEREAMI
+
+Parameters: None.
+Purpose...: Displays the Room Label.
+Example...: verb=?
+	    -	whereami
+Notes.....: This would only be useful to a 'Wizard' as they would have to
+	    learn the labels to be able to teleport about the place.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  SLEEP
+
+Parameters: None.
+Purpose...: Puts the player to sleep.
+Example...: verb=sleep
+	    asleep	reply "You already are!!"
+	    else	sleep
+	    &		reply "You fall asleep..."
+Notes.....: It  is  useful  to  let  the  player know that they've fallen
+	    asleep.   Also  remember to make the player wake up if they try
+	    to do anything!
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  WAKE
+
+Parameters: None.
+Purpose...: Wakes the player up.
+Example...: verb=wake
+	    asleep	reply "You wake yourself up."
+	    &		wake
+	    else	reply "You're not asleep..."
+Notes.....: This command should be put into any action that would wake the
+	    player if alseep.  Unless you wish to have them sleep walking!
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  SIT
+
+Parameters: None.
+Purpose...: Makes the player sit down.
+Example...: verb=sit
+	    sitting	reply "You already are."
+	    else	message "You sit down on the floor."
+	    &		sit
+	    &		announce others '@me has sat down on the floor.'
+Notes.....: None.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  LIE
+
+Parameters: None.
+Purpose...: Makes the player lie down.
+Example...: verb=lie
+	    lying	reply "You already are."
+	    else	message "You lie down on the floor."
+	    &		sit
+	    &		announce others '@me has lay down on the floor.'
+Notes.....: None.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  STAND
+
+Parameters: None.
+Purpose...: Makes the player stand up.
+Example...: verb=stand
+	    sitting	reply "You stand up."
+	    &		stand
+	    lying	reply "You stand up."
+	    &		stand
+	    &		announce others '@me has gets up off the floor.'
+Notes.....: It  would be necessary to put this check in movement commands
+	    so  that the player isn't remained sitting/lying when they move
+	    rooms.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  INVIS
+
+Parameters: None.
+Purpose...: Makes the player invisible.
+Example...: verb=wave
+	    syntax=verb noun=wand
+	    invis	reply "You already are!"
+	    &	endparse
+	    -	reply "You vanish!"
+	    -	invis
+	    &		announce others '@me vanishes.'
+	    syntax=verb
+	    -	reply "Ok you @vb."
+	    -	announce others "@me the @mr @vbs."
+Notes.....: The above example checks to see if the player types WAVE WAND
+	    but does not check to see if the play HAS then wand!
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ VIS
+
+Parameters: None.
+Purpose...: Makes the player visible.
+Example...: verb=vis appear
+	    not invis	reply "You already are!"
+	    else	reply "You magically appear."
+	    &		vis
+	    &		announce others '@me appears from nowhere.'
+Notes.....: None.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ RDMODE
+
+Parameters: <mode>
+Purpose...: Sets room descriptions mode. Where <mode> is:-
+	B, Brief   = only give short descriptions
+	V, verbose = ALWAYS give LONG descriptions
+	R, rmcnt   = RooMCouNT. i.e After you've seen the verbose
+		     description  it is not shown again.
+Example...: verb=brief
+	    rdmode b		reply 'Your in brief mode already!"
+	    else		rdmode b
+Notes.....: The rmcnt description is given to the player the first time
+	    he/she enters the game. Look ALWAYS gives a long description.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ RESET
+
+Parameters: None.
+Purpose...: Resets the game.
+Example...: verb=reset
+	    myrank <9	reset
+	    else	reply "Sorry your not powerful enough."
+Notes.....: This command causes ALL of the players to be logged OUT of the
+	    game  and  the data files are read back into the system so that
+	    all of the puzzles and items can be brought back into play.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ ACTION 
+
+Parameters: <to> <msg>
+Purpose...: Sends message to group of users. Where the group is:
+	    global   - everyone excluding the player.
+	    everyone - ALL players.
+	    outside  - everyone outside room excluding the player.
+	    here     - everyone in this room.
+	    others   - everyone in this room excluding the player.
+Example...: verb=wave
+	    else anounce here '@me waves and smiles."
+Notes.....: The  @  functions  can  be  used  in  the output string.  The
+	    announce  is treated as a ACTION announce therefore not seen by
+	    blind  players  and  does not wake up sleeping players.  Please
+	    note  that  the  command  laugh  could be treated as a ANNOUNCE
+	    although it is an action, as a noise is involved.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  GLOW
+
+Parameters: None.
+Purpose...: Makes the player glow.
+Example...: verb=glow
+	    syntax=verb
+	    glowing	reply "You already are!"
+	    &	endparse
+	    -	reply "You magically light up like a xmas tree!!!"
+	    -	glow
+Notes.....: A glowing player is treated as a light source for dark rooms! 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  UNGLOW
+
+Parameters: None.
+Purpose...: Stops the player glowing.
+Example...: verb=unglow noglow
+	    syntax=verb
+	    not glowing	reply "You're not glowing!"
+	    &	endparse
+	    -	reply "You're glow fades away..."
+	    -	unglow
+Notes.....: Opposite to glow.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ MOVE  
+
+Parameters: <player> <location>
+Purpose...: To move the player from one place to another.
+Example...: verb=press
+	    syntax= verb	noun=button
+	    -	reply "Your surroundings change."
+	    -	move start
+Notes.....: In  the example the action of pressing a button will act as a
+	    teleport and move the player the a location with the label 'START'
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

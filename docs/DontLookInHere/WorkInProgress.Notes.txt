@@ -1,0 +1,30 @@
+##################################### NOTE ################################
+
+A note to the authors of XenoLink BBS...
+
+'Hi'.
+
+Actually, a little more... I would be interested in implementing support
+for AMUL to run under XenoLink; but I'll need a developers copy of the
+software.
+
+<GRIN>
+
+If you are interested, please contact me at:
+
+	Oliver Smith on 2:252/129.1 (MetNet Triangle point 1).
+
+Thanks!
+
+Oliver
+
+
+-----------------------------------------------------------------------------
+
+Rest of the world:
+
+ Various works and wonders will be implemented into AMUL in future and
+forthcoming versions, but I REALLY have a large chunk of work which is
+being put 'on hold' until current versions of AMUL get some RESPONSE.
+
+ Oliver

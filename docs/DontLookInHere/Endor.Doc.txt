@@ -1,0 +1,61 @@
+
+ Endor -- END doOR session
+ ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Endor is a simple CLI utility. It will be of greatest use to people
+  writing their own doors and to SysOps trying to install doors which do
+  not support the Paragon door protocol.
+
+   Endor accepts ONE parameter, a paragon line number (0-9). If the door
+  port for that line can be located, Endor tells the port controller to
+  end the door session (door command 20, Exit). This releases the line and
+  returns control to Paragon/StarNet without logging the user off.
+
+   Programs such as AMUL or World Empire which use a shared serial port
+  (or Getty device according to WEmp) can be used with Paragon/StarNet,
+  but most SysOps seem to have been doing this using the Executer door by
+  Shaun O'Neil.
+
+   Now you can do it quickly and simply (and on multiple-lines) by setting
+  up a script similar to RunAMUL.Bat.... All you need do is to call the
+  door program as per normal, but at the end of the script make sure to call
+  ENDOR <lineno> to release the line.
+
+
+	Examples:
+
+		The door port on line 0 has seized up, type:
+
+			1> endor 0
+
+		Script to run AMUL from local or line 1
+
+
+			.key lineno/a
+			; above line accepts ONE parameter - line no.
+
+			if <lineno> eq 0	; local line?
+				amul
+			endif
+			if <lineno> eq 1	; line 1?
+				amul -s 0 serial.device 0
+			endif
+			endor <lineno>		; end door session
+
+
+  KingFisher Software D&EG International
+  70 Legsby Avenue
+  Grimsby
+  South Humberside	DN32 0NE
+  E N G L A N D
+
+  Oliver Smith	-  The CodeOMatic BBS
+  Tel: +44-472-361725	(England)	VOICE.
+  BBS: +44-482-449028 or +44-482-473871 for HST (MetNet Triangle BBS)
+
+
+  KFS Australian Support BBS:
+
+  Brendan Pratt  -  SideCar Express BBS
+  Tel: +6175-468-253	(Australia)	max speeds v32 and PEP
+

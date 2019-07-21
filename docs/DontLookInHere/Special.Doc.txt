@@ -1,0 +1,196 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            games
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+                      Special.Doc - Special Verbs Notes
+                      ---------------------------------
+
+
+                              1)  Introduction
+                              ----------------
+
+
+ Although  AMUL  is  carefully designed to give maximum flexibility to the end
+user,  there  are parts of the system which are too complex or too uniquire to
+deserve  additional  actions or conditions.  For instance, when a player first
+logs  into  a  game,  how  does the games developer tell AMUL how to treat the
+user?
+
+ In  these  few  instances "Special Verbs" are used.  These are written in the
+usual way, in Lang.Txt, with one minor difference.  To prevent the player from
+activating  these  verbs  by  entering them into the parser, they are prefixed
+with  a  double-quote  (").  For example the verb executed when a player first
+logs in is called ' "start '.
+
+ This  document  lists,  briefly,  the  available "special verbs", examples of
+typical constructions and notes explaining the what, when and why of the verb.
+
+ The  use of a quote infront of a verb is NOT restricted to special verbs.  It
+is  recommended that you make use of this feature to enable you to create your
+own  subroutines,  macros  and  so  forth,  which  users  cannot  accidentally
+activate.
+
+
+                          2)  Special Verbs Summary
+                          -------------------------
+
+
+ verb        Executed
+ ---------------------------------------------------------------------------
+ "start      immediately after the player enters the game
+ "travel     before the parser executes a travel verb
+ "speech     when the player enters text without a verb (eg: "hello.")
+ "boot       by the global daemon processor at startup
+ "hit        during combat, when a player hits their opponent
+ "miss       during combat, when a player misses their opponent
+ "block      during combat, when a players hit was blocked
+ "winner     when a player a player kills their opponent in combat
+ "died       when a player dies (stamina < 0)
+
+
+
+                         3)  Special Verbs Detailed
+                         --------------------------
+
+ [3.1]  Special Verb: "start
+
+	 Executed when the player enters the game, this is effectively the
+	games 'startup-sequence'.  This gives you a chance to setup any of
+	the  users  settings,  set any flags you wish to give to different
+	ranks  and  so forth.  For example you may decide to allow toprank
+	players to log in invisibly.
+
+	 It  is  recommended that you place this verb near the end of your
+	Lang.Txt, as it is only used the once per player per game.
+
+	 Before  the  "start  verb  is executed, AMUL tells players in the
+	new-player's start room that he has entered.
+
+	Example:
+
+	----Start----
+
+	verb="start
+	syntax=verb any
+		reply " "
+		reply " Current players: "
+		who b
+		reply " "
+		toprank setdep me "With a clap of thunder, @me the @mr has just left!"
+		& setarr me "With a flash of lightning @me the @mr has just arrived."
+		& inflict me invis
+		& respond ">> Your body has been made invisible to mortals <<"
+		action outside "@me the @mr has entered the game!"
+	-----End-----
+
+	Notes:
+
+	 The  'action  outside'  line  is  only  executed  for non-toprank
+	players,  since  the  respond command is used to force an EndParse
+	after the player has been made invisible.
+
+
+[3.2]	Special Verb: "travel
+
+	 Executed  before  processing the Travel Table, or before a Travel
+	action  is  executed,  this  allows  you do any last-minute checks
+	before  a player moves between rooms (or doesn't for that matter!)
+	You  may  wish  to prevent players who are crippled, sleeping, sat
+	down  or lying down from moving between rooms.  You can even check
+	for something the player is carrying...
+
+	 This  verb  should  be placed RIGHT at the start of Lang.Txt with
+	the  travel  verbs following immediately after, since they are the
+	most commonly used words.
+
+	Example:
+
+	----Start----
+	verb="travel
+	syntax=verb any
+		fighting me error "You can't just leave in the middle of a fight! Use FLEE to do that!"
+		infl me asleep error "You aren't going anywhere until you wake up."
+		infl me cripple error "You aren't going anywhere! You're crippled!"
+		sitting error "You can't go anywhere until you stand up!"
+		lying error "You can't go anywhere until you stand up!"
+		if not carrying the rabbit then endparse
+		if carrying the carrot then respond "You feel the rabbit twitch nervously."
+		reply "In fear for its life, the rabbit leaps out of your arms and dissapears..."
+		drop rabbit
+		action others "As @me leaves the rabbit @ge was carrying leaps from his arms and lands near your feet."
+	-----End-----
+
+	Notes:
+
+	 In the example a player would not be able to walk around carrying
+	the  rabbit  unless  he  was  carrying  the carrot.  The lack of a
+	'failparse'  means  that  the player can still move despite having
+	lost the rabbit.
+
+
+[3.3]	Special Verb: "boot
+
+	 Executed  by  the  Global Daemon processor on loading you can use
+	this  verb  to setup special effects, such as weather or day/night
+	phases.
+
+	 The  following  example  demonstrates  how  you  might  set  up a
+	randomly  timed  weather  system.   Note that the "boot command is
+	placed AFTER all the verbs it calls.
+
+	Example:
+
+	----Start----
+	verb=.rain2			; change weather to rain
+	syntax=verb any
+		state rain 0 actionfrom rain "It has started to rain."
+		state rain 1
+
+	verb=.rain1
+	syntax=verb any
+		actionfrom rain	"Dark storm clouds begin to gather in the skies."
+		gstart .rain2 `30	; rain in 15-45 seconds time
+
+	verb=.fine2			; finish rain
+	syntax=verb any
+		state rain 1 actionfrom rain "It has stopped raining."
+		state rain 0
+
+	verb=.fine1
+	syntax=verb any
+		state rain 1 actionfrom rain "The rain has strated to ease off."
+		gstart .fine2 `40	; stop in 20-60 seconds time
+
+	verb="checkweath		; check & cancel weather daemons
+	syntax=verb any
+
+	verb=.weather			; weather control daemon
+	syntax=verb any
+		active .fine1 skip 5	; If there is another weather daemon
+		active .fine2 skip 4	; currently active, then we don't
+		active .rain1 skip 3	; want to start another ...
+		active .rain2 skip 2
+		state rain 0 gstart .rain1 `40	; if its fine, start rain
+		else gstart .fine1 `40
+		gstart .weather `1000	; another change LATER
+
+	verb=.tremmor			; an earthquake tremmor
+	syntax=verb any
+		announce all "In the distance you hear a terrible rumble, like that of a distant earth-quake."
+		gstart .tremmor `1320	; 11 - 33 minutes for next...
+
+	verb="boot			; "GDP" startup commands
+	syntax=verb any			; never know whats passed to us
+		gstart .weather `1200
+		gstart .tremmor 1080	; small earth tremmor in 18 mins
+	-----End-----

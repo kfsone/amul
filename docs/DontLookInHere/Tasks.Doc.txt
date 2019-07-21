@@ -1,0 +1,16 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            games
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+                       Tasks.DOC - Tasks.Txt and Tasks
+                       -------------------------------

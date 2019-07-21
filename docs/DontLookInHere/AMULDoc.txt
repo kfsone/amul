@@ -1,0 +1,1027 @@
+-----------------------------------------------------------------------------
+
+   ** PLEASE NOTE THAT _THIS_ DOCUMENT IS A 'GHOST' DOCUMENT BASED ON THE
+     ORIGINAL DOCUMENTATION. PLEASE READ THE .DOC FILES BEFORE READING THIS
+     <ahem> ITEM *
+
+
+--+ You are forced to "continue reading documents" +--
+
+-----------------------------------------------------------------------------
+
+
+          ####        ###     ###  ###   ### ####
+         ##  ##        ###   ###   ##     ##  ##            Amiga
+        ##    ##       #########   ##     ##  ##            Multi
+        ##    ##       #########   ##     ##  ##            User
+        ########  ---  ## ### ##   ##     ##  ##            adventure
+        ##    ##       ##     ##    ##   ##   ##     #      Language
+        ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+ Basics (or C if you prefer it)
+ ------
+
+There are three basic components to the AMUL system:
+	1) AMULCOM,	Adventure Compiler.
+	2) AMUL,	Adventure shell.
+	3) AMAN,	Adventure Manager (Multi-user controller)
+
+To produce an AMUL adventure, you need to create several text files, and then
+process them with AMULCOM. This will generate data files (suffixed with the
+extension .CMP) which can be used by AMUL itself. Both sets of files must
+be contained in the one directory (at the current version, anyway).
+
+ NOTE: AMUL is _not_ case sensitive...
+
+An AMUL adventure consists of the following details:-
+
+   i) "Rooms" or "Locations", the REAL core of the adventure.
+  ii) Verbs, the commands the player can use.
+ iii) Objects, the tools of the adventurer.
+  iv) The Travel Table (t.t), describing how rooms are connected.
+   v) The Language table, how to react to different commands.
+  vi) Player rankings
+ vii) 'synonyms', alternatives to proper object/verbs
+viii) ID's, labels for rooms/verbs/objects
+  ix) Mobiles (* Not included in this version *), computer animated players
+   x) Messages (both system and user defined)
+
+The adventure will also contain various other bits and pieces, but these are
+desribed later.
+
+ Files Required
+ --------------
+
+All adventure 'source' files should have the extension ".txt". There are a
+few basic layout rules...
+
+Each file consists of 'sections', which will be defined later on. Each
+section in a file is seperated by a TOTALLY blank line. If you wish to put a
+visually blank line into the text, place atleast ONE space on the line. You
+may have as many whitespace characters (returns, spaces, tabs etc) between
+sections, but the next section will commence at the first non-whitespace,
+non-comment text.
+
+AMUL allows for two kinds of comments in the .txt file. Any line starting
+with an ASTERISK (*) or a SEMI-COLON (;) is treated as a comment and ignored.
+However, lines commented by an asterisk are displayed at compile time. 
+Comments may be placed ANYWHERE inside a .TXT file, EXCEPT inside a text
+block (defined later), e.g. the title page in TITLE.TXT.
+Note: The comment characters MUST be the VERY FIRST character on the line.
+
+  Name           | Use/Description
+-----------------+-----------------------------------------------------------
+  TITLE.TXT	 | Adventure details & title page.
+  SCENARIO.TXT	 | A short scenario for new players.  (Optional)
+  ROOMS.TXT	 | Room names, flags and descriptions.
+  RANKS.TXT	 | Player "ranks".
+  LANG.TXT       | Language file. Contains Verbs and how to handle them.
+  TRAVEL.TXT	 | The 'travel table', defines conditions connecting rooms.
+  OBDESCS.TXT    | LONG Object descriptions
+  OBJECTS.TXT    | Object headers/definitions.
+  UMSG.TXT	 | User Messages
+  RESET.TXT	 | Text to be shown to the user when the game resets.
+* SYSMSG.TXT	 | System Messages
+* DEMONS.TXT     | User-defined background tasks
+* MOBILES.TXT	 | User-defined computer-animated objects/players
+
+(* indicates files are not used YET)
+
+ File construction
+ -----------------
+
+(id)   Rather than refering to, say, rooms, by their record number, you can
+      give them an 'id' or 'label'. You can then refer to this entry by its
+      ID later on... All ID's may be between 3 and 10 characters, unless
+      otherwise stated.
+
+ ** NOTE: **
+
+ If you want a space in an ID, e.g. "go north" as a verb ID, you must put
+
+ In any of the fields where you are defining a string, e.g. an ID, or a
+synonym, AMUL allows for spaces... To put a space in a string, you should
+put an underscore (_) where the space would be... Any underscores will be
+displayed as spaces in the final adventure, and will be 'equal to' spaces
+when parsing the users sentences. The only underscores that won't be
+affected are those contained within quotes ("..."), e.g. within message text.
+
+ ****************************************************************************
+				==TITLE.TXT==
+				=============
+---Start---
+name=<adname>
+<title>
+----End----
+
+adname	  is the adventures name, and may be upto 40 characters long.
+title	  is the title page to the adventure, and can be as long as you like
+
+e.g.:
+---Start---
+; An example title.txt
+
+; Name= line must be the FIRST non-whitespace/non-comment text.
+name=A-MUL Test Adventure
+
+
+			Welcome to the A-MUL Test adventure.
+			       By Oliver Smith, 1990
+			       ---------------------
+
+
+Halt - who goes there!? Enter thy name below!!!
+----End----
+ ****************************************************************************
+                              ==SCENARIO.TXT==
+			      ================
+---Start---
+Welcome to the world of adventure, where great surprises and dissapointments
+await your persual.
+
+The  scene  is  set in the prehistoric era, although as your soon find out,
+they're a bit more advanced than expected....
+----End----
+
+This text would be shown to the user the first time they log into the game.
+On  subsequent  times  it would be skipped.  The file is optional so if you
+don't wish to set a scenario the file needs not to be created.
+ ****************************************************************************
+				 ==ROOMS.TXT==
+				 =============
+---Start---	(each room seperated by one or more blank lines)
+[room=](id) {flag}
+[<Short description>]
+[<Long description>]
+----End----
+
+id	label, upto 10 characters long, a reference no. to this room.
+flags	default is 'light', see later for list of flags.
+short	Single line, <80 chars, displayed EVERY time a player enters room.
+long	As many lines of text as you want. Displayed on first visit or when
+       the LOOK_HERE function is used.
+
+*NOTE: If you place a tab character infront of the description lines it will
+      be ignored, this makes the file more human readable later on...
+
+Examples:
+---Start---
+; Example ROOMS.TXT - This text will COMPILE if entered into ROOMS.TXT
+
+;
+; First room, uses default flags, and description text is not indented
+;
+room=exit
+The End.
+You have reached the end of this adventure! Well done!!! The crowd cheers you
+on as you give a royal wave!
+
+;previous line is TOTALY blank to seperate sections
+;next room has a couple of flags and is the starting location in the game.
+;in the adventure the text will be displayed without the leading tab, but
+;compare the two rooms for readability...
+
+room1	startloc
+	Low passage.
+	You are stood in a low passage connecting two guard rooms, one to the north
+	and one to the south. There is a doorway to the west which is of polished
+	wood, and seems to be to somewhere very important.
+
+;
+;Finally, a room with no long description...
+; note -- light is a default flag, but can be added for clarity.
+;
+gonner	death light
+	You have snuffed it... Ta-ta!
+
+----End----
+ ****************************************************************************
+				 == ROOM FLAGS ==
+				 ================
+
+You may currently set the following flags for rooms:
+
+ LIGHT	   -	<default> Indicates players can see without assistance.
+ DARK      -    Player cannot see in room without a light source.
+ DEATH	   -	Game over for player on entry, unless they are a wizard.
+ NOLOOK    -	Players cannot look into this room from another.
+ HIDE	   -	Players in this room cannot be seen from outside.
+ HIDEAWAY  -	Objects in here cannot be seen.
+ SANCTUARY -    Score points for dropping objects in here.
+ SMALL	   -	Only one person can enter room at a time.
+ SILENT	   -	Cannot hear sounds from outside world in here.
+ RANDOBJS  -	Objects with random startlocs can start from here.
+ STARTLOC  -	Game starts here. One selected at random (if >1 exist)
+
+
+Also, there are the following 'parameters':
+
+ DMOVE id  -	When the player dies, drop his inventory into room (id)
+
+ ****************************************************************************
+				 ==RANKS.TXT==
+				 =============
+---Start---
+<male title> <female title> <score> <min. strength> <stamina> <min. dexterity>
+<min. wisdom> <experience> <magic points> <max. weight> <max. objects>
+<points per kill> [<prompt string>]
+etc...
+----End----
+
+male title	Title given to males of this rank.
+female title	Title given to females of this rank.
+score		Minimum score needed to gain this rank.
+min. strength	Minimum strength allowed on ACHIEVING this rank!
+stamina		Stamina allocated to the player of this rank.
+min. dexterity	Minimum dexterity allowed on ACHIEVING this rank!
+min. wisdom	Minimum wisdom allowed on ACHIEVING this rank!
+experience	A level to mark how much the player as learned as playing.
+magic points	The number of magic points available for this rank.
+max. weight	The maximum weight a player of this rank can carry.
+max. objects	The maximum number of objects a player of this rank can carry.
+killing points	The minimum number of points gained for killing someone of
+		this rank
+prompt string	upto ten characters (enclosed in quotes) to prompt users of
+		this rank with. If none is specified, the prompt for this
+		rank is assumed to be '> '.
+		
+
+if a female rank has the same description as the male one, then you can put
+an equals sign (=) instead of duplicating the text. Also, if you wish to put
+a space in a name, put an underscore (_) where the space should be.
+
+*NOTE* The top rank in the adventure is refered to as 'Wizard' through out
+the rest of the text. This is more a reference to the level of gameplay than
+the actual rank name.
+
+e.g.
+---Start---
+; Example EXTRAS.TXT
+
+Novice	      =		 0   10  100   10   10   10   10   100   10     0 > 
+Great_Warrior =	       400   30  200   20   15   20   20   200   12   100 :-< 
+Hero	      Heroine  800   50  300   30   20   30   30   300	 14   200 8-) 
+Champion      =	      1600   70  400   40   30   40   40   400   16   400 --> 
+Wizard	      Witch 102400 1000 5000 1000 1000 1000 1000 99999  100 92400 --* 
+----End----
+
+Note1: There is a space after each of the prompt strings <you can't see them
+just by looking, hehe.
+Note2: If you want 'whitespace' characters at the start of your prompts, you
+should enclose the prompt strings in quotes ("...").
+Note3:   It  doesn't matter how LONG the lines are, but all the information
+is currently need the SAME line for each rank.
+ ****************************************************************************
+				 ==OBDESCS.TXT==
+				 ===============
+---Start---
+[desc=](id)
+<description>
+----End----
+
+id		upto 10 characters...
+description	as long a piece of text you like describing the state of
+               an object. Placing a %s in the text will display the objects
+               adjective, if it has one.
+
+Note: Obdescs is only intended for use with descriptions which are used
+repeatedly, or which are more than 80 characters long. A shorter description
+can be placed on the object state lines.
+
+Each description is seperated by a blank line. The descriptions are stored
+seperately to the actual objects, to save space, and make entry of the
+objects easier.
+
+Example Obdescs.TXT:
+
+---Start---
+; Example OBDESCS.TXT - This text will COMPILE if entered into OBDESCS.TXT
+
+; A cannon in state 2 - lit & loaded!
+desc=cannon2
+An ENORMOUS cannon stands before you. Peering at the barrel you can see that
+it is loaded. You also notice that the fuse is merrily burning away! (gulp!)
+
+; Cannon in state 1 - just loaded! (funniest to goon show fans)
+desc=cannon1
+An ENORMOUS cannon stands before you. Peering at the barrel you can see that
+it is loaded. You also notice a naughty little fuse... Very tempting...
+
+; At last, the lonely cannon...
+desc=cannon0
+An ENORMOUS cannon stands before you. You poke your head down the barrel,
+and find that it is empty.
+----End----
+
+ ****************************************************************************
+				 ==OBJECTS.TXT==
+				 ===============
+---Start---
+[noun=](ID)	[<flags>]
+<roomlist>
+	{states}
+
+id		upto 10 characters. if the name is longer, the ID should be
+		an abbreviation, and define the full thing as a synonym.
+flags		see below
+roomlist	one (OR MORE!) rooms which the object appears in. Doors would
+		appear in TWO rooms. If an object appears in more than one
+		room it cannot be picked up by a player. It CAN be a container
+		although it's not recommended (define 'BANK' as an object,
+		define a few thousand 'NOTES', and hey presto! You can have
+		great fun...)
+		An object can start the game inside another object, but to do
+		this the container object must be defined first.
+
+	states:
+To allow you to represent a 'changeable' object, such as a door, which can
+be in one of various states (i.e. Open or Closed), AMUL allows you to define
+an object in multiple 'states'. In older adventure languages you would have
+had to create two wholly seperate objects, and fiddled their locations to
+make the one object seemed to have changed. AMUL does it the PROPER way.
+Changing between 'Open' and 'Closed' is a change of "state", as is the
+transition from "ICE CUBE" to "PUDDLE OF WATER".
+
+A state is defined as follows:
+	[weight=]<weight> [value=]<value> [desc=]<desc.id> [<flags>]
+OR	[weight=]<weight> [value=]<value> [desc=]"text..." [<flags>]
+
+weight	how much the object weighs
+value	what the object is worth when its function is completed or it is
+	dropped in a SANCTUARY room.
+desc.id	the description ID for the object in this state or 'NONE' if none.
+text    description of this state, enclosed in quotes.
+flags	see later
+
+Just to remind you, the overal format of an object is:
+
+[noun=](ID)	[<flags>]
+<roomlist>
+	[weight=]<weight> [value=]<value> [desc=]<desc.id> [<flags>]
+OR	[weight=]<weight> [value=]<value> [desc=]"text..." [<flags>]
+
+
+Example Objects.TXT:
+
+---Start---
+; Example OBJECTS.TXT - This text will COMPILE if entered into OBJECTS.TXT
+; Note... Tabulation isn't ESSENTIAL, unless you ever want to READ your
+; adventure again!
+
+; -- ALL Optionals --
+noun=cannon adj=enormous put=in holds=50000
+  canrm
+	weight=750000 value=50000 desc=cannon0	useless
+	weight=800000 value=60000 desc=cannon1	useless
+	weight=800000 value=0     desc=cannon2	useless lit
+
+; -- NO optionals, multi-located --
+noun=door adj=wooden opens scenery
+  corridor1 room1
+	0	0	"Room 1's door is open."	open
+	0	0	"Room 1's door is closed."	closed
+	0	0	"Room 1's door is locked."	closed
+----End----
+
+ ****************************************************************************
+				== OBJECT FLAGS ==
+				==================
+
+Objects have two sets of flags/parameters. One set, the fixed set, define
+the objects properties, such as whether it can be opened/closed, whether
+it is a 'mobile', if it is a container etc.
+
+The second set are specific to each individual state.
+
+Current FIXED flags:
+ OPENS	   -	The object has open/closed states.
+ MOBILE	   -	This is actual a computer-animated player (mobile).
+ SCENERY   -	The object cannot be picked up.
+ COUNTER   -	Allows you to use objects as 'variables' or counters, and
+		AMUL ignores them COMPLETELY! (Also sets the SCENERY flag)
+
+Current FIXED parameters:
+ ADJ=adj   -	ADJ is short for adjective. Allows you to define different
+		variations of an object, eg. a WOODEN door, or a SHINY key.
+ START=#   -	Which state the object starts the game in. <default=0>
+ HOLDS=#   -	How much the object can contain. This also sets a flag
+		indicating that the object is a container.
+ PUT=ON|UNDER|BEHIND|IN - Where objects 'go' when they are put 'into' this
+		object. This makes no real difference to the state of the
+		world, it simply affects the output. Default is IN
+
+Current STATE flags:
+ LIT	   -	Object is a light-source. If not set, object is dark.
+ OPEN	   -	The object is open (must have OPENS)
+ CLOSED	   -	The object is closed. Default is OPEN.
+ USELESS   -	Object CANNOT be used in a fight (e.g. a piece of paper).
+ WEAPON	   -	Can be used as a weapon.
+
+Have a look at, and experiment with, the sample adventure supplied, to get
+the jist of object flags.
+
+ ****************************************************************************
+				  ==LANG.TXT==
+				  ============
+
+	VT Format: (no. of }'s indicate nesting level)
+
+[verb=](ID)	[travel] [<obj priority>, default CHAE]   }
+[[syns=]<synlist>]					  }
+[usage="<how to use this command>"]			  }
+syntax=<syntax line>					 }}
+	<condition> [<params>]  <action> [<params>]    	}}}
+or	<condition> [<params>] [go to|goto] <room>	}}}
+							  }
+
+The language table informs the AMUL parser how to behave when a command is
+typed in. Each 'verb' has the following details:
+
+	a) Verb name
+	b) flags
+	c) syntax blocks.
+
+a) name:		[verb]=(ID)
+This is the verb itself. Upto 10 characters long. If the REAL verb is longer
+make the ID an abreviation, and put the full word in the SIMilar words list.
+
+b) flags:		[travel]
+There is only one verb flag, "travel". This means that the verb is a movement
+command, and causes the parser to process the current rooms 'travel table'
+entry (see later). If no match is found, the verb is processed as normal <if
+there are any entries>.  'North' would be a travel command, whereas 'jump'
+would have a command line to make it say "Weeee... Wasnt that fun?" if the
+travel table didn't react to it.
+
+c) syntax line:
+The AMUL parser is a fairly complex one. However the parser in your adventure
+is as complex as you wish to make it. You can use the syntax line to restrict
+or enhance the 'depth' of each verb.
+In order to explain the syntax line, we need to explain how the parser works,
+since this will make it easier to understand WHY the syntax line is used, and
+make it clearer to you how to construct it!
+Let's take four sentences, entered by a user, and 'watch' AMUL parse them,
+explaining the stages as we go along.
+The four sentences are:
+ (1)	please get the bag
+ (2)	put  red match in brown box
+ (3)	kill jason with knife
+ (4)	say "hi there"    to fred
+
+You'd best write those down, because they're gonna get used an AWFUL lot, and
+you might need to keep refering back to them!
+
+AMUL's first step is to strip any 'white space' words from the sentence. These
+are words which simply 'enhance' the English of the sentence; e.g. "the", "a"
+or "an". The words listed on the left hand side in capitals are 'white space'.
+Also, any excess spaces/tabs are removed...
+ (1)	PLEASE get THE bag		->	get bag
+ (2)	put  red match in brown box	->	put red match in brown box
+ (3)	kill jason WITH knife		->	kill jason knife
+ (4)	say "hi there"    to fred	->	say "hi there" fred
+
+The next step is to check that the first word in each sentence is a VERB and
+remove it. If the sentence consists of just a verb, we branch to processing
+after this step.
+ (1)	GET the bag			->	bag
+ (2)	PUT red match in brown box	->	red match in brown box
+ (3)	KILL jason knife		->	jason knife
+ (4)	SAY "hi there" to fred		->	"hi there" fred
+
+Next a minor step; check if the first word in the sentence is an adjective.
+If it is, it is removed, and placed in 'adj1', leaving:
+ 'bag'		'match in brown box'	'jason knife'	'"hi there" fred'
+		adj1=red
+
+AMUL will now classify the first word of the sentence, put it into 'noun1' and
+remove it, leaving:
+ ''		'in brown box'		'knife'		'fred'
+ type=noun	type=noun		type=player	type=text
+ noun1=bag	noun1=match		noun1=jason	noun1=hi there
+(If the sentence is now empty, as in (1), we go to VT and TT processing).
+
+Now we check for a preposition (where to 'do' this action [to], e.g. behind).
+ ''		'brown box'		'knife'		'fred'
+ 		prep=in
+
+Another quick adjective check...:
+ ''		'box'			'knife'		'fred'
+		adj2=brown
+
+Finally, another classify & copy session:
+ ''		''			''		''
+		noun2=box		noun2=knife	noun2=fred
+		type=noun		type=noun	type=player
+
+AMUL's internal registers now look like this:
+ (1) verb=get,  ajd1=none, noun1=bag,      prep=none, adj2=none,  noun2=none
+ (2) verb=put,  adj1=red,  noun1=match,    prep=in,   adj2=brown, none2=box
+ (3) verb=kill, adj1=none, noun1=jason,    prep=none, adj2=none,  noun2=knife
+ (4) verb=say,  adj1=none, noun1=hi there, prep=none, adj2=none,  noun2=fred
+(Also keeps a note of what TYPE of word noun1 and noun2 are).
+
+As you can see, there are various possible syntaxes that can be used.
+One verb can also have more than one syntax, for example:
+  drop brand
+  drop the dog into the basket		(sorry about the 'dog' examples).
+So you need some way of telling AMUL which syntax you want to tell it to cope
+with; et volia, the Syntax line! Now all we need is how to construct one!
+
+Just incase you REALLY want to know, the format for a syntax line is:
+ syntax=[verb] <type>[=(id)] [<type>[=(id) [<type>[=(id) etc...]]
+
+The default for all fields is 'none'. However, if you specify 'noun' in
+either of the two noun fields, AMUL will assume you allow 'adj' infront of
+them. So if you want to process JUST a noun, you must tell it to expect
+no adjective! (Although I recommend you let adjectives, it makes you look
+cleverer).
+
+The syntax lines for the above sentences would be:
+ (1) syntax=verb noun			(note that VERB is optional)
+ (2) syntax=verb adj noun prep adj noun
+ (3) syntax=verb player noun
+ (4) syntax=verb text player
+
+As well as specifying an ID after a type, e.g. noun=knife, you can specify
+'opt', which means process this line if this is here or not. This is what
+AMUL assumes of adjectives, so an alternative way of saying the syntax for
+(1) would be: "syntax=verb adj=opt noun". This would mean EXACTLY the same
+as above. Also, to tell it you don't want anything in a field, use
+<type>=none. So, to parse <verb> <noun> ONLY, you would put:
+ syntax=verb adj=none noun
+
+Finally... If you want to be ULTRA precise, you can also specify <type>=any.
+E.g. the above sentence would have been: "syntax=verb adj=any noun=any".
+Please note that ANY does NOT mean the same as OPT.
+
+The next stage is the condition and action line (c&a). These tell AMUL
+exactly what to do under differing circumstances. For instance, if the
+player types 'kill jason with knife' and Jason isn't in the same room...
+A full list of current conditions/actions is listed later.
+
+After having told AMUL what syntax you are expecting, you can now use
+new words to talk to the conditions and actions... For example, 'sayto'
+is used to communicate a text message to a specific player. This takes
+two parameters, <user> and <message>. When you are writing your game,
+you don't know who the receiver is going to be. So, to make it variable,
+you pass the 'type'... When you have more than one of the same type in
+a sentence, simply put a '2' after the second type.
+---Start---
+verb=say
+syntax=verb text player
+	if not near player then message "He's not here! Try shouting..."
+	if near player then sayto player text
+	if near player then reply "OK."
+----End----
+
+To summarise..
+As well as specifying an ID, you can say 'NONE', 'OPT' or 'ANY'.
+
+**Note: The parser will go thru the entire verb entry and execute any
+statements/syntax block which match with the inputted text unless the
+ENDPARSE action is used.
+
+example:
+---Start---
+;Example LANG.TXT
+
+; A travel verb needs no more detail than the SIM: list
+verb=north	travel
+syns=n go_north go_n
+
+; Jump. Has effect in some rooms. So we send it to the TT first
+; then we get our hands on it if there was no entry in the TT.
+verb=jump	travel
+syntax=verb
+	always	message	"Yippee, wasn't that fun?"
+
+; Finally, a verb with some syntax
+; in this example, there is a cat. If you put the cat out once you get
+; told he doesn't like it. If you do it twice (counted by changing the
+; cat's state [see object details]) the cat turns vicious.
+; when a player is killed using "killme" all other users are told:
+; "<player> has been killed ". KillMe accepts ONE parameter, an optional
+; text message to add to the end of this death string.
+put
+; put fat cat "out", no second noun
+; note: since 'out' isn't an adjective or noun, we call it 'text'.
+syntax=verb adj=fat noun=cat text="out"
+;					   \/-- Defined in MSGS.TXT
+;	\/-------\/----\/-- Optional  \/
+	if state of noun is 1 then reply AnnoyedCat
+	& KillMe "by a savage, mutant, fat cat."
+	if state is 0 THEN Message UnhappyCat
+	&	           SET State OF noun TO 1
+	always endparse
+;
+; If using the <verb> <noun> syntax, treat it as 'drop'
+syntax=verb noun prep
+	always treatas drop
+;
+; how to treat <verb> <noun> into <noun> syntax
+syntax=noun prep noun
+	if ishere noun1 then skip next 2
+	if not carrying noun1 then reply "I can't see one!"
+	&			   endparse
+	if not carrying noun2 then message "Into what?"
+	else	put noun1 noun2
+
+; Example of using types in condition & action lines
+verb=shout
+syns=yell hollar
+usage="If ya wanna be heard, put what you wanna shout in quotes ("..")"
+; First of all we check they aren't alone... Text or no text.
+syntax=verb text=opt
+	if alone then reply "Fair enough... But no-one hears!"
+	&	      endparse
+syntax=verb
+	-		reply "Fair enough... AGGGGGHHHHHHH!!!!"
+	-		announce others "@me lets out a deafening AAAGGGHHHH!!!"
+	-		announce outside "In the distance you hear someone screaming!"
+syntax=verb text
+	always reply "You yell at the top of your voice:"
+	always reply text
+	always announce to others "@me yells }"
+	always announce to others text
+	always announce outside "In the distance you hear someone shout }"
+	always announce outside text
+
+; An example of an unexpanded open command... All optionals omitted!
+; note: '!' is the same as 'not', and is included for those C proggers of you!
+;
+; You might like to use this layout yourself...
+;
+; Oh, and this assumes that state 0 is OPEN, state 1 is closed.
+
+open
+  syntax=verb noun
+	! ishere noun		reply "Sure... Wave a magic wand at it, eh?"
+	&			endparse
+	state noun 0		reply "Ahem... Look carefully... It already is."
+	&			endparse
+	-			state noun 1
+	-			reply "@n1 opened."
+	! hidden		action others "@me opens the @n1."
+	else			action others "Someone has opened the @n1."
+
+----End----
+
+ ****************************************************************************
+                           == Current Conditions ==
+			   ========================
+
+Conditions return a value. If FALSE this line is ignored and processing cont-
+inues on the next line; if TRUE this line is executed. To test if a condition
+is false, put the word 'NOT' infront of the condition.
+(*=activated, +=added this version).
+
+Note: When testing for numeric values, you can specify 'less than' and
+'equal too' by placing the relevant sign ('<' or '>') infront of the number.
+
+*	&		-	If the last condition was true
+*	ELSE		-	If the last condition wasn't true
+*	ALWAYS (or '-')	-	Always returns 'TRUE'
+*	LIGHT		-	TRUE when there is a light source in the room
+				or room does not have 'DARK' flag.
+*	ALONE		-	If I'm the only one in this location.
+*	ISHERE noun	-	Check object is here.
+*	MYRANK n	-	If my rank is n.
+*       STATE noun n	-	Checks if noun is in state n
+*	ONLYUSER	-	If player is the only user in the game....
+*	MYSEX m|f	-	If my sex is Male or Female, only the first
+				letter is REQUIRED, rest is optional.
+*	LASTVERB vb	-       If the last verb was
+*	LASTDIR	 vb	-       Same, but for the last TRAVEL verb typed.
+				Used to do 'one way' movement.
+*	LASTROOM n	-	If the last room was n
+*	ASLEEP		-	if players is sleeping
+*	SITTING		-	if player is sitting down.
+*	LYING		-	if player is lying down.
+*	INVIS		-	if player is invisable.
+*	RAND n1 n2	-	if random between 0 and n1 is < > = n2
+				(eg. RAND n1 > n2)
+*	RDMODE <mode>	-	Tests current room description mode.
+*	GLOWING		-	if the player is glowing.
+*	INROOM <room>	-	checks to see if the noun is in room <room>
+				where <room> is the room label.
+*	HIDDEN		-	If people can see me. If the room is dark
+				or the player is invis, you are hidden.
+*	CARRYING <noun>	-	If you are carrying an object.
+*	NEARTO <noun>	-	If you are carrying or stood near object.
+*	CANGIVE obj usr	-	If the player has enough space to carry
+				object.
+
+** PLEASE SEE FUNC.DOC for an ALMOST upto date list of actions/conditions.
+
+ ****************************************************************************
+                            == Current Actions ==
+			    =====================
+Actions carry out specific functions. In a normal adventure system they would
+do most of the work, but in AMUL, I'm afraid the 'programmer' must do this.
+For example, the AMUL "get" action will NOT check to see that the object is
+in the room. It will not check to see that the object is not being carried
+by another player, it will simply take it! At first this may seem to be a bit
+long winded and unfair, but once you have written a few AMUL adventures, and
+got to grips with this overwhelming power, you will be amazed at what total
+control and YOUR imagination can do!
+
+Actions can be dangerous things without proper checks and conditions, so
+always strive for efficiency and robustness when using them (I was dying to
+get that in, Jon! -Oli). Note: * = activated, + = new.
+
+* QUIT				-	Quits the game.
+* SAVE				-	Update players record.
+* ADDSCORE <number>		-	Add <number> points to players score.
+* SCORE				-	Display players details.
+* STATE <object> <state>	-	Set state of <object> to state <state>.
+* LOOK				-	Describe present room.
+* WHAT				-	Lists objects in this room.
+  WHERE <noun>			-	Lists where objects with id noun are.
+* WHO				-	Lists who's playing.
+* TREATAS <verb>		-	Process as verb.
+* MESSAGE <msg>			-	Sends message to player.
+* REPLY <msg>			-	A synonym for MESSAGE.
+* ANNOUNCE <to> <msg>   	-	Sends message to 'to' group of users...
+* SKIP [next] <num>		-	Skips next <num> line of instructions.
+* FINISHPARSE			-	Disregards the rest of users input.
+* ABORTPARSE			-       Disregards the rest of users input.
+* FAILPARSE			-	Stops parsing this phrase.
+* ENDPARSE			-	Stops parsing this phrase.
+* WAIT <n>			-	Waits for <n> seconds
+* BLEEP <n>			-	Prints a '.' every second, n times...
+* KILLME 			-	Kills player.
+  DESTROYME			-	Kills player, removes record from disk.
+* SEND <noun> <room>		-	Sends object away.
+* SAYTO	<user> <msg>		-	Give 'msg' to 'user'...
+* CHANGESEX			-	Changes my sex.
+* WHEREAMI			-	Tells you which room your in.
+* SLEEP/WAKE			-	Puts the player to sleep/Wakes him up.
+* SIT				-	Makes the player sit down.
+* LIE				-	Makes the player lie down.
+* STAND				-	Makes the player stand up.
+* INVIS/VIS			-	Turns the player Invisable/Visible.
+* RDMODE <mode>			-	Sets the players room description mode.
+* RESET				-	Resets the game.
+* GLOW				-	Makes a player glow.
+* UNGLOW			-	Stops a player glowing.
+* MOVE <room>			-	Move player to a location.
+* TRAVEL			-	Jump to the travel table.
+* MESSAGETO <room> <mgs>	-	Announce sound to a specific room.
+* ACTION TO <room> <msg>	-	Announce action to a specific room.
+* MESSAGEFROM <object> <msg>	-	Announce sound to rooms object is in.
+* ACTIONFROM <object> <msg>	-	Announce action to rooms object is in.
+* GET <obj>			-	Take an object.
+* GIVE <obj> <player>		-	Give object to any player.
+* DROP <obj>			-	Drop object
+* INVENT			-	List current inventory
+* TELL <player> <text>		-	Tell player a message
+
+[PLUS a couple of million]
+
+** PLEASE SEE FUNC.DOC for an ALMOST upto date list of actions/conditions.
+
+ ****************************************************************************
+                               == TRAVEL.TXT ==
+			       ================
+---Start---
+[room=](ID)
+verb[s]=<verb list>
+	[if] <condition> [is] [<params>] [then] <action> [<params>]
+OR	[if] <condition> [is] [<params>] [then] [go to] room=(ID)
+----End----
+
+Note: The verb[s]= is ESSENTIAL. Parsing is continued for the entire room,
+so you can have the same verb in more than one set of verb lists... e.g.:
+
+---Start---
+room=start
+  verbs=north south east west
+	....
+  verbs=north south up down
+----End----
+
+ ****************************************************************************
+
+ File name:   UMsg.TXT
+
+ Description: Messages required by user.
+
+ Syntax:
+[msgid=](ID)
+<
+	message text
+>
+
+ Notes:
+User messages are a way of telling a user what he can and can't do, and of
+responding to certain actions without actually doing anything. They are
+also for generally informing the users of what _your_ system is doing.
+Instead of using a message ID from UsrMsg.TXT, throughout the rest of the
+system, wherever you see [msgid=](ID) you can also put:
+	[msgid=]$<system message no.>
+or	[msg=]"<text>"
+
+UMsgs are displayed using the MESSAGE function. This automatically prints
+carriage return/line feed after each line. To prevent this happening on any
+line simply put an open brace as the last character ('{'). So you could write
+
+---Start---
+room=cliff
+  verb=jump
+	if light then message "Weeeee... Wasn't that fun?"
+	if not light then message "You trip, and fall. {"
+	&		  bleep 6
+	&		  message "Suddenly your fall is broken!"
+	&		  pitbotm
+----End----
+
+If the room is lit, you jump. If not, the system displays:
+You trip, and fall. . . . . . .
+Suddenly your fall is broken!
+Pit Bottom.
+<etc>
+
+ See: SysMsg.TXT
+
+ ****************************************************************************
+
+ File name:   SysMsg.TXT
+
+ Description: Messages required by the system, e.g. "I don't understand..."
+
+ Syntax:
+[msgno=]<message no.>
+<message text>
+
+ Notes:
+Message text can be any length. The message no. is more for the users aid
+than the systems, since the messages must be in order anyway! All system
+messages MUST be entered for each adventure (a standard SysMsg.TXT is
+supplied).
+
+ See: None.
+
+ ****************************************************************************
+                               ==RESET.TXT==
+			       =============
+---Start---
+The planet shakes severly until you can no longer hold your balance. For some
+strange reason you begin falling upwards away from the world.
+
+Below you see men in white suits replacing all the damage you have done.
+----End----
+
+When the game resets this text is shown to the players before they are logged
+out of the game.
+ ****************************************************************************
+
+ File name:   Mobiles.TXT		* NOT PROCESSED YET *
+
+ Description: Computer animated player definitions.
+
+ Syntax:
+(not developed yet)
+
+ Notes:
+** WORK IN PROGRESS **
+
+Mobiles, or computer animated players (CAPs) are not half as glamourous as
+they sound. They are simply semi-randomly moving objects. You can restrain
+their movement from the travel table; the 'if carrying' condition considers
+mobiles to be 'carrying' their 'noun'. Mobiles.TXT allows you to define
+paramters such as intelligence level, strength, speed, kill value and so on.
+The commands generated by them go thru the same parser, language table and
+travel table as a users, to create a more realistic effect. You can also
+define whether mobiles can communicate with other players. An intelligent
+mobile, with communication ability, if it repeatedly tries an invalid command
+can even resort to asking other players for help! <Not that it is guaranteed
+to understand the replies>.
+
+A mobile could be a 'snake', which can simply move from room to room. Or a
+'theif' which can pick up or steal objects!
+
+Mobiles will be capable of _literally_ mimicking other players! Since mobiles
+are an internal part of the system, they are semi-aware of what other players
+are doing, and at random intervals, a mobile in difficulty can actually log
+a command line from another player. This is done only under one of three
+conditions; if the command:
+(i)   greatly affects the players score.
+(ii)  command kills somebody (even if its the person who entered it).
+(iii) Mobiles make eight attempts to generate a 'sensible' command, which
+     the parser OK's and does something on. After this time the mobile will
+     check the log. It will pick a command and try it. If it fails, it will
+     check to see what the last 'ok'ed command was. If it finds one, it logs
+     it, and then repeats this performance.
+
+You will also be able to configure how a mobile gets out of jams, where it
+has made fourty attempts to generate an accepted command and failed.
+
+If you have a 'pit' in your game, out of which you can only quit, a small
+snake couldn't do that. It would be stuck there. However, 'fred the hero'
+could do. A small dwarf could cheat and go back to his start position.
+You can also give mobiles a 'last resort' command, which it can select to
+use in a dead end situation.
+
+Utmost care _MUST_ be taken to ensure that you prevent mobiles from wandering
+aimlessley around into the wrong places; the strangest things can and will
+happen otherwise.
+
+ See: Travel.TXT, Demons.TXT, Objects.TXT
+
+ ****************************************************************************
+
+ USING AMULCOM
+ -------------
+
+Amulcom is the compiler... It currently only accepts a MAXIMUM of two
+parameters... 
+
+  1> amulcom [<path>] [-d]
+
+<path> is where to find and create the adventure files.
+-d     will stop the system validating DMOVE id's (incase adventure isn't
+       complete yet).
+
+The compiler will go thru a checklist of files, to make sure they exist,
+and inform you of any files that are missing. If all the files exist it will
+process each one, informing you of its progress as it goes on! At any errors
+it will abort and return to CLI, except when checking DMOVE id's, at which
+point it will check DMOVE rooms, before exiting with a warning.
+
+It generates several .CMP files, which are used by AMUL itself.
+
+AMULCOM is very simple to use, and is fairly descriptive in its progress
+reports.
+
+ ****************************************************************************
+
+ Using AMUL	- Adventure frame, Copyright (C) Oliver Smith, 1990
+ ----------
+
+AMUL is intended for use in a wide variety of situations, either as a BBS
+door (on-line game) or as a single user advanced adventure language. For
+this reason a variety of I/O drivers are provided. You can tell AMUL to load
+and do IO thru:
+
+AMUL:> amul -C   	-DEFAULT-	load amul with a custom screen
+AMUL:> amul -CN				load amul with a NTSC custom screen
+AMUL:> amul -S <baud> <device> <unit>   load AMUL driving a serial device.
+eg:
+       amul -s 19200 serial.device 0
+or     amul -s 2400 modem0.device 1
+
+If your application requires a FULLY SHARED SERIAL PORT, then you should give
+a baud rate of ZERO which will prevent AMUL configuring the serial device.
+
+ ****************************************************************************
+
+ USING AMAN
+ ----------
+
+Amulcom is the multi-user controller... It currently only accepts a MAXIMUM
+of three parameters... 
+
+ 1> aman [<path>] [-r|-k|-x] [<path:name>]
+
+  <path>	Directory where the .CMP files are stored.
+    -r		reset amul.
+    -x		extend game
+    -k		close aman.
+<path:name>	Path and filename for output log. (Optional. Default is
+		screen).
+
+Whist  Amul  is running AMAN give a log of the current users and times that
+they enter and leave the game.  Also reset times are noted.
+ ****************************************************************************
+
+ Bug reports and problems
+ ------------------------
+
+If you find a bug with AMUL or have a problem to report, contact me via the
+MetNet Triangle BBS in the UK (see AMULDOC for details!)
+
+AMAN, AMULCom, AMUL and all other programs compiling the "AMUL System" are
+SHAREWARE. This means that they can be freely distributed, but you are
+licensed to use any of the programs for a thirty day period only. After this
+period continued posession of the unarchived form of the programs is THEFT.
+
+The file AMUL.Reg contains a registration form with all the detail for
+registering for AMUL. The registration fee is 25 British Pounds. This IS a
+lot of money; but AMUL is a revolutionary package... Now YOU can write MUD,
+Shades or ANY other Multi-User game on YOUR Amiga!
+
+
+				The catchphrase is "Humble no more!"
+
+
+  Look forward to future versions of AMUL - Amiga Multi-User games Language
+  -------------------------------------------------------------------------
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.

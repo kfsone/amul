@@ -1,0 +1,141 @@
+= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+      ==================================================================
+      ==±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±==
+      ==±±±±####±±±±###±±±±±###±±###±±±###±####±±±±±±±±±±±          ±±==
+      ==±±±##°°##±±°°###±±±###±±°##±±±°°##°°##±±±±±±±±±±±± Amiga    ±±==
+      ==±±##±±°°##±±°#########±±°##±±±±°##±°##±±±±±±±±±±±± Multi-   ±±==
+      ==±°##±±±°##±±°#########±±°##±±±±°##±°##±±±±±±±±±±±± User     ±±==
+      ==±°########±±°##°###°##±±°##±±±±°##±°##±±±±±±±±±±±±  games   ±±==
+      ==±°##°°°°##±±°##°°°±°##±±°°##±±±##±±°##±±±±±#±±±±±± Language ±±==
+      ==±°###±±###±±####±±±####±±°#######±±#########±±±±±±          ±±==
+      ==±°°°±±°°°±±°°°°±±±°°°°±±±°°°°°°°±±°°°°°°°°°±±±±±±±±±±±±±±±±±±±==
+      ==±============================================================±==
+      ==±=            AMUL-Ed the AMUL User Editor v1.0             =±==
+      ==±============================================================±==
+      ==±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±==
+      ==================================================================
+
+
+= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+
+
+                         AMUL-Ed v1.0 Documentation
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+ [1] Introduction
+
+ [1.1] What is AMUL-Ed?
+
+	"AMUL-Ed "is an easy to use, intuition based user, editor for
+	AMUL, allowing you to easily maintain your "Players Data" user
+	file. Version 1.0 provides only the basic functions and none of
+	the intelligent features like an AREXX interface. It simply has
+	the BASIC editing facilities.  If you'd like to see an improved
+	AMUL-Ed, you'll have to prove it with hard cash;  register your
+	AMUL system, and send a note with the money listing the kind of
+	changes or alterations you'd like to see.
+
+ [1.2] Why should I use it?
+
+	If you're running AMUL through a BBS system, you'll find that a
+	great deal of your users can be tempted into visiting your local
+	MUG, but unfortunately not all of them can be tempted to become
+	regulars. Once a user has registered with AMUL the account will
+	remain in the files permanently. Another nuisance are the users
+	who never bother to remember the names they chose and so create
+	a new account each time they enter AMUL.
+
+	If you aren't running AMUL through a BBS, you will have no idea
+	of what is happening to the user files, save, perhaps, by using
+	NewZap or some other editor; This is not recommendable.
+
+	So AMULEd can make your life a lot easier. It will go as far as
+	making your life simple, but the work that requires will *ONLY*
+	happen if we receive enough 'encouragement'.  Praise and thanks
+	are greatly appreciated, but you can't pay bills with them.
+
+ [2] Using AMUL-Ed
+
+ [2.1] From the command line...
+
+	AMUL will have created a file in the adventure directory called
+	"players data". This IS the user accounts file. To load AMUL-Ed
+	simply use a command line something like:
+
+		1> run amuled adv:precious/
+	or
+		1> run amuled bbs:doors/amul/adventure/
+	or
+		1> run amuled ram:
+
+ [2.2] From the WorkBench
+
+	I don't think you can ... Anyway, who WANTS to use WorkBench?
+
+ [2.3] Once inside.
+
+	Once AMUL-Ed is loaded, you will be presented with a display of
+	the first user-record in the file.  You can click in any of the
+	fields on screen and edit the values within them.  You can move
+	around the file using the standard Intuition Menu,  or using an
+	Amiga-key combination (such as Amiga-] to go to the next record
+	in the file, or Amiga-- for the first record in the file). When
+	you change any part of a user's record,  remember to update the
+	file by 'Saving' the new record by pressing Amiga-S or by using
+	the 'Save User' menu-option.
+
+	The 'Find User' option has not been implemented yet.
+
+	When you delete a user's account, the record is first wiped and
+	then the resulting gap removed from the file ("Packing file" is
+	displayed on-screen - this does not take very long).
+
+	You'll find moving around AMUL-Ed and the user file fairly easy
+	and fairly speedy.
+
+ [3] End bits
+
+ [3.1] Definitions
+
+	"KingFisher Software D&EG International" is the trading name
+	for Oliver Smith.
+	"AMUL" or "The Amiga Multi-User games Language" indicate the
+	syntactical and grammatical form which is the AMUL Language.
+	"The AMUL System" encompasses that which is a part of the
+	computer system required for a computer system to interpret,
+	translate or process any such computerized information as is
+	written in the form of the AMUL language. This includes the
+	three main computer programmes "AMUL", "AMULCOM" and "AMAN".
+	The AMUL System is Copyright (C) KFS D&EG International, 1991.
+
+ [3.2] License
+
+	* The AMUL System is _OWNED_ by Oliver Smith & Richard Pike.
+	* Ownership of the AMUL system is not hereby transferable.
+
+	* KingFisher Software D&EG and the authors of The AMUL System
+	hereby grant a license for the period of 60 days allowing any
+	one person to store a single copy of The AMUL System on a single
+	computer system and to run the system as an unregistered trial
+	site during that period only. Outside the period of said license
+	The AMUL System in the possession of said person is covered by
+	Commercial Copyright and related laws. Possession of an illegal
+	copy of the AMUL System is contrary to Federal Law!
+
+	This license is not renewable; however, registration of the AMUL
+	system will result in a secondary, permanent license.
+
+	If you would like to register your copy, please send a cheque or
+	postal order to:
+
+	KingFisher Software D&EG International (Ref: AASSUB)
+	70 Legsby Avenue
+	Grimsby,
+	South HumberSide, DN32 0NE
+	ENGLAND
+
+                           .... Oliver Smith ....
+

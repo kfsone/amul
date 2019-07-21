@@ -1,0 +1,254 @@
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            adventure
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+                    Rooms.DOC - Rooms.TXT and Travel.TXT
+                    ------------------------------------
+
+
+                         1)  About Rooms and Travel
+                         --------------------------
+
+ An AMUL adventure is a representation of a world, or part of one.  It doesn't
+have  to be a real one!  It could be the scene of a famous battle, or it could
+be  a  spaceship,  or  a nuclear power plant.  There are an infinite number of
+scenarios.   There are a few multi-user games which use 3D graphics to give an
+accurate,  and  precise  representation of the world-environment, and are more
+like  arcade  games  than  adventures.   Anyone  who has played the game Elite
+should  stop  for  a moment here, and try and imagine a game where those other
+craft  are  actually other people.....  These games usually put you in control
+of  a space craft, and the representation of this environment is an graphical,
+three-  dimensional  animated  one!  Obviously, the higher speed the modem the
+better the game!
+
+ However,  if  you want a game that anyone with a modem and a terminal program
+can access, you have to resort to text.  This obviously reduces the resolution
+of detail.  A world in an MUA is divided into 'locations' or 'rooms'.  Room is
+a generally used term, not meaning a place with four walls, but a point in the
+world.  A room can be a clearing in a forest, halfway down a narrow track or a
+crater  on  a lost planet.  Touring an MUA is rather like viewing a house, you
+are  told "This is the kitchen, this is the hallway, this is the landing, this
+is  the  bedroom,  and  that is the toilet" as appose to "This is the kitchen,
+this  is the exit to the kitchen, we are now leaving the kitchen, entering the
+hallway...   We are now three quarters of the way down the hallway...  Getting
+nearer to the stairs..." etc...
+
+ Some adventure writing systems have rooms set into a grid, and represented by
+numbers.   This means you simply have to say which rooms in the grid cannot be
+visited,  give  each  a  description, and the rooms are ready for the users to
+walk  around.   This  gives  the adventure a definite scale, and makes it very
+simple to map.  The disadvantage is that you cannot change the level of detail
+from  place  to  place.   So  the path around a house has to be long enough to
+actually surround the house.
+
+ AMUL  uses  a  method  produced by (as far as we know) Richard Bartle and Roy
+Trubshaw  at  the  University  of Essex, England.  First of all you define the
+locations  in  the  adventure, giving each a description and a set of flags if
+neccesary.   There  is  no  relation specified between these rooms.  The order
+they are in has no bearing on how players can move between them!
+
+ The  next  step  is  to  define rules for which specific commands will move a
+player  from  one  room to another.  These can be based on what he is or isn't
+carrying,  the state of objects (e.g.  if a door is open, if a pair of ladders
+is  extended  and  in the right location) and the position or actions of other
+players!   Using  this method you can write just about anything!  You can have
+split level adventures, with lifts (when the player presses a button and walks
+the  way he came in, he arrives at a different set of rooms) or teleports (the
+player  walks  west,  and arrives somewhere 8 rooms south).  You can also make
+commands  act differently in specific rooms.  For example, the JUMP verb might
+normally  reply "Weee...  Wasn't that fun?" but if you are stood on the cliff,
+well....
+
+ The  next  step  is  to  define  where a player gets to by typing in a set of
+commands  from each of the rooms.  These rules can be based on what the player
+is/isn't  carrying, who is/isn't near him/playing, the state of an object (e.g
+whether  a door is open or closed) even the rank, score, strength or number of
+times he/she has played!
+
+ Since one room isn't considered to be 'west of' another, you can do anything.
+Lifts,  teleports,  ladders,  slides, tunnels, trains, busses, cars and so on.
+Examples of the last three are given in the Daemon.DOC since they have to move
+around.
+
+ However,  as long as your rules aren't too lose, and as long as they follow a
+pattern,  players  will often find it easier to map and remember the layout of
+your  adventure.   Towns,  cities  and  buildings  aren't  usually arranged in
+perfect  grids,  taking into account ALL side streets and so forth, but people
+usually remember them pretty well.
+
+
+                              2)  File Layouts
+                              ----------------
+
+
+Rooms.TXT:
+
+---Start---Rooms.TXT---Start---
+[room=](id) [flags]
+<short description - one line displayed each time a player enters>
+<long description - any amount of text>
+----End----Rooms.TXT----End----
+
+Notes: Lines in the long description text may be indented with a single tab,
+      which will be ignored by the compiler. It is advised that you enter the
+      text WITHOUT indentation, and add the tab later! See std/Rooms.TXT for
+      examples to prove how much more legible this makes it!
+
+Flags:
+	LIGHT	    -	<default> Room has its own light source.
+        DARK	    -   Players can't see unless a light source is present.
+                        Either a lit object or a glowing player.
+        DEATH       -   Non-top rank players die on entering the room.
+        NOLOOK      -   You cannot look into this room from another.
+        HIDE        -   Players in this room are hidden from LOOK and WHERE.
+        HIDEAWAY    -   Objects in this room are hidden from LOOK and WHERE.
+        SANCTUARY   -   Players get points by dropping objects here.
+        SMALL       -   Only one player at a time can enter this room.
+        SILENT      -   Noises (announces) from outside don't reach here.
+        STARTLOC    -   Players can start the game from this room. One is
+                        chosen randomly when more than one exists.
+	PEACEFUL    -   Fighting is not allowed in this location.
+        DMOVE (id)  -   When players die, any objects they carry are moved to
+                        (id). E.g. at sea, objects would move to the shore!
+
+Example: (four rooms)
+---Start---Rooms.TXT---Start---
+
+; Room without TAB indentation...
+room=start	startloc
+Bathroom.
+The walls are extraodinarily bare for a bathroom, though that is what this is!
+You can leave via the door to the north.
+
+room=landing
+Hallway.
+You are in a dimly lit hallway, running east to west. To the south is a
+doorway.
+
+; A room WITH indentation. Only one player can enter, and noises from outside
+; don't get heard here. This room is also a start room!
+room=hallwest small
+	Hallway, west end.
+	You are at the western end of a dimly lit hallway. The western wall has been
+	bricked up, obviously hiding a doorway!
+
+room=halleast
+	Hallway, eastern end.
+	To your east extends a corridor lined with precious stones, gold nuggets,
+	frightening weapons, and bedraggled princesses. Otherwise a small hallway
+	leads off to the west.
+----End----Rooms.TXT----End----
+
+
+Travel.TXT:
+
+ To  fully  understand  how to construct a travel table, you will need to know
+how  condition  and  action  lines  work.   These  are  fully described in the
+Lang.DOC  file.  For the time being, however, you can probably manage to start
+writing your main travel table with the information given here.
+
+ Travel  verbs  (n,e,s,w etc) must be defined in Lang.TXT before you can start
+your  travel table.  The standard 12 directions are included in the STD files,
+so  you  should  base  your adventures on these files until you are thoroughly
+familiar with AMUL.
+
+---Start---Travel.TXT---Start---
+[room=](id)
+  verb[s]=<verblist>
+	{condition&action lines}
+----End----Travel.TXT----End----
+
+ You  can have as many verb= lines per room as you wish, and as many c&a lines
+per verb= line.
+
+ If  a room has no TT entry, you will be given a warning, unless you have used
+the -q option during compilation.
+
+
+C&A lines:
+
+ For  the  time  being,  you will only need to know three basic formats of c&a
+lines...
+
+	[<condition>] reply "<text>"
+	[<condition>] <action>
+	[<condition>] <room>
+	[<condition>] endparse
+
+ This  last  one  informs  the travel processor to stop processing.  This need
+only  be used when you are trying several conditions, and have found one to be
+true.  See the examples further on.
+
+ ** If no condition is specified, '-' or 'always' is assumed.
+
+ Several possible conditions are: (for others see FUNC.Doc)
+
+	-			always
+	&			if last condition was true
+	else			if last condition was false
+	state <object> <x>	if object is in state x (e.g. is door open?)
+        lastverb <verb>         if the last verb entered was...
+	lastdir <verb>		if the last verb to use the TRAVEL TABLE was..
+	lastroom <room>		if the players last room was...
+ By putting the word NOT before any of these, you can reverse the condition.
+
+ There  are various ways of expanding these to make them more legible, but the
+Lang.DOC explains this fully.
+
+ As  is  pointed out later in the objects.doc file, we recommend that all AMUL
+programmers stick to the following convention for object states...
+
+	State #0  -  OPEN   or    LIT
+	State #1  - CLOSED  or  DOUSED!
+        State #2  - LOCKED  or BURNT OUT
+
+Examples:
+
+---Start---Travel.TXT---Start---
+room=start
+  verb=n
+; this first line says: if the DOOR is in state 0 (open) goto landing!
+	state door 0		landing
+	else			reply "The door is closed!"
+
+room=landing
+  verb=s o	; next line says: If the door isn't open, complain!
+	not state door 0	respond "The door is closed!"
+; If we get this far, it must be open, so allow the user to go...
+	else goto start
+  verb=w
+	hallwest		; same as 'always hallwest' or '- hallwest'
+  verb=e
+	halleast
+----End----Travel.TXT----End----
+
+
+
+                                 3)  Summary
+                                 -----------
+
+
+ Don't  be  surprised  if Travel.TXT is beginning to look complicated.  Delete
+the comment lines, and it will look much tidier.  Try adding some new rooms to
+the  standard  adventure, and allowing the user to move to them.  This way you
+will build your confidence.
+
+ Without  fully  understanding  Condition&Action  lines, you won't benefit the
+full  power  of  Travel.TXT,  but  you will be able to start creating your own
+adventure world...
+
+
+             A M U L -- The Amiga Multi-User adventure Language
+             --------------------------------------------------
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+

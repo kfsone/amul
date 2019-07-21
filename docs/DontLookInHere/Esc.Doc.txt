@@ -1,0 +1,111 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            games
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+    Copyright (C) Oliver Smith, 1990/1. Copyright (C) Kingfisher s/w 1990/1
+    Designed, Developed & Written By Oliver Smith. Assisted by Richard Pike
+
+
+                     ESC.Doc - Details of Escape Sequences
+                     -------------------------------------
+
+ Escape codes are constructed with a three character code. The first character
+is always an AT ('@') and then two characters. The second, in some cases, is a
+numeric digit, between 0-9. In the list below, this is indicated by a capital
+N.
+
+Code	Replaced With			Example
+------------------------------------------------------------------------------
+@me	my name				Hello @me, how are you?
+@m!	my name (padded to 21 chars)	Name: @m! Rank: @mr (eg in Score cmd)
+@mr	my rank's name			You are currently ranked @mr.
+@gn	my gender (male or female)	@gns aren't allowed in there!
+@ge	he or she depending on sex	@ge is @gn! (eg He is male!)
+@go	his or her depending on sex	@gn dropped @gh gun.
+@gh	him or her depending on sex	You hit @gh square on the nose!
+@vb	Verb entered by player		You can't @vb that!
+@ve	Last verb 'treatas'ed		@me @ves you "@n1". (@ve might be tell)
+@n1	noun1 REGARDLESS OF TYPE!	You say "@n1".
+ @n1					The @n1 isn't lit!
+ @n1					You can't talk to @n1!
+@n2	noun2				You tell @n1 "@n2".
+@a1	adjective 1			The @n1 doesn't look very @a1 to me!
+@a2	adjective 2			The @n2 doesn't look very @a2 to me!
+@pp	PrePosition			You can't put that @pp there!
+@v1	Value of noun1			It's worth about @v1 points...
+@v2	Value of noun2			The @n2 is worth @v2 points!
+@w1	Weight of noun1			The @n1 weighs @w1g
+@w2	Weight of noun2			The @n2 weighs @w1g
+@pw	Password			Remember, your password is @pw...
+@gp	Games Played			You've played @gp so far!
+@sc	Players Score			That takes you upto @sc points!
+@sg	Points scored this game		This game you scored @sg points!
+@sr	Players effective stamina	Your current stamina is @sr
+@st	Players effective strength	Your current strength is @st
+@wi	Players effective wisdom	Your current intelligence is @wi
+@ex	Players effective experience	Your current experience is @ex
+@lr	Last reset			Last reset was at @lr.
+@lc	Last compile			This game last compiled at @lc.
+@re	Minutes/seconds to next reset	Next reset happens in @re.
+@pN	None - pauses for N seconds	Going down...@p2And down...@p2
+@fr	Name of person you are helping	You have stopped helping @he.
+@he	Name of person helping YOU	You need @he to be HERE to do that!
+@pl	The player you are attacking	You lunge feebly at @pl.
+@o1	Your current weapon (WIELDed)	You lunge feeble at @pl with your @o1.
+@o2	HIS current weapon (WIELDed)	@pl lunges feebly at you with his @o2.
+@fm	Person following me		You have managed to lose @fm.
+@mf	Person you are following	You are no-longer following @mf.
+@xx	YOUR name or 'SOMEONE'		@xx taps you on the shoulder.
+@xy	Name & rank or 'SOMEONE'	@xy growls.
+
+* NOTE *
+
+There are two SPECIAL escape codes: @xx and @xy. These are designed for
+making player interaction simpler. The result varies for each receiving
+user. As a default @xx displays your name, while @xy displays your name
+and rank (eg @xx gives 'Fred' and @xy gives 'Fred the Low-Ranked'). But
+if the player being sent the message cannot see you, then the output of
+both changes. The output ALSO varies depending on whether you're in the
+same room as the other player or not!
+
+An example usage might be when a player knocks on a door:
+
+	verb=knock
+	syntax=verb noun=door
+		checknear noun		; Are we near one?
+		-> objaction noun "@xx knocks on the door."
+
+To all players who can see you, it might look like
+	> Fred knocks on the door.
+Anyone nearby who can't see you (eg dark room, they're blind or whatever)
+	> Someone nearby knocks on the door.
+While players in another room might see
+	> Someone knocks on the door.
+
+Below are the various outputs from @xx and @xy...
+
+ @xx is used for 'players name', @xy is for 'players name [and rank]'
+
+	same room	same room	diff room	diff room
+	visible to	! visible	< top-rank	top-rank
+	---------------------------------------------------------
+@xx:
+act.:	player's name	Someone nearby	Someone		Someone very powerful
+ann.:	player's name	Someone nearby	Someone		Someone
+@xy:
+act.:	@me the @mr	Someone nearby
+					A powerful @gn voice in the distance
+							A @gn voice in the distance
+ann.:	@me the @mr	A @gn voice nearby
+					A powerful @gn voice in the distance
+							A @gn voice in the distance
+
+Using  these codes you can produce very good interactive code with a minimum
+of effort.
+

@@ -1,0 +1,284 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            games
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+                  Objects.DOC - Objects.TXT and ObDescs.TXT
+                  -----------------------------------------
+
+
+                             1)  Introduction
+                             ----------------
+
+ Once you have created the core of your adventure game, the rooms and the
+travel table, you will want to add the moving parts. Any element of a game
+which the parser needs to recognise or which can be moved, altered or
+destroyed must be declared as an OBJECT. For example, if you wished to put
+doors between some of the rooms, you would need an object called 'door'. If
+you wanted these to be openable/closeable you would need an object called
+door between each pair of rooms. And finally if you wanted a variable to
+count the number of open doors you would need to create another object
+called, perhaps, doorcount. Using the various flags available you could
+define doorcount so that the users cannot directly refer to it.
+
+ Any object, say DOOR, can be defined any number of times in any number of
+ways. For instance you could have three doors each with different descriptions
+or each starting differently, ie one starts OPENED, one starts CLOSED and one
+starts LOCKED!
+
+ You may also place a SINGLE object in any number of locations, known as a
+multi-located object. AMUL's objects are VERY flexible.
+
+ Finally, each object can have defined any amount of 'states' each defining
+a different set of properties for that object. This allows you to distinguish
+between an open door and a closed door, a lit fire or an extinguished one or
+a dead terrapin and a plastic one (in-house joke).
+
+ To give maximum flexibility AMUL allows YOU to specify fixed properties
+of an object, but does not force any "order of states" upon your objects. You
+should try to standardise object states so that openable objects are open in
+state X and closed in state Y (and if you wish LOCKED in state Z). If you do
+not decide on some rule, you will find yourself continually having to write
+lots of code for opening and closing all kinds of things! As a rule our own
+adventures use state 0 to indicate 'On Fire' or 'Open', state 1 to indicate
+'Extinguished' or 'Closed' and state 2 to indicate 'Burnt out' or 'Locked'.
+
+
+                   2)  Objects.Txt -- Center of the World?
+                   ---------------------------------------
+
+Basic OBJECT format:
+
+[noun=](ID)	[<fixed flags>]
+<rooms>
+	{states}
+
+ID:	This is the name by which the game will know this object. For instance
+	when using escape codes @n1 and @n2 this is the string which will
+	be used in place of the escape code.
+FLAGS:	The fixed flags define specific PERMANENT properties of an object and
+	are listed in section 2. An object which is defined as a COUNTER is
+	not recognised by the parser.
+ROOMS:	The starting locations of the object. This may either be a list of
+	rooms or container objects. If the list exceeds one line in length
+	it can be continued by placing a + at the end of each line except
+	the last. The list may contain a mixture of containers and rooms. No
+	test is made as to whether the container can hold the object.
+	An object with more than one location is known as a multi-located
+	object, eg: a door. This exists in two rooms.
+	** NOTE ** A multi-located object CANNOT be picked up by a player.
+	To create LOTS of one object, you must create multiple copies of it.
+STATES:	Declares the various 'states' in which an object may exist and the
+	properties it possess in them. All objects must have ATLEAST one
+	state line. An example of a multi-state object would be a torch. If
+	this is switched on it becomes a light source, otherwise it does
+	not add to the lighting of rooms.
+
+Note:   We recommend that you indent the room list with two spaces in front
+	of each line within the room list.
+	
+
+STATE format:
+
+  [weight=]weight [value=]value [str=]str [dam=]dam [desc=]desc [flags]
+or
+  [weight=]weight [value=]value [str=]str [dam=]dam [desc=]descID [flags]
+
+WEIGHT:	Weight in grammes of the object. Don't worry about being too
+	precise with these, but use guestimates, and remember to adjust your
+	Ranks.Txt Max-Weight-Carried values to allow for object weights.
+VALUE:	The MAXIMUM number of points a player can get from dropping this into
+	a Sanctuary location. Can also be used for a variety of different
+	purposes too.
+STR:	When a player is wielding this weapon during a fight, this is the
+	maximum number of extra "hit points" a player can gain from using
+	this object.
+DAM:	<Not fully implemented yet>
+	Determines how much damage this object can sustain during a fight.
+	If this is non-zero it will be decremented by one each time a
+	player hits or parries during a fight. If it is decreased from 1 to
+	ZERO the object will be destroyed if special verb "destroy exists.
+DESC:	Followed by either a string (enclosed in single or double quotes)
+	or a description ID. Object Description ID's are DIFFERENT to User
+	Message ID's and are stored in a seperate file (ObDescs.Txt). If
+	you have more than one object with the same description you should
+	place the description in ObDescs.Txt to reduce memory consumption.
+	If you do not wish the object to have a description, use the keyword
+	none. ie: desc=none  or just  none.
+FLAGS:	These are the 'state' flags; the variable or changeable properties
+	of the object. See section 4 for a list of the available flags.
+
+Examples:
+
+----Start-----
+;
+; Example Objects.Txt
+;
+
+; First a single located, single state object.
+; The object is called 'crown', starts in the room called 'crownrm'. It
+; weighs 5000g, is worth 200 points, it doesn't do you any good in fights
+; and won't break. It has no flags.
+
+noun=crown
+  crownrm
+	weight=5000 value=200 str=0 dam=0 desc="A golden crown gleams before you."
+
+; Secondly the SAME object in a room called FAKERM. This object is WORTH
+; nothing. NOTE: The description could be placed in ObDescs.Txt...
+; Also, the OPTIONALS have been ommited this time. The object will STILL
+; compile!
+
+crown
+  fakerm
+	5000 0 0 0 "A golden crown gleams before you."
+
+; Now for a more 'glamorous' object. A door! Its part of the scenery, which
+; means players can't pick it up, it can be opened and it needs two states.
+; The door appears in TWO rooms: start and fakerm. Note that since it cannot
+; be picked up by players none of the weight, value etc flags are set. State
+; 0 represents the door to be open and state 1 represents the door to be
+; closed. In order to make the door flamable, there are TWO sets of states;
+; the second set are used when the door is alight! In order to use this
+; door fully, though, you have to do something like:
+;	IF state OF door 1 THEN skip 1
+;	IF not state OF door 3 THEN respond "The door isn't open anyway!"
+; which is a hassle... The NEXT door shows you how to avoid this!
+
+
+door	scenery opens flamable
+  start fakerm
+	0 0 0 0 "The door is open." open
+	0 0 0 0 "The door is closed." closed
+	0 0 0 0 "The door is on-fire, but open." open
+	0 0 0 0 "The door is on-fire, but closed." closed
+
+; This second door demonstrates how to get around the above problem using
+; the FIRE flag. AMUL will AUTOMATICALLY display "The door is on fire."
+; when the object is ignited. It is important to remember that an object
+; can be 'on fire' either by its STATE (which is upto you) or by using the
+; fire flag and the LIT condition... For example, you could say:
+;	IF lit door THEN respond "Ouch! You burn yourself!"
+
+door	scenery opens flamable fire
+  start fakerm
+	0 0 0 0 "The door is open." open
+	0 0 0 0 "The door is closed." closed
+
+; Now... A light source object... Rather than explaning this one, work it
+; out for yourself! Only one note... The fire is a container .... But read
+; the object AFTER this one...
+
+noun=fire scenery flamable holds=5000 adj=coal
+  start
+	0 0 0 0 "A coal fire in the corner casts dancing shadows around the room." lit opaque
+	0 0 0 0 "In the corner of the room lie the ashes of a coal fire."
+
+noun=obsidian
+  fire
+	120 30 0 0 "A small piece of obsidian has been dropped nearby."
+
+; Finally, a demonstration of a VERY multi-located object and a 'variable'.
+
+noun=rain scenery
+  start fakerm crownrm room1 room2 room3 room4 room5 room6 room7 room8 +
+  xroom1 xroom2 xroom3 xroom4 xroom5 xroom6 xroom7 xroom8 xroom9 +
+  yroom1 yroom2 yroom3 yroom4 yroom5 yroom6 yroom7 yroom8 yroom9
+	0 0 0 0 none
+	0 0 0 0 "It is raining."
+	0 0 0 0 "It is snowing."
+
+; The next object: the variable. This declares which season it is, and
+; decides weather (groan) it should rain or snow! Since its a variable it
+; doesn't matter WHERE you put the object... HOWEVER a definition for EACH
+; state MUST exist.
+
+noun=season counter
+  start
+	0 0 0 0 none
+	0 0 0 0 none
+
+-----End------
+
+
+                              3)  Fixed Flags
+                              ---------------
+
+(* indicates flag is not used by AMUL itself but is an indicator only).
+
+* opens		Can be opened.
+  scenery	Object cannot be picked up by players etc.
+  counter	Object is COMPLETELY ignored outside of Lang.Txt
+* flamable	Object can be set fire to.
+  shines	Object can provide a light source.
+  fire		When object is lit adds 'The @n1 is on fire.' to the
+		description. Also, LIT flag is kept between states.
+  invis		The object starts the game invisible.
+  smell		Can only be "seen" by blind players.
+  mobile=	n/a yet
+  adj=		Defines the objects adjective, eg: adj=golden
+  start=	Defines the objects starting state, eg: start=1
+  holds=	Defines weight in grammes the object can hold.
+  put=		Defines relation between object and items contained (default
+		is "in"). Options: put=in|on|behind|under, eg: put=under.
+
+NOTE: When using the FIRE flag, you should use the IGNITE and DOUSE
+      actions in Lang.Txt to decide whether the object is lit or not.
+
+                              4)  State Flags
+                              ---------------
+
+  lit		Indicates the object is on fire. This can be set using
+		the ignite action in Lang.Txt.
+  open		Indicates the object is open
+  closed	(DEFAULT) Opposite of OPEN, added for clarity only.
+  weapon	Object can be used as a weapon.
+  opaque	Can't see inside object.
+  scaled	Value is affected by time & rank scaleing.
+  alive		n/a
+
+NOTE: Players can only see the contents of a container if:
+	(a) It is not opaque
+	(b) It is not openable
+	(c) It is opened.
+
+                              5)  Obdescs.Txt
+                              ---------------
+
+----Start----
+[desc=](id)
+<description>
+-----End-----
+
+id		label for the description - seperate to User Message ID's.
+description	Block of text terminated by a blank line. There is no
+		restriction on the length of a description.
+
+NOTE: Object Descriptions are COMPLETELY seperate from User and System
+messages. If two or more objects share a common description, you should
+place it in ObDescs.Txt
+
+If you wish to allow for different adjectives within a description, you
+can place a "%s" where you would like the adjective to appear... For
+example if you have several keys with different adjectives you could
+have an entry:
+
+----Start----
+desc=key
+	On the floor sits a %s key.
+-----End-----
+
+This might be displayed as:
+
+	On the floor sits a golden key.
+
+

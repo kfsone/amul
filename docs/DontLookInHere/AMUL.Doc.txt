@@ -1,0 +1,648 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            games
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+           Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+               Designed, Developed & Written By Oliver Smith.
+
+
+
+     System Requirements:
+     -------------------
+
+   Hardware...
+
+ Commodore Amiga A500 or compatible (1000, 2000 or 3000) with 680x0 CPU.
+ Minimum of 512k memory (although 1Mb+ is recommended).
+ A hard drive isn't required, but greatly improves speeds. (EG the A590)
+ To provide a multi-user system you will need to supply hardware, such as
+ a modem (modems of 2400bps+ are recommended, e.g. Miracom HST or MNP modems).
+ Other alternatives include Packet Radio or 'RTTY' and close-link computers
+ connected directly via serial ports, or some form of local area network.
+
+   Software...
+
+ The  software  was  developed  with  KickStart 34.5, WB version 34.34 and ARP
+ library  v39.1.   ARP  library  isn't essential, but greatly improves working
+ with  CLI.   A text editor will be required to create the datafiles needed to
+ write  an AMUL Game.  Either Cygnus Ed, or if you are a programmer, DevPac or
+ ArgAsm's editor does nicely.
+
+ Whilst  reading  these  documents for the first time, we recommend you have a
+ spare CLI available for trying out commands as you read.
+
+
+   Conventions
+
+ Throughout the AMUL documentation the following standard symbols:
+
+   <type>	'type' is the name of the kind of entry valid here
+   [...]	The enclosed is OPTIONAL
+   x | y	Either "x" or "y" is valid
+   > ...	Indicates example text or text type at the AMUL prompt
+   1> ...	Indicates an Amiga CLI command
+   ; ...	Indicates a comment
+   : ...	means the line can <optionally> be indented with a SINGLE TAB
+		which is ignored by the compiler.
+
+ For example:
+
+	1>[c:]<program name> ON|OFF  ; Enable or disable
+
+ "c:" can be entered, but is not required,
+ "<program name>" would be replaced with the name of a program, eg BORDER
+ "ON|OFF" means that either ON or OFF are allowed
+ and the text following the ';' can be ignored completely - it's a comment.
+
+   Components Of A Game
+
+ AMUL  games  are  written as TEXT contained in several .TXT files.  These are
+compiled  into  a  more machine-readable format and stored as .CMP files.  The
+compilation is done by a program called AMULCOM.
+
+ Sections  of information (blocks) are defined by separating them with a blank
+line.   Please  note,  these  lines  must  be ABSOLUTELY blank!  If you want a
+'clear' line for clarity/visual reasons, put a space, or tab, at the beginning
+of  the  line.   You  can  have any number of blank lines/comments between and
+around blocks.
+
+ All  items in an AMUL game have a label or 'id', 1-10 characters to make life
+easier.   Rather than having to remember that the "Bathroom" is room #172, you
+give it an ID, for example "Bathroom".
+
+ A 'label indicator' is a string (such as Room= in Rooms.TXT) which tells AMUL
+what  you  are  currently referring too, although they are mainly intended for
+use  with  a text editor.  If you have a 93k rooms file, and you know the room
+is called "north", you would have to search through the text for it.  However,
+by  saying  "room=north" when you begin the entry, you can use search and jump
+straight to it!
+
+ In  order  to allow you to display 'variables' in your AMUL text, AMUL uses a
+set of 'escape sequences'.  These are three letter codes which at run time are
+replaced  with  text.  Escape sequences (in AMUL) are prefixed with an AT (@).
+An example is @me which prints the players name.  See ESC.Doc for more.
+
+ To  put  comments in an .TXT file, the first character in the line must be an
+asterisk  or  a  semicolon  (*  or ;).  An asterisk will completely ignore the
+line,  but when compiling, lines commented using an * will be displayed in the
+CLI window.
+
+ Most  examples  show  indentation.   This  is _NOT_ essential, but makes .TXT
+files much easier to read later on.  Also, AMULCOM is _NOT_ case sensitive!
+
+ An example .TXT file description in the other .DOC files might be:
+
+---Start---Example---Start---
+[example=](id)
+  [size=]<size> [ref=](ref)
+:	<text>
+----End----Example----End----
+
+ This  defines  the layout for a block of data in the file Example.TXT.  Since
+there  is  nothing  to say otherwise, you can assume that you can have as many
+entries of this kind as you need/want.  So an Example.TXT might look like:
+
+---Start---Example.TXT---Start---
+; This line is simply ignore.
+* This line is ignored, but the text is displayed on the CLI window!
+
+EXAMPLE=example1
+  size=10 ref=RefKFS
+	This is an example. This block of text will be written out without
+	the leading tab.
+
+; The line above has NO characters on it. It is therefore BLANK
+
+; Demonstrating case insensitivity.
+eXaMpLe=ThE2Nd
+size=20 REF=Oliver
+There is no indentation on this block.
+ 
+The previous line has a space on it so is not blank.
+Without the tab, the files with lots of text in are hard to read!
+
+; Demonstrating 'optionals'... Note that no blank line needed at EOF...
+LastEg
+  20 Richard
+	Again text is indented. This item has ID=lasteg, size=20, ref=Richard.
+----End----Example.TXT----End----
+
+
+
+                             1)   Introduction
+                             -----------------
+
+ Many years ago, I bought a Commodore Compunet modem.  I explored CNET and the
+only  thing that really caught my eye first time round was MUD, the Multi-User
+Dungeon.   When  I  got  round to playing it, I became enthralled with it.  It
+wasn't  uncommon for CNET weekend MUDDERS to play from 6pm Friday till 3AM and
+later Saturday, and again Saturday night!
+
+ However,  the  thrill  of playing MUD wasn't that it was some highly advanced
+adventure  game; CNETTERS paid no attention to that side of things, but rather
+the  interaction  between  players.  MUD now seems to be far more based around
+role playing systems; and its all the better for it!
+
+ I've  spent about 5 years dabbling with adventure languages of my own, on the
+Atari  ST  back at the tender age of 15 I wrote a multi-user scheduler and had
+started  on the only multi-user game on the ST to date in machine code, when I
+moved to the Amiga to run my BBS.
+
+ MUD  and  similar games <though not ALL Multi-User Adventures, or MUAS> isn't
+really  just  an Adventure game with 6 or 36 players in.  It goes beyond that,
+and  so  can  AMUL.   The similarity is that the player types in his commands,
+rather  than using a joystick, and responses are also in text.  However, thats
+as  far  as  it goes.  Single user adventures are governed by turns.  MUAS are
+governed by time.  You can never quite be sure where something is going to be;
+someone  else  may  have  been  there  already.  A game ends when it is reset,
+putting  everything  back  to  its original state.  When you leave an MUA, you
+don't  come  back  with the objects you left behind; someone could pick up all
+the valuables, quit the game, and never call back.....
+
+ AMUL  is  designed for writing Multi-User Dungeons/Games/Adventures, whatever
+you like to call them.  It is flexible, has a wide scope, and almost unlimited
+power.
+
+ The  documents  are arranged in several files, each covers a different topic,
+with  references  to  other files.  I recommend that you get hold of an editor
+with  a  facility  for  multiple  windows (such as Cygnus Ed) before you start
+trying  to  write AMUL games!  Until you are proficient (which won't be long!)
+you'll  need  to  regularly  refer to the main documents.  The majority of the
+files explain how particular text files work.
+
+ AMUL.Doc	-	This file. How to use/run the AMUL programs.
+ Misc.DOC	-	Explains Title, Reset, Scenario, Syns and Ranks.TXT
+ Rooms.DOC	-	Explains Rooms.TXT and Travel.TXT
+ Msgs.DOC	-	Explains SysMsg.TXT and UMSG.TXT
+ Lang.DOC	-	Explains Lang.TXT
+ Objects.DOC	-	Explains about Objects.TXT and Obdescs.TXT
+ Func.DOC	-	Explains about language/travel conditions/actions.
+ Esc.DOC	-	List of escape sequences and examples.
+
+ You  should  also  find  several .TXT files; these form the sample adventure.
+See the last section of this file for details on how to run it!
+
+
+
+                               2)  Overview
+                               ------------
+
+ AMUL'S  system  consists of various modular components.  Only the first three
+in  the  list  are  ESSENTIAL, and these are the supplied as standard.  To get
+access  to the other modules, you need to pay a registration fee.  Please note
+that the latter modules are still under development.
+
+ AMAN		-	Amul MANager. Controls multi-user interaction,
+			stores the database in memory, and controls resets.
+			This is the center of the AMUL system.
+ AMULCOM	-	AMUL COMpiler. Before you can run any AMUL game,
+			you have to compile it into AMUL .CMP data files.
+ AMUL		-	The "Games Frame". This is the major component in the
+			AMUL system. One copy is required for each user
+			playing the game, although the program is only loaded
+			into memory once.
+ AMDAEM		-	AMUL Daemons. Allows you to have timed events, e.g.
+			when a user drinks some poison, he has five minutes
+			to find the cure, before he dies.
+ MOBILE		-	Simple AI system, which allows you to create moving
+			creatures, which are capable (to an extent) of doing
+			the same things as other players. Essential on a
+			single user system. Requires AMDAEM.
+ AMOD		-	Front End. If you want to run AMUL as a multi-user
+			game without setting up a BBS, this allows you to!
+			AMOD has one advantage over other front ends, that
+			it allows you to choose between entering the BBS (if
+			there is one) or AMUL. Also, once the BBS or AMUL has
+			exited, it gives the user a chance to re-enter.
+ AMCON		-	Window based version of AMAN, similar to ParCon...
+ AMED		-	Lets you edit parts of your game whilst on-line, to
+			help in the development process.
+ AMULED		-	Mouse driven editor.
+ IAMUL		-	Advanced version of MOBILE.
+			(Note: This will cost an extra $60!).
+
+ Notes...
+
+  You  can  run daemons WITHOUT AMDAEM. However, the ones built into AMUL only
+ serve  a  limited purpose, and are used mainly to control a player.  When the
+ player dies/exits the daemon is cancelled.  AMDAEM simply provides a means to
+ have  'detached'  daemons.  For example, if a player lights a fuse on a bomb,
+ and then exits, the bomb should still explode 30 seconds later.
+
+  AMUL is NOT FreeWare. It is ShareWare.  Basically, this means if you use it,
+ you  pay  the author  something  for his trouble!  AMUL brings the power of a
+ large mainframe computer to YOUR BBS (or computer system).
+
+
+                      3)  Installation and Setting Up
+                      -------------------------------
+
+ AMUL  is  a  language,  and by rights there should be no need for any kind of
+installation.   However,  for  the  sake of compatibility, we provide a set of
+standard instructions for setting up!
+
+ Place  the  programs  and documents in one directory (or if you have a single
+floppy  drive,  on  the  root directory of your AMUL disk).  You should assign
+this as 'adv:', especially if you are using a hard drive.  Next create another
+subdirectory called 'std' and place the sample adventure .TXT files in here.
+
+ Your  system  is  now configured to the standard layout, and you are ready to
+experiment.
+
+ As  of  here,  the documents will assume that you have set your system out in
+this way.  References will be made to ADV:  and ADV:std/.  We also assume that
+you are operating from the CLI.
+
+
+
+                          4)  AMULCOM - Compiler
+                          ----------------------
+
+ AMUL  games consist of several text files of different formats, full of cross
+references  to data in other files.  In order to optimize the system, and also
+to  save  memory, these files need to be compiled.  The present version of the
+compiler  is written in 'C' and is slightly cumbersome.  This will be fixed if
+there is enough interest in AMUL.
+
+ AMULCOM accepts up to three parameters.
+
+   AMULCOM [-d] [-q] [<path>]
+
+ -d    Don't check DMOVE flags (see Rooms.DOC).
+ -q    Quiet mode - displays errors only. Warnings are hidden.
+ path  Full path of the directory containing your games files.
+
+ So, to compile the sample adventure, your command lines might be:
+
+	ADV:> amulcom std              ; compile: show warnings, check dmoves
+	ADV:> amulcom -q std           ; compile: errors only, check dmoves
+	ADV:> amulcom -d std           ; compile: show warnings, skip dmoves
+	ADV:> amulcom -q -d std        ; compile: errors only, check dmoves
+	ADV:std> amulcom               ; compile: from within the STD path.
+
+ Warnings  are  simple mistakes, which present no problem, but might cause the
+unexpected  to  happen  when the game runs, such as duplications of flag names
+etc.   A  common warning during development is when you have setup a room, but
+not setup any exits (see Travel Table) for it.
+
+ If  the  compiler encounters an error, unless it regards it as fatal, it will
+report  it, and continue to the end of that file.  It is a good idea to have a
+copy of your editor loaded in the background when you compile, so that you can
+fix errors ready to compile ASAP.
+
+ For details of the construction of the .TXT files, see the other .DOC files.
+
+
+
+                            5)  AMAN - Controller
+                            ---------------------
+
+ AMUL  is  a  multi-user  system.   This  means there has to be some kind of a
+'manager'  making  sure  things go smoothly.  AMAN controls the flow of users,
+holds  the  common  live-database of where people and things are, and controls
+the interaction between users.
+
+ If  there  are three users in a room, and two of them try to speak at EXACTLY
+the same moment, AMAN makes sure that only one of them writes to player 3 at a
+time.   Without AMAN to load in and do some final processing of the datafiles,
+control logins and logouts, and log any errors, AMUL will not run!
+
+ To put your game 'on-line', you should _run_ AMAN by typing:
+
+	1> [run] AMAN [-q] [<FULL path>]
+e.g.
+	ADV:> run AMAN adv:std
+
+ For a few moments it will churn away at the disk, and eventually:
+
+     [ AMUL Manager vx.xxx LOADED ]
+
+ will  appear.   The text file AMUL.Log will have been created in your current
+directory too!  Read it!  It should read something like:
+  >------------------------------------------------------------------------
+  >## (#) Nov 24 01:58:23 1991: Loaded 'My Own Adventure Game!'.
+
+ You  system  is  now  ready  to begin!  If there are any problems reading the
+files  in,  AMUL will report them, as well as writing them to the log.  If you
+try to load AMUL without AMAN running, it tells you so!
+
+ Being  a multi-user game, any changes that one player makes to the 'world' is
+seen  by others.  So if FRED opens the door in the kitchen, when JON goes into
+the kitchen, he will see an open door.  Also, when people move objects around,
+they STAY moved, until someone else moves them.  This adds an extra element of
+realism to these games, but also causes a problem.
+
+ Objects,  after  a  while,  can  become  useless  (e.g.  a sword could become
+blunt))  or  even  get  destroyed.   There  can  become  a point where all the
+possible  goals  have been achieved, and all the objects rendered useless.  If
+left in this state, the game would become boring and pointless.  This is where
+a  'reset' comes in.  Although this can be automatically, there are times when
+you may want to reset the game manually.
+
+ During development, you will find it quicker to reset AMAN than to reload it.
+To do a reset, type:
+
+	1> aman -r                     ; Log users out and reload data files.
+
+ If  there  are any users on-line, the text file 'Reset.TXT' will be displayed
+to  them,  and  they  will be logged out.  AMAN will wait aproximately 1 and a
+half  minutes  for them to clear before finally releasing the memory allocated
+for  the  database, and reloading the files.  During this period AMAN will not
+communicate  with  anyone  or anything else.  If you try to reset or kill AMAN
+you will get the message ".....  Reset in progress ....."!
+
+ However, if no-one is on-line, it will reset instantaneously.
+
+ To  invoke  a  delayed  reset,  you  can  follow the -r option with a numeric
+parameter, specifying the time (in seconds) until the reset, eg:
+
+	1> aman -r 30			; Give users 30 seconds warning.
+
+ Or  you can extend the game length by using the -x option, also followed by a
+numeric value, eg:
+
+	1> aman -x 60
+
+ This example would add 60 seconds to the current game-time remaining.
+
+ When you want to remove AMAN, the command line is as follows:
+
+	1> aman -k                     ; Give back memory and exits AMAN.
+
+ Finally, you have an option to swap between games WITHOUT CAUSING a reset!
+
+	1> aman -sADV:GAME2		; Switch to game2 after next reset!
+
+ THIS WILL ONLY WORK WHEN THERE ARE NO USERS ON-LINE.
+
+ Each line in AMUL.Log is organised in a specific manner.  Here is a breakdown
+of one such line...:
+
+    -> (0) Nov 24 01:58:49 1991: "Fritter" logged in.
+    ||  |  |------------------|  |------------------------------------|
+    || Line         ||                             ||
+    Type        Time/Date                        Message
+
+  TYPE    : Two characters indicating the type of transaction. These are
+            grouped into standard types making log reading easier.. More later
+  LINE    : Indicates which line caused the message, or # for a system message
+  TIME    : The date/time which this thing happened!
+  MESSAGE : The actual message.
+
+  Various types are used... They are:
+
+	 Type	Indicates:
+	  ##	the start of a session...
+	  >>	A Game Shutdown/Reset Request Received/Swap Requested
+	   <	Any users online at a reset request were disconnected
+	  <<	A Game Reset Completed
+	  **	A General Error (eg A ShutDown Request denied)
+	  ->	A User Connected
+	  <-	A User Disconnected/Died/Exited, basically LEFT the game
+	  []	A User achieved The Top Rank
+	  @@	Text Logged Using the 'LOG' Command (See Func.Doc)
+
+ For  example,  if  your  game contains a SUGGEST or BUG report command, these
+write  to  the  AMUL.Log  with line prefixes of '@@', so you could use GREP to
+search the log for all Player-Suggestions/Bug Reports...
+
+
+                    6)  Running AMUL - The final step!
+                    ----------------------------------
+
+ With  AMAN  watching  over  your database, you are now ready to logon to your
+game!   There are various different switches and command line options, but for
+the moment, we will just load AMUL to let you explore.
+
+ The only command line required to load from CLI is:
+
+	1> [run] amul                  ; Load with <default> custom screen.
+or if you are using an NTSC (No Two of the Same Color) display:
+        1> [run] amul -cn
+
+ The  first  thing  you'll  need  to  do is create a user for yourself, with a
+password  and  so  forth.   At  time  of writing (ATOW) there is no reason for
+picking a male or female character, other than for role playing reasons!
+
+ Have a wander around, try the commands such as get, open, drop, look, examine
+who,  score,  save, what, say, smile, grin, vis, invis, shout, where, and then
+act "welcomes you to AMUL." Don't try quit, not yet, anyway!
+
+ Now  press Amiga-N and go back to your CLI window.  Load a second copy of the
+program.   Note that this is line 1 as oppose to line 0!  Try loging in as the
+name  you created previously; then check the other screen!  Going back to line
+1  login  as  another  name,  and have a look around.  When you find the other
+player,  try  the commands again, and keep switching back to line 0 to see the
+output!
+
+ AMUL will let you run upto 10 lines, though this gets confusing when you have
+screens for each, and you want to switch to a specific user!
+
+ You are now ready to start preparing your own games.  Before you get into the
+other  docs, however, make a copy of the STD adventure, and wander through the
+files  and  tinker  with  them.  You might start with Title.TXT, Rooms.TXT and
+Travel.TXT.   Some  of the others are somewhat more complex, and you will most
+likely need to read the docs.
+
+ Before you quit from the two AMULs, go back to the CLI and type:
+	ADV:> aman -r
+ or type
+	> reset
+ from either AMUL screen.
+
+ Once  the  message  "AMUL  Manager RESET" appears in your CLI window, you can
+type "AMAN -k" to remove it completely from memory.
+
+ To prevent AMan printing messages all over your CLI, use the -q option.
+ Lastly, from CLI enter the command:
+	ADV:> type AMUL.Log
+
+
+                    7)  Command line controls - summary
+                    -----------------------------------
+
+
+ Below are details and examples of CLI commands used with the AMUL system.
+
+   AMAN: Note - Will only load when game has been compiled.
+                AMAN can only run ONE game at a time!
+
+	AMAN [[-q ]<FULL path>|-r [number]|-k|-x <number>|-s<path>]
+
+     1> AMAN adv:std                   ; Loadup the sample Adventure
+     1> AMAN -r                        ; Reset AMAN; throw users off!
+     1> AMAN -r 30                     ; Reset AMAN in 30 seconds.
+     1> AMAN -x 300                    ; Extend current game by 5 minutes.
+     1> AMAN -k                        ; Takes current game off-line!
+     1> AMAN -q adv:Std                ; Loads sample adventure in QUIET mode
+     1> AMAN -sadv:game2               ; Switch to game2 after next reset
+
+AMULCOM: Note - Runs independently of AMUL and AMAN.
+                If compile fails, Prof.CMP is deleted, so AMAN won't load!
+
+        AMULCOM [-d] [-q] [<path>]
+
+     1> AMULCOM adv:std                ; Compile the sample adventure.
+     1> AMULCOM -q adv:std             ; ditto; no warnings are displayed.
+     1> AMULCOM -d -q adv:std          ; ditto; DMOVE flags not checked!
+     1> AMULCOM                        ; compiles in current directory.
+
+   AMUL: Note - Will not load unless AMAN is running.
+
+        AMUL                           ; Load AMUL with a custom screen
+        AMUL -C                        ; ditto!
+        AMUL -CN       -FOR USA-       ; Load with an NTSC custom screen
+        AMUL -S                        ; Run on the serial port at 2400 baud.
+        AMUL -S baud dev unit Y/N      ; Run on serial port at <baud> baud.
+     (default:) 2400 serial.device 0 y
+
+		baud	Baud rate to open serial device on
+		dev	FULL --CASE SENSITIVE-- name of device to open
+		unit	Device unit number to open
+		Y/N	Yes or No: Serial RTS handshaking enabled?
+
+e.g.'s
+     1> AMUL                           ; Standard loading command for PAL
+     1> AMUL -CN                       ; NTSC loading...
+     1> AMUL -S 9600 internal.modem 2  ; Drives 2nd internal modem at 9600 baud
+     1> AMUL -S 19200 serial.device 0 Y ; Drives serial at 19200 with RTS/CTS
+the following example would ideally suit a BBS ...
+     1> AMUL -S 0 modem0.device 0      ; Run AMUL on an internal Supra Modem
+                                       ; without configuring the device
+
+
+  Once you have learnt your way around the programs, you are ready to start
+ working on your own games.
+
+
+                              8)  Last Notes
+                              --------------
+
+ AMUL  is  a REVOLUTIONARY system for the Amiga.  Adventure Languages cower in
+shame  with  their 'C' like structure and syntax, or with their unintelligable
+grammar.   Their  single files containing a million declarations...  Until now
+writing an adventure has needed you to be a programmer!  No longer.  Until now
+writing  a  MULTI-USER  adventure  has needed the experience of a degree level
+Artificial  Intelligence  candidate...   AMUL  comes  to  your  Amiga, and the
+catchprase is:
+
+						"Amiga? Humble no more!"
+
+ With  AMUL  you  CAN mimick your favourite multi-player game...  MUD, Shades,
+Gods, WanderLand, whatever!  They CAN be done with AMUL!
+
+ AMUL is ShareWare (for the time being).  If you'd like more technical support
+than  the  privelige  of being a beta-tester and a possible bug-reporter, then
+you  should  send  20  GB  Pounds  to KingFisher Software D&EG and you will be
+returned  an ID code which will gain you access to AMUL developers sections on
+the  any  AMUL  support  BBS.   Also, if you are a sysop, it will give you the
+chance to run an AMUL development area on your board!
+
+ We've  done  an  awful lot of work to this system, and you gotta admit, we've
+put an AWFUL lot of thought and time into it!  I'm not about to preach virtues
+at  any  budding computer user out there, so if anyone makes any modifications
+to  AMUL  I'd  appreciate  it if I could have a copy, and if you could tell me
+what  you did.  If KFS consider your change an enhancement or improvement, the
+change  will  be made at source code level, and your name added to the credits
+in the docs!
+
+ When  AMUL  is  completed,  the mobiles and daemons modules will be released.
+Until  that  point  they will be kept tightly in KFS's coffers!  Unless we get
+enough shareware interest, AMUL v2.0 will be released as a COMMERCIAL product,
+so you'll end up having to pay those stupid prices that manufacturers put onto
+software,  or  putting  us  out  of business.  Either way, you'd be better off
+sending 20 GB pounds (Pounds being the UK currency) to us if you intend to use
+it, and becomming an established AMUL Developer!
+
+ See  the  file  AMUL.Reg  for a complete registration form containing all the
+details you could want.
+
+ IF  YOU AREN'T SENDING US A PRINTED/SIGNED COPY OF AMUL.REG, PLEASE WRITE OUT
+ALL OF THE FIELDS IN AMUL.REG -- WE WILL NOT ACCEPT A SIMPLE 'Please send me a
+copy of AMUL, here is 12 quid'.
+
+
+                                  9)  Credits
+                                  -----------
+
+
+         Thanks go to the following people, for reasons ad infinitum
+
+
+         Richard Bartle (My hero! For MUD!)
+         Richard Pike (& his GirlFriend, I s'pose)
+         Brendan Pratt (whose name I can never spell)
+	 Joanne Atkinson (for much support & for help in Christian walk!)
+         Jon Radoff (for some interesting [expensive] discussions)
+         Paul Collins (for advice and testing)
+         Simon Parker (for being a good slave, and awful coffee)
+	 Andrew Brown (for too much to mention here!)
+         Kulvinder Maingi (for testing, patience and a larf or two!)
+
+
+
+                           10)  Contact us, PLEASE!
+                           ------------------------
+
+ The address for KFS is:
+
+	KingFisher Software D&EG International (Ref: ______)
+	70 Legsby Avenue,
+	Grimsby,
+	South Humberside
+	ENGLAND			DN32 0NE
+
+	(For AMUL subscriptions, Ref: should be "Ref: AASSUB", for
+	enquiries about KingFisher Software D&EG, Ref: should be
+	"Ref: KFSDEG).
+
+	Or you can contact me VOICE:
+
+		The CodeOmatic BBS - +44-472-361725  (England)
+
+	or via Jon Witty @ the MetNet Triangle BBS, UK, The OFFICIAL
+        AND ONLY SUPPORT BOARD FOR THE AMUL System!
+
+        Any BBS's becomming AMUL development BBS's will be added to
+        this list. Anyone found running unofficial developers sections
+        will be severly ignored, and can expect to have less attention
+        paid to them than a pair of fetid dingoes kidneys!
+
+
+   Support Contacts
+   ================
+
+  KingFisher Software D&EG International
+  70 Legsby Avenue
+  Grimsby
+  South Humberside	DN32 0NE
+  E N G L A N D
+
+  Oliver Smith	-  The CodeOMatic BBS
+  Tel: +44-472-361725	(England)	VOICE.
+  BBS: +44-482-449028 or +44-482-473871 for HST (MetNet Triangle BBS)
+
+
+  KFS Australian Support BBS:
+
+  Brendan Pratt  -  SideCar Express BBS
+  Tel: +6175-468-253	(Australia)	max speeds v32 and PEP
+
+
+                     Be totally excellent to each other!
+
+
+
+            A M U L -- Amiga's Multi-tasking is Usually Lovelly!
+            -----------=-------=----------------=-------=-------
+                           (But KFS's is better)
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.

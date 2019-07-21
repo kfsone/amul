@@ -1,0 +1,54 @@
+
+  AMUL v0.8.99-8
+  ~~~~~~~~~~~~~~
+
+
+ This release deals with a few VERY serious bugs and irons out a few wrinkles
+in the last versions. Please note that I no-longer have the development
+system and only have access to an Amiga A500 with NO HARD DRIVES. If you want
+to see further developments of AMUL you'll have to make it worth my while
+by registering. THE NEW REGISTRATION FEE IS TWELVE POUNDS (12 GBP).
+
+ KingFisher Software D&EG (Ref: AASUB),
+ 70 Legsby Avenue,
+ Grimsby,
+ S. Humberside,
+ DN32 0NE.
+
+ Voice ONLY: +44-472-361725 after 5pm GMT
+
+ I have revised some of the documentation but not all of it. Included is a
+fairly basic sample adventure called 'Precious'. PLEASE - do NOT modify the
+contents of this archive before redistributing.
+
+ Anyone interested in taking a COMMERCIAL bite into AMUL (say as a fully
+developed, fully saleable project) should contact me IMMEDIATELY!
+
+ AMUL IS SHAREWARE. The official support BBS for AMUL is run by Jon Witty
+and is contactable at:
+
+   Support Contacts
+   ================
+
+  KingFisher Software D&EG International
+  70 Legsby Avenue
+  Grimsby
+  South Humberside	DN32 0NE
+  E N G L A N D
+
+  Oliver Smith	-  The CodeOMatic BBS
+  Tel: +44-472-361725	(England)	VOICE.
+  BBS: +44-482-449028 or +44-482-473871 for HST (MetNet Triangle BBS)
+
+  KFS Australian Support BBS:
+
+  Brendan Pratt  -  SideCar Express BBS
+  Tel: +6175-468-253	(Australia)	max speeds v32 and PEP
+
+
+ All messages should be sent to Jon to get to me ...
+
+ OK ... Have fun playing!
+
+		Oli...
+

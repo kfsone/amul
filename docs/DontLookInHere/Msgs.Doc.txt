@@ -1,0 +1,357 @@
+
+           ####        ###     ###  ###   ### ####
+          ##  ##        ###   ###   ##     ##  ##            Amiga
+         ##    ##       #########   ##     ##  ##            Multi
+         ##    ##       #########   ##     ##  ##            User
+         ########  ---  ## ### ##   ##     ##  ##            adventure
+         ##    ##       ##     ##    ##   ##   ##     #      Language
+         ###  ###      ####   ####   #######  #########
+
+
+          Copyright (C) Oliver Smith/KingFisher Software, 1990-2.
+              Designed, Developed & Written By Oliver Smith.
+
+
+             MSGS.DOC - Messages (Files SysMsg.TXT and UMsg.TXT)
+             ---------------------------------------------------
+
+
+ In Lang.TXT and Travel.TXT, you will regularily want to send a response to
+the user, telling them why things didn't work, or what they did. You will also
+want to tell other users of changes in the world. For example, when the user
+opens a door, anyone else within range of the door needs to know that it has
+BEEN opened.
+
+ The general command to send a message to the user is "message" or "reply".
+This is followed by one of three parameters. Either a text string enclosed in
+double or single quotes ("..." or '...'), or a User Message ID (UMsg) or a
+System Message ID (SysMsg). [Note: There are OTHER messageing commands!]
+
+ When a string is a single line, one-off message, then it is best to put it
+directly into the Lang or Travel.TXT file. However, once it gets over one
+line, or if its used regularily, you should use the message file method.
+
+
+ AMUL has two message files. One contains messages which are required by the
+AMUL frame itself; such as "Enter your name: " and various others. By not
+having all these prompts and responses built into AMUL, the program size is
+reduced, and the AMUL programmer has greater control! This is the SysMsg.TXT
+file.
+
+ The second file is UMsg.TXT. This holds any messages that you may want to
+use in your adventure. The bulk of these messages will be responses like
+"You'll have to stand up first." or "But there's no-one else here!?!".
+
+ All system message ID's consist of a dollar sign ($) followed by the
+message number. UMsgs can have any text label you want. So you might have
+one called 'NoOneHere'. An example SysMsg ID is $31 which is "It is now too
+dark to see."
+
+ Before we explain the message files, there are a few conventions that you
+should know about...
+
+ When constructing a message, you will often want to say "The thing you just
+talked about isn't here." So if the player types "Get Box" and there is no
+box about, you will most likely want to say "The box isn't here!". Rather
+than having to have a different message for each object, AMUL lets you put
+a three character codes which display the contents of different 'variables'.
+These are called escape codes, and consist of an AT (@) followed by two
+characters. An example is @me which displays the players name. @ge is replaced
+with the players gender (male or female). So you could say:
+	"Hello, @me, did you know you are @ge?".
+when AMUL outputs this to a user, it might become:
+	"Hello, Fred, did you know you are female?"
+
+ These are explained in more detail in ESC.Doc.
+
+ If the last character in a message is an open brace ({) then AMUL won't
+automatically print a carriage return at the end of it. An example of this
+is the system message to ask a user to enter his password ($12). To have
+	Enter your password: <password>
+rather than
+	Enter your password:
+	<password>
+you would define message $12 as "Enter your password: {".
+
+ If you want an empty line in your messages, you MUST remember to put a space
+or a period (.) at the beginning, otherwise you will end the message...
+
+ This applies to ALL three kinds of messages!
+
+
+                                1)  UMsg.TXT
+                                ------------
+
+---Start---UMsg.TXT---Start---
+[msgid=](id)
+:	<text>
+----End----UMsg.TXT----End----
+
+Notes: The <text> can be as many lines long as you want. We recommend that
+after you have written the text, that you indent it using a single tab. When
+you later come to look through the file, you will find it much easier to read.
+
+Examples:
+---Start---UMsg.TXT---Start---
+
+; Again, comments are allowed...
+
+msgid=NotGot
+	You aren't carrying it anyway!
+
+; @vb is replaced with the verb the player typed, e.g. "get".
+msgid=CantDoThat
+	You can't @vb that!
+
+TheMsg
+A magical force prevents you from entering the corridor, and you find yourself
+filled to the brim with ingenious ideas for your own multi-user game... Why
+not put finger to keyboard and begin your own AMUL adventure?
+----End----UMsg.TXT----End----
+
+
+
+                               2)  SysMsg.TXT
+                               --------------
+
+---Start---SysMsg.TXT---Start---
+[msgid=]$<msgno>
+:	<text>
+----End----SysMsg.TXT----End----
+
+Notes: The messages MUST be listed in order, and ALL messages MUST exist!
+
+System Messages are constructed in the same way as UMsg's, except for the
+ID's... See the STD sysmsg.txt for examples. Below is a list of ALL System
+messages, along with where they are used, and an example message.
+
+** When %ld or %s are used, you don't HAVE to include these in your messages,
+they are simply provided, incase...
+
+
+$1	Used when AMUL is resetting...
+Reset in progress... Try again later...
+
+$2	Used when all 10 AMUL lines are in use.
+Sorry, no free slots into AMUL... Try again later!
+
+$3	The prompt to press return.. Note the { at the end...
+## Press RETURN: {
+
+$4	The prompt to enter your 'personna' name.
+Enter your personna name: {
+
+$5	When the user enters a name outside the length range.
+Invalid length. Try 3-20 characters.
+
+$6	If the user tries to login with a non-player name, e.g. "door".
+Something, somewhere, is already called that. Try another.
+
+$7	When the user tries to use a name already logged in -> other player.
+Someone just tried to login using your name! Shock horror!
+
+$8	Same as $7, but goes to the user logging in.
+Sorry, "@me" is already logged into the game.
+
+$9	When the users name is unknown. Incase they spelt their name wrongly.
+Do you want me to create this new user? (Y/N): {
+
+$10	Asks the player which sex they want to be.
+Do you want to be (M)ale or (F)emale? {
+
+$11	When the user enters a sex other than M or F.
+Try for >M<ale or >F<emale, eh?
+
+$12	Prompts the user for there password.
+Enter your password: {
+
+$13	When the password entered was an invalid length.
+Password must be 3-8 characters long. Try again.
+
+$14	Asks is the user wants ANSI codes.
+Would you like ANSI codes (occasionally?) (Y/N): {
+
+$15	Welcome message to a new user.
+Welcome, you begin as @me the @mr. Enjoy the game...  
+
+$16	When the user fails to enter the correct password 3 times.
+Out of tries! Invalid password attempt logged.
+
+$17	To let user know someone has tried to login as him! Put %ld where you
+	want the number of failed attempts to be displayed.
+There have been %ld failed attempts to login as you, since you last logged in.
+
+$18	Welcome back message to a user on their 2nd+ call.
+Welcome back, @me @mr... You have now played @gp times!
+
+$19	Message to let the user know that ANSI is enabled.
+>> ANSI is enabled for you! <<
+
+$20	Message to let other players know you have entered the game.
+@me has entered the game!
+
+$21	text displayed when user types 'help'.
+AMUL Standard Adventure Files!
+------------------------------
+.
+Only the standard adventuring commands are installed in this game!
+
+$22	Message when a user logs out after his first call.
+Remember, your password is @pw...
+
+$23	Message to other players nearby when you logout.
+@me has exited the game!
+
+$24	Message when you die. Recommend and EMPTY (with a space) line.
+ 
+You have died...
+
+$25	Message to users nearby, to let them know you DIED.
+@me has just passed away...
+
+$26	When a magical spell fails. (e.g. summon).
+Your spell was unsucessful.
+
+$27	Text displayed after users names in 'who' listing.
+ is in the game!{
+
+$28	When a users rank changes.
+Your level of experience has changed to @mr!
+
+$29	Output from the SAVE command. %ld to display points saved.
+Saving at %ld points!
+
+$30	Quit: make sure the user wants to.
+REALLY quit??? (y/N): {
+
+$31	When it becomes too dark to see.
+It is now too dark to see.
+
+$32	When it becomes light enough to see.
+It is now light enough to see.
+
+$33	When it is already too dark to see.
+It is too dark to see.
+
+$34	When it is too dark to see in the WHAT command.
+It is too dark to make anything out.
+
+$35	When the WHAT command finds no objects.
+You can see nothing special here.
+
+$36	Look command: when listing other players in room. First %s shows
+	other players name, second %s shows rank. _MUST_ put { at end of text.
+%s the %s is here{
+
+$37	Displayed at start of reset, before Reset.TXT
+--+ Something magical is happening +--
+
+$38	When the verb is invalid.
+Sorry, didn't quite understand... Try 'help' for a list of some of the verbs!
+
+$39	When the player tries to move in an illegal direction.
+You can't go that way!
+
+$40	When the player tries to do something he can't....
+You can't do that!
+
+$41	Supergo departure message (to me).
+>> Kappowwww! <<
+
+$42	Supergo message to people nearby me.
+With a puff of smoke, @me dissapears...
+
+$43	Supergo message on arrival.
+As if by magic, @me appears from nowhere!
+
+$44	When there is an invalid mixture of nouns/adjectives.
+Run that by me again, a little slower (or maybe differently)...
+
+$45	When the input parsed OK, but the verb had no matching SYNTAX lines.
+I'm sorry, I just didn't understand that (sigh)!
+
+$46	When the mixture of words is invalid!
+I didn't quite understand that. Nearly, but not quite...
+
+$47	When you are summoned.
+You have been magically summoned...
+
+$48	To other players, when you vanish (summoned).
+As if by magic, @me fades from view and vanishes...
+
+$49	To other players when you arrive from a summon.
+There is a magical tinkling sound, and @me appears out of nowhere.
+
+$50	To other players when you wake up.
+@me has just woken up.
+
+$51	When you are woken up by something.
+You are suddenly awake!
+
+$52	When you try to summon someone already present. %s for name.
+%s is already here!
+
+$53	When you leave a room -> others.
+@me has just left.
+
+$54	When you arrive in another room -> others.
+@me has just arrived.
+
+$55	When you try to enter a SMALL room that is already occupied.
+There is no room in there for you.
+
+$56	To occupants of small room...
+@me just tried to enter, but there was no room for @gh.
+
+$57	When your sex changes...
+You have magically become @gn!
+
+; The following 10 messages are used by Combat.
+; In some of the messages 'his' is used. There wil be an escape code
+; for this in the next version!
+
+$58
+You strike @pl with your bare hands!
+
+$59
+You manage to block @me's blow.
+
+$60
+You strike @pl with your trusty @o1!
+
+$61
+You wield your @o2 and block @me's blow.
+
+$62
+@me deals you a terrific blow.
+
+$63
+@pl manages to block your feeble blow.
+
+$64
+@me strikes you with a @o1!
+
+$65
+@pl parries your blow with a @o1!
+
+$66
+You attack @pl but miss!
+
+$67
+@me attacks you but misses.
+
+$68	Sent when the player makes the top rank.
+Congratulations! You have just achieved the status of immortality, which
+acompanies the top level in this game! You are now ------------* a Wizard!
+
+$69	When a player hasn't completed the required tasks to make a level.
+You have not completed all the required tasks to reach the next level.
+
+$70	When the player tries to look but is blind.
+You can't see anything, you are blind...
+
+$71	Sent to a player in a HIDE room.
+You can't make out whether or not there is anyone else nearby...
+
+$72	Given when a death room is listed by the Exits command.
+Certain death!
