@@ -43,8 +43,10 @@ ELSE ()
 ENDIF ()
 
 FIND_PROGRAM(CMAKE_CXX_CPPCHECK_EXE NAMES cppcheck)
-SET(CMAKE_C_CPPCHECK "${CMAKE_CXX_CPPCHECK_EXE};--enable=warning,performance,portability,missingInclude;--template=\"[{severity}][{id}] {message} {callstack} \(On {file}:{line}\)\";--suppress=missingIncludeSystem;--verbose")
-SET(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK_EXE};--enable=warning,performance,portability,missingInclude;--template=\"[{severity}][{id}] {message} {callstack} \(On {file}:{line}\)\";--suppress=missingIncludeSystem;--verbose")
+#SET(CPPCHECK_ARGS "--enable=warning,performance,portability,missingInclude;--template=\"[{severity}][{id}] {message} {callstack} \(On {file}:{line}\)\";--suppress=missingIncludeSystem;--verbose")
+SET(CPPCHECK_ARGS "--enable=all;--template={file}:{line}: {severity}: {id} {message} {callstack};--suppress=missingIncludeSystem;--quiet")
+SET(CMAKE_C_CPPCHECK "${CMAKE_CXX_CPPCHECK_EXE};${CPPCHECK_ARGS}")
+SET(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK_EXE};${CPPCHECK_ARGS}")
 
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(tests)

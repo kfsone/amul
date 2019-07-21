@@ -1,0 +1,32 @@
+# Development environment for building AMUL under Linux.
+#
+# The ubuntu environment is nice but kind of heavy weight, so this is a
+# stripped-down alpine based version.
+#
+# Push as kfsone/amula vs amulu for ubuntu and amul for a runtime environment.
+#
+FROM alpine:latest
+
+RUN		echo '@edge http://nl.alpinelinux.org/alpine/edge/main' >>/etc/apk/repositories && \
+		echo '@edgecommunity http://nl.alpinelinux.org/alpine/edge/community' >>/etc/apk/repositories && \
+		echo '@testing http://nl.alpinelinux.org/alpine/edge/testing' >>/etc/apk/repositories && \
+		apk --no-cache update && apk --no-cache upgrade && \
+		apk --no-cache add \
+				vim \
+				man \
+				less \
+				build-base \
+				make cmake ninja \
+				clang clang-analyzer clang-doc clang-static \
+				lldb@testing \
+				cppcheck \
+				python3 \
+				git && \
+		pip3 install --no-cache-dir ipython
+
+COPY etc/vimrc /root/.vimrc
+
+RUN mkdir /amul
+WORKDIR /amul
+
+ENTRYPOINT [ "/bin/ash" ]

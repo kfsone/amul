@@ -1,5 +1,44 @@
 # AMUL : Amiga Multi-User games Language
 
+# Development
+
+AMUL is built using CMake and is developed for Windows and Linux. MacOS is
+not officially supported but patches will be accepted. (Send me a Mac Mini
+if you want me to directly support MacOS)
+
+For the most part I do the bulk of my editing in Vim, VS Code and Studio.
+
+## Windows
+
+Just point VS 2019 or higher at this folder and the CMakeLists.txt.
+TODO: VS Code howto.
+
+## WSL
+
+I use the Ubuntu base image with gcc, cmake and ninja, and create a build
+directory called "wsl" from which I run `cmake -G Ninja ..`.
+
+## Linux
+
+Two Docker files are provided that will also serve as a description of the
+packages required etc. I'm going to publish these as kfsone/amula and
+kfsone/amulu respectively.
+
+To launch: 
+
+```sh
+	docker run --rm -it -v /dir/to/amul:/amul kfsone/amula
+	# mkdir linux
+	# cd linux
+	# cmake -G Ninja ..
+	# cmake --build .
+```
+
+There is a copy of my vimrc file in etc/, in particular I use `:make` to do
+my builds and then press the `=` key to skip between build lines.
+
+# About
+
 This is the source code for "AMUL" - my Amiga Multi-User [games] Language,
 which I originally wrote on an Amiga 500 in the early 90s.
 

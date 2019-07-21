@@ -11,7 +11,7 @@ set ts=4 sw=4 expandtab backspace=2
 "set colorcolumn=100
 
 " use = to advance thru errors/grep results
-nnoremap = :cn
+nnoremap = :cn<CR>
 
 " Enable filetype recognition and syntax highlighting
 filetype on

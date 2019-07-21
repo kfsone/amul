@@ -15,9 +15,6 @@ NewBuffer(const char *data, const size_t dataSize, struct Buffer **receiver)
     REQUIRE(data && receiver);
     REQUIRE(*receiver == NULL);
 
-    // Protect against address overflow
-    REQUIRE(data + dataSize >= data);
-
     for (size_t i = 0; i < NUM_BUFFERS; ++i) {
         if (!s_bufferInUse[i]) {  // TODO: atomic swap
             s_bufferInUse[i] = true;

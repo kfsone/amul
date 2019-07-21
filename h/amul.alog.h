@@ -46,11 +46,11 @@ enum LogLevel {
 };
 
 extern uint32_t al_errorCount;
-void            alog(enum LogLevel level, const char *fmt, ...);
-void            alogLevel(enum LogLevel level);
-enum LogLevel   alogGetLevel();
-const char *    alogGetLevelName();
+extern void            alog(enum LogLevel level, const char *fmt, ...);
+extern void            alogLevel(enum LogLevel level);
+extern enum LogLevel   alogGetLevel();
+extern const char *    alogGetLevelName();
 
-error_t InitLogging();
+extern error_t InitLogging();
 
 #endif
