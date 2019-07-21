@@ -1,175 +1,35 @@
 # AMUL : Amiga Multi-User games Language
 
-# Development
-
-AMUL is built using CMake and is developed for Windows and Linux. MacOS is
-not officially supported but patches will be accepted. (Send me a Mac Mini
-if you want me to directly support MacOS)
-
-For the most part I do the bulk of my editing in Vim, VS Code and Studio.
-
-## Windows
-
-Just point VS 2019 or higher at this folder and the CMakeLists.txt.
-TODO: VS Code howto.
-
-## WSL
-
-I use the Ubuntu base image with gcc, cmake and ninja, and create a build
-directory called "wsl" from which I run `cmake -G Ninja ..`.
-
-## Linux
-
-Two Docker files are provided that will also serve as a description of the
-packages required etc. I'm going to publish these as kfsone/amula and
-kfsone/amulu respectively.
-
-To launch: 
-
-```sh
-	docker run --rm -it -v /dir/to/amul:/amul kfsone/amula
-	# mkdir linux
-	# cd linux
-	# cmake -G Ninja ..
-	# cmake --build .
-```
-
-There is a copy of my vimrc file in etc/, in particular I use `:make` to do
-my builds and then press the `=` key to skip between build lines.
+> [About](#about) | [AMUL](#amul) | [Development](#development) | [Background, History, Future](#background,-history,-future)
 
 # About
 
+> [Top](#amul-:-amiga-multi-user-games-language) | [Adventure Games](#adventure-games) | [MUDs](#muds) | [Elements of a MUD](#elements-of-a-mud)
+
+## Background
+
 This is the source code for "AMUL" - my Amiga Multi-User [games] Language,
-which I originally wrote on an Amiga 500 in the early 90s.
+which I originally wrote on an Amiga 500 in the early 90s. It's a project
+I periodically dig up and use to explore nuances of modern development.
 
-My code started out well organized, commented and clean, but quickly filled
-the floppy drives I was working on. So I quickly began shortening things.
-
-The Amiga used a "\n\r" line-ending convention, so putting multiple statements
-on a single line *did* actually save one extra character.
-
-Sadly, this snapshot dates from about 6-months prior to the last version of
-AMUL I released, and so is missing a number of features (and probably bug-
-fixes).
-
-I'd eventually had to resort to using on-the-fly compression to try and make
-enough room to have both the code AND compile, which ultimately lead to file
-corruption, reducing my number of "fresh" backups to a set of disks that I
-left in an attic in the town of Healing when I moved to the US, a house from
-which my relatives subsequently moved out without the box...
-
-And my only hard-disk copy was lost in a delightful little 1st-generation
-CD-ROM too-close to hard-drive during backup experience that involved dancing
-blue flames on the case of a hard disk :(
-
-Most notably, this release is missing the full implementation of "daemons" and
-the "mobile" system that is functional but buggy in AMUL 906, the last release.
-
-
-# History
-
-Every now and again I've dug this code up and poked/prodded at it, but usually
-abandoned it for the fact not so much that it relied on the Amiga's IPC
-systems like Message Ports but because it ultimately relied on the fact that
-Amiga processes shared memory space and so could literally pass each other
-pointers.
-
-AMUL was my 3rd MUD system. The first and second were on the Atari ST. The
-first was written in 68000 assembler and lead to my writing my own operating
-system so that I didn't have to worry about multi-tasking in the game engine.
-
-The second was written in C, in-fact it was how I taught myself C.
-
-AMUL itself was written in ANSI K&R (C89) C, which mean't that by even the
-late 90s, it made most compilers vomit walls of warnings and/or errors that
-made it seem lightyears from operability.
-
-My first attempts at an AMUL resurrection was "SMUGL" ("Simple Multi-User Game
-Language") which was really just a C-with-Classes reworking of the original,
-and it never was much more than a periodic hacking project.
-
-28 years after the last AMUL release, I was inspired to try and see just how
-far Visual Studio had come in terms of how feasible it would be to *quickly*
-get some flavor of AMUL to compile, never mind run.
-
-In the _master_ branch, I automatically started that process in C++ and I
-also automatically began scope-creeping so that "compiling" continually became
-further and further away. I just couldn't not deal with all the warnings.
-
-But it did help me refresh myself on the code base.
-
-Once I got amulcom compiling and largely compiling game code, I wondered:
-Could I have gotten here by doing less? And I knew the answer was: Yes.
-
-So I created this branch from the original commit, and I stuck to doing this
-in C. I stuck to the focus of "make it compile before you make it pretty"
-etc.
-
-It took a handful of hours to get amulcom compiling and starting to compile
-game code. Armed with knowledge of bug-fixes from master, I was quickly
-able to pass the first obvious issues.
-
-My big realization was the *why* of some of the organization, and I was
-able to avoid many of my original refactoring mistakes by putting all of
-amulcom into a single .c file instead of trying to shoe-horn it's component
-sub .c files into behaving like stand-alone files. (In truth, they'd all
-originally just been #included. I'm not sure why I gave them the .c suffix)
-
-
-# Future
-
-My goal, for now, is just to get it compiling the entire sample game. Perhaps
-I'll go so far as to get the game manager and game engine compiling if not
-running to some limited degree.
-
-My main focus after that is likely to be refactoring amulcom to be token
-based and to introduce some more 21st century features like dictionary
-lookups etc.
-
-I'm curious to see if I'll choose to stay with C or switch to C++. I have
-half a mind to reimplement in golang - which is partly what's motivated me
-to stick with basic C.
-
-I also plan to replace the amulcom/aman/amul trio with a single binary
-that translates the raw text files to memory and runs the game directly.
-
-This was how AMUL was supposed to work originally but disk, memory and CPU
-all hampered that goal.
-
-# AMUL Basics
-
-AMUL is a language for writing text-based, multi-player advenure games (MUDs),
-and it does it in an old-school way, so there are a lot of reinvented wheels.
-
-For example: there's really no good reason, today, not just to throw the game
-data into a database and be done with. Give it a good editor, maybe web based,
-and you could do away with the text files too.
-
-The structure of the data actually lends itself very well to such a thing.
-
-Or, I could abandon the custom language and just use any of the extant forms,
-because literally any of them would probably do OK: CSV, XML, JSON, YAML.
-
-But that's all the shit we do day to day. What AMUL really is, at this point,
-is an opportunity to dick around with stuff behind the scenes. Maybe when
-the rest of it works, that'll be project #2.
-
-# Adventure Games and MUDs
+## Adventure Games
 
 Adventure games were text-based puzzles where the world is described to you
 in text, and you write out natural-language instructions to try to tell the
 narrator (the game) what to do.
 
-*	It is dark.
-*	> turn the light on
-*	It is no-longer dark. There is a door to the east.
-*	> go east
-*	To business! You rush eastward, only to be halted by the firmly closed door.
-*	> open it
-*	It's locked.
-*	> unlock it
-*	Well, why didn't you ask? Ok. It's unlocked.
-*	> quit
+>	It is dark.  
+>	_\> turn the light on_  
+>	It is no-longer dark. There is a door to the east.  
+>	_\> go east_  
+>	To business! You rush eastward, only to be halted by the firmly closed door.  
+>	_\> open it_  
+>	It's locked.  
+>	_\> unlock it_  
+>	Well, why didn't you ask? Ok. It's unlocked.  
+>	_\> quit_
+
+## MUDs
 
 MUDs range anywhere from being eclectic alternatives to IRC with themed chat
 rooms, to being text-based world simulations.
@@ -179,19 +39,19 @@ some MUD engines may have operated on a cell/grid basis, most MUDs just
 let rooms link up however they like. The "size" of a room entirely depends
 on it's description and connections.
 
-*	West of the grand hall.
-*	> east
-*	Grand hall.
-*	> east
-*	East of the grand hall.
-*	> southwest
-*	Narrow passage south of the grand hall.
-*	> west
-*	Middle of a narrow passage, south of the grand hall.
-*	> west
-*	West end of a narrow passage, south of the grand hall.
-*	> northwest
-*	West of the grand hall.
+>	West of the grand hall.  
+>	_\> east_  
+>	Grand hall.  
+>	_\> east_  
+>	East of the grand hall.  
+>	_\> southwest_  
+>	Narrow passage south of the grand hall.  
+>	_\> west_  
+>	Middle of a narrow passage, south of the grand hall.  
+>	_\> west_  
+>	West end of a narrow passage, south of the grand hall.  
+>	_\> northwest_  
+>	West of the grand hall.  
 
 In an adventure game, there is a clear, defined goal, and typically a fixed
 path to achieving it. Most adventure games had fairly linear plots.
@@ -213,43 +73,42 @@ and have the ability to do matrix-like stuff to the non-wiz players.
 
 PVP was a routine part of MUDs, usually in the form of permadeath.
 
-# AMUL Structure
+## Elements of a MUD
 
-## Software
+A MUD is generally made up of several formal components:
 
-AMUL is broken into several components:
+* "Room"s
+: 1d locations in the game world with no formal dimension or coordinate systems,
+* "Object"s
+: Anything that can exist or have a presence inside a room that isn't a player, including the more tangible elements of the room. Examples include doors, bags, treasure, even the weather.
+* Object States
+: Each object has, essentially, one general-purpose variable controlling its properties in the game world. For instance, a "torch" might be on and luminous in one state; the weather might simply change between "It is snowing" and "It is raining" and being hidden as it changes states.
+* "Descriptions"
+: The text that describes rooms, objects, etc.
+* "Messages"
+: Everything else that might be sent to a player.
+* "Verbs" / "Language"
+: A way to describe the commands players can enter and how those commands affect the player/world. AMUL takes a function-programming approach, in that you provide patterns that describe this verb and this combination of nouns, etc.
+* "Travel"/"Map"/"Exits"
+: MUDs - like AMUL based ones - that use the 1D system need to be told how rooms connect/don't. This is
+generally called the "travel table".
 
-`amulcom`
+# AMUL
+
+> [Top](#amul-:-amiga-multi-user-games-language) | [Game Definition](#game-definition) | [Conventions](#conventions) | [Files](#files)  
+
+AMUL is comprised of several components:
+
+* `amulcom`
 : Compiler: text => data,
-`aman`
+* `aman`
 : Manager: data -> in-memory representation,
-`amul`
-: Frame[^1]: the client
+* `amul`
+: Frame([*1](#footnote-1)) the client
 
 After compiling your game, you launch the manager, which then launches instances
 of the 'frame' or client. It eventually also launched 2 special instances: one for
 handling 'daemons' (background events) and one for NPCs.
-
-## Game Components
-
-A MUD is generally made up of several formal components:
-
-"Room"s
-: 1d locations in the game world with no formal dimension or coordinate systems,
-"Object"s
-: Anything that can exist or have a presence inside a room that isn't a player, including the more tangible elements of the room. Examples include doors, bags, treasure, even the weather.
-Object States
-: Each object has, essentially, one general-purpose variable controlling its properties in the game world. For instance, a "torch" might be on and luminous in one state; the weather might simply change between "It is snowing" and "It is raining" and being hidden as it changes states.
-"Descriptions"
-: The text that describes rooms, objects, etc.
-"Messages"
-: Everything else that might be sent to a player.
-"Verbs" / "Language"
-: A way to describe the commands players can enter and how those commands affect the player/world. AMUL takes a function-programming approach, in that you provide patterns that describe this verb and this combination of nouns, etc.
-"Travel"/"Map"/"Exits"
-: MUDs - like AMUL based ones - that use the 1D system need to be told how rooms connect/don't. This is
-generally called the "travel table".
-
 
 ## Game Definition
 
@@ -265,31 +124,19 @@ Typically a "block" comprises:
 
 The text files are as follows:
 
-`title.txt`
-: Describes general game configuration and then provides the title splash
-`ranks.txt`
-: Lists the ranks players can attain[^2]
-`sysmsg.txt`
-: Provides the text messages used by the game itself[^3].
-`umsg.txt`
-: For "out-of-band" string literals that would be annoying in the language file
-`obdesc.txt`
-: Long or frequently-repeated object descriptions (umsg for objects)
-`objects.txt`
-: Anything that can be used as a noun that is not a player is described here.
-`rooms.txt`
-: Describes the properties of the locations in the game and their text descriptions.
-`travel.txt`
-: Uses AMULs "c&a" (condition & action) language to describe which verbs take players between rooms or the side-effects they cause
-`lang.txt`
-: The main "c&a" file where you essentially build the parser that will interpret what players type.
-`mobiles.txt`
-: Describes NPC attributes that can then be associated with an object to create a "mobile" NPC
-`syns.txt`
-: I basically copied this name (synonyms), "aliases" would have been much better
+* `title.txt` : Describes general game configuration and then provides the title splash
+* `ranks.txt` : Lists the ranks players can attain([*2](#footnote-2))
+* `sysmsg.txt` : Provides the text messages used by the game itself([*3](#footnote-3)).
+* `umsg.txt` : For "out-of-band" string literals that would be annoying in the language file
+* `obdesc.txt` : Long or frequently-repeated object descriptions (umsg for objects)
+* `objects.txt` : Anything that can be used as a noun that is not a player is described here.
+* `rooms.txt` : Describes the properties of the locations in the game and their text descriptions.
+* `travel.txt` : Uses AMULs "c&a" (condition & action) language to describe which verbs take players between rooms or the side-effects they cause
+* `lang.txt` : The main "c&a" file where you essentially build the parser that will interpret what players type.
+* `mobiles.txt` : Describes NPC attributes that can then be associated with an object to create a "mobile" NPC
+* `syns.txt` : I basically copied this name (synonyms), "aliases" would have been much better
 
-
-# Language basics
+## Conventions
 
 Not going to describe the entire thing here. At it's best, AMUL can look a bit like JSON, using
 key=value pairs to describe things. But in most cases the values actually represent a list and the
@@ -297,24 +144,35 @@ keys are opional, because disk space & memory, see.
 
 And because the Amiga used `\r\n` as it's end of line, putting multiple lines onto one saved space.
 
-*	cup|tvroom|250 10 0 0 "On the floor lies a small, silver cup." scaled
+```
+cup|tvroom|250 10 0 0 "On the floor lies a small, silver cup." scaled
+```
 
 Not very elegant? This is the terse version of
 
-*	noun=cup	; state-independent flags would be here
-*		location=tvroom
-*		weight=250 value=10 strength=0 damage=0 description="On the floor lies a small, silver cup." flags=scaled
+```
+noun=cup	; state-independent flags would be here  
+	location=tvroom  
+	weight=250 value=10 strength=0 damage=0 description="On the floor lies a small, silver cup." flags=scaled  
+```
 
 Although the longer prefixes were yanked during a disk-space recovery at some point making it:
 
-*	noun=cup	; state-independent flags would be here
-*		location=tvroom
-*		weight=250 value=10 str=0 dam=0 desc="On the floor lies a small, silver cup." scaled
+```
+	noun=cup	; state-independent flags would be here  
+		location=tvroom  
+		weight=250 value=10 str=0 dam=0 desc="On the floor lies a small, silver cup." scaled  
+```
 
 The downside to this approach is that, in order to have blank lines between logical blocks or in paragraphs of text, you have to have a non-empty line. To deal with this, I typically used tab indentation. Otherwise, the indentation in AMUL is optional. This is _not_ Python :)
 
+## Files
 
-## SysMsg, UMsg, ObDescs
+> [Top](#amul-:-amiga-multi-user-games-language) | [Game Definition](#game-definition) | [Conventions](#conventions)
+
+### SysMsg, UMsg and ObDescs
+
+> > [Files](#files) | [SysMsg, Umsg and ObDescs](#sysmsg,-umsg-and-obdescs) | [Rooms](#rooms) | [Travel](#travel) | [Language](#language)
 
 The simplest files:
 
@@ -344,7 +202,9 @@ obdescs example:
 	The torch is lit.
 ```
 
-## Rooms
+### Rooms
+
+> > [Files](#files) | [SysMsg, Umsg and ObDescs](#sysmsg,-umsg-and-obdescs) | [Rooms](#rooms) | [Travel](#travel) | [Language](#language)
 
 Rooms is another simple file:
 
@@ -375,7 +235,9 @@ Points of note from this:
   objects called "bed", "door", "doorway" and "wall" that have a presence here so that players can type
   'touch the wall', for example, and not have the parser say "whats a wall?"
 
-## Travel
+### Travel
+
+> > [Files](#files) | [SysMsg, Umsg and ObDescs](#sysmsg,-umsg-and-obdescs) | [Rooms](#rooms) | [Travel](#travel) | [Language](#language)
 
 The travel table is, effectively, a room-specific version of the language file, and is easier to explain first.
 
@@ -403,7 +265,9 @@ Example:
 		respond "You're stuck here now, muahahaha"
 ```
 
-## Language
+### Language
+
+> > [Files](#files) | [SysMsg, Umsg and ObDescs](#sysmsg,-umsg-and-obdescs) | [Rooms](#rooms) | [Travel](#travel) | [Language](#language)
 
 The C&A language for is broken down into "verbs" and then further broken down into
 pattern matching expressions I called "syntax"es.
@@ -460,12 +324,12 @@ and the syntax line patterns are all about various degrees of matching to each o
 
 I snuck the @n2 in here to note that AMUL has a text-variable system that lets you have various placeholder words. In this case, you might expect the following:
 
-*	> test
-*	You typed test all on its own.
-*	> test me
-*	You want ME to test you?
-*	> test me bro
-*	I'm guessing you want me to test *with* the bro?
+>	\> test  
+>	You typed test all on its own.  
+>	\> test me  
+>	You want ME to test you?  
+>	\> test me bro  
+>	I'm guessing you want me to test *with* the bro?  
 
 We can special case that by being more specific with a pattern:
 
@@ -487,8 +351,167 @@ The other approach to this would be to use a condition. This is also actually an
 Finishing with a demonstration of the "gloss" words that are syntactic sugar but entirely optional.
 
 
+# Development
 
-[^1]: 'Frame' is a term from the Bulletin-Board System era. BBS software typically
+> [Top](#amul-:-amiga-multi-user-games-language) | [Windows](#windows) | [Windows Subsystem for Linux](#wsl) | [Linux](#linux) | [This seems like work](#this-seems-like-work)
+
+AMUL is built using CMake and is developed for Windows and Linux. MacOS is
+not officially supported but patches will be accepted. (Send me a Mac Mini
+if you want me to directly support MacOS)
+
+For the most part I do the bulk of my editing in Vim, VS Code and Studio.
+
+## Windows
+
+Just point VS 2019 or higher at this folder and the CMakeLists.txt.
+TODO: VS Code howto.
+
+## WSL
+
+I use the Ubuntu base image with gcc, cmake and ninja, and create a build
+directory called "wsl" from which I run `cmake -G Ninja ..`.
+
+## Linux
+
+Two Docker files are provided that will also serve as a description of the
+packages required etc. I'm going to publish these as kfsone/amula and
+kfsone/amulu respectively.
+
+To launch: 
+
+```sh
+	docker run --rm -it -v /dir/to/amul:/amul kfsone/amula
+	# mkdir linux
+	# cd linux
+	# cmake -G Ninja ..
+	# cmake --build .
+```
+
+There is a copy of my vimrc file in etc/, in particular I use `:make` to do
+my builds and then press the `=` key to skip between build lines.
+
+## This seems like work
+
+AMUL is a language for writing text-based, multi-player advenure games (MUDs),
+and it does it in an old-school way, so there are a lot of reinvented wheels.
+
+For example: there's really no good reason, today, not just to throw the game
+data into a database and be done with. Give it a good editor, maybe web based,
+and you could do away with the text files too.
+
+The structure of the data actually lends itself very well to such a thing.
+
+Or, I could abandon the custom language and just use any of the extant forms,
+because literally any of them would probably do OK: CSV, XML, JSON, YAML.
+
+But that's all the shit we do day to day. What AMUL really is, at this point,
+is an opportunity to dick around with stuff behind the scenes. Maybe when
+the rest of it works, that'll be project #2.
+
+
+# Background, History, Future
+
+> [Top](#amul-:-amiga-multi-user-games-language) | [Project Background](#project-background) | [History](#history) | [Future](#future)
+
+## Project Background
+
+My code started out well organized, commented and clean, but quickly filled
+the floppy drives I was working on. So I quickly began shortening things.
+
+The Amiga used a "\n\r" line-ending convention, so putting multiple statements
+on a single line *did* actually save one extra character.
+
+Sadly, this snapshot dates from about 6-months prior to the last version of
+AMUL I released, and so is missing a number of features (and probably bug-
+fixes).
+
+I'd eventually had to resort to using on-the-fly compression to try and make
+enough room to have both the code AND compile, which ultimately lead to file
+corruption, reducing my number of "fresh" backups to a set of disks that I
+left in an attic in the town of Healing when I moved to the US, a house from
+which my relatives subsequently moved out without the box...
+
+And my only hard-disk copy was lost in a delightful little 1st-generation
+CD-ROM too-close to hard-drive during backup experience that involved dancing
+blue flames on the case of a hard disk :(
+
+Most notably, this release is missing the full implementation of "daemons" and
+the "mobile" system that is functional but buggy in AMUL 906, the last release.
+
+## History
+
+Every now and again I've dug this code up and poked/prodded at it, but usually
+abandoned it for the fact not so much that it relied on the Amiga's IPC
+systems like Message Ports but because it ultimately relied on the fact that
+Amiga processes shared memory space and so could literally pass each other
+pointers.
+
+AMUL was my 3rd MUD system. The first and second were on the Atari ST. The
+first was written in 68000 assembler and lead to my writing my own operating
+system so that I didn't have to worry about multi-tasking in the game engine.
+
+The second was written in C, in-fact it was how I taught myself C.
+
+AMUL itself was written in ANSI K&R (C89) C, which mean't that by even the
+late 90s, it made most compilers vomit walls of warnings and/or errors that
+made it seem lightyears from operability.
+
+My first attempts at an AMUL resurrection was "SMUGL" ("Simple Multi-User Game
+Language") which was really just a C-with-Classes reworking of the original,
+and it never was much more than a periodic hacking project.
+
+28 years after the last AMUL release, I was inspired to try and see just how
+far Visual Studio had come in terms of how feasible it would be to *quickly*
+get some flavor of AMUL to compile, never mind run.
+
+In the _master_ branch, I automatically started that process in C++ and I
+also automatically began scope-creeping so that "compiling" continually became
+further and further away. I just couldn't not deal with all the warnings.
+
+But it did help me refresh myself on the code base.
+
+Once I got amulcom compiling and largely compiling game code, I wondered:
+Could I have gotten here by doing less? And I knew the answer was: Yes.
+
+So I created this branch from the original commit, and I stuck to doing this
+in C. I stuck to the focus of "make it compile before you make it pretty"
+etc.
+
+It took a handful of hours to get amulcom compiling and starting to compile
+game code. Armed with knowledge of bug-fixes from master, I was quickly
+able to pass the first obvious issues.
+
+My big realization was the *why* of some of the organization, and I was
+able to avoid many of my original refactoring mistakes by putting all of
+amulcom into a single `.c` file instead of trying to shoe-horn it's component
+sub .c files into behaving like stand-alone files. (In truth, they'd all
+originally just been `#included`. I'm not sure why I gave them the `.c` suffix)
+
+## Future
+
+My goal, for now, is just to get it compiling the entire sample game. Perhaps
+I'll go so far as to get the game manager and game engine compiling if not
+running to some limited degree.
+
+My main focus after that is likely to be refactoring amulcom to be token
+based and to introduce some more 21st century features like dictionary
+lookups etc.
+
+I'm curious to see if I'll choose to stay with C or switch to C++. I have
+half a mind to reimplement in golang - which is partly what's motivated me
+to stick with basic C.
+
+I also plan to replace the amulcom/aman/amul trio with a single binary
+that translates the raw text files to memory and runs the game directly.
+
+This was how AMUL was supposed to work originally but disk, memory and CPU
+all hampered that goal.
+
+
+
+# Footnote 1
+
+'Frame' is a term from the Bulletin-Board System era. BBS software typically
 had direct control over the modem hardware, so in order for an external
 application to communicate with the user, the BBS had to act as an intermediary.
 The API that was first introduced for this was called 'Doors' (I guess whoever
@@ -497,10 +520,12 @@ coined it was a twilight zone fan) and the API layer itself was the 'Frame'.
 'amul.c' was going to be a thin client that handled parsing and sent the
 resulting token streams to the manager. Didn't play out that way, though.
 
-[^2]: In 'SMUGL' I moved the title screen into 'title.text' and moved the
+# Footnote 2
+In 'SMUGL' I moved the title screen into 'title.text' and moved the
 config elements along with the ranks into 'system.txt'. I really sucked at
 naming things.
 
-[^3]: Except where I was lazy and hardcoded it. Also, the player *has* to provide
+# Footnote 3
+Except where I was lazy and hardcoded it. Also, the player *has* to provide
 sysmsg.txt, which was part laziness and part memory/disk pressure during my
 original floppy-based development.
