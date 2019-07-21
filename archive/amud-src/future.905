@@ -1,0 +1,70 @@
+
+                   ### Future plans as of version 0.9.05 ###
+
+
+1/
+  Continue  conversion  to  68000 assembler, and transfer as much code to the
+  library as possible.  This will reduce code size.
+
+2/
+  Intelligent  I/O  system!   At  present  AMUL's  I/O is built into the AMUL
+  program,  consuming  memory  each  time  the  program is run (including the
+  mobile/daemon  line).  By placing this code in the library, it need only be
+  loaded into memory once.  Each time an AMUL line is launched, it will go to
+  the  library for it's IO drivers, which will create a resident task, vastly
+  reducing the memory requirements.
+
+3/
+  ARexx  bolton.   This  will  be  a  small,  external program, which sits in
+  memory,  creating  "clone  tasks"  every time an ARexx port is needed.  The
+  main  task  will  allow  comms  between  external  scripts and AMan, whilst
+  enabling AMUL lines to create a temporary port for running in-game scripts.
+  It will be written in assembler for speed and size.
+
+4/
+  Multi-Game  ability.   This will allow several games to run concurrently on
+  one  system.  It will require the main portions of AMan to be made resident
+  (through  the  library).   There  will also be an overall "game controller"
+  which  will  run  at  a  level ABOVE existing AMan's.  This will require an
+  Inter-World Lobby, which will simply be a menu for selecting which game you
+  want (Note:  there will be an option to bypass this is you are only running
+  a single game).  Players will be able to "sit" in the lobby during reset of
+  games,  or whilst waiting for a game to be loaded.  The menu will give full
+  details of status of games.
+
+  NOTE:   While  players  are sat in the lobby, they are informed when a game
+  has  finished  or  started  resetting - thus when players are kicked out at
+  reset,  they  simply  have  to  wait in the lobby till they are told "Reset
+  Completed."
+
+5/
+  Inter-World   Conference.    A   simple   'chat   mode'  facility  allowing
+  communications between players outside of the games.  Messages about resets
+  are sent here too.
+
+  Because most of the code used for the conference would be already contained
+  in amul.library, the conference would also be built in.
+
+6/
+  Full  user accounting system (bolton).  This would allow people not running
+  BBS's  to  set-up  a  complete  MUG.   BTW:  It is now possible to BUY X.25
+  modems;  if  you  can  find a driver for the Amiga, you could easily set-up
+  your  own  mutli-line  PAD, allowing you to have a REAL MUG running!  There
+  should be ways to even connect you up to InterNet, giving you access to the
+  hordes  of  MUGgers  out  there.   If anyone finds a way to do that; I'd be
+  really  interested!   It  would  be  interestting to see what the LPMudders
+  think to an AMUL game!
+
+There are a whole host more things I intend to do; so briefly:
+
+  Single turn combat (e.g.  hit, punch, kick).  Player<->mobile combat.  Drag
+  'Helpers' into fights.  Far more 'verbose' fight sequences.  Simplification
+  of  commands;  e.g  sameroom <player> and ishere <noun> to be replaced with
+  ONE  command which accepts PLAYER or NOUN.  Generation of a VOCAB table and
+  more  structure  data-storage/representation.  Option 'MUDESCRIBE'; instead
+  of  putting  a Carriage Return after listing players/objects, everything is
+  thrown into one huge "mess", which means that object descriptions look more
+  like  part  of the room description.  Believe me, it makes players behave a
+  little better, and it looks a lot less like a spectrum adventure.
+
+                                  Oliver

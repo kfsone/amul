@@ -1,0 +1,9 @@
+A few important notes for merging the two programs:
+
+AMIGA:
+	Updated the use of needcr/xpos -> don't forget
+	Make the daemons queued in active order?
+
+UNIX:
+	AMan still uses the 'count' variable, Amiga uses "mins".
+

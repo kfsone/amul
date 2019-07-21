@@ -1,0 +1,100 @@
+#define	boEXISTS	0x0001			/* the item exists	*/
+#define	boALIVE		0x0002			/* human/mobile		*/
+#define	boLIGHT		0x0004			/* light source		*/
+#define	boINVIS		0x0008			/* invisible		*/
+#define	boSINVIS	0x0010			/* super-invisible	*/
+#define	boHEAR		0x0020			/* can hear things	*/
+#define	boSEE		0x0040			/* can see things	*/
+#define	boSPEAK		0x0080			/* can speak		*/
+#define	boMOVE		0x0100			/* it can move		*/
+#define	boMOVING	0x4000			/* IN TRANSIT		*/
+#define	boLOCKED	0x8000			/* LOCKED		*/
+
+#define	SBOB struct _BOBJ
+
+SDEF _BOBJ {			/* Basic object struct */
+	BYTE	type,state;			/* Type of 'presence'	*/
+	char	*name;				/* Name			*/
+	LONG	holdsw,holdsn;			/* Max. contents	*/
+	ULONG	flags;				/* Any fixed flags	*/
+	ULONG	myweight,weight;		/* Item's weight & carried */
+	SHORT	light;				/* Light-source count	*/
+	SHORT	inv;				/* Inventory (count)	*/
+	struct	_BOBJ *nxt,*pre,*in,*own;	/* Next, prev, 1st in, owner */
+	SHORT	tyno;				/* Items number within type */
+};
+
+SDEF _ROOM {			/* Room object struct */
+	USHORT	flags;				/* Room FIXED flags        */
+	long	desptr;				/* Ptr to des. in des file */
+	long	tabptr;				/* Ptr to T.T. data 	   */
+	SHORT	ttlines;			/* No. of TT lines	   */
+};
+
+#define	CRE	struct _BEING	/* Creature */
+
+SDEF WE {	CRE *us,*next,*me;	}
+
+SDEF _BEING {		/* Mobile/char struct */
+	char	*buf;				/* Where to put text	*/
+struct MsgPort	*rep;				/* Notify me here	*/
+	ULONG	flags;				/* Flags		*/
+	long	sctg;				/* Points scd this game	*/
+	SHORT	strength,stamina,dext;		/* Fators		*/
+	SHORT	wisdom,magicpts,wield;		/* factors		*/
+	SHORT	dextadj;
+	WE	fighting,following,snooping,helping;
+	SHORT	rec,unum;			/* Record/user number	*/
+	char	*arr,*dep;			/* Arrive/depart strings*/
+	APTR	*info;				/* A bit more		*/
+};
+
+SDEF _LS {			/* IO Driver Line Status Info */
+	char	line;				/* Which line am I?	*/
+	char	IOlock;				/* Device in use?	*/
+	char	pre[80];			/* Pre-rank description	*/
+	char	post[80];			/* Post-rank description*/
+};
+
+#define		MALE		0
+#define		FEMALE		1
+
+SDEF _HUMAN {		/* Player def struct */
+	char	*name;				/* Player's name	 */
+	char	passwd[42];			/* password		 */
+	char	class;				/* *=* unused yet *=*	 */
+	char	sex;				/* gender (0=m, 1=f)	 */
+	char	flags;				/* ansi, lf, redo, etc	 */
+	char	llen;				/* screen width		 */
+	char	slen;				/* screen length	 */
+	char	rdmode;				/* room description mode */
+	char	rank;				/* rank no.		 */
+	char	experience;			/* %age experience	 */
+	long	score;				/* Score to date...      */
+	ULONG	plays;				/* Times played		 */
+	ULONG	tasks;				/* Tasks completed	 */
+	USHORT	tries;				/* Bad tries since last	 */
+};
+
+SDEF _OBJ {			/* Object definition */
+	USHORT	id;				/* noun			*/
+	SHORT	nrooms;				/* No. of rooms its in	*/
+	SHORT	adj;				/* It's adjective	*/
+	USHORT	flags;				/* Various 'fixed' flags*/
+	char	nstates;			/* No. of states	*/
+	char	putto;				/* Where things go	*/
+	char	state;				/* Current state	*/
+	char	mobile;				/* Mobile character	*/
+struct	_OBJ_STATE *states;			/* Ptr to states!	*/
+};
+
+SDEF _MOB {			/* Mobile Character Entry */
+	SHORT	dmove;				/* Move to when it dies	*/
+	char	dead;				/* State flags		*/
+	char	speed,travel,fight,act,wait;	/* speed & %ages	*/
+	char	fear,attack;			/* others		*/
+	USHORT	flags;				/* -- none yet --	*/
+	USHORT	rank;				/* Rank equiv		*/
+	long	arr,dep,flee,hit,miss,death;	/* Various UMsgs	*/
+};
+

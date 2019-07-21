@@ -1,0 +1,20 @@
+//
+// Bits of code that occur to me and need to go some where.
+//
+
+inline void Room::set_visited_flag()
+	{
+	int number;
+
+	number = (int)(data->roombase - this);
+	*(*(data->rcdata + {myuserid}) + (number / 8)) |= (1 << (number % 8));
+	}
+
+inline void Room::clear_visited_flag()
+	{
+	int number;
+
+	number = (int)(data->roombase - this);
+	*(*(data->rcdata + {myuserid}) + (number / 8)) &= ~(1 << (number % 8));
+	}
+

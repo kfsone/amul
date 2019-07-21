@@ -1,0 +1,1192 @@
+; $Id: rooms.txt,v 1.4 1997/05/07 01:40:31 oliver Exp $
+; Rooms.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by Oliver Smith / KingFisher Software (oliver@kfs.org)
+;
+; This software is furnished on the understanding that it may be used and or
+; copied  only  with the inclusion of this notice.  No title or ownership of
+; this  software is hearby transferred.  The information in this software is
+; subject  to  change  without notice.  No responsibility is assumed for the
+; use or reliability of this software.
+
+; Possible 'start' locations are:
+; 	drive3, reception, gardwell, gstairs2, ughilltop, bandstand,
+;	yard1, tavroom, ugpath0, tavfrnt, barn.
+
+; Note that the adventure ALWAYS starts in the 'Welcome Hall'.
+
+room=welchall	\
+	anteroom peaceful nogo hideobj
+Adventurers' Welcome Hall.
+This hall was constructed to abridge the world of Precious and your own. Here the travelers arrive, weary from their journey, and are given a while to prepare themselves for the tasks ahead. Obscurity covers the walls, roof and floors, and a gloomy twilight hangs over the whole scene. It is forbidden to fight here, so you can wait in safety.
+The beginners exit is to the north, whilst the more experienced players are expected to go south.
+
+; Start Room for beginners.
+room=startrm	+
+	light peaceful
+Threadbare room.
+Try as you might, you find yourself unable to believe that the powers which brought you here couldn't find a more deserving start for such an important galactic figure as yourself. The faint smell of plasmo-neuro-static lingers, indicating that there have been others beamed here, and probably explains the distinct lack of a carpet. The only apparent way out is through a doorway in the western wall.
+
+; Room ID: landing
+; Since 'dark' isn't specified, the room has a light source.
+; Notes  : A few more exits from this room.
+
+room=landing
+Upstairs landing.
+You are standing on the landing. A vaguely musty smell pervades your nostrils as a gentle breeze wanders indiscriminately around the empty chambers of this house. There are rooms in most directions. A worn staircase leads down to the southeast and another leads upwards to the northwest.
+
+; Stairs between the landing and the ground floor - oh, and I start putting the
+; room descriptions on ONE LINE to let AMUL do the formatting.
+
+room=stairs1
+Flight of stairs.
+The stairway leads up to the northwest and down to the southeast, where you can see a hallway.
+
+room=stairs2
+Flight of stairs.
+You are at a bend in the stairs. Down is to the southeast, whilst up is to the southwest.
+
+room=bathroom
+Bathroom.
+Once a centre of hygiene, this room has been abused by vandals and squatters to such an extent that it now presents itself as the very antipody of hygiene. The foul smell which lingers here is faint enough to show that even such as made this room what it now is have not dared use it for some time. The only way out is through an opening to the east.
+
+room=tvroom
+TV Viewing Room.
+Although no television or any of the related equipment can be found here, the wallpaper of this room is the give away. A timetable of all 25,000 satelite and cable TV stations receivable has been used to coat (somewhat roughly) the walls around you. The room is very odly shaped; the chimney breast is at a 40 degree angle and seems to occupy more than its fair share of the room. The only exit is via a doorway to the north.
+
+room=soundroom	silent
+Barren room.
+Despite being desperately barren, the room has an air of quality and richness which lead you to believe it was once fitted with very high-tech and expensive equipment. The walls appear to be sound proofed and the carpet appears to have gone on vacation. To the south a doorway leads out onto a landing.
+
+room=landing2
+Landing.
+You are stood on a narrow landing at the top of a flight of stairs. The stairs lead downwards, to the northeast, whilst there are doorways to the east, west and south of you.
+
+; ----------------------------- The Ground Floor --------------------------- ;
+
+; The hallway on the ground floor.
+room=hallway
+Hallway.
+You are stood in a narrow hallway at the foot of a flight of stairs. To the east is an opening onto what looks to be a reception, while at the southern end of the hallway is a sturdy wooden door.
+
+room=drive1
+Driveway.
+Before you stands a magnificent work of architecture and design. The stately home which stands before you is not only pleasing to the eye, but the added beauty of the surrounding landscape moves something in your spirit. The marr upon all this beauty is the driveway and the huge fence which runs along it, obviously intended to see that visitors don't wander too much. North is a huge doorway which leads into the building whilst the driveway continues to the south.
+
+room=drive2
+Driveway.
+To the north the driveway continues towards the mansion, whilst further south you can see a smaller building.
+
+room=drive3 startloc
+Driveway.
+You are stood at the southern end of a driveway which cuts its way through the spectacular gardens which surround you. At the far end of the driveway stands the vast mansion around which the gardens are built, whilst immediately to your south is a huge gateway beyond which stands the outside world. A small building to your west is probably the gatehouse.
+
+room=dghouse
+Gatehouse.
+Once inhabited by the keeper of the grounds, this small house would have been well furnished and decorated, but little of any value remains after years of abandonment. To the east is a doorway which leads out to the gateway while a set of steps lead upwards to what is probably the keepers private rooms.
+
+room=dgpriv	dark
+Gatekeeper's room.
+This squat, dingy room, now a place of odour and squalor, would once have been a well kept residence. The bed and other fittings have been removed, and there is a general stench of decay in the air. A set of steps lead down to the lower floor.
+
+room=wlane1
+Woody lane.
+The air is sweet and fresh, the sky is blue, the grass is green and the trees are all in blossom. But no scene of nature's beauty such as this is complete without birds singing, and there is very little noise from the local fauna here. The lane continues to the west, whilst it veers southward here into a more thickly covered avenue.
+
+room=wlane2
+Woody lane.
+The lane runs from east to west, lined to the south with closely packed trees. North is a huge gateway beyond which you can just make out a huge mansion.
+
+room=wlane3
+Woody lane.
+You are at the western end of the lane. North and south are thickly packed trees, the only way through which seems to be a cutting to the southwest.
+
+room=wavenue1
+Avenue.
+You are strolling along a north-south track surrounded on both sides by densely packed trees. The dense foiliage makes it quite gloomy here.
+
+room=wavenue2
+Avenue.
+You are walking down a gloomy track surrounded on both sides by densely packed trees, which runs north to south. It is just about possible to make out some sort of structure through the trees to the southeast, but you can't see any way to get to it from here.
+
+room=wavenue3
+Bend in avenue.
+The avenue turns from the west, where the trees become quite rare to the north where the thick foiliage makes it quite gloomy. A smaller, less used track leads through a narrow gap in the trees to the east, beyond which is a large building of some sort.
+
+room=thicket1
+Thicket.
+Underfoot is thick foliage, but the trees themselves seem quite ancient. To the north and east the trees become denser, whilst to the west and south they continue at an amiable dispersion.
+
+room=wavenue4
+Pleasant avenue.
+The trees here are just dense enough to give the scene a woodland feel and yet not enough to be called a wood. The avenue becomes less well defined to the west and the trees rarer, while to the east you can see a bend.
+
+room=copse1
+Copse.
+All about you are pleasant smells and sounds. The woodland atmosphere invogrates you, and you feel wide awake. In most directions, however, the trees become too thickly packed to allow passage.
+
+room=wlake
+Lake in wood.
+Before you spreads a sizeable expanse of water, surrounded by trees. The water seems shallow enough to walk here, coming only upto your knee.
+
+; DMOVE WLAKE = move objects in players inventory to WLAKE if player dies here.
+room=wlake1	dmove=wlake
+Lake.
+You are walking around in a shallow lake in the middle of a forest. To the north is a clearing in the surrounding forest whilst the lake continues east and south, and in all other directions are trees.
+
+room=wlake2	dmove=wlake
+Lake.
+You are wandering around in a cold lake, in the middle of a forest. The water comes upto your waist, and appears to get deeper to the east and south whilst to the west it gets shallower.
+
+room=wlake3	dmove=wlake
+Lake.
+You are wandering about in a lake with trees all around. 
+
+room=underlake	dmove=wlake hidecre nolook
+Under the lake!
+The lake suddenly becomes deeper and you find yourself underwater!
+
+room=thicket2
+Thicket.
+Although pleasant, this part of the thicket is mostly unremarkable. South and eastward the trees remain thinly spread but in other directions they become impassable.
+
+room=wpath
+Woodland path.
+The path joins a bandstand, to the southwest, to a more clearly defined pathway to the east. In most other directions there are well worn pathways leading through the surrounding trees.
+
+room=copse2
+Copse.
+North and east the trees remain fairly thinly spread, whereas in other directions they become thickly packed. Through the trees to the west you can glimpse what appears to be a bandstand.
+
+room=bandstand	startloc
+Bandstand.
+This small, unatractive bandstand commands an excited, expectant atmosphere, as though the very wood itself were expceting an important orchestra to conduct a stunning concerto any moment now. Although the floor of the bandstand is thick with leaves and mud, and the paint cracked and flaking, the wooden structure itself has survived years of weathering. To the northeast and east are pathways leading through the trees, but in all other directions, they seem too thick to penetrate.
+
+room=archway
+Archway.
+I haven't yet decided what I am going to do from hereabouts. Go west to get out.
+
+room=reception	startloc
+Reception.
+From what little of this now empty hall remains, it would appear to have been used as a reception area, with the desk along the southern and eastern walls, At the northern end of the hall is a doorway, above which is inscribed "Kitchens and Suites", whilst a second and smaller doorway, to the west, is marked "Way Out".
+
+room=junk1
+Junction.
+This small room joins the four main areas of the establishment. North are the dining and kitchen facilities, whilst east and west are doorways leading into the guest-suites. A small door, to your south, leads into the reception area.
+
+room=dining
+Dining room.
+The vague smell of food lingers here, although all other signs of the rooms purpose have long since vanished. An opening to the northeast presumably leads to the kitchen, and another, to the south, leads onto a corridor whilst a set of large patio doors to the west lead out into the gardens.
+
+room=kitchen
+Kitchens.
+Once a hive of activity, many years of neglect and vandalization have left nothing but a mass of wreckage. Huge chunks of masonry have smashed into the few worksurfaces which had not been stolen, leaving them totally useless. The only doorway which is not completely blocked leads out, to the southwest.
+
+room=patio
+Patio.
+This narrow strip of concrete serves as a patio, running along the western side of the building. The picturesque grounds extend someway both north and westards from here, whilst to the east a decayed set of patio doors lead into what looks to be a dining area.
+
+room=gardens
+Stately garden.
+This pleasant garden is located within the grounds of the stately-looking building which flanks you to the east and south. Both west and north the gardens continue for some considerable distance.
+
+room=beergarden
+Beer garden.
+Once a place for families to bring their children, this part of the otherwise neatly kept gardens has fallen into a shabby dissaray. Years ago there would have been a small playground here, but now only the skeleton of a Seesaw remains. Several small trees provide shade making the place the more pleasant. The gardens continue to the south whilst to the west is a small spinney, beyond which you can see woodland.
+
+room=gardwell startloc
+Well in garden.
+This cool, quiet corner of the gardens seems an idylic place to sit and relax on a hot summers day. Presumably the well was built here to refresh those who chose to sojourn hereabouts. To the west is an orchard from which runs a tall hedgerow giving this place a cool, pleasant air. Immediately to your south is the building which this garden surrounds, although the only way in appears to be further along to the east.
+
+room=gardorchd
+Orchard.
+You are stood amongst the trees of a delightful orchard. The trees, though sparse, add a delightful colour and shade to these already peaceful grounds. The gardens continue to the east, where you can see a well, and beyond that the entrance to surrounding building. Northwards, however, the trees become denser, eventually becoming a small wood.
+
+room=gwoods
+Pleasant wood.
+You are surrounded on all sides by pleasant trees. North and east the wood continues whilst to the south the trees become sparser and further west they become impenetrable.
+
+room=gwoodn silent
+Pleasant wood.
+Around you stand the aged trees of a cool and refreshing wood. Only to the northwest and south are the trees spread thinly enough to allow passage.
+
+room=gwoode silent
+Pleasant wood.
+All is quiet around you except for the gentle sounds of woodland creatures moving about nearby. East, beyond the trees, stretches a beautifully kept lawn, whilst further westwards the wood continues.
+
+room=gclear
+Clearing.
+You are stood in the middle of a man-made clearing. There is an uneasy air here and a lifelessness to the surrounding foiliage which sends a chill down your spine. In all directions except to the north and southeast the trees are too densely packed to let you pass.
+
+room=gcliff
+Cliff edge.
+You gaze in awe at the wonderous scene set before you; only inches from your feet the ground plummets over a mile, a sheer wall of rock. At the foot of the cliff there is a huge expanse of forest which is eventually cut short by a river beyond which is what looks to be cultivated land. Patches of bright yellow, green a gentle brown form a patchwork pattern just like you'd see in an aerial photograph of the southern countines. Scattered amongst them are bursts of dull grey, which you asume to be towns or cities.
+
+room=fallcliff dmove=store hidecre nolook nogo
+Plummeting down the face of a cliff...
+
+room=spinney
+Spinney.
+The air is filled with a gentle rustling sound as the breeze toys with the leaves of the surrounding trees. Most of them were once shaped into puzzling forms but they are now beyond recognition. Northward the spinney meets up with a forest which runs east-west along the northern edge of the grounds.
+
+room=lawn
+Beautiful lawn.
+Although the lawns stretch someway in most directions, this section seems especially well kept; even the spinney to the east seems overgrown in comparison. However, it stops to the west, in stark contrast with a seemingly natural wood which covers the horizon running north to south.
+
+; West guest wing
+room=guestw
+West Lobby.
+You are in a narrow hallway between the entrance hall and the western wing of the guest suite. In the western directions are entrances to rooms, whilst the communal toilets are to the south.
+
+room=wloos	small
+Communal toilet.
+Some time ago a vandal came in here, attacked and smashed the wash basin, leaving only the toilet.
+
+room=hroom1 dark
+Room 1.
+You are in a small, squarish, and very dark room. There are large areas of rough brickwork along two of the walls which would indicate that the windows had been hurriedly bricked up. All the furniture and fittings of the room have been removed, including the carpet. All that remains is the door, which leads out to the southeast.
+
+room=hroom2 dark
+Room 2.
+Although the room itself is visibly quite large, the emptiness and dim lighting give it a claustrophobic feel. The only noticable feature of the room is the doorway to the east.
+
+room=hroom3 dark silent
+Room 3.
+The very size of this room inspires images of plush hotel suites, but they struggle for a place in your thoughts as the reality is incredibly different. The room has been stripped to such a point that even the wallpaper has been carefully removed. It seems incredibly quiet here.
+
+; East guest wing
+room=gueste
+East Lobby.
+You are in a small, gloomy corridor with doorways leading north, east and southeast into the guest rooms, whilst the communal toilets are to the south.
+
+room=eloos
+Communal lavatories.
+Heavy vandalism has left little of the room intact, only a single wash-basin remains. Nothing about this place is remarkable accept the odour. The way out is north!
+
+room=hroom4 dark
+Room 4.
+This tatty little hole was once a fine hotel room, but all the furnishings and decorations have been removed or destroyed many years ago. The windows have been bricked up and your light gives the room a very eerie feel. The way out is to the southwest.
+
+room=hroom5 dark small
+Room 5.
+Unremarkable as it is, this tiny room seems quite cosy. You can almost picture crashing out on the small, single bed that would once have taken up the bulk of the room. However, the bed and all the other fixtures and fittings have long since been removed. The only remarkable point of the room now is the doorway in the western wall.
+
+room=hroom6 dark
+Room 6.
+There is nothing noteworthy about this room except that you can leave by means of an open doorway to the northwest.
+
+; -------------------------- Bedrooms & The Shute -------------------------- ;
+
+; First bedroom.
+room=bedrm1
+Small room.
+You are in a small, square room, roughly large enough to hold a single bed and possibly a small table or desk, although there is nothing of noteworthiness left here now. The way out is to the northeast.
+
+room=bedrm2	small
+Warm room.
+Although the room is desolate and there is no heating mechanism to be seen, this room is warmed to an idilyc temperature, and the atmosphere generally relaxing.
+
+room=shute	hidecre hideobj dmove=botshute nolook
+You are sliding rapidly down a narrow, steeply-sloping shute.
+
+room=botshute
+Bottom of shute.
+Carved, roughly, out of the surrounding rock, this small room serves as an annexe to a larger cave which opens up to the west. In the nothern wall is a narrow opening through which a steep shute leads upwards, too steeply to climb.
+
+room=bedrm3	small
+Tiny room.
+No clues remain as to what this room was used for, there is no window or any sign of shelving or any indication as to the rooms original contents, all that remains is an uneasiness in the air. The only exit is through a narrow doorway, to the west, which leads out onto a landing a great deal larger than this room.
+
+; ------------------------- Underground Cavern ------------------------------;
+
+room=cavee
+Eastern corner of cavern.
+You are stood in the eastern corner of a huge natural cavern. To the east a narrow gap in the cavern walls leads into a smaller, dimly lit cave, whilst westward the cavern widens.
+
+room=caven1
+Northern wall of cavern.
+You are in the northeastern corner of the vast cavern. A large crack in the northern wall leads into another, smaller chamber.
+
+room=caven2
+Northern wall of cavern.
+You are in the northwestern most corner of the cavern. The walls are nearly vertical, making them impossible to climb. To the southwest, set into the western wall of the cavern you can see a huge doorway.
+
+room=cavec1
+Cavern.
+You are wandering around in the middle of a vast cavern, which continues in all directions.
+
+room=cavec2
+Cavern.
+From this central vantage point you can view almost the entire of the cavern, though the sheer size makes this somewhat mind-numbing. The walls tower high above, forming a lofty domed-ceiling. The cavern is almost perfectly round, but a recess in the southern wall gives it more the look of a gigantic gathering place. To the west you can see a huge archway set into the cavern walls, and further east you espy an opening leading into the rock itself.
+
+room=caves1
+Southeastern corner of cavern.
+Although the cavern appears mainly natural, you are surprised at the smoothness of the surrounding walls.
+
+room=caves2
+Cavern.
+Instead of continuing the near-perfect circle with which nature has shaped the rest of this gigantic cavern, the walls here fall back for some distance to the south, leaving a smallish sub-cavern. The overall effect of this makes the cavern look like natures idea of a theatre.
+
+room=caves3
+Southwestern corner of cavern.
+Despite the awe which the cavern as a whole inspires, this section of it is relatively dull.
+
+room=caves4
+Southern wall of cavern.
+You are stood along the southern wall of the cavern. The cavern walls are a breath-taking sight as the light sparkles and glistens from the remarkable crystal-formations produced during the process of erosion. However, crudely carved into the wall is a small, dark passageway, leading down, further into the heart of the rock.
+
+; See 'gstairs'
+room=cavew
+Western wall of cavern.
+You are stood along the western wall of a gigantic, natural cavern, set into which is set a huge archway through which climbs a stairway. The cavern continues to the south and in the easterly directions.
+
+room=cpass1	dark
+Narrow passageway.
+The passage runs from the southwest to the north, where it becomes lighter.
+
+room=cpass2	dark
+Narrow passageway.
+The passage curves from the northwest to the east.
+
+room=cpass3	dark
+Narrow passageway.
+To the southeast the passage suddenly becomes lighter, whilst it continues into the gloom to the west.
+
+room=cpass4 dark
+Junction in passageway.
+The main passage curves round from the northwest to the southwest, where it seems to get lighter. To the west and northeast, two smaller passages slope downward into the gloom.
+
+room=cpass4w1	dark
+Passage.
+The stench of decay seeps slowly upward from the western end of the passage.
+
+room=cpass4w2	dark
+Pit.
+An overwhelming stench of decay fills the air, churning your stomach. This pit was once, no doubt, the home of some evil beast which, fortunately for you, no longer resides here.
+
+room=cpass4e1	dark
+Playroom.
+The walls are painted with dozens of cute animals set on a background of a typical childrens room. On the northern wall is a picture of a closed door which, for some reason, seems to stand out from the surrounding paintings. On another wall is a picture of a window looking out onto a woodland scene with a spring in the middle of it. Lower down on the opposite wall, two or so foot above the floor are several bright yellow mushroom-shaped paintings, presumably made by the children, which show through the whitewash that was obviously intended to hide them. The way out is via an opening, to the southwest, which leads onto a passageway.
+
+room=sqroom	dark
+Square room.
+Dozens of unhuman pictures and symbols adorn the walls. For all their abormal properties, they give the distinct impression of being intended for the eyes of unhuman children. On one wall is painted a window, beyond which is a view which shows no terresterial properties whatsoever, giving the room a completely alien feel. On the south wall, however, is the only picture to which you can relate, a picture of a simple, wooden door. The only way out, to the east, has been completely sealed off.
+
+room=cpass5
+Narrow corridor.
+There is a stillness and peace about this corridor which puzzles you. The corridor opens up into a large room to the south, from which the tranquility seems to originate. A welcoming stairway leads upwards into another, smaller room, whilst to the northeast the corridor is crossed by another, narrower passage.
+
+room=prayroom
+Prayer Hall.
+There is no wonderous feeling of awe or closeness to God. The room generates nothing but a curious glow, which is presumably to do with the crystals which form the walls. In the eastern wall is an opening, through which you can see a stairway.
+
+room=pstairs1
+Rocky staircase.
+You are stood at the bottom of an unlit staircase, which leads upward into the darkness. To the west, however, is an opening which leads into a larger room.
+
+room=pstairs2 dark
+Rocky staircase.
+The stairs lead upward into darnkess, whilst the bottom of the stairs is dimly lit by a peculiar glow.
+
+room=pstairs3 dark nogo
+Top of staircase.
+You are stood atop a flight of rock-hewn steps, which descend to the west. To the north and southwest are small caves.
+
+room=prmn	dark nogo
+Square cave.
+Your light is just sufficient to give a rough clue as to your surroundings. You are in a small, squareish cave, which seems to have been intended as some sort of store room. Carved into the walls are large recesses, which would have served as shelves. However, the contents have long since been removed.
+
+room=prmsw	dark nogo
+Trapdoor room.
+This room is almost barren, except for the trapdoor in the roof. The only other way out of the room is an opening to the northeast.
+
+room=confessnl
+Confessional.
+This room would once have been used by those who had something to repent of to admit their sin to the priest; a rather strange misinterpretation of some scriptures actually intended to encourage believers to continue fellowship in love. But now the priest who heard the sins is gone, even if the one who died to pay for them hasn't... The way out is through an opening which leads down to a passageway.
+
+; ------------------ Link Between Underground & Garden -----------------------;
+
+room=slopetun1
+Foot of sloping tunnel.
+A roughly hewn tunnel climbs steeply upwards to the northeast, while to the south, through a large crack in the rock, you catch a glimpse of a huge cavern.
+
+room=slopetun2
+Sloping tunnel.
+To the southwest the tunnel levels off and then ends abruptly, whilst north it continues its ascent through the rock at a near-vertical climb.
+
+room=slopetun3 dark
+Sloping tunnel.
+The near vertical climb continues upward, to the north, whilst further down, to the south, it begins to level off.  In the eastern wall of the tunnel is a large crack, just about large enough for you to pass through.
+
+room=nart1	dark dmove=nart2 small nogo
+Narrow tunnel.
+The dark, black walls of this aged and crudely carved tunnel seem to absorb light making it dull and gloomy. It runs north-south at an incredible angle, so steep that the floor is almost step-like to make it possible to ascend and descend safely. There appears to have been a cavein at the higher, northern end. An opening in the western wall leads into what appears to be a newer tunnel, giving the impression that this tunnel was possibly damaged by the construction of the new one.
+
+room=nart2	dark nogo
+Tee-junction.
+This is the southern end of a narrow tunnel, which climbs steeply to the north. To the east is a wide, level passageway, whilst to the west is a staircase leading further down.
+
+room=stairbot	dark nogo silent
+Bottom of staircase.
+You are stood in a small, rock-hewn passageway at the foot of a staircase which climbs upward to the east. Set into the southern wall is a doorway.
+
+room=dingerm	dark silent peaceful
+Dingy cave.
+Carved deep into the rock, no light can enter this room, or cave. The dark colouring of the rock gives the room a generally dingy look. Obviously it was abandoned many years ago, as there is no trace as to what the room was used for.
+
+room=widet1	dark nogo
+Western end of wide tunnel.
+The tunnel continues, level, into the gloom to the east. Immediately west it ends at a T-Junction with two other passageways.
+
+room=widet2	dark
+Wide tunnel.
+You are in a gloomy, featureless, east-west tunnel.
+
+room=widet3	dark
+Wide tunnel.
+The tunnel runs from east to west. The thick black walls absorb most of your light, preventing you from seeing either way down the tunnel.
+
+room=widet4	dark
+Wide tunnel.
+To the east the tunnel widens a little, whilst to the west it continues the same width.
+
+room=widet5	dark nogo
+Wide tunnel.
+To the east the tunnel seems to get lower, whilst to the west is seems to get a little wider.
+
+room=wideface	dark nogo
+Face.
+You are stood at what appears either to have been a mine face, or else the end of an aborted tunnel. However, the rocks in the face appear to be different from the walls of the tunnel itself, so it is possibly a combination of both. The main tunnel shaft leads out to the west, whilst both north and south there are side passages.
+
+room=nsidep	dark nogo
+Short side passage.
+To the north the passageway continues, whilst to the south is the main shaft.
+
+room=nsidepe	dark nogo
+End of side passage.
+You are at the northern end of the side passage. To the west is a small opening leading into another, short passageway, although the thick gloom makes it impossible to see where it leads to.
+
+room=blackc	dark nogo
+Black corridor.
+Ignoring the thick gloom that hangs over this room, the builders saw fit to paint it a ghastly shade of black. The corridor ends to the east, but there is an opening leading into another passageway. To the west, however, there is a change of colour.
+
+room=greenc	dark nogo
+Green corridor.
+The walls of this corridor are panted thick, dark, black, which only adds to the otherwise unpleasant gloom which covers this narrow passageway. Although the corridor itself runs east-west, there is a small opening to the north.
+
+room=greencr
+Dark green room.
+Despite the fact that the choice of colour is somewhat questionable, and that the air seems somewhat rare and musty, not neglecting the fact that the lighting is very dim and displeasing to the eye, there is nothing wholly remarkable about this room, except, maybe, the opening to the south beyond which you can see nothing but blackness.
+
+room=yellowc	nogo
+Yellow corridor.
+Although there is no visible source of light, the yellow paint with which this corridor has been decorated provides enough of a glow for you to make out the surroundings, such as they are. The corridor continues to the east, whilst to the northwest and south are rooms.
+
+room=redrm	nogo
+Red room.
+The walls of this room are carved out of the surrounding rock, which is a bright red colour. Also the room seems to be chilled, somehow. The way out is via an opening to the southeast through which the light comes.
+
+room=monrm	nogo
+"Monitor Room".
+Inscribed, high up on one of the walls, are the words "Monitor Room". The only clue to the rooms intended usage are the square shaped recesses in the walls, which would presumably once have held the monitors. A partly collapsed doorway, to the south, would once have been an unpassable security door, but now access to the room beyond doesn't even require opening the door. The only other opening is to the north, leading to a gloomy passageway. Above the doorway is written "Twilight Zone".
+
+room=monrm1	dark nogo
+The Twilight Zone.
+Although there are exits in all directions, the only one you are certain of is to the north, through an almost collapsed security door. The others seem to lead into thin air.
+
+room=monrm2	dark nogo
+The Twilight Zone.
+Although there are exits in all directions, you can't tell where any of them lead.
+
+room=monrm3	dark nogo nolook
+The Twilight Zone.
+Although there are exits in all directions, you are sure of none of them.
+
+room=monrm4	dark nogo nolook
+The Twilight Zone.
+Although there are exits in all directions, you aren't sure where any of them lead.
+
+room=monrm5	dark nogo nolook
+The Twilight Zone.
+Although in all directions there are exits, you are sure of none of them.
+
+room=monrm6	dark nogo nolook
+The Twilight Zone.
+Although there are exits in most directions, none of them seem to lead anywhere, but you can't be quite sure.
+
+room=monrm7	dark nogo nolook
+The Twilight Zone.
+Although there are exits in all directions, you are sure of none of them.
+
+room=ssidep	dark
+Short side passage.
+The passageway leads further into the gloom to the south, while immediately north is the main shaft.
+
+; ssidepe -> uppass
+room=ssidepe	dark
+End of side passage.
+The main passageway leads out, to the north, whilst the only other exit, an opening to the east leads towards daylight.
+
+room=slopetun4
+Sloping tunnel.
+You are on the vertical equivalent of a bend in the tunnel. To the north it ascends steeply whilst to the south it becomes almost a sheer drop, though it still looks traversable.
+
+room=slopetun5
+Sloping tunnel.
+The tunnel climbs upwards to the west, whilst to the south the downward slope becomes much steeper.
+
+room=ladbot
+Bottom of shaft.
+This small chamber lies at the bottom of a well-shaft, set into the walls of which are a series of metal rungs, which presumably lead to the top of the well. To the northeast is a well lit, low-roofed corridor, whilst east is another man-made tunnel, which leads downwards.
+
+room=coun1
+Well lit corridor.
+The rock, out of which this corridor has been carved, glows with a pale creamy light, whilst to the southwest, where it ends, is daylight. The corridor continues to the east, where it passes a portcullis.
+
+room=coun2
+Council corridor.
+You are stood at the eastern end of a corridor carved into the surrounding rock. To the west, beyond a portcullis, the corridor continues, whilst to the northeast, is a large doorway, above which is inscribed "Council Chambers".
+
+room=councch
+Department of Enquiries and Appointments.
+Inscribed over a small window in the northeastern wall of this oddly shapped entrance hall is the name "Department of Enquiries and Appointments", underneath which (in much smaller letters) is written "Enquiries". In all other directions are doorways with names of departments and ministries, except to the west, above which is written "President's Office", and the southwest, which is marked "Way Out".
+
+room=modof
+"Ministry Of Defence" offices.
+Once, presumably, a hive of activity, these offices have been abandoned for decades. To the northwest is a small niche leading to what is probably a storeroom or cache. The way out is via a doorway to the south.
+
+room=modstore small
+Store room.
+This tiny room was used as a stores for the Ministry of Defence, before it was abandonded. Now it is used as a gathering place for dust.
+
+room=mofof
+"Ministry of Food" offices.
+Important planning of how to feed the hungry electorate was once the major activity here, but since it was abandoned the room has decaded to such a state that the Planning Office would have had to have condemned it. To the east is a store room, while the way out is to the southwest.
+
+room=mofstore
+Store room.
+The way out is to the west.
+
+room=cavetax
+"Department of Cave Taxing".
+This was once the offices of the Department of Cave Taxing, a special tax which was abolished hundreds of years before the council stopped asking people to pay it - if there were any clerks left, they would probably still be sending out demands. The way out is to the west whilst above an opening to the east is written "Department of Dumping".
+
+room=dumping
+Dumping site.
+This "office" was allocated to the DOD (Department of Dumping) which applied for Planning Permission to build a waste dumping site, and due to a bad loop in some red-tape, was granted permission to build on on the site of it's own offices. This lead to the occasional, mysterious dissapearance of the filing clerks and the eventual closure of that department. The way out is west.
+
+room=mojof
+"Ministry of Justice".
+You are stood in the offices to the Ministry of Justice. To the east is a doorway which leads to the offices of Judge and Department of Election, whilst doorways lead to the south and southeast. The way out is to the northwest.
+
+room=mojclerk
+Clerk's office.
+This is the office of the Clerk to the Court of Justice. Despite the neglect it has suffered since it was vacated, the room still seems to have retained its dignity, and it commands an air of respect. To the east a corridor leads to the Department of Election, and west another leads out.
+
+room=depelect
+"Department of Election".
+This strange and eerie room is a living machine. By stating the name of the girl that Oliver Smith currently adores, you can be whisked up to the rank of Master! But beware! It's most likely to work on higher ranking players, whilst beginners only have a mere 1% chance of success, and failure can be, well, fatal... If you don't know it, can't guess it or are too chicken, the way out is to the west.
+
+room=mojcourt
+"Court of Justice".
+Although little of the rooms fixtures or fittings remain, it is plain enough to see that this room was once a plushly fitted court room. To the north is a short corridor leading out to the Department of Justice offices, whilst a second, slightly longer passageway to the east, presumably leads to the cells.
+
+room=mojcells
+Cells.
+Despite the lack of security measures, this was once the council's cells. Several cubicles were, presumably, once where the prisoners were kept. Short passageways lead out to the northwest and west.
+
+room=plandep
+Planning Department.
+This used to be the offices to the council's Planning Department. However, at one election the two leading candidates had been running neck and neck for about two and a half years when one candidate discovered that ninety percent of the electorate detested architects. She immediately made it her parties policy to have all architects banished. Needless to say, these offices were made redundant not long after the election. The way out is to the north.
+
+room=pressecof
+Presidential Secretary's Office.
+This small ante-room serves as an office for the secretary to the President of the Council. To the north is an impressive office which, presumably, is the President's own office, whilst to the west a robust looking doorway leads to the Presidential residence. Another doorway, to the east, leads into the general council chambers.
+
+room=presof
+President's Office.
+This plushly fitted room was probably once extravagantly furnished, but vandals and thieves have long since been propsered by it's contents. To the southeast is a very sturdy looking doorway.
+
+room=presbunk
+Bunker.
+Presumably kept a secret from his contemporaries, it seems the President saw fit to have himself an emergency bunker. Unfortunately little remains of its original content, as it has been thoroughly pilfered by passing louts. The way out is through a doorway to the southeast.
+
+room=preslob
+Private residence lobby.
+You are stood in the lobby of the Presiden't private residence. North and northwest are rooms, whilst to the west is what appears to be his lounge. The way out is through a sturdy looking door to the east.
+
+room=presstud
+President's private study.
+Once the walls of this room were finely panelled and would have been lined with shelves of books. But now only bare plaster remains, through which only a little light shines from the strange crystal-rock out of which this room is carved. To the southeast is an opening which leads to the lobby.
+
+room=preslounge
+Private lounge.
+This is where the president would have relaxed with his personal friends, and probably once contained a coffee table. To the west is the dining room and there are short passageways to the northwest and south.
+
+room=preskitch
+Presidential kitchens.
+Long ago the finest of cuisine was cooked here, the rarest and most suculant dishes concocted by the nations elite chefs. But they, and all their valuables have long since abandoned their haunt of old. South is the dining room and southeast is the lounge.
+
+room=presdine
+President's dining room.
+Despite it's glamorous intentions, this room is blandly unremarkable without it's fixtures and fittings. To the north is the kitchen, whilst east is the lounge.
+
+room=presbed silent
+President's bedroom.
+In contrast to the rest of the Presidential residence, this room is quite small, probably large enough for a few cupboards, a radiator, and a double sized bed, but none of it remains. A short passageway, to the north, leads out to the lounge.
+
+room=ladmid
+Halfway up (or down) shaft.
+At the bottom of the shaft is a small chamber whilst a few feet further up is the surface.
+
+; ---------------------------- Tavern Region ---------------------------------;
+
+room=gstairs1
+Granite stairway.
+The stairway leads up to the northwest whilst to the east through a huge archway is a vast cavern.
+
+room=gstairs2 startloc
+Granite stairway.
+You are stood at the top of a set of stairs which lead through a tunnel carved out of solid granite. The walls and roof indicate this was once a mining tunnel, but the stairs seem to have been added later. A cool breeze ambles idly through the tunnel from the mouth, to the north. The stairs lead down to the southeast.
+
+room=yard1	startloc
+Front garden.
+The mass of concrete, whereon you now stand, was once interspersed with plant-beds full of rose bushes. Sadly, weeds have long since over taken these giving the whole scene an overwhelming sense of loss and decay. To your north stands the building itself, which appears to be an old country house converted into a tavern and then, years ago, abandoned. South a path leads out through the surrounding trees.
+
+room=tavfrnt	startloc
+Tavern entrance hall.
+Once an atmosphere of merryment filled this hall, as the local men would have gathered together not just to drink, but to dine and to fellowship, but the years of neglect have worn it down to a simple feeling of cheery friendliness. Most of the hallway is occupied by the staircase which leads up towards the guest rooms, whilst there are three doorways leading into other parts of the tavern, and to the south is the front door. To the west is a room marked 'Private', while north is the Lounge and east is the Main Bar.
+
+room=syard
+Side garden.
+This narrow stretch of concrete runs along the eastern side of the building, leading from the front to the back garden. Many of the trees which surround the building overhang over this little path, causing you to have to continually duck as you traverse it.
+
+room=yard2
+Back garden.
+Despite its dilapidation, it is still possible to tell the amount of effort that was originally put into what was once a beautiful rock garden. Unfortunately much of the undergrowth from the surrounding woodlands has now overrun large portions of the garden.
+
+room=yard3
+Side of inn.
+You are stood on a featureless, concrete path, which runs along the side of the inn connecting front and back gardens. On your west a thick hedge acts as a natural fence, whilst the path continues north and south. Set into the wall of the in, to your east, is a narrow doorway, which presumably leads down into the cellar.
+
+room=icellar	dark silent nogo
+Cellar.
+This pokey little hole would once have served as a wine cellar to the inn under which it is built. Some stairs lead upward, toward the outside, to the east.
+
+room=fallow1
+Northern fallow field.
+You are stood at the northern end of a long, barren field, which was left fallow years ago, and has refused all plant life since. The field is in sharp contrast with the woods which surround it, with trees and foiliage too thick to penetrate in most directions except to the east where a well-worn track carves a way through the trees.
+
+room=ugwood11
+Wood.
+In all directions spreads a vast wood, wherein seems to grow almost every kind of tree. Even to the untrained eye, many of the species which seem to be flourishing here are out of place. To the west the trees surrender their reign of the landscape for a while to a stark field.
+
+room=ugwood12
+Wood.
+Around you in all directions lies thick woodland. To the east is a clearing where a lane has been cut through the trees.
+
+room=uglane1
+Narrow lane.
+You are wandering along a narrow lane, which cuts its way through the surrounding woods. The lane leads from the east to the north, where you can see a deserted country house and to the southeast a ramshackle old barn whilst through the trees to the southwest you can glimpse water.
+
+room=uglane2
+Dusty lane.
+The lane winds its way through the trees from the west to the southeast. Immediately to the south is an weatherbeaten barn, whilst some way west a large hill climbs above the surrounding trees.
+
+room=fallow2
+Southern fallow field.
+This lifeless field stretches northward before you, refusing all plant life as though some kind of invisible barrier had been placed between it and the surrounding woodland. To the south, shrouded in trees, you can glimpse some sort of small, wooden building. Beyond that, to the southwest, the woods climb the slopes a hill, the peak of which stands several hundred feet above the surrounding landscape.
+
+room=ugwood21
+Wood.
+You are wandering about amongst the trees of a vast wood. To the west is a wide clearing, whilst to the east you can see something sparkling in the sunlight.
+
+room=spring1	sanctuary
+Spring.
+Before you bubbles a small, natural spring; however, there is something uncanny about the perfect circle of surrounding trees and the eerie stillness which gives the clearing an almost magical air.
+
+room=ugwood22
+Wood.
+To the west a small expanse of water shimmers in the light. Through the trees you can make out a rundown building to the east, whilst northward is a narrow clearing.
+
+room=outsidebarn
+Outside barn.
+Apparently when the barn was built, the clearing in which is stands was much wider, but many of the younger trees have grown so close to the barn that they have inflicted mortal damage upon it. A small path leads off through the trees to the north, where it joins to a more clearly defined path. The barn doors have long since fallen off, leaving it wide open.
+
+room=insidebarn	startloc
+Barn.
+The general mess of hay and mud scattered around gives the impression that this place has seen little proper use for a long time.
+
+room=bhayloft
+Hayloft.
+Obvious efforts have been made to keep this small den clean and tidy, or atleast compared to the barn below. The fresh, country smells and the general mass of hay seem to make this an ideal resting place.
+
+room=uglane3
+Dusty lane.
+The lane, which runs southward from here, bends to the northwest where it heads east into the trees. To the west, through the trees, you can see a large wooden building.
+
+room=ughilln
+Northern slopes.
+You are on the wooded slopes of a large hill, which peaks a short way further up, to the south. Amongst the trees, to the east, you espy a structure of some sort.
+
+room=outsidehut
+Outside hut on hill.
+The peacefullness of this spot would make it the ideal home for a countryside home, but the rundown wooden hut outside which you stand, hardly seems to be the abode in which you would have chosen to dwell.
+
+room=insidehut
+Ramshackle hut.
+Although the weather has taken its toll on this decaying shack, it still holds together well enough to provide shelter from the wind. A general mustiness and dampness in the air make it seem an unhealthy abode.
+
+room=ugwood31
+Wood.
+The trees of this pleasant wood generate a delicate aroma which pleases the body, soul and spirit. The local wildlife is seemingly abundant, though you only ever manage to catch a brief glimpse of any one creature. To the south the woodland gives way to pasture and grazing land, whilst in all other directions the trees continue. To the west there is a small clearing, in the middle of which stands an old hut.
+
+room=ugwood32
+Wood.
+In all but the southerly directions trees spread to form a vast woodland. Over the tops of the sometimes quite thinly spread trees you can make out distant hills and mountains, and a short way to the north, you espy a shimmering pool of water. South, the trees become rarer, beyond which you can see pasture.
+
+room=ugwood33
+Wood.
+From the west to the east spreads a vast wood which only gives way to a comparitively narrow stretch of farm land a little further to the south.
+
+room=ugwood34
+Wood.
+You are wandering along on the southernmost border of a huge wood. Further north the trees increase slightly in density, whilst to the south they peter out and eventually give way to grasslands. A short way to the east you can see a lane leading through the woods.
+
+room=uglane4
+Lane in woods.
+The lane runs from the north and curves round to the southwest.
+
+room=ughillw
+Western slopes.
+You are clambering about on the western slopes of a tall hill, which rises to a peak above you a short way to the east. The lower slopes, to the west, are densely covered in trees.
+
+room=ughilltop	startloc
+Top of hill.
+Around you in all directions spreads an idylic landscape of varying colours and hues, a picture which is completed with a perfect blue sky. The larger part of the land is dominated by woodland, although to the south and east most of the trees seem to have been cleared to make way for grazing land. Some way to the south climb the slopes of a huge mountain or sheer rock. Further east the trees give way to heath land, beyond which a river cuts across the landscape. The whole view is dotted with several small buildings, and in the distance amongst the trees to the northeast you can see an old house.
+
+room=ughille
+Eastern slopes.
+The hill slopes, gently, to the west, under an almost delicate scattering of occasional tree and fern. East and southward seems to be mainly grassland, whilst the northern landscape seems almost completely covered in woodland, with only the occasional clearing, usually containing a building of some form.
+
+room=ugnpast
+Northern pasture.
+This is the northern most part of a vast stretch of pasture, which is cut short to the north by a thickly wooded forest. West the slopes of a large hill climb toward the sky, whilst east is a wheat field.
+
+room=ugwheat
+Wheat field.
+You are stood in the middle of a large and overgrown wheat field, which is otherwise unremarkable.
+
+room=ugwood41
+Southern tip of wood.
+As far as the eye can see, both east and west, the forest seems to maintain almost a straight line, on the southern side of which is grasslands. At this point alone the forest wanders this far south. To your west is a wheat field, whilst to the east and south is a meadow, where you can see a narrow, tree-lined path winding its way southward.
+
+room=ugavenue1
+Pleasant avenue.
+To the northeast the avenue passes from countryside to woodland, as it enters the forest which covers the horizon from west to east, whilst to the south it continues its way through the fields. To the west a cluster of trees have broken the otherwise steady line of the wood, whilst east is meadow, and beyond that a river.
+
+room=ugmeadow	peaceful
+Peaceful meadow.
+Surrounded in all directions by trees, this meadow has a quiet and peaceful air, almost forgotten by nature. Only to the east do the trees surrender, but even then the grass seems wild and unkempt in comparrison. Further east you can see a river.
+
+room=uggrass
+Grassy field.
+Presumably once intended as pasture land, this field has become overgrown with grass, and although it has grown wild for years, it still retains a fairly neat air. To the west the grass seems less overgrown and to the east appears to be a paddock. In most other directions the landscape becomes covered in trees - sometimes densely packed.
+
+room=paddock
+Paddock
+Only a few rotten timbers remain to mark out the permiter of this once important enclosure. It would, no doubt, have held either horses or cattle of some form, but, along with the fence, they have long since gone. To the west is a grassy field, whilst to the east the land gives way to a stretch of heathland, beyond which you can see a river. The northern and southern ends of the paddock are lined with dense woodland.
+
+room=bank1
+River bank.
+You are stood on the banks of a fast-flowing river, which flows downstream from your west and curves round to the south. Immediately to your south is a heath whilst a thick woodland spreads into the distance to your west.
+
+room=heath1
+Heathland.
+You are standing on the west bank of a river which flows southward. To your west is a paddock.
+
+room=heath2
+Bend in river.
+You are stood between the river and a impregnable line of trees. The river curves from the north round to the east. To the north you can see a break in the line of trees.
+
+room=bank2
+Banks of river.
+To your north is a river, flowing from east to west, lined, to your south, by trees. To your east the trees almost seem to cross the river, making it impossible to continue in that direction. West, the river bends northward.
+
+room=ughillsw
+Southwestern slopes.
+Although you are still only halfway down the hillside, which peaks to the northeast, the lower slopes are too thickly packed with trees for you to continue downward.
+
+room=ughills
+Southern slopes.
+To the north the hill rises steadily towards the heavens, bedecked in a pleasant covering of lucious trees. Further north the trees form a more clearly defined wood, whilst east and southward the land seems to be mainly grasslands.
+
+room=ugwpast
+Western pasture.
+You are at the western end of a vast pasture which continues into the distance to the east. North and west are the slopes of a large hill, whilst south is moorland.
+
+room=ugfring
+Fairy ring.
+You are stood in the center of a small fairy ring surrounded by pastures and grass lands.
+
+room=ugepast
+Eastern pasture.
+This is the eastern edge of a large expanse of pasture, which continues northwest to southwest, and further still to the west. To the north is an overgrown field, whilst to the south and east is a track which cuts through a meadow, to the southeast.
+
+room=ugavenue3
+Quiet avenue.
+You are one a narrow, winding path, lined with fine trees, which curves round from the southwest, cutting through a meadow to the south, and then curves back sharply to the east just here. The northern horizon is lined from east to west with trees, but immediately north of here is a small copse which seems almost out of place.
+
+room=ugavenue2
+Quiet avenue.
+The lane curves from the west to the north. To the east is an orchard, while northeast, south and southwest are meadow.
+
+room=ugorchd1
+North end of orchard.
+You are stood in a peaceable orchard, to the south of a meadow. To the west is mainly grassland, though further west you can see a tall hill, and some way south the horizon is lined by a huge mountain.
+
+room=ugmoor1
+Moorland.
+To the north climb the slopes of a huge hill, whilst to the west the moor is cut short by a huge mountain range which obliterates most of the southern horizon. East and south are more grasslands.
+
+room=ugpath1
+Winding path.
+All around you are grasslands, through which this northwest-southeast path runs.
+
+room=ugspast
+Southern pasture.
+You are stood at the southern end of a vast pasture, which extends into the distance to the north of you, and beyond which is forest. To the northeast rises a huge hill, and the southern horizon is dominated by a huge mountain.
+
+
+room=ugpath3
+Winding path.
+
+room=ugtmead1
+Western end of meadow.
+All around you is wild grassland, although here the land seems to have been intended for grazing. You notice that, except to the north and east, there seem to be very few trees on the landscape.
+
+room=ugtmead2
+Eastern end of meadow.
+You are at the eastern end of an idylic meadow. South the ground becomes marshy, whilst east and north are trees.
+
+room=ugorchd2
+Orchard.
+North and south the trees continue, whilst eastward they become much denser. To your immediate west the trees give way to a pleasant meadow to the south of which is a marsh.
+
+room=ugmoor2
+Moorland.
+You are wandering about in pleasant moorland which is cut short, south and west by a huge mountain which towers above you. To the east, however, the moorland continues.
+
+room=ugmoor3
+Moorland.
+All around you to the east and west is an expanse of moorland, which continues for a while, to the north, beyond which is a vast expanse of woodland. Immediately to your south is a sheer face of rock, which rises vertically, and which flanks the moorland both east and west.
+
+room=ugpath2
+Winding pathway.
+You are stood on a narrow path which winds its way through pleasant moorland, at the foot of a huge mountain, the slopes of which rise upward immediately to your south, forming a sheer wall of rock, certainly impossible to climb.
+
+room=ugpath0	startloc peaceful
+Narrow path.
+Infront of you stretches a majestic landscape which leaves you quite awe stricken. The view is dominated by woodland, with the occasional building poking through the treetops, indicating that at some time this place was inhabited. However, the immediate terrain consists of fields and grazing land, which have fallen into such a state of dilapidation as to suggest that the inhabitants have long since abandoned this place. To your south stands a huge mountain which rises steeply upwards, impossible to climb, although there is an opening at the southern end of the path which leads into the mountain side. Northward the path meanders through the scenery towards one of the larger buildings. Immediately to your east is a marsh whilst to the west is another path.
+
+room=ugmarsh1
+Marsh.
+You are stood in a putrid, reeking marshland which continues to the east until eventually it gives way to an orchard. Immediately north the marsh halts abruptly and a short way hence is a pleasant meadow. To your south the marsh gives way only to the rocks of a huge mountain, which climbs almost vertically into the sky.
+
+room=ugmarsh2
+Stinking marsh.
+Much of the vegetation here seems to be either rotting or completely dead. This stands in stark contrast with all the surrounding scenery with an orchard immediately to the east and grazing land immediately to the north. Only to the south does the barren and desolate slopes of a huge mountain compare with the lifelessnes of this marsh.
+
+room=ugorchd3
+Southern end of orchard.
+You are stood at the southern end of a pleasant orchard. The trees, of no determinable strain, continue to the north whilst gradually growing denser towards the east. Westward they shortly give way to marshland.
+
+; ----------------------------- The Tavern -------------------------------- ;
+
+room=tavpriv
+Offices.
+Once seperated from the bustle of the tavern, this small, gloomy room would have served as the office. The small window is almost completely blocked out by the branches of a tree which continualy taps against the glass. All the office furniture has long ago been removed, but inscribed on one of the walls is written 'The Admiral Bombow Tavern, built in memory of the original Inn when the people returned overground, year 1072'.
+
+room=tavlounge
+Lounge.
+A large sign over the bar informs you that bar-meals were once served here, but other than the sign and the bar itself, little remains of this once cosy room. To the south is the hallway, whilst another doorway to the southeast leads into the Main Bar.
+
+room=tavbar
+Main Bar.
+Although all the fittings have been removed, this room still has a cheery atmosphere to it, which is only added to by the large victorian fireplace which stands in the middle of the southern wall. The bar itself has suffered a great deal of damage by vandals who have passed, and all the pumps have been totally destroyed. To the northwest is a doorway inscribed 'Lounge' whilst to the west is another which leads out onto the entrance hall.
+
+room=tavland1
+First floor landing.
+There are doorways leading to rooms in all directions except to the northwest, where there is a passageway. A staircase leads both up and down.
+
+room=tavland2
+Second floor landing.
+In all directions there are doorways leading off into different rooms, and to the northeast a passageway. A staircase leads down toward the first floor.
+
+room=tavrm1
+Room 1.
+Although this room would once have been quite glamorous, vandals and squatters have left little here to show it. The way out is to the south.
+
+room=tavrm2
+Room 2.
+An unpleasant stench makes this room wholly despicable. The walls are so thick with graffiti that absolutely none of it is readable anymore. The only way out is to the southwest.
+
+room=tavrm3
+Room 3.
+This small, dingy room has been home to many a passing vagabond, leaving a most unpalatable reek. The room has no other noteworthy features.
+
+room=tavrm4
+Room 4.
+Abandoned years ago, the state of the room clearly indicates that it hasn't been used in perhaps hundreds of years.
+
+room=tavrm5
+Room 5.
+Previous visitors to this room have left if completely empty, even the walls are bare. Although there is no window here, a smallish hole in one of the walls allows you to see out, through which you can see an absolute sea of trees surrounding with hills and mountains in the distance. The exit is to the northeast.
+
+room=tavclos small dark
+Closet.
+Although both the floor and shelving are thick with dust and rotten through, this tiny room still retains a faint odour of various cleaning materials. Unfortunately the contents have long since been stolen or dropped. However, footprints in the dust seem to indicate that it has been used recently.
+
+room=tavroom peaceful startloc
+Meeting room.
+Inscribed on one of the walls are the words "BomBow Sanhedrin Meeting Room". From this you deduce that you are stood in the very chamber where once the local elders would have met to take council. The room would have been bedecked with only the finest of furnishings and decorated in bright and businesslike colours which have, sadly, attracted many a treasure hunter, and all of which have been pilfered years ago. Despite its emptiness, the room retains an air of dignity, peacefulness and comradship. A doorway, to the east, leads out onto the landing.
+
+room=tavpas1
+Passageway.
+The passageway leads from the north to the southeast.
+
+room=tavpas1b
+Passageway.
+The passage continues to the south and east.
+
+room=tavpas1c
+Passageway.
+At the eastern end of the passage are two, unmarked doorways, to the northeast and southeast, whilst to the west the passageway continues.
+
+room=tavpne small
+Airing cupboard.
+Heated to an almost tropical temperature, the shelves in this minescule room would once have been bedecked in various items of washing. Other than being quite warm, this room is now otherwise unremarkable.
+
+room=tavpse
+Low room.
+This peculiarly low-ceilinged room doesn't appear to have ever been decorated, which seems quite odd for any room in an inn.
+
+room=tavrm6
+Room 6.
+The room is dimly lit by a thin shaft of light which streams in through a hole in the ceiling. You can only imagine that this room was reserved for guests with whom the proprietor was not on good terms with.
+
+room=tavrm7 dark
+Room 7.
+Once this room would have been a resting place for weary travellers. But now the thick dust and gloom make it an abode only for silence and darkness.
+
+room=tavrm8 small silent
+Room 8.
+Somehow this room has a cosy, relaxing feel to it, and seems to have been little used in recent years. The doorway is to the north.
+
+room=tavrm9
+Room 9.
+Although the room seems to have been neglected for many years, it seems to have carried itself well. The ceiling has a taken on a few walls, and there are large patches of mould on the wall, but otherwise it is in quite good condition.
+
+room=tavrm10
+Room 10.
+It appears that this room has hardly been used, even entered, for centuries. There walls, floor and roof have large holes in them, allowing a strong draught to howl through the room, giving it an unpleasant chill.
+
+room=tavrm11
+Residents kitchen.
+This small, well decorated room, provided self-catering facilities for the guests of the house. Unfortunately little remains of what would once have been a pleasant and jolly center of quisine.
+
+room=tavcaretk
+Caretakers room.
+Once the caretaker would have resided here, but along with the rest of the house, this room has long since been abandoned. Little remains to tell you anything about the inhabitant of this room, but there seems to be an uneasy chill about the place.
+
+room=tavpas2
+Private passageway.
+This passageway connects the landing, to the southwest, to the staff's quarters to the north.
+
+room=tavp2e
+Staff quarters.
+In most directions are doorway leading to various private rooms, intended for the staff only. However, since no-one either works or lives here, it doesn't matter much who comes here. South is a passageway which connects to the main residence area.
+
+room=tavs1
+Landlord's quarters.
+From here you are afforded a beautiful view of the surrounding landscape, through a large window to the north. Apart from the spectacular view, the room seems rather simply decorated. Obviously it's occupant was a humble man.
+
+room=tavs2
+"Off room".
+When off duty, the tavern or bar staff would come here to relax. However, it hasn't been used for years now. The way out is to the east.
+
+room=tavs3	dark
+Staff room.
+This would once have been where the staff kept their personal possessions. The wall shows up where the lockers would once have been, but now the room is empty.
+
+room=tavs4	dark
+Wash room.
+Although the room has been unused for a considerable length of time and all the neccesary fittings have been removed, the room shows all the signs of having once housed a shower, bath and several sinks. The only thing left is the way out, which is to the southwest.
+
+room=tavs5	dark
+Dorms.
+This used to be the staff dorms, but now it is an empty, dark and cold room. The way out is to the west.
+
+; ------------------------- Cliff Base & River Area ------------------------ ;
+
+room=uppass	dark
+Top of steep shaft.
+You are at the top of a narrow and dark rock-hewn shaft, which cuts it's way rapidly down into the mountain. The tunnel continues at this level to the west.
+
+room=dnpass
+Bottom of steep shaft.
+You are in a small cavern which appears to be the entrance to a topsy-turvy mine. To the north, an opening leads out into the daylight, whilst the back end of the cave climbs abruptly upward into the rock.
+
+room=cliffbot
+Foot of cliff.
+Before you, to the south, towers the sheer face of a mountain of solid rock, rising from amongst the trees of a thick forest which covers the horizon from east to west. The top of this cliff curves forward, overhanging the spot on which you now stand. This section of the forest has been cleared to make way for a railway line which leads from what appears to be a mine entrance, to the south, at the foot of the cliff, northward into the depths of the forest.
+
+room=rail1
+Disused railway in forest.
+All around you are thickly packed trees, through which the only obvious route is through the narrow passageway cleared to make way for a north-south running railway track. The surrounding plant life has, in places, engulfed the rails, whilst in others trees the track has buckled under pressure from overgrown trees.
+
+room=rail2
+Disused railyway in forest.
+The density of trees makes it hard to see very far in any direction, but along the railway track, which runs from the northeast round to the south, the foilage is comparatively light. The forestry seems passable in various other directions.
+
+room=oaks
+Amongst the oaks.
+In every direction you are surrounded by trees, the bulk of which appear to be quite elderly oaks, atleast in this part of the woods. The trees seem quite densely packed in all directions except to the west and southwest.
+
+room=rail3
+Disused railway in forest.
+The trees, otherwise densely packed, more or less line the route of the tracks, which run from southeast to northwest. Apart from following the track, there seem to be other beaten tracks leading off into the woods in various directions.
+
+room=clrg1
+Clearing.
+Cleared by a recent fire, this section of an otherwise densely populated forest is barren, the earth scorched and blackened. However, in patches, nature has regained its hold, and clumps of grasses and weeds have sprung up out of the nutrient rich ashes of the past. Apart from the usual forest sounds, you can hear moving water some way to the north.
+
+room=track1
+Beaten track.
+You are stood on a narrow, beaten track, which winds its way east-west through a thick forest. Large patches of ground, and many of the trees, bear the marks of a recent forest fire, becoming more intense to the east. Another trail leads into the trees to the southwest, whilst from the north come the sounds as of a river or stream.
+
+room=track2
+Beaten track.
+This narrow, foot-beaten, dirt track runs from east to west through a dense forest, made up of all kinds of trees. In the northerly directions the trees are too densely packed to allow your passage, but beyond them there is a definite sound of water. Here and there the trees are marked with the scars of a recent forest-fire, which become more intense toward the east. Several trails lead off, southward, into the thick of the woods, but the dense foiliage makes it hard to tell where they lead to.
+
+room=rail4
+Disused railway by river bank.
+You are stood between the tracks of a rusting and neglected railway line which run east-west along the southern banks of a fast-flowing river. In sharp contrast, you are flanked by a thick forest, to the south, out of which rises a huge mountain. The river is quite wide, and the opposite banks are obscured not only by distance, but also by a small island amid-stream.
+
+room=rail5
+Railway bridge, southern bank.
+To your north is a wide, fast-flowing river, crossed by a narrow bridge down the centre of which run the tracks. In all but the northern directions is a dense forest, cleared only along the route of the line, to the east.
+
+room=deadt1	silent
+Forest of dead trees.
+You are wandering around amongst the long-dead hulks of once magnificent trees. This phenomenon seems local only to an area of trees about half a mile in radius, which extends further to the west. In all other directions the forest suddnely ignites with life, almost as if by magic.
+
+room=deadt2	silent
+Forest of dead trees.
+You are at the western end of an inexplicable stretch of dead trees. In every direction except the east, you can see greenery beyond the immediate thicket of rotting tree-carcasses. 
+
+room=elms
+Amongst the elms.
+Although you can espy several other species of trees, you are surrounded by elms. The dense greenery makes this part of the forest quite gloomy, and it's hard to see more than a few yards in any given direction.
+
+room=forest1
+Virgin forest.
+All about you are the densely-packed trees of a virgin forest.
+
+room=forest2
+Virgin forest.
+All about you are the trees of a densely-packed, virgin forest.
+
+room=island1
+West end of island.
+You are on the western most point of a small, rocky island which stands amid the turbulent waters of a fast-flowing river, joined to the mainland by a bridge, to the south. A narrow railway track crosses the bridge from the other side, and the heads northeast, across the island.
+
+room=island2
+Railway line on island.
+The island is elevated some way above the level of the river here, and as the current pounds the rocks immediately to your west, huge sheets of spray are thrown up into the air. Otherwise the river has the deceptive appearance of a gentle, but fast-flow. The island continues north and east.
+
+room=island3
+Southern tip of island.
+Although the mainland is only a few hundred feet away, the current seems quite dangerous. However, to the west a bridge provides access to the mainland, while the island continues to the north.
+
+room=island4
+Rocky island.
+You are stood on a rocky, barren island, which juts out into the waters of a turbulent looking river, which flows from west to east. From the mainland, to the south, appears to be covered entirely in forest. The island continues to the north and west.
+
+room=island5
+Rocky island.
+South and eastward the island widens out, but to the northwest it curves a little and wastes away into a narrow point, jutting out into the tide.
+
+room=island6 silent
+Railway on island.
+A chill runs down your spine as you take in the scene. Although the island is generally barren and rocky, this part seems especially desolate. Every so often a huge sheet of spray washes across the severly buckled and bent railway tracks, which bear all the marks of a terrible accident, many years prior. You shudder as you think of the lives lost out in this miserable place.
+
+room=island7
+Railway on island.
+The island curves from the west round to the northern most tip of the island, to the northwest. The tracks follow the curve exactly, although it seems far too tight a turn for a train to take comfortably. Further east is another, much smaller, island, seperated by a dozen or so meters of vicious rapids.
+
+room=island8
+Northern tip of island.
+You stand on the tip of a small and barren, rocky island, at the very foot of an antiquated, yet impressive, bridge, which leads across to the mainland, to the north. A railway line crosses the bridge and follows the curve of the island to the southwest.
+
+room=island9
+Rocky point.
+North of you, across a mile or so of the swirling waters, the trees and fields of the mainland are in stark contrast to the barren, rocky terrain of this little island. Slightly upstream of you is what appears to be a stockade or a fort, whilst someway downstream, to the east, is a bridge, joining the island to the mainland.
+
+room=island10
+Rocky point.
+You are stood on a narrow, rocky arm, which throws itself out of the main body of the island, to the north, into the passing flow. In the distance, to the south, you can see the tree-lined banks of the mainland. The turbulent flow and icy cold waters make it too long a distance to swim.
+
+room=islanddie	death dmove=island7
+You attempt to swim in the turbulent and foaming waters.
+Within moments you are dragged under by the current and smashed to pieces on the surrounding rocks. What a stupid idea.
+
+room=nthbank
+Northern banks of river.
+To your south the turbulent waters of the river, upon whose banks you currently stand, are crossed by an aged railway bridge. East and west the river banks are quite muddy, whereas here the ground is solid rock; probably why they chose to build the bridge here. The railway line continues inland to the north.
+
+room=nbankw1
+Northern banks of river.
+As you move about, your feet squelch in the thick mud.
+
+room=nbankw2
+Northern banks of river.
+To the west the banks become too step to walk along safely,
+
+room=nbanke1
+Northern banks of river.
+The thick, gooey mud squelches under foot, disgustingly.
+
+room=nbanke2
+Northern banks of river.
+To the east, the incline of the banks becomes to steep to be able to walk on.
+
+; ---------------------------- Closet Rooms -------------------------------- ;
+;
+; The below this point are mainly for masters to tinker in ... Limbo is a
+; 'detainment' location, players can only leave by being summoned. Store is
+; a place to keep SPECIAL objects (eg valuable ones, or deadly weapons) which
+; from time to time they can choose to bring out and tease lower players with.
+;
+
+; Note: Limbo is no-where! Only masters can get here (using supergo) and there
+;       are no exits for mortals to leave it, making it the ideal 'prison'.
+
+room=limbo	nolook hidecre dmove=store hideobj silent peaceful
+Limbo.
+Indistinct white mists swirl around you and an insensitive breeze blows at you in no actual direction. This place is nowhere.
+
+room=store	hideobj hidecre nogo
+Masters' store.
+You are surrounded by an almighty hord of adventuring goods. You blink in the almost dazzling octarine glow which hangs over the hord. This is the room used by the masters to store things to dump out at random on the poor unsuspecting players to add a bit of spice to the game.
+
+room=heaven	nolook hidecre hideobj dmove=store silent peaceful death nogo
+Heaven!
+This is the place where deceased mobiles go, not the residence of the almighty, I'm afraid!
+
+room=home	nolook hidecre hideobj silent peaceful nogo
+Heavenly anteroom.
+NOTHING. All around you. You are stood on it, breathing it in and seeing lots of it. However, you ARE alive. Apparently this is the fabled HolyHostRoom, where those who are saved by the Holy One are left to recover from the shock of a near death experience which he swiped them from (such as yourself). Your common sense tells you that if you move in any direction, you will leave.
+
+; --------------------------------------------------------------------------- ;
+; <End of File>

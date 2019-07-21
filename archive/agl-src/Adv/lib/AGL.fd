@@ -1,0 +1,19 @@
+##base _AGLBase
+##name agl
+##bias 30
+##public
+##return struct Library **
+LibTable()()
+##return char **
+TextPtr()()
+##return char *
+CommsPrep(Port,Reply,Msg)(A0,A1,A2)
+##return struct MsgPort *
+CreateAPort(Name)(A0)
+##return void
+DeleteAPort(Port,Msg)(A0,A1)
+##return int
+Random(Max)(D0)
+##return char *
+GetLocal(Screen,Window,Title)(A0,A1,A2)
+##end

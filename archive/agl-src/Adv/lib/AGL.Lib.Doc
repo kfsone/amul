@@ -1,0 +1,220 @@
+TABLE OF CONTENTS
+
+agl.library/CommsPrep
+agl.library/CreateAPort
+agl.library/DeleteAPort
+agl.library/GetScreen
+agl.library/LibTable
+agl.library/Random
+agl.library/TextPtr
+agl.library/CommsPrep                                 agl.library/CommsPrep
+
+   NAME
+	CommsPrep -- Prepares ports etc for an AMan connection.
+
+   SYNOPSIS
+	errmsg = CommsPrep(Port,Reply,Msg)
+	  d0		a0    a1   a2
+
+	char *CommsPrep(struct MsgPort **,struct MsgPort **,struct Aport **)
+
+   FUNCTION
+	Initialises various structures required for an AMan session. Any
+	pointer set to NULL will be skipped.
+
+   INPUTS
+	Port	Pointer to your AMan Message Port pointer.
+	Reply	Pointer to your AMan Reply Port pointer.
+	Msg	Pointer to a (struct Aport *)pointer.
+
+   RESULT
+	errmsg	NULL if success, else a pointer to a string that describes
+		the reason for the error.
+
+   EXAMPLE
+	struct MessagePort *Write,*Reply;
+	struct Aport *msg;
+	char	*err;
+	  ...
+	if((err=CommsPrep(&Write,&Reply,&msg))!=NULL) {
+		printf("Error: %s\n",err); quit();
+	}
+
+agl.library/CreateAPort                             agl.library/CreateAPort
+
+   NAME
+	CreateAPort -- Creates an AmigaDOS comms port, priority 0.
+
+   SYNOPSIS
+	port = CreateAPort( Name )
+	 d0		     a0
+
+	struct MsgPort *CreateAPort( char * );
+
+   FUNCTION
+	Creates a message port and setsup various parameters.
+
+   INPUTS
+	Name	Either NULL or the name of the port.
+
+   RESULT
+	port	Address of the port.
+
+   EXAMPLE
+	if((port=CreateAPort("Manager"))==NULL) error("Can't create port!\n");
+	if((port=CreateAPort(NULL))==NULL) error("Can't create ports!\n");
+
+   NOTES
+	Although it bears great similarity to Amiga.Lib's CreatePort, remember
+	it is NOT.
+
+agl.library/DeleteAPort                             agl.library/DeleteAPort
+
+   NAME
+	DeleteAPort -- Disposes of a port created by CreateAPort
+
+   SYNOPSIS
+	DeleteAPort( Port, Msg )
+		    a0    a1
+
+	void DeleteAPort( struct MsgPort *, struct Aport * );
+
+   FUNCTION
+	Deletes a message port that was previously created by CreateAPort.
+
+   INPUTS
+	Port	Address of the port or NULL.
+	Msg	Address of Aport message or NULL.
+
+   EXAMPLE
+	if((port=CreateAPort("Manager"))==NULL) error("Can't create port!\n");
+	DeleteAPort(port);
+
+   NOTES
+	Although it bears great similarity to Amiga.Lib's DeletePort, remember
+	it is NOT.
+
+agl.library/GetScreen                                 agl.library/GetScreen
+
+   NAME
+	GetLocal -- Allocates a screen and/or window for local use.
+
+   SYNOPSIS
+	error=GetLocal(Screen, Window, Title)
+	 d0              a0      a1      a2
+
+	char *GetLocal(struct Screen **,struct Window **,char *);
+
+   FUNCTION
+	Allocates a custom screen and/or window using the standar AGL
+	screen settings. The screen data should be clipped against the
+	W/Bench on setup. The routine should also contain a LoadRGB4
+	command... If Screen or Window are NULL, either the screen or
+	window will not be allocated. If Title is NULL, the default
+	copyright message will be used as the screen/window titles.
+
+   INPUTS
+	struct Screen **Screen	Address of your screen POINTER
+	struct Window **Window	Address of your window POINTER
+	char           *Title	Pointer to initial window title
+
+   RESULT
+	error is either NULL or a pointer to text describing the error.
+
+   EXAMPLE
+	char *p; struct Screen *sc; struct Window *wi;
+	...
+	if((p=GetLocal(&sc,&wi,"A Test Screen"))!=NULL) {
+		printf("Failed: %s",p); exit(0);
+	}
+	if((p=GetLocal(NULL,&wi,"A WorkBench Window"))) {
+		printf(p); exit(0);
+	}
+
+   NOTES
+	If Screen is NULL, GetLocal will open the Window on the WorkBench
+	screen.
+	The standard intuition CloseScreen/CloseWindow commands can be used
+	to close either screen/window. Alternatively, place them in an
+	IOLine structure and use FreeLine() to dispose of them.
+
+   SEE ALSO
+	AttCon(), RelDevice(), struct IOLine, FreeLine()
+
+agl.library/LibTable                                   agl.library/LibTable
+
+   NAME
+	LibTable -- Returns a pointer to a table of library bases.
+
+   SYNOPSIS
+	bases = LibTable()
+	 d0
+
+	struct Library **LibTable( void );
+
+   FUNCTION
+	Returns a pointer to a table of Library Bases, saving you
+	having to test for them. If agl.library is open it follows
+	that these libraries are available. Until you close agl.library
+	you are guaranteed their availability.
+
+   RESULT
+	bases - Pointer to the table of Library Bases. They are:
+
+		bases+0 -> OpenLibrary("dos.library",0L);
+		bases+4 -> OpenLibrary("intuition.library",0L);
+		bases+8 -> OpenLibrary("graphics.library",0L);
+
+   EXAMPLE
+	base=LibTable(); DOSBase=*(base++); IntuitionBase=*(base++);
+	GfxBase=*(base++);
+
+   NOTES
+	More ROM libraries may be added to this list in future.
+
+agl.library/Random                                       agl.library/Random
+
+   NAME
+	Random -- Generates a mod'ed random number.
+
+   SYNOPSIS
+	num = Random( Max )
+	d0            d0
+
+	int Random( int );
+
+   FUNCTION
+	Generates a random number based between 0 and Max. Each call to
+	this affects the random seed used by all other Random() callers.
+
+   INPUTS
+	Max - Maxmimum value for return.
+
+   RESULT
+	val - A random number basesd on the Elapsed field of ExecBase.
+
+   EXAMPLE
+	x = Random(100);	/* Generates a no. between 0-100 */
+
+agl.library/TextPtr                                     agl.library/TextPtr
+
+   NAME
+	TextPtr -- Gets a pointer to a table of error text messages.
+
+   SYNOPSIS
+	table = TextPtr()
+
+	char **TextPtr();
+
+   FUNCTION
+	Returns the address of a list of string pointers which point to the
+	standard error messages.
+
+   EXAMPLE
+	/* Prints the 5th error message */
+	table = TextPtr(); printf("Error: %s.\n",*table+4);
+
+   SEE ALSO
+	See "aglerrors" include for #defines/equates
+
+

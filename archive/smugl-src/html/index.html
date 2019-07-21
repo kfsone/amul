@@ -1,0 +1,276 @@
+<!-- $Id: index.html,v 1.10 1997/11/28 09:46:29 oliver Exp $ --!>
+<HTML>
+<HEAD>
+ <meta name="Author" content="$Author: oliver $">
+ <meta name="Description" content="SMUGL Documentation Index">
+ <TITLE> SMUGL Documentation </TITLE>
+</HEAD>
+<BODY BACKGROUND="http://www.kfs.org/gifs/paper.gif">
+
+ <CENTER> <HR> <A HREF="index.html"><IMG SRC="smugl-logo.gif" ALT="SMUGL: the Simple Multi-User Game Language" WIDTH=460 HEIGHT=55"></A> <H1> Documentation Index </H1> <HR> </CENTER>
+
+ <A NAME="toc">
+ <H2> Table of Contents </H2> <P>
+
+ <OL>
+  
+  <LI> <A HREF="#intro"> Introduction </A> </LI>
+  <LI> <A HREF="#lang"> The Language </A> </LI>
+  <LI> <A HREF="#files"> The Files </A> </LI>
+  <LI> <A HREF="#run"> Running </A> </LI>
+
+ </OL>
+
+ Additionally:<P>
+
+ <A HREF="concepts.html"> General Concepts </A>.<P>
+
+<HR> <A NAME="intro">
+<H3> 1. Introduction </H3> <P>
+
+<H4> 1.1 About SMUGL </H4>
+<I><B>SMUGL</B></I> is the <TT><B>S</B>imple <B>M</B>ulti-<B>U</B>ser <B>G</B>ames <B>L</B>anguage</TT>, based on <I><B>AMUL</B></I>, the <TT><B>A</B>miga <B>M</B>ulti-<B>U</B>ser Games <B>L</B>angunage</TT>. Both languages were
+developed by <A HREF="mailto:oliver@kfs.org">Oliver Smith</A> of
+<A HREF="http://www.kfs.org/">KingFisher Software</A>.<P>
+
+SMUGL is intended for writing MUDs of the old (e.g. essex mud) style,
+or writing talkers or similar. The language itself is designed to be
+flexible, powerful but (hopefully) simple. The components are broken
+down into seperate files intended to make game development easy. There
+is a certain logic about the whole thing, though, that means with a
+little instruction, everything suddenly becomes very logical.<P>
+
+AMUL was designed in early 1990, and resurrected as SMUGL due to the
+popularity of the language with those who tried it. It is a VERY
+easy language to laern; all of the files use simple templated formats,
+and the key part of the language has a small, easy to learn set of
+constructs.<P>
+
+<H4> 1.2 Game Environment </H4>
+
+A SMUGL game consists of upto 32 players interacting in a shared
+world. Almost every aspect of that world is configurable (and any
+that aren't will be eventually). The world exists for a finite
+period of time, a session, after which all of the non-player
+objects (i.e. rooms and objects) are 'reset' (returned to their
+initial states and configurations). All logged-in players are
+ejected at the beginning of the reset.<P>
+
+At the very core of the universe is the <TT>Basic Object</TT>, which
+is the common denominator of all other types of entity. A basic object
+describes one or more presences of one of the three type of game entity:
+Rooms, Objects and Players. A room is a bare-bones object, however, it is
+a container in every aspect that an object is a container - it is therefore
+possible to place one or more rooms inside another, or even inside an
+object. You can also treat an object as a location.<P>
+
+Beyond this, the game consists of other elements such as Ranks, the
+Travel Table, Mobiles and Daemons. Ranks determine properties of players
+as they progress through the game; the Travel Table describes the links
+between different locations; Mobiles allow you to animate objects with
+their own personalities; Daemons allow you to create timers and background
+events.<P>
+
+
+<CENTER> <H5> <A HREF="#toc"> Back to Table of Contents </A> </H5> </CENTER>
+
+<HR>
+<A NAME="lang">
+<H3> 2. Language </H3> <P>
+
+<H4> 2.1 General Formatting </H4>
+This section describes some of the common and key aspects of the
+SMUGL language. For details of the operating environment, see section
+<A HREF="#1.2">1.2</A><P>
+
+All SMUGL files are ASCII text. Semicolon (';') is used to indicate
+comments. Both space and tab are considered as field delimiters,
+and carriage return is considered a line delimter. Two or more
+consecutive end-of-lines are considered 'End of Paragraph' (EOP).<P>
+
+Outside of text strings, you can use comma (<TT>,</TT>) to place
+multiple lines on a single physical line, e.g.
+<PRE>
+  line1, line2, line3
+</PRE>
+is considered as 3 seperate lines.<P>
+
+A single line may be extended across multiple physical lines by
+suffixing the line with '+' or '\', e.g.
+<PRE>
+  this \
+  is   +
+  one \
+  line
+</PRE>
+<P>
+
+<H4> 2.2 Paragraphs/Elements </H4>
+Most SMUGL files are divided up into paragraphs; each paragraph
+represents a single SMUGL element, be it a room, message or
+object.<P>
+
+Every element has an identifier; for some files these must be
+unique, while others can be used many times.<P>
+
+All SMUGL elements start with a label-line:<BR>
+<PRE>
+  [&lt;type&gt;=}&lt;label&gt; [&lt;flags&gt;]
+</PRE><P>
+
+<UL>
+<LI> There must be no leading white-space at the beginning
+     of a label line. </LI>
+<LI> <TT>type</TT> is optional, but specific to each file
+     and each element type. Whilst it is mostly redundant,
+     this mechanism is provided to make locating a given
+     entry in a file easier. It is <I>strongly</I> recommended
+     that you always include this tag. </LI>
+<LI> <TT>label</TT> is the name, or identified, for this
+     element. For example, an object name, or a system message
+     i.d. </LI>
+<LI> <TT>flags</TT> are specific to each type of element,
+     see <A HREF="#files">file-specific documentation</A> for more details. </LI>
+</UL>
+<P>
+
+<A NAME="freetext">
+<H4>2.3 Free-format text</H4>
+Some SMUGL files, such as the <A HREF="#rooms.txt">room descriptions file</A>,
+consist mainly of free-format text. If you need to insert a blank line into
+a paragraph of descriptive text, do so by inserting a line containing at least
+one space or tab. Placing a line containing only a carriage return in a
+paragraph of free-format text will cause the compiler to complain about the
+contents.<P>
+
+<CENTER> <H5> <A HREF="#toc"> Back to Table of Contents </A> </H5> </CENTER>
+
+<HR>
+<A NAME="files">
+<H3> 3. Files </H3> <P>
+
+<H4>3.1 Organisation of Files</H4>
+Although all of the language files are based on common principles, each
+file has it's own, tailored object format. The descriptions of each are
+included in seperate files below; some of the files are similar or
+related enough that they are grouped together in the table:<P>
+
+<CENTER>
+<TABLE BORDER=1 BGCOLOR=white FGCOLOR=black CELLPADDING=5 WIDTH=90%>
+ <TR BGCOLOR=gray> <TH> Scope </TH> <TH> Files </TH> </TR>
+ <TR> <TD> <A HREF="concepts.html"> General Concepts </A> </TD>
+      <TD> <I> All </I> </TD> </TR>
+ <TR> <TD> <A HREF="system.html"> General Configuration </A> </TD>
+      <TD> <A HREF="#system.txt">system.txt</A> </TD> </TR>
+ <TR> <TD> <A HREF="msgs.html">   Text Messages </A> </TD>
+      <TD> <A HREF="#sysmsg.txt">sysmsg.txt</A><BR>
+           <A HREF="#umsg.txt">umsg.txt</A><BR>
+           <A HREF="#obdescs.txt">obdescs.txt</A> </TD> </TR>
+ <TR> <TD> <A HREF="rooms.html">  Rooms </TD>
+      <TD> <A HREF="#rooms.txt">rooms.txt</A><BR>
+           <A HREF="#travel.txt">travel.txt</A> </TD> </TR>
+ <TR> <TD> <A HREF="objects.html"> Objects </TD>
+      <TD> <A HREF="#objects.txt"> objects.txt </A> <BR>
+           <A HREF="#obdescs.txt"> obdescs.txt </A> </TD> </TR>
+ <TR> <TD> <A HREF="lang.html"> Language </A> </TD>
+      <TD> <A HREF="#lang.txt"> lang.txt </A><BR>
+           <A HREF="#syns.txt"> syns.txt </A> </TD> </TR>
+ <TR> <TD> <A HREF="mobiles.html"> Mobiles </A> </TD>
+      <TD> <A HREF="#mobiles.txt"> mobiles.txt </A> </TD> </TR>
+</TABLE>
+</CENTER>
+<P>
+
+<H4> 3.2 Description of Files </H4> <P>
+
+ <OL>
+  <A NAME="system.txt">
+  <LI> <B><TT> system.txt  </TT></B> Describes the game configuration </LI>
+  <A NAME="sysmsg.txt">
+  <LI> <B><TT> sysmsg.txt  </TT></B> Allows the user to define all of the
+                                    'built in' Game responses, e.g.
+                                    'Press RETURN' </LI>
+  <A NAME="umsgs.txt">
+  <LI> <B><TT> umsg.txt    </TT></B> Common/long user defined text messages </LI>
+  <A NAME="obdescs.txt">
+  <LI> <B><TT> obdescs.txt </TT></B> Common/long object descriptions </LI>
+  <A NAME="rooms.txt">
+  <LI> <B><TT> rooms.txt   </TT></B> Room definitions (descriptions and flags) </LI>
+  <A NAME="travel.txt">
+  <LI> <B><TT> travel.txt  </TT></B> Room exit definitions ("<I>travel table</I>") </LI>
+  <A NAME="objects.txt">
+  <LI> <B><TT> objects.txt </TT></B> Object definitions </LI>
+  <A NAME="lang.txt">
+  <LI> <B><TT> lang.txt    </TT></B> Main language definition </LI>
+  <A NAME="syns.txt">
+  <LI> <B><TT> syns.txt    </TT></B> Verb and noun aliases </LI>
+  <A NAME="mobiles.txt">
+  <LI> <B><TT> mobiles.txt </TT></B> Defines mobile characteristics </LI>
+ </OL>
+
+</LI>
+
+<CENTER> <H5> <A HREF="#toc"> Back to Table of Contents </A> </H5> </CENTER>
+
+<HR>
+<A NAME="run">
+<H3> 4. Running </H3> <P>
+
+<H4> 4.1 Running <TT>smuglcom</TT> </H4>
+
+You will need to run 'smuglcom' everytime you create or update
+a SMUGL game. On fast machines, compilation should usually be a matter
+of seconds; on slower machines it may take as long as a couple of
+mintes. However, you do not need to recompile the game everytime
+you wish to run SMUGL.<P>
+
+Command line options are simple:<P>
+
+<PRE>
+  smuglcom [options] [directory]
+</PRE>
+where options are:
+<PRE>
+  -?  Display command-line help
+  -v  Display version of smuglcom
+  -q  Quiet (don't display warnings)
+  -s  Print 'hash stats' after compiling
+</PRE><P>
+
+If no <TT>directory</TT> is specified, smuglcom will default
+to compiling a game in the current directory.<P>
+
+The resulting compiled game is written to a directory
+called 'Data' in the game directory.<P>
+
+<H4> 4.2 Running <TT>smugl</TT> </H4>
+
+Once invoked, SMUGL fork(2)s a copy of itself every time a
+new connection arrives, to act as a client. A copy of SMUGL
+must, therefore, be running whenever you want your game to be
+available for logins.<P>
+
+Command line options are:<P>
+
+<PRE>
+  smugl [options] [directory]
+</PRE>
+where options are:
+<PRE>
+  -?  Display command-line help
+  -f  Fork(2) (detatch from user) after loading
+  -d  Increment 'debug' level
+</PRE><P>
+
+If no <TT>directory</TT> is specified, smugl tries to load
+a game from the 'Data' sub-directory in the current directory.<P>
+
+The <TT>-f</TT> flag can be used to run smugl as a daemon.<P>
+
+
+<CENTER> <H5> <A HREF="#toc"> Back to Table of Contents </A> </H5> </CENTER>
+
+ <CENTER> <HR> <H4> SMUGL <I> Copyright &copy; Oliver Smith/KingFisher Software 1996-1997 </H4> <A HREF="http://www.kfs.org/"><IMG SRC="kfs-ban.gif" ALT="Kingfisher Software - www.kfs.org" WIDTH=400 HEIGHT=40></A> <H5> Contact: <A HREF="mailto:smugl@kfs.org">smugl@kfs.org</A> for more information </H5> <HR> </CENTER>
+
+</BODY>
+</HTML>

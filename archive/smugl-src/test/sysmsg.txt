@@ -1,0 +1,272 @@
+; $Id: sysmsg.txt,v 1.4 1997/04/28 01:10:30 oliver Exp $
+; SysMsg.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by Oliver Smith / KingFisher Software (oliver@kfs.org)
+;
+; This software is furnished on the understanding that it may be used and or
+; copied  only  with the inclusion of this notice.  No title or ownership of
+; this  software is hearby transferred.  The information in this software is
+; subject  to  change  without notice.  No responsibility is assumed for the
+; use or reliability of this software.
+
+; All System Messages get word-wrapped based on the users screen settings,
+; so it's a good idea to try and put as much of the text onto one line as
+; possible, this way best use of the USERS screen is made!
+
+
+$1		; Can't enter the game - reset in progress
+	...@ad is currently resetting - try again in a few minutes...^M
+
+$2		; All 16 slots in use (let me know if this ever happens)
+	Sorry, @ad is full! Try again a little later on...
+
+$3		; 'Press RETURN' prompt.
+	Press RETURN: {
+
+$4		; 'Enter your name' prompt.
+	Persona Name: {
+
+$5		; Entered an invalid name.
+	Invalid persona name, try another one.
+
+$6		; Entered a name used by SOMETHING in the game
+	Sorry, but you can't use that name. Try another.
+
+$7		; Warn other player someone just tried to be them.
+	Someone just tried to log into this persona!^G
+
+$8		; Can't have two of the same name at once!
+	Oops! ^G"@me" is already playing in @ad! Try a different name!
+
+$9		; Didn't recognise name : "Are you a new user? (Y/N) {"
+	"@me" does not exist in this game!^MDo you want to create a new persona? (Y/N) {
+
+$10		; Offer them Male or Female - its all we got!
+	You can choose to be Male or Female. This choice will not affect your game play, but adds to the atmosphere of a role-playing game.
+	Choose (M)ale or (F)emale? {
+
+$11		; They tried to be clever and didn't enter M or F
+	Sorry, you can only have M for male or F for female.
+
+$12		; Password prompt
+	Password: {
+
+$13		; We didn't like the length of the password
+	Invalid password length. Password must be 3-8 characters long.
+
+$14		; You didn't manage to log in
+	Thanks for calling; good bye!
+
+$15		; When killed, this is sent by the deaded player.
+	You have killed @me!
+
+$16		; Welcome a first time player
+	^MWelcome to the world of @ad. PLEASE take the time to read through the Help Texts. If you are stuck, try communicating with other players, or leave some E-Mail to the SysOp!
+	^MYou begin as "@me the @mr"... Enjoy your travels and have FUN!
+
+$17		; Scare them off - third bad attempt at entering password
+	^G** Logging failed password attempt and disconnecting!
+
+$18		; Inform of failed logins (put %ld where you want the number)
+	^M^G%ld attempts have been made to use this persona since last logon!
+
+$19		; Welcome back an old hat.
+	^MWelcome back, @me the @mr! You have now played @gp times!
+
+$20		; Tell them when ANSI is enabled
+	>> ANSI codes are enabled! <<
+
+$21		; Tell other players in the SAME ROOM you've begun
+	@me the @mr has entered The Land!
+
+$22		; Text displayed when user types 'HELP'
+	@ad		Copyright (C) Oliver Smith, 1991-93
+	=============		===================================
+	^MSummary of basic commands: (there are MANY MANY more commands available)
+	^MMovement commands: N, S, E, W, NE, SE, SW, NW, U, D, IN, O.
+	^MAct, Answer, Ask, Attack, AutoExits, Beep, Bless, Brief, Bug, Burn, Bye, Ciao, Clap, Conduct, Confess, Console, Close, Cuddle, Dig, Douse, Drop, Drink, Extinguish, Farewell, Feed, Fight, Flee, Flip, Follow, Get, Give, Greet, Groan, Hello, Hi, Hug, Introduce, Inventory, Kick, Kill, Kiss, Knock, Laugh, Lie, Light, Listen, Look, Nod, Open, Pat, Play, Pray, Press, Push, Quit, Rank, Read, Relax, Reset, Roomcount, Rub, Save, Say, Score, Scream, Shout, Sit, Sleep, Stand, Suggest, Swim, Tap, Taste, Tell, Tip, Touch, UnAuto, Use, Value, Verbose, Wash, Wave, Wake, Wear, Weigh, Welcome, What, Where, Who, Wield, Worship, Zap.
+	^MOther help texts available:^MHints, Commands, Spells, Acting, Scoring, Levels, About, Communicating, Tasks.
+	
+
+$23		; Say goodbye to a first time player
+	^MYour first game of @ad can be quite confusing! So why not discuss it with other users on the board? Once you get into it, you'll never want to get out!
+	^M<< @ad is written by @an, using AMUL >>
+
+$24		; Tell other players that you are quitting
+	@me has left The Land...
+
+$25		; Pillock just got himself zonked
+	@crYou have died...
+
+$26		; And we'll tell the other people as much!
+	@me has passed away...
+
+$27		; A spell failed to work
+	Your spell was unsucessful.
+
+$28		; when listing other players online (who/verbose)
+	 is playing{
+
+$29		; Tell the player that their rank just changed
+	Your level of experience has changed to @mr!
+
+$30		; Saving X many points (put %ld if/where you want number to be)
+	Saving %ld points!
+
+$31		; Make sure the user wants to quit.
+	^MRemember: Because @ad is a REAL-TIME multi-user game, your location and inventory aren't remembered when you quit.
+	^MReally quit?: {
+
+$32		; Tell people the lights just went out.
+	It's now too dark to see.
+
+$33		; Now someones fixed them again.
+	It's now light enough to see here.
+
+$34		; Description of a dark room.
+	It is too dark to see.
+
+$35		; When the player tries to 'WHAT' in a dark room.
+	It is too dark to make anything out.
+
+$36		; When WHAT sees nothing in a hideaway.
+	You can see nothing special here.
+
+$37		; How to describe another player in the room (first %s = name, second %s = rank)
+	%s the %s is here{
+
+$38		; When the reset happens.
+	--)>> Something magical ^Gis happening <<(--
+
+$39		; The sentence was pure garbage.
+	I didn't understand that, at all.
+
+$40		; You tried to move in a direction you can't.
+	You can't go @vb from here.
+
+$41		; Something you tried to but can't do.
+	You can't do that!
+
+$42		; You've just done a supergo
+	>> Kappowwww! <<
+
+$43		; When a player leaves (supergo)
+	With a puff of smoke, @me dissapears...
+
+$44		; When a player arrives (supergo)
+	As if by magic, @me appears from nowhere!
+
+$45		; First word was understood, but not a verb!
+	I almost understood that!
+
+$46		; Understood the verb, but not the rest
+	I don't understand what or how you wanted to "@vb"...
+
+$47		; Understood the verb, but no matching syntax lines
+	I didn't quite understand that.
+
+$48		; You've just been summoned
+	--)>> You have been magically summoned <<(--
+
+$49		; When a player leaves (summoned)
+	There is a sudden >WHOOSH< and @me vanishes into thin air!
+
+$50		; When a player arrives (summoned)
+	There is a loud >TING< and @me appears out of nowhere!
+
+$51		; Tell others you just got woken up.
+	@me has woken up.
+
+$52		; You've just been rudely awoken.
+	Something has woken you up!
+
+$53		; Can't summon a player whose already here.
+	%s is already here!
+
+$54		; When a player leaves a room (walking)
+	@me has left.
+
+$55		; When a player arrives in a room (walking)
+	@me has arrived.
+
+$56		; Tried to enter a SMALL room which is occupied
+	There is someone else in there already and not enough space for you.
+
+$57		; Tell the other player about ^^
+	Someone else just tried to enter, but there wasn't enough room.
+
+$58		; When the players sex changes
+	You feel a tingling sensation throughout your body, and you are suddenly transofmred into a @gn.
+
+; * NOTE
+;
+;   The text in the fight-sequence where the opponent DEFENDS against a
+;   blow is sent BY THE ATTACKING player. Therefore you should use
+;
+;	You defend against an attack from @me
+;   not
+;	You defend against an attack from @pl
+;
+; *NW = No Weapon, *WP = Weapon
+
+$59		; YOU hit @pl				*NW
+	You hit @pl with your bare hands!
+
+$60		; tell @pl he blocked YOUR attack	*NW
+	You manage to stop a blow from @xx.
+
+$61		; YOU hit @pl				*WP
+	You hit @pl with your @o1.
+
+$62		; YOU WOULD have hit, but @pl blocked	*WP
+	You manage to block an attack from @xx with your @o1.
+
+$63		; tell @pl YOU struck			*NW
+	@xx has struck you!
+
+$64		; @pl blocked YOUR attack		*NW
+	@pl easily blocks your attack.
+
+$65		; tell @pl YOU struck			*WP
+	@xx hits you with @go @o1!
+
+$66		; @pl blocked your attack		*WP
+	@pl easily blocks your attack with @go @o2.
+
+$67		; You miss - dimwit			*NW
+	You missed.
+
+$68		; tell @pl you missed			*NW
+	@xx attacks you but misses.
+
+$69		; Wizard message (when a user makes it, that is)
+	^M^MFrom high above you comes a rumble as though the end of the world has arrived. A loud voice booms at you:
+	"Harken, @me. No longer art thou mortal. Thy deeds have shown thee worthy of imortality, and we grantest it unreservedly uponst thineself. Thou art now a @mr of The Lands and all the forces of magic withinst them. Fare ye well, @mr @me."
+	^MA scruffy looking human appears before you:
+	"Congratulations", he says unconvincingly, "you'll be notified of your new powers through the lower four dimensions (the BBS)."
+
+$70		; Scored enough points but not enough tasks for new rank
+	You have not completed the required task(s) to reach the next level.
+
+$71		; You can't see anything, you're blind
+	You can see nothing.
+
+$72		; Sent if in a HIDE room and other people are about.
+	{
+
+$73		; Decsription of a DEATH room in EXITS list
+	You can make nothing out!
+
+$74		; Fighting not permitted
+	Fighting is forbidden here.
+
+$75		; Rank is too low to cast a spell.
+	You aren't powerful enough to cast that spell, you'll have to wait until you reach a higher rank!
+
+$76		; Not enough magic points to cast spell.
+	You don't have enough magical power to cast the spell!
+
+$77		; <something has> 'broken and crumbles away'
+	broken and crumbles away
+
+; <End of file>

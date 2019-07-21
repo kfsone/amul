@@ -1,0 +1,1 @@
+blink FROM LIB:c.o+"amulcom.o"+"extras.o" TO "amulcom" LIB LIB:lc.lib LIB:amiga.lib SD SC NOICONS

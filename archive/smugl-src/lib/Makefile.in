@@ -1,0 +1,22 @@
+# $Id: Makefile.in,v 1.6 1999/09/10 16:09:37 oliver Exp $
+# Makefile for SMUGL main program ("frame")
+#
+
+SHELL = /bin/sh
+
+# Default target
+all::
+
+EXES   = libsmugl.a
+SRCS   = data.cc vocab.cc conditions.cc actions.cc misc.cc classes.cc
+OBJS   = $(SRCS:.cc=.o)
+
+include @top_srcdir@/h/Makefile
+
+lib: $(EXES)
+
+$(EXES): $(OBJS)
+	$(AR) $(ARFLAGS) $@ $?
+	$(RANLIB) $(RANLIBFLAGS) $@
+
+include Makefile.dep

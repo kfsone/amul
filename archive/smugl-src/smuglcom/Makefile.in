@@ -1,0 +1,33 @@
+# $Id: Makefile.in,v 1.8 1997/05/22 02:21:33 oliver Exp $
+# makefile for smuglcom, game compiler
+#
+
+SHELL = /bin/sh
+
+# Default target
+all::
+
+EXES   = smuglcom verify
+VER    = SMUGLCOM
+SRCS   = smuglcom.cc  langproc.cc  objproc.cc   smsgproc.cc \
+         travfunc.cc  mobproc.cc   synsproc.cc  travproc.cc \
+         cleanup.cc   filebits.cc  obdsproc.cc  roomproc.cc \
+         titleproc.cc umsgproc.cc  basicobjs.cc errors.cc   \
+         msgmgt.cc    misc.cc      vocab.cc
+OBJS   = $(SRCS:.cc=.o)
+
+include @top_srcdir@/h/Makefile
+
+smuglcom: $(OBJS)  $(SMUGLLIB) version.o
+	$(CXX) -o $@ @CFLAGS@ $(OBJS) version.o $(LIBS)
+
+verify:	verify.cc $(SMUGLLIB)
+	$(CXX) -o $@ $(ALL_CFLAGS) $< $(LIBS)
+
+install:: $(EXES)
+	$(INSTALL_PROGRAM) -c $(EXES) $(bindir)
+
+install-strip:: $(EXES)
+	$(INSTALL_PROGRAM) -c -s $(EXES) $(bindir)
+
+include Makefile.dep

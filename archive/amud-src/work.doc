@@ -1,0 +1,11 @@
+To Do:
+
+Device code	-> Library
+User names	Don't allow spaces
+Allow BURN <noun> <state> for !fire objects
+"syntax="	-> "line="
+Remove "else>" etc, replace with <cond> ">"<act>
+Action flag:
+	Bit:	16	15	14	13
+	Set:	Room	STOP	&	ELSE
+

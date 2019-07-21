@@ -1,0 +1,33 @@
+# $Id: Makefile.in,v 1.9 1999/09/10 15:57:31 oliver Exp $
+# Makefile for SMUGL main program ("frame")
+#
+
+SHELL = /bin/sh
+
+# Default target
+all::
+
+EXES   = smugl
+SRCS   = smugl.cc manager.cc client.cc loaders.cc misc.cc \
+	  parser.cc langtable.cc \
+	  textproc.cc ipc.cc io.cc login.cc aliases.cc ranks.cc \
+	  basicobjs.cc rooms.cc objects.cc players.cc mobiles.cc \
+	  lang.cc travel.cc version.cc
+VER    = SMUGL
+OBJS   = $(SRCS:.cc=.o)
+
+include @top_srcdir@/h/Makefile
+
+$(EXES): $(OBJS) $(SMUGLLIB)
+	$(CXX) -o $@ @CFLAGS@ $(OBJS) $(LIBS)
+
+install:: $(EXES)
+	$(INSTALL_PROGRAM) -c $(EXES) $(bindir)
+
+install-strip:: $(EXES)
+	$(INSTALL_PROGRAM) -c -s $(EXES) $(bindir)
+
+include Makefile.dep
+
+cleanup:
+	@ipcs | @PERL@ -ne '$$type = $$1 if /^(shm|sem)id/; `ipcrm $$type $$1` if /^(\d+)/'

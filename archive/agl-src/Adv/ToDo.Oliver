@@ -1,0 +1,44 @@
+Things to do before releasing version 0.9.07:
+
+] Make sure that agl.library has been recompiled
+] Make sure all the .I files are recompiled to .O files
+] AGLCom: aglcom -s - only recompile settings
+] AGL: Check problem with last exit in a list displaying a SysMsg (see Precious)
+	Possibly in AMAN k<strptr->ents +1 ?? 
+] AGL: Check that no-parameters doesn't crash
+] AGL/AMAN: Impliment external I/O modules
+] impliment SET <type> <value>
+] AMAN: unless recompiled database, don't flush memory
+] AMAN: Attempt to allocate memory in one chunk
+] AMAN: Use Malloc for some structures
+] Increase user limit to 32, move DAEM+MOB -> 31
+] Impliment vocab table (rough)
+] Sort out "login" text
+] Take notice of case in @ sequences.
+
+Multiple Game/System Support:
+
+The  governing program must call itself "AGLHost", either AMan or AGLHost.  The
+BIOD  will send a "CONNECT" message to AGLHost, which will reply with a (struct
+aport) message indicating either:
+	0) Connect OK
+	1) [AMan] System Full
+	2) [Host] System Full
+	3) System closed
+	4) Access Denied
+
+HOST must consider AMan a SUB-HOST. On loading, it reads AGLGames.Txt, which
+contains a set of lines in the following format:
+	<path> <max copies> <users/copy> [<hour>-<hour>]
+
+When  the user enters a game, HOST sends a CMD_CONNECT to AMan with information
+pertaining to the BIOD and the users account.
+
+On  receipt of a CMD_CONNECT, AMan launches an AGL task.  AGL communicates with
+AMan to establish which BIOD (if any) it should use.  AMan then responds to the
+caller.  This would be best done using LoadSeg() ...  CreateProc() ...  So that
+AMUL is virtually "resident".  HOST would make AMAN resident too.
+
+] AGLHost := Multiple-Game Host
+] AMan -H <options> := Locate HOST and connect to it
+] AMan <options> := Run as HOST unless already running

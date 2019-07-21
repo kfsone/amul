@@ -1,0 +1,95 @@
+#! /usr/bin/perl
+# $Id: mkrev,v 1.2 1997/04/25 18:18:23 oliver Exp $
+# mkrev -- Generate 'release number' (revision) .h files
+# By holding release numbers in '.rev' files, this program can
+# easily allow you to track release numbers by generating .h
+# files with easy-access to release/revision information.
+
+@DoW = ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
+@MoY = ('Jan','Feb','Mar','Apr','May','Jun',
+	'Jul','Aug','Sep','Oct','Nov','Dec');
+$TZ = defined($ENV{'TZ'}) ? ( $ENV{'TZ'} ? $ENV{'TZ'} : 'GMT' ) : '';
+
+$usage = "Usage: mkrev [-v | -b] PROJECT [minor [major]]\n";
+
+$vshift = shift if $ARGV[0] eq '-v';	# Version shift mode
+$bshift = shift if $ARGV[0] eq '-b';	# New build number
+die $usage unless ($proj = shift);	# Get project
+$minor = shift;				# Minor Version
+$major = shift;				# Major Version
+
+($proj_name = $proj) =~ s!^.*/!!;	# Extract the project name
+$proj_name =~ s![ -]!_!g;		# Some characters we can't allow
+
+unless (-f "$proj.rev")
+	{
+	print "> Creating new version files!\n";
+	die ">> Major/Minor Version Numbers required!\n"
+		unless ($major || $minor);
+	}
+else {
+	open(IN, "$proj.rev") || die "Can't read revision file for $proj.\n";
+	chomp($ma = <IN>);
+	chomp($mi = <IN>);
+	chomp($buildno = <IN>);
+	$major = $ma if (!$major);
+	if (!$minor)
+		{
+		$minor = $mi;
+		if ($bshift) { $buildno++; }
+		else { $minor++; $buildno = 0; }
+		}
+
+	# If -v is specified, move up to the next release
+	if ($vshift)
+		{
+		$major += 1;	# Bump the version
+		$minor  = 0;	# Reset the revision
+		$buildno = 0;	# Reset build number
+		}
+	}
+printf("* $proj_name Build $major.%02d.%02d\n", $minor, $buildno);
+
+### Now generate the two date options
+($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) =
+    ($TZ eq 'GMT') ? gmtime(time) : localtime(time);
+
+# Hack to deal with 'PST8PDT' format of TZ
+if($TZ=~/^([^:\d+\-,]{3,})([+-]?\d{1,2}(:\d{1,2}){0,2})([^\d+\-,]{3,})?/){
+    $TZ = $isdst ? $4 : $1;
+}
+$TZ .= ' ' unless $TZ eq '';
+
+$mon++;
+$yr = $year;
+$year += ($year < 70) ? 2000 : 1900;
+
+$date = sprintf("%02d/%02d/%04d %02d:%02d", $mday, $mon, $year, $hour, $min);
+$build_date = sprintf("$DoW[$wday], $mday %s '$yr", $MoY[($mon-1)]);
+$build = sprintf("%02d%02d%02d", $yr, $mon, $mday);
+
+$ver = sprintf("%d", $major);
+$rev = sprintf("%02d", $minor);
+$buildno = sprintf("%02d", $buildno);
+$release = "$ver.$rev";
+$release .= ".$buildno" unless $buildno eq '00';
+
+open(OUT, ">$proj.rev") || die "Can't update revision details.\n";
+print OUT "$major\n$minor\n$buildno\n";
+close OUT;
+
+open(OUT, ">$proj.h") || die "Can't create $proj.h\n";
+print OUT <<X;
+/* Build/Release details for $proj */
+#define	${proj_name}_BUILD		"$release ($build)"
+#define	${proj_name}_VERSION		$major
+#define	${proj_name}_REVISION		$minor
+#define ${proj_name}_BUILDNO		$buildno
+#define	${proj_name}_RELEASE		"$release"
+
+/* Dates */
+#define	${proj_name}_DATE		"$date"
+#define	${proj_name}_BUILT		"$build_date"
+#define	${proj_name}_BUILD_DATE		"$build"
+
+X

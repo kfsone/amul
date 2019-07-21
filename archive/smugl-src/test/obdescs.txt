@@ -1,0 +1,58 @@
+; $Id: obdescs.txt,v 1.2 1997/04/25 01:13:48 oliver Exp $
+; ObDescs.Txt for Precious Days
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; Copyright (c) 1991 by Oliver Smith / KingFisher Software (oliver@kfs.org)
+;
+; This software is furnished on the understanding that it may be used and or
+; copied  only  with the inclusion of this notice.  No title or ownership of
+; this  software is hearby transferred.  The information in this software is
+; subject  to  change  without notice.  No responsibility is assumed for the
+; use or reliability of this software.
+
+; I get the impression we lose the first obdescription! EEK!
+dummy
+This description is lost.
+
+; -- standard door state descriptions (with adjectives)
+dooraop
+The %s door is open.
+
+dooracl
+The %s door is closed.
+
+dooralk
+The %s door is locked.
+
+; -- standard door state descriptions (without adjectives)
+doorop
+The door is open.
+
+doorcl
+The door is closed.
+
+doorlk
+The door is locked.
+
+phone
+Firmly attached to the cavern wall is an old-fashioned telephone without dial.
+
+torch0
+	Someone has dropped a lit fire brand nearby.
+
+torch1
+	An unlit fire brand lies here.
+
+torch2
+	A large, burnt stick has been discarded here.
+
+signdesc
+	Someone has posted a sign nearby, which reads:
+	"If you have any ideas for this part of the game, PLEASE use SUGGEST to tell us! We'd REALLY appreciate your help!"
+
+wafer
+	There is a small wafer here.
+
+branch
+	A long, thick branch has fallen hereabouts.
+
+; <End of file>

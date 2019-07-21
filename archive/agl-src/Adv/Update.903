@@ -1,0 +1,118 @@
+Updates version 0.9.03:
+
+*	Fixed a problem whereby text files/messages of over 3.2k would
+	cause an all-out guru. This was simply due to no checking of
+	string size limits.
+
+*	Reworked the internal user parameter editor. Now more intelligable.
+
+*	Re-ordered the internal setup process of AMUL. This simply means
+	that memory allocation etc are done FIRST before trying to
+	connect to AMan. This is a step towards having Screen/IO drivers
+	implemented as TASKS run by AMan to reduce AMUL code size.
+
+*	Fixed a bug in the BURN and DOUSE actions which was causing a
+	complete lock-up of the system. Sorry about this, but I forget
+	that some of my subroutines affect some of my pointers - sniffle.
+
+*	MOVE will no-longer describe the new location if the player is
+	ASLEEP - this makes things like the playroom (knock on the door)
+	work better!
+
+*	If a player is ASLEEP and his/her STAMINA CHANGES, they are NOT
+	informed. This is to allow you to replenish a sleeping player's
+	stamina. Good eh?
+
+*	YAHOO! I have re-written the COMBAT code! Major points of note here:
+
+	(a) Combat now works in TURNS rather than BOTH players attacking
+	    simultaneously. The faster player will tend to get the most
+	    blows in.
+	(b) The rules for combat are (I think) much fairer now.
+	(c) Fixed a problem whereby if you had '@xx' or '@xy' in the combat
+	    sequence messages, I was <sometimes> displaying blanks <blush>.
+	(d) If fighting a player with a tool assigned a specific STRENGTH,
+	    the object will now count down it's strength! For example, if
+	    you fight someone with the dish, it will break after two hits.
+	(e) I have broken down the actual fighting routines so that in the
+	    next release of AMUL you will be able to have SINGLE combat
+	    movements, e.g: PUNCH FRED where only one blow happens.
+
+*	Fixed several minor combat problems.
+
+*	Fixed a problem whereby if you changed various details in Ranks.Txt
+	they were not made to players accounts when the logged in after the
+	game had been recompiled.... Very naughty of me, eh?
+
+*	Solved a minor problem whereby users with ANSI codes would get the
+	odd extra line-feed. AMUL now understands that ANSI codes don't
+	require following with a linefeed.
+
+*	MOBILES: I've made a simple change to the routine which calls the
+	mobile. When it calls the Lang.Txt verb (e.g: !cat), it calls it
+	with NOUN1 = mobile. This allows you to deal with several objects
+	which have the same mobile id. It also lets you know WHICH mobile
+	it was that called the routine and allows you to do various bits
+	of extra trickery. OK?
+
+
+                           ******* IMPORTANT *******
+
+	IMPORTANT: System Message $14 has changed! It WAS used for asking
+	whether you wanted ANSI or not. In this version it determines the
+	message given when you kill another player in a fight. E.g:
+
+	$14
+		You have killed @pl!
+	    or
+	$14
+		With your last blow you have slain @pl. You are victorious!
+
+	IMPORTANT: In OBJECTS.TXT on a STATE LINE, the values now do:
+
+		weight= value= str= dam= etc...
+
+	str= is the how many hit-points the object adds to a players
+	STRENGTH during a fight if wielded as a weapon and dam= is how
+	many hits the object can take before it will break.
+
+------------------------------------------------------------------------------
+
+IMMEDIATE FUTURE PLANS:
+
+a)	Combat.Txt which lets you put far more 'pazazz' into combat by
+	creating a 'multi-choice' format for the fight descriptions so
+	that the combat is more interesting.
+
+b)	New SAVE mode; allows you to save a players location along with
+	the persona. Will improve single player adventures.
+
+c)	Room parameter: SAVETO <room> which will work in conjunction with
+	the SAVE command... If you have, say, a castle, and you don't want
+	people saving themselves in it, it will allow you to 'shufty' them
+	out when they save/exit.
+
+d)	Single turn combat routine, allowing players to 'punch' or 'kick'
+	each other, or 'stab fred' etc. Make the game a little more
+	interesting.
+
+e)	More work on mobiles. I would like to FULLY implement mobiles,
+	but this presents a serious problem working on floppies - my disks
+	are nearly full, so I'm REALLY struggling! I could REALLY do with
+	a hard drive in some form! Perhaps someone would be willing to take
+	a commercial interest in either AMUL or the running of Precious
+	Days. See (f)...
+
+f)	Accounting system to allow charging of users access to AMUL. Also
+	to allow BBS SysOps to restrict the number of ID's given to a
+	user. Maybe someone would be interested in sponsoring Precious Days
+	as the flagship of AMUL and thus helping me speed AMUL's
+	development - either a HardDrive unit for the A500 I have or an
+	A600 with HD ... Maybe even an accelerator card - ANY of these
+	would help!
+
+
+Cheers for now!
+
+
+	Oli!
