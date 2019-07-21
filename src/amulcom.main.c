@@ -8,7 +8,7 @@
 int
 main(int argc, const char **argv)
 {
-    struct CommandLine cmdline = (struct CommandLine){argc, argv, NULL};
+    struct CommandLine cmdline = {argc, argv, NULL};
 
     InitModules();
 

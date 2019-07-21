@@ -39,3 +39,4 @@ be better and more consistent for those that are builtins.
 	frewriteAt(countPosn, &size, sizeof(size), ofp);
 - replace 'sex' with gender
 - replace _TT_ENT with { verb, vtab }
+- rename "task" -> "goal" or "achievement"

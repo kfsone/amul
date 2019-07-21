@@ -53,7 +53,7 @@ ParseCommandLine(const struct CommandLine *cmdline)
     const char **argv = cmdline->argv;
     struct stat  sb;
 
-    enum LogLevel desiredLogLevel = AL_INFO;
+    int desiredLogLevel = AL_INFO;
 
     for (int n = 1; n < argc; n++) {
         const char *arg = argv[n];
@@ -104,7 +104,7 @@ ParseCommandLine(const struct CommandLine *cmdline)
         path_copier(gameDir, pwd);
     }
 
-    alogLevel(desiredLogLevel);
+    alogLevel((enum LogLevel)desiredLogLevel);
 
     return 0;
 }

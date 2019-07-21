@@ -253,7 +253,7 @@ NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
         return err;
     }
 
-    err = NewBuffer(sourcefile->mapping, sourcefile->size, &sourcefile->buffer);
+    err = NewBuffer((const char*)sourcefile->mapping, sourcefile->size, &sourcefile->buffer);
     if (err != 0) {
         CloseSourceFile(&sourcefile);
         return err;

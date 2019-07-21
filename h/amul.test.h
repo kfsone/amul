@@ -34,7 +34,7 @@
 // If X returns an error, return that.
 #define ERROR_CHECK(predicate)                                                                     \
     do {                                                                                           \
-        error_t _err##__LINENO__ = (predicate);                                                    \
+        const error_t _err##__LINENO__ = (predicate);                                              \
         if (_err##__LINENO__ != 0)                                                                 \
             return _err##__LINENO__;                                                               \
     } while (0)

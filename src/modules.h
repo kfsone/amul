@@ -22,15 +22,14 @@ struct Module {
     struct DoubleLinkedNode links;
 
     enum ModuleID id;
-    const char *  name;
+    bool          allocd;  // false if this is a static module object
 
     moduleinit_fn  init;
     modulestart_fn start;
     moduleclose_fn close;
 
-    void *context;
-
-    bool allocd;  // false if this is a static module object
+    const char *name;
+    void *      context;
 };
 
 void    InitModules();

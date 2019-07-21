@@ -41,7 +41,7 @@ NewHashMap(size_t buckets, struct HashMap **into)
     CONSTRAIN((buckets & (buckets - 1)) == 0);
 
     struct HashMap *instance =
-            calloc(sizeof(struct HashMap) + sizeof(struct HashBucket) * buckets, 1);
+            (struct HashMap *)calloc(sizeof(struct HashMap) + sizeof(struct HashBucket) * buckets, 1);
     CHECK_ALLOCATION(instance);
 
     instance->capacity = buckets;
@@ -136,7 +136,7 @@ AddToHash(struct HashMap *map, const char *key, const char *keyEnd, const hash_v
         }
 
         size_t newSize = sizeof(struct HashBucket) + sizeof(struct HashNode) * newCapacity;
-        struct HashBucket *newBucket = realloc(bucket, newSize);
+        struct HashBucket *newBucket = (struct HashBucket *)realloc(bucket, newSize);
         CHECK_ALLOCATION(newBucket);
         bucket = map->buckets[bucketNo] = newBucket;
         bucket->capacity = newCapacity;

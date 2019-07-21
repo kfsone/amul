@@ -12,8 +12,8 @@ static FILE *          stringFP;
 static struct HashMap *stringIDs;  // string name -> {stypes and position in file}
 
 struct StringIDEntry {
-    enum StringType types;
-    stringid_t      offset;
+    uint32_t   stringTypes;  // masked values
+    stringid_t offset;
 };
 
 static inline bool
@@ -33,14 +33,14 @@ getStringID(size_t length)
 }
 
 error_t
-testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *entryp)
+testLabelEntry(const char *label, StringType stype, struct StringIDEntry *entryp)
 {
     REQUIRE(label && entryp);
     error_t err = LookupStrHashValue(stringIDs, label, (uint64_t *)entryp);
     if (err != 0)
         return err;
     // we found it, check the types
-    return (!stype || (entryp->types & stype)) ? EEXIST : ENOENT;
+    return (!stype || (entryp->stringTypes & stype)) ? EEXIST : ENOENT;
 }
 
 error_t
@@ -133,7 +133,7 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
         error_t              err = testLabelEntry(label, stype, &entry);
         if (err != ENOENT)
             return err;
-        entry.types |= stype;
+        entry.stringTypes |= stype;
         err = AddStrToHash(stringIDs, label, *(uint64_t *)&entry);
         entry.offset = id;
     }
@@ -179,14 +179,12 @@ RegisterTextString(
         const char *label, const char *start, const char *end, bool isLine, enum StringType stype,
         stringid_t *idp)
 {
-    error_t err;
-
     REQUIRE(start && end && idp);
     REQUIRE(stringFP && stringIDs);
 
     // Has this label already been registered?
     struct StringIDEntry entry;
-    err = testLabelEntry(label, stype, &entry);
+    error_t err = testLabelEntry(label, stype, &entry);
     if (err != ENOENT)
         return err;
 
@@ -194,7 +192,7 @@ RegisterTextString(
     if (err != 0)
         return err;
 
-    entry.types |= stype;
+    entry.stringTypes |= stype;
     entry.offset = *idp;
 
     alog(AL_DEBUG, "register %s as %" PRIu64, label, entry);

@@ -148,10 +148,10 @@ test_file_mapping(struct TestContext *t)
 
     EXPECT_SUCCESS(NewFileMapping(datafile, &data, size));
     EXPECT_NOT_NULL(data);
-    EXPECT_SUCCESS(strncmp(first, data, strlen(first)));
+    EXPECT_SUCCESS(strncmp(first, (const char*)data, strlen(first)));
     unlink(datafile);
 
-    EXPECT_SUCCESS(strncmp(first, data, strlen(first)));
+    EXPECT_SUCCESS(strncmp(first, (const char*)data, strlen(first)));
     CloseFileMapping(&data, size);
     EXPECT_NULL(data);
 }

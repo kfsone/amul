@@ -41,7 +41,7 @@ modClose(struct Module *module, error_t err)
 void
 modules_test_tearUp(struct TestContext *t)
 {
-    *(struct ModuleState *)(t->userData) = (struct ModuleState){false, false, false};
+    *(struct ModuleState *)(t->userData) = {false, false, false};
 }
 
 void
@@ -84,7 +84,7 @@ test_init_modules(struct TestContext *t)
 void
 test_register_context_module(struct TestContext *t)
 {
-    EXPECT_ERROR(EINVAL, RegisterContextModule(0, NULL));
+    EXPECT_ERROR(EINVAL, RegisterContextModule((enum ModuleID)0, NULL));
     EXPECT_ERROR(EINVAL, RegisterContextModule(MAX_MODULE_ID, NULL));
 
     // Context modules *must* have a context
@@ -115,7 +115,7 @@ test_register_context_module(struct TestContext *t)
 void
 test_get_module(struct TestContext *t)
 {
-    EXPECT_NULL(GetModule(0));
+    EXPECT_NULL(GetModule((enum ModuleID)0));
     EXPECT_NULL(GetModule(MAX_MODULE_ID));
 
     struct Module *module = GetModule(MOD_CMDLINE);
@@ -205,7 +205,7 @@ test_close_static_module(struct TestContext *t)
 void
 test_multiple_modules(struct TestContext *t)
 {
-    struct ModuleState ms1 = (struct ModuleState){false, false, false};
+    struct ModuleState ms1 = {false, false, false};
     struct Module *    module1 = NULL;
 
     EXPECT_SUCCESS(NewModule(false, MOD_CMDLINE, modInit, modStart, modClose, &ms1, &module1));
@@ -219,7 +219,7 @@ test_multiple_modules(struct TestContext *t)
     EXPECT_FALSE(ms1.close);
     EXPECT_VAL_EQUAL(MOD_CMDLINE, module1->id);
 
-    struct ModuleState ms2 = (struct ModuleState){false, false, false};
+    struct ModuleState ms2 = {false, false, false};
     struct Module *    module2 = NULL;
     EXPECT_SUCCESS(NewModule(true, MOD_COMPILER, modInit, modStart, modClose, &ms2, &module2));
     EXPECT_NOT_NULL(module2);
@@ -238,7 +238,7 @@ test_multiple_modules(struct TestContext *t)
     EXPECT_NULL(s_modulesHead->links.prev);
     EXPECT_NULL(s_modulesTail->links.next);
 
-    struct ModuleState ms3 = (struct ModuleState){false, false, false};
+    struct ModuleState ms3 = {false, false, false};
     struct Module *    module3 = NULL;
     EXPECT_SUCCESS(NewModule(false, MOD_STRINGS, modInit, modStart, modClose, &ms3, &module3));
     EXPECT_NOT_NULL(module3);

@@ -20,9 +20,9 @@ struct _PLAYER {
     int16_t  rank;
     uint16_t plays;      // times played
     uint16_t tries;      // failed login attempts since last login
-    uint32_t tasks;      // bitmask of tasks completed
     char     archetype;  // Player class: unused yet
     char     gender;     // gender
+    uint32_t tasks;      // bitmask of tasks completed
     uint8_t  flags;      // preferences, really, and unused
                          // client/terminal preferences
     char llen;           // preferred line length

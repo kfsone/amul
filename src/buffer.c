@@ -25,11 +25,11 @@ NewBuffer(const char *data, const size_t dataSize, struct Buffer **receiver)
     if (*receiver == NULL) {
         alog(AL_WARN, "Had to allocate buffer memory");
 
-        *receiver = malloc(sizeof(struct Buffer));
+        *receiver = (struct Buffer*)malloc(sizeof(struct Buffer));
         CHECK_ALLOCATION(receiver);
     }
 
-    (*receiver)->start = data;
+    (*receiver)->start = (const char*)data;
     (*receiver)->end = data + dataSize;
     (*receiver)->pos = data;
 
