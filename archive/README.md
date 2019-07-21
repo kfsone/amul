@@ -6,7 +6,7 @@ but it was also the last version of "AMUL" that I actually built.
 
 After version 900 I was looking at 1.0 and wanted to change the name.
 
-The first name I chose was "AGH" - Amiga Game Handler. I'd been doing a lot of
+The first name I chose was "AGL" - Amiga Game Language. I'd been doing a lot of
 work on making it possible to run games like AMUL from inside some popular
 BBS software, and also written "AMod" (Answer that Modem) as a way to eliminate
 needing a BBS just to run games.
@@ -17,7 +17,7 @@ just Amiga MULti...
 
 So I changed to AMUD.
 
-"AGH" is incomplete and represents AMUL v0.9.06. Unknown functionality.
+"AGL" is incomplete and represents AMUL v0.9.06. Unknown functionality.
 "AMUD" is also incomplete and represents AMUL 0.9.10.
 "SMUGL" is a later project:
 
