@@ -6,7 +6,7 @@
 #include <h/amul.alog.h>
 #include <h/amul.test.h>
 
-testsuite_fn buffer_tests, filesystem_tests, hashmap_tests, modules_tests;
+testsuite_fn buffer_tests, filesystem_tests, hashmap_tests, modules_tests, tokenizer_tests;
 
 static struct Suite {
     const char *name;
@@ -18,6 +18,7 @@ static struct Suite {
 	{"filesystem",  filesystem_tests},
 	{"hashmap", 	hashmap_tests},
 	{"modules", 	modules_tests},
+    {"tokenizer",   tokenizer_tests},
 
 	{NULL, NULL},
 };

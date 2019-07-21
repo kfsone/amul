@@ -10,9 +10,11 @@ enum TokenType {
     TOKEN_WHITESPACE,
     TOKEN_COMMENT,
     TOKEN_STRING_LITERAL,
-    TOKEN_LABEL,  // SOMETHING=<next token>
-    TOKEN_REGULAR,
-    TOKEN_SYMBOL,  // one or more non-alpha-numeric characters
+    TOKEN_LABEL,		// SOMETHING=<next token>
+	TOKEN_NUMBER,
+    TOKEN_WORD,
+	TOKEN_IDENTIFIER,	// begins with a symbol
+    TOKEN_SYMBOL,		// one or more non-alpha-numeric characters
 };
 
 struct Token {

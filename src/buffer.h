@@ -53,11 +53,12 @@ BufferNext(struct Buffer *buffer)
     return c;
 }
 
-static inline void
+static inline char
 BufferSkip(struct Buffer *buffer)
 {
     if (!BufferEOF(buffer))
-        buffer->pos++;
+        return *(++(buffer->pos));
+    return 0;
 }
 
 #endif  // AMUL_SRC_BUFFER_H

@@ -41,7 +41,7 @@ modClose(struct Module *module, error_t err)
 void
 modules_test_tearUp(struct TestContext *t)
 {
-    *(struct ModuleState *)(t->userData) = {false, false, false};
+    *(struct ModuleState *)(t->userData) = (struct ModuleState){false, false, false};
 }
 
 void

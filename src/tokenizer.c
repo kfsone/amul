@@ -27,9 +27,10 @@ void
 _consumeWhitespace(struct Buffer *buf, struct Token *token)
 {
     token->type = TOKEN_WHITESPACE;
-    for (char c = ' '; c == ' ' || c == '\t';) {
-        c = BufferNext(buf);
-    }
+    char c = 0;
+	do {
+        c = BufferSkip(buf);
+    } while (c == ' ' || c == '\t');
     token->end = buf->pos;
 }
 
@@ -54,6 +55,7 @@ _consumeQuote(struct Buffer *buf, struct Token *token)
             token->end = buf->pos;
             return;
         }
+        BufferSkip(buf);
     }
 }
 
@@ -62,7 +64,7 @@ _consumeComment(struct Buffer *buf, struct Token *token)
 {
     token->type = TOKEN_COMMENT;
     for (;;) {
-        const char c = BufferNext(buf);
+        const char c = BufferSkip(buf);
         if (c == '\n' || c == '\r' || c == 0)
             break;
     }
@@ -70,50 +72,47 @@ _consumeComment(struct Buffer *buf, struct Token *token)
 }
 
 void
-_consumeRegular(struct Buffer *buf, struct Token *token)
+_consumeText(struct Buffer *buf, struct Token *token)
 {
     // Ignore the first character so that we don't try to apply the
     // "isalnum" policy to the prefix, this allows '$' for system
     // messages; but check if it an alpha-numeric so we can distinguish
     // '$' from '$10' as SYMBOL vs REGULAR.
-    bool hasAlNum = isalnum(BufferNext(buf));
+    const bool startsAlpha = isalpha(BufferPeek(buf));
+    const bool startsNum = isdigit(BufferPeek(buf));
+    bool       hasAlpha = startsAlpha;
+    bool       hasNum = startsNum;
 
-    token->type = TOKEN_REGULAR;
+    token->type = TOKEN_WORD;
 
     // Now we limit ourselves to alphanumeric with the exception of
     // '=', which we treat as a separator so long as it has no
     // whitespace either side of it.
-    for (;;) {
-        const char c = BufferNext(buf);
-        if (isalnum(c)) {
-            hasAlNum = true;
+    for (char c = BufferSkip(buf); c; c = BufferSkip(buf)) {
+        if (isalpha(c)) {
+            hasAlpha = true;
             continue;
         }
-        if (c != '=')
-            break;
-        // Promote x=y to a label but not x=<space>
-        char nextc = BufferPeek(buf);
-        if (!isalnum(nextc)) {
-            switch (nextc) {
-            case '_':
-                continue;
-            // string literals
-            case '\'':
-            case '\"':
-            // system id prefixes
-            case '$':  // smsgs
-            case '!':  // npc personas
-            case '.':  // private verbs
-                token->type = TOKEN_LABEL;
-                token->end = buf->pos;
-                return;
-            }
-            // Treat it as a terminator.
-            break;
+        if (isdigit(c) && c != '-') {
+            if (!startsNum && c == '.')
+                break;
+            hasNum = true;
+            continue;
         }
+        if (hasAlpha && c == '_')
+            continue;
+        if (!startsAlpha || c != '=')
+            break;
+        token->type = TOKEN_LABEL;
+        BufferSkip(buf);
+        token->end = buf->pos;
+        return;
     }
 
-    token->type = hasAlNum ? TOKEN_REGULAR : TOKEN_SYMBOL;
+	if (startsNum)
+        token->type = TOKEN_NUMBER;
+    else if (!startsAlpha)
+        token->type = !(hasAlpha || hasNum) ? TOKEN_SYMBOL : TOKEN_IDENTIFIER;
     token->end = buf->pos;
 }
 
@@ -167,7 +166,7 @@ ScanParseable(
             _consumeComment(buffer, tokens);
             break;
         default:
-            _consumeRegular(buffer, tokens);
+            _consumeText(buffer, tokens);
             break;
         }
         prevToken = tokens;

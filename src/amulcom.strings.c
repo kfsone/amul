@@ -33,7 +33,7 @@ getStringID(size_t length)
 }
 
 error_t
-testLabelEntry(const char *label, StringType stype, struct StringIDEntry *entryp)
+testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *entryp)
 {
     REQUIRE(label && entryp);
     error_t err = LookupStrHashValue(stringIDs, label, (uint64_t *)entryp);

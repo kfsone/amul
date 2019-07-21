@@ -5,10 +5,16 @@ SET(TESTS_SOURCES
     filesystem_tests.c
     hashmap_tests.c
 	module_tests.c
+    tokenizer_tests.c
 )
 
 SET(TESTS_HEADERS
+    ../src/buffer.h
+    ../src/filesystem.h
     ../src/hashmap.h
+    ../src/modules.h
+    ../src/sourcefile.h
+    ../src/tokenizer.h
 
     ${AMUL_LIB_SOURCES}
 
