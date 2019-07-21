@@ -1,2 +1,0 @@
-lc -cqimstw+ -v amulcom.c
-blink FROM LIB:c.o+"amulcom.o"+"extras.o" TO "amulcom" LIB LIB:lc.lib LIB:amiga.lib OD SD SC NOICONS

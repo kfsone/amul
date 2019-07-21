@@ -1,7 +1,0 @@
-//
-//	AGL - Advanced Games Language (C) Oliver Smith/KFS, 1991-1993
-//
-//	File: [...........]	[........................................]
-//
-//	LMod: <who> <date>	<description>
-//
