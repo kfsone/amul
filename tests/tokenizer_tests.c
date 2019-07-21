@@ -410,6 +410,12 @@ test_consume_text_number(struct TestContext *t)
 }
 
 void
+test_scan_parseable(struct TestContext *t)
+{
+	///TODO: Implement
+}
+
+void
 test_consume_text_label(struct TestContext *t)
 {
     struct Token  token;
@@ -451,4 +457,6 @@ tokenizer_tests(struct TestContext *t)
     RUN_TEST(test_consume_text_identifier);
     RUN_TEST(test_consume_text_number);
     RUN_TEST(test_consume_text_label);
+
+    RUN_TEST(test_scan_parseable);
 }
