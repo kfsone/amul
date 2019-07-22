@@ -26,11 +26,11 @@ void
 _consumeWhitespace(struct Buffer *buf, struct Token *token)
 {
     char c = 0;
-	do {
+    do {
         c = BufferSkip(buf);
     } while (c == ' ' || c == '\t');
 
-	token->end = buf->pos;
+    token->end = buf->pos;
     token->type = TOKEN_WHITESPACE;
 }
 
@@ -40,9 +40,10 @@ _consumeQuote(struct Buffer *buf, struct Token *token)
     // grab the first character
     char quote = BufferNext(buf);
     token->start = buf->pos;
+    char escaped = false;
     for (;;) {
         const char c = BufferPeek(buf);
-        if (c == quote) {
+        if (c == quote && !escaped) {
             token->end = buf->pos;
             BufferSkip(buf);
             break;
@@ -51,6 +52,7 @@ _consumeQuote(struct Buffer *buf, struct Token *token)
             token->end = buf->pos;
             break;
         }
+        escaped = (!escaped && c == '\\');
         BufferSkip(buf);
     }
     token->type = TOKEN_STRING_LITERAL;
@@ -110,16 +112,23 @@ _consumeText(struct Buffer *buf, struct Token *token)
         return;
     }
 
-	if (startsNum)
+    if (startsNum)
         token->type = TOKEN_NUMBER;
     else if (!startsAlpha)
         token->type = !(hasAlpha || hasNum) ? TOKEN_SYMBOL : TOKEN_IDENTIFIER;
     token->end = buf->pos;
 }
 
+struct TokenizerState {
+    struct SourceFile *file;
+    struct Token      *curToken;
+    char               lastChar;
+};
+
 error_t
 TokenizeParseable(
-        struct SourceFile *file, struct Token *tokens, size_t tokensSize, size_t *tokensScanned)
+        struct SourceFile *file, struct Token *tokens, size_t tokensSize, size_t *tokensScanned,
+        enum TokenType endToken)
 {
     REQUIRE(file);
     REQUIRE(tokens && tokensSize && tokensScanned);
@@ -127,19 +136,18 @@ TokenizeParseable(
 
     *tokensScanned = 0;
 
-    // false when we started at end of file
+    // fail when we started at end of file
     struct Buffer *buffer = file->buffer;
     if (BufferEOF(buffer))
         return ENOENT;
 
     const struct Token *tokensStart = tokens;
-    struct Token *      endToken = tokens + tokensSize;
+    struct Token *      tokensEnd = tokens + tokensSize;
     struct Token *      prevToken = NULL;
     const char *        lineStart = buffer->pos;
-    bool                endOfBlock = false;
 
-    while (!BufferEOF(buffer) && tokens < endToken && !endOfBlock) {
-        tokens->lineOffset = (uint16_t)(buffer->pos - lineStart);
+    while (!BufferEOF(buffer) && tokens < tokensEnd) {
+		tokens->lineOffset = (uint16_t)(buffer->pos - lineStart);
         if (tokens->lineOffset == 0)
             ++file->lineNo;
         tokens->lineNo = file->lineNo;
@@ -149,8 +157,8 @@ TokenizeParseable(
         case '\r':
         case '\n':
             _consumeEol(buffer, tokens);
-			// Potential upgrade to end-of-block
-            for (;;) {
+            // Potential upgrade to end-of-block
+            for (;endToken != TOKEN_EOL;) {
                 char nextChar = BufferPeek(buffer);
                 if (nextChar != '\n' && nextChar != '\r')
                     break;
@@ -158,7 +166,6 @@ TokenizeParseable(
                 _consumeEol(buffer, tokens);
                 tokens->type = TOKEN_EOB;
             }
-            endOfBlock = true;
             lineStart = buffer->pos;
             break;
         case ' ':
@@ -185,6 +192,8 @@ TokenizeParseable(
         }
         prevToken = tokens;
         ++tokens;
+        if (prevToken->type == endToken)
+            break;
     }
 
     *tokensScanned = tokens - tokensStart;

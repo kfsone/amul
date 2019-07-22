@@ -527,14 +527,14 @@ test_tokenize_parseable_failargs(struct TestContext *t)
 {
     struct TokenizerTest *tt = (struct TokenizerTest *)(t->userData);
 
-    EXPECT_ERROR(EINVAL, TokenizeParseable(NULL, &tt->tokens[0], MAX_TEST_TOKENS, &tt->scanned));
-    EXPECT_ERROR(EINVAL, TokenizeParseable(&tt->sf, NULL, MAX_TEST_TOKENS, &tt->scanned));
-    EXPECT_ERROR(EINVAL, TokenizeParseable(&tt->sf, &tt->tokens[0], 0, &tt->scanned));
-    EXPECT_ERROR(EINVAL, TokenizeParseable(&tt->sf, &tt->tokens[0], MAX_TEST_TOKENS, NULL));
+    EXPECT_ERROR(EINVAL, TokenizeLine(NULL, &tt->tokens[0], MAX_TEST_TOKENS, &tt->scanned));
+    EXPECT_ERROR(EINVAL, TokenizeLine(&tt->sf, NULL, MAX_TEST_TOKENS, &tt->scanned));
+    EXPECT_ERROR(EINVAL, TokenizeLine(&tt->sf, &tt->tokens[0], 0, &tt->scanned));
+    EXPECT_ERROR(EINVAL, TokenizeLine(&tt->sf, &tt->tokens[0], MAX_TEST_TOKENS, NULL));
 
     // It should also want to fail if we pass it a file without a buffer
     tt->sf.buffer = NULL;
-    EXPECT_ERROR(EINVAL, TokenizeParseable(&tt->sf, &tt->tokens[0], MAX_TEST_TOKENS, &tt->scanned));
+    EXPECT_ERROR(EINVAL, TokenizeLine(&tt->sf, &tt->tokens[0], MAX_TEST_TOKENS, &tt->scanned));
 }
 
 void
@@ -542,15 +542,15 @@ test_tokenize_parseable_enoent(struct TestContext *t)
 {
     // passing an empty buffer should get us an ENOENT
     struct TokenizerTest *tt = (struct TokenizerTest *)(t->userData);
-    EXPECT_ERROR(ENOENT, TokenizeParseable(&tt->sf, &tt->tokens[0], MAX_TEST_TOKENS, &tt->scanned));
+    EXPECT_ERROR(ENOENT, TokenizeLine(&tt->sf, &tt->tokens[0], MAX_TEST_TOKENS, &tt->scanned));
 }
 
 struct TokenizerTest *
-_tokenTest(struct TestContext *t, const char *text, size_t maxTestTokens)
+_tokenTest(struct TestContext *t, const char *text, size_t maxTestTokens, enum TokenType endToken)
 {
     struct TokenizerTest *tt = (struct TokenizerTest *)(t->userData);
     tt->buffer = init_buffer(text, NULL);
-    EXPECT_SUCCESS(TokenizeParseable(&tt->sf, &tt->tokens[0], maxTestTokens, &tt->scanned));
+    EXPECT_SUCCESS(TokenizeParseable(&tt->sf, &tt->tokens[0], maxTestTokens, &tt->scanned, endToken));
     return tt;
 }
 
@@ -558,7 +558,7 @@ void
 test_tokenize_parseable_eob(struct TestContext *t)
 {
 	//                                         -1- -2- 3 4 -5- -6-
-    struct TokenizerTest *tt = _tokenTest(t, "\n\r\n\r\n\n\n\r\r\n", MAX_TEST_TOKENS);
+    struct TokenizerTest *tt = _tokenTest(t, "\n\r\n\r\n\n\n\r\r\n", MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_PTR_EQUAL(tt->buffer.end, tt->buffer.pos);
     EXPECT_VAL_EQUAL(0, *tt->buffer.pos);
@@ -577,7 +577,7 @@ test_tokenize_parseable_eob(struct TestContext *t)
 void
 test_tokenize_parseable_eol_cr(struct TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "\n", MAX_TEST_TOKENS);
+    struct TokenizerTest *tt = _tokenTest(t, "\n", MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     struct Token *token = &tt->tokens[0];
     EXPECT_VAL_EQUAL(TOKEN_EOL, token->type);
@@ -593,7 +593,7 @@ test_tokenize_parseable_eol_cr(struct TestContext *t)
 void
 test_tokenize_parseable_eol_lf(struct TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "\r", MAX_TEST_TOKENS);
+    struct TokenizerTest *tt = _tokenTest(t, "\r", MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     struct Token *token = &tt->tokens[0];
     EXPECT_VAL_EQUAL(TOKEN_EOL, token->type);
@@ -609,7 +609,7 @@ test_tokenize_parseable_eol_lf(struct TestContext *t)
 void
 test_tokenize_parseable_eol_crlf(struct TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "\r\n", MAX_TEST_TOKENS);
+    struct TokenizerTest *tt = _tokenTest(t, "\r\n", MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     struct Token *token = &tt->tokens[0];
     EXPECT_VAL_EQUAL(TOKEN_EOL, token->type);
@@ -623,18 +623,117 @@ test_tokenize_parseable_eol_crlf(struct TestContext *t)
 }
 
 void
+test_tokenize_parseable_eol_break(struct TestContext *t)
+{
+    struct TokenizerTest *tt = _tokenTest(t, "\r\n\r\n", MAX_TEST_TOKENS, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->scanned);
+    struct Token *token = &tt->tokens[0];
+    EXPECT_VAL_EQUAL(TOKEN_EOL, token->type);
+    EXPECT_VAL_EQUAL(1, token->lineNo);
+    EXPECT_VAL_EQUAL(0, token->lineOffset);
+    EXPECT_PTR_EQUAL(tt->buffer.start + 2, tt->buffer.pos);
+    EXPECT_VAL_EQUAL('\r', *tt->buffer.pos);
+    EXPECT_PTR_EQUAL(tt->buffer.start, token->start);
+    EXPECT_PTR_EQUAL(tt->buffer.start + 2, token->end);
+}
+
+void
 test_tokenize_parseable_whitespace(struct TestContext *t)
 {
+    struct TokenizerTest *tt = _tokenTest(t, "  \t   X", 1, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->scanned);
+    EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, tt->tokens[0].type);
+    EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
+    EXPECT_VAL_EQUAL(0, tt->tokens[0].lineOffset);
+    EXPECT_VAL_EQUAL(' ', *tt->tokens[0].start);
+    EXPECT_VAL_EQUAL('X', *tt->tokens[0].end);
 }
 
 void
-test_tokenize_parseable_comment(struct TestContext *t)
+test_tokenize_parseable_comment_no_eol(struct TestContext *t)
 {
+    struct TokenizerTest *tt = _tokenTest(t, "; Who knows", 1, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->scanned);
+    EXPECT_VAL_EQUAL(TOKEN_COMMENT, tt->tokens[0].type);
+    EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
+    EXPECT_VAL_EQUAL(0, tt->tokens[0].lineOffset);
+    EXPECT_VAL_EQUAL(';', *tt->tokens[0].start);
+    EXPECT_VAL_EQUAL(0, *tt->tokens[0].end);
 }
 
 void
-test_tokenize_parseable_string_lit(struct TestContext *t)
+test_tokenize_parseable_comment_eol(struct TestContext *t)
 {
+    struct TokenizerTest *tt = _tokenTest(t, "; Who knows\n", 1, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->scanned);
+    EXPECT_VAL_EQUAL(TOKEN_COMMENT, tt->tokens[0].type);
+    EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
+    EXPECT_VAL_EQUAL(0, tt->tokens[0].lineOffset);
+    EXPECT_VAL_EQUAL(';', *tt->tokens[0].start);
+    EXPECT_VAL_EQUAL(0, *tt->tokens[0].end);
+    EXPECT_VAL_EQUAL('\n', *(tt->tokens[0].end-1));
+}
+
+void
+test_tokenize_parseable_string_lit_single_wclose(struct TestContext *t)
+{
+    struct TokenizerTest *tt = _tokenTest(t, "'This is \"test\" text'.", 1, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->scanned);
+    EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
+    EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
+    EXPECT_VAL_EQUAL(0, tt->tokens[0].lineOffset);
+    EXPECT_VAL_EQUAL('T', *tt->tokens[0].start);
+    EXPECT_VAL_EQUAL('\'', *tt->tokens[0].end);
+    EXPECT_VAL_EQUAL('t', *(tt->tokens[0].end - 1));
+    EXPECT_VAL_EQUAL('.', *tt->buffer.pos);
+}
+
+void
+test_tokenize_parseable_string_lit_double_wclose(struct TestContext *t)
+{
+    struct TokenizerTest *tt = _tokenTest(t, "\"This is 'test' text\".", 1, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->scanned);
+    EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
+    EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
+    EXPECT_VAL_EQUAL(0, tt->tokens[0].lineOffset);
+    EXPECT_VAL_EQUAL('T', *tt->tokens[0].start);
+    EXPECT_VAL_EQUAL('"', *tt->tokens[0].end);
+    EXPECT_VAL_EQUAL('t', *(tt->tokens[0].end - 1));
+    EXPECT_VAL_EQUAL('.', *tt->buffer.pos);
+}
+
+void
+test_tokenize_parseable_string_lit_single_weol(struct TestContext *t)
+{
+    struct TokenizerTest *tt = _tokenTest(t, "'This is \"test\" text\n", 1, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->scanned);
+    EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
+    EXPECT_VAL_EQUAL('T', *tt->tokens[0].start);
+    EXPECT_VAL_EQUAL('\n', *tt->tokens[0].end);
+    EXPECT_VAL_EQUAL('t', *(tt->tokens[0].end - 1));
+    EXPECT_VAL_EQUAL('\n', *tt->buffer.pos);
+}
+
+void
+test_tokenize_parseable_string_lit_double_weol(struct TestContext *t)
+{
+    struct TokenizerTest *tt = _tokenTest(t, "\"This is 'test' text\n", 1, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->scanned);
+    EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
+    EXPECT_VAL_EQUAL('T', *tt->tokens[0].start);
+    EXPECT_VAL_EQUAL('\n', *tt->tokens[0].end);
+    EXPECT_VAL_EQUAL('t', *(tt->tokens[0].end - 1));
+    EXPECT_VAL_EQUAL('\n', *tt->buffer.pos);
+}
+
+void
+test_tokenize_parseable_string_lit_escaped(struct TestContext *t)
+{
+    struct TokenizerTest *tt = _tokenTest(t, "'This is \\'test\\' text'.", 1, TOKEN_EOL);
+    EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
+    EXPECT_PTR_EQUAL(tt->buffer.start + 1, tt->tokens[0].start);
+    EXPECT_PTR_EQUAL(tt->buffer.end - 2, tt->tokens[0].end);
+    EXPECT_PTR_EQUAL(tt->buffer.end - 1, tt->buffer.pos);
 }
 
 void
@@ -700,9 +799,15 @@ tokenizer_tests(struct TestContext *t)
     RUN_TEST(test_tokenize_parseable_eol_cr);
     RUN_TEST(test_tokenize_parseable_eol_lf);
     RUN_TEST(test_tokenize_parseable_eol_crlf);
+    RUN_TEST(test_tokenize_parseable_eol_break);
     RUN_TEST(test_tokenize_parseable_whitespace);
-    RUN_TEST(test_tokenize_parseable_comment);
-    RUN_TEST(test_tokenize_parseable_string_lit);
+    RUN_TEST(test_tokenize_parseable_comment_no_eol);
+    RUN_TEST(test_tokenize_parseable_comment_eol);
+    RUN_TEST(test_tokenize_parseable_string_lit_single_wclose);
+    RUN_TEST(test_tokenize_parseable_string_lit_double_wclose);
+    RUN_TEST(test_tokenize_parseable_string_lit_single_weol);
+    RUN_TEST(test_tokenize_parseable_string_lit_double_weol);
+    RUN_TEST(test_tokenize_parseable_string_lit_escaped);
     RUN_TEST(test_tokenize_parseable_label);
     RUN_TEST(test_tokenize_parseable_number);
     RUN_TEST(test_tokenize_parseable_word);
