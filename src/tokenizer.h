@@ -22,8 +22,8 @@ enum TokenType {
 
 struct Token {
     enum TokenType type : 16;
-    uint16_t       lineNo;
     uint16_t       lineOffset;
+    uint32_t       lineNo;
     const char *   start;
     const char *   end;
 };

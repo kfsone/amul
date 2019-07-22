@@ -81,10 +81,12 @@ _consumeText(struct Buffer *buf, struct Token *token)
     // "isalnum" policy to the prefix, this allows '$' for system
     // messages; but check if it an alpha-numeric so we can distinguish
     // '$' from '$10' as SYMBOL vs REGULAR.
-    const bool startsAlpha = isalpha(BufferPeek(buf));
-    const bool startsNum = isdigit(BufferPeek(buf));
+    char       first = BufferPeek(buf);
+    const bool startsAlpha = isalpha(first);
+    const bool startsNum = isdigit(first) || first == '-' || first == '.';
     bool       hasAlpha = startsAlpha;
-    bool       hasNum = startsNum;
+    bool       hasNum = isdigit(first);
+    bool       hasDot = first == '.';
 
     token->type = TOKEN_WORD;
 
@@ -96,10 +98,14 @@ _consumeText(struct Buffer *buf, struct Token *token)
             hasAlpha = true;
             continue;
         }
-        if (isdigit(c) && c != '-') {
-            if (!startsNum && c == '.')
-                break;
+        if (isdigit(c)) {
             hasNum = true;
+            continue;
+        }
+        if (c == '.') {
+            if (!startsNum || hasDot)
+                break;
+            hasDot = true;
             continue;
         }
         if (hasAlpha && c == '_')
@@ -112,7 +118,7 @@ _consumeText(struct Buffer *buf, struct Token *token)
         return;
     }
 
-    if (startsNum)
+    if (startsNum && hasNum && !hasAlpha)  // exclude "-" on its own
         token->type = TOKEN_NUMBER;
     else if (!startsAlpha)
         token->type = !(hasAlpha || hasNum) ? TOKEN_SYMBOL : TOKEN_IDENTIFIER;
@@ -121,7 +127,7 @@ _consumeText(struct Buffer *buf, struct Token *token)
 
 struct TokenizerState {
     struct SourceFile *file;
-    struct Token      *curToken;
+    struct Token *     curToken;
     char               lastChar;
 };
 
@@ -147,7 +153,7 @@ TokenizeParseable(
     const char *        lineStart = buffer->pos;
 
     while (!BufferEOF(buffer) && tokens < tokensEnd) {
-		tokens->lineOffset = (uint16_t)(buffer->pos - lineStart);
+        tokens->lineOffset = (uint16_t)(buffer->pos - lineStart);
         if (tokens->lineOffset == 0)
             ++file->lineNo;
         tokens->lineNo = file->lineNo;
@@ -158,7 +164,7 @@ TokenizeParseable(
         case '\n':
             _consumeEol(buffer, tokens);
             // Potential upgrade to end-of-block
-            for (;endToken != TOKEN_EOL;) {
+            for (; endToken != TOKEN_EOL;) {
                 char nextChar = BufferPeek(buffer);
                 if (nextChar != '\n' && nextChar != '\r')
                     break;
@@ -171,20 +177,19 @@ TokenizeParseable(
         case ' ':
         case '\t':
             _consumeWhitespace(buffer, tokens);
+			// Discard whitespace that occurs in-front of comments.
+            if (BufferPeek(buffer) != ';' || endToken == TOKEN_WHITESPACE)
+                break;
+            tokens->start = buffer->pos;
+            tokens->lineOffset = buffer->pos - lineStart;
+            /*FALLTHROUGH*/
+        case ';':
+            _consumeComment(buffer, tokens);
+            lineStart = buffer->pos;
             break;
         case '"':
         case '\'':
             _consumeQuote(buffer, tokens);
-            lineStart = buffer->pos;
-            break;
-        case ';':
-            // Discard whitespace in-front of comments
-            if (prevToken && prevToken->type == TOKEN_WHITESPACE) {
-                --tokens;
-                prevToken = NULL;
-                continue;
-            }
-            _consumeComment(buffer, tokens);
             break;
         default:
             _consumeText(buffer, tokens);
