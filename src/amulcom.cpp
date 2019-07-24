@@ -2245,18 +2245,20 @@ lang_proc()
         setslots(WNONE);
         verb.ents++;
         p = skiplead("verb", p);
-        char *qualifier = getword(p);
-        qualifier = skipspc(qualifier);
+		{
+			char *qualifier = getword(p);
+			qualifier = skipspc(qualifier);
 
-        /* If syntax line is 'syntax=verb any' or 'syntax=none' */
-        if (*qualifier == 0 && strcmp("any", Word) == 0) {
-            setslots(WANY);
-            goto endsynt;
-        }
-        if (*qualifier == 0 && strcmp("none", Word) == 0) {
-            setslots(WNONE);
-            goto endsynt;
-        }
+			/* If syntax line is 'syntax=verb any' or 'syntax=none' */
+			if (*qualifier == 0 && strcmp("any", Word) == 0) {
+				setslots(WANY);
+				goto endsynt;
+			}
+			if (*qualifier == 0 && strcmp("none", Word) == 0) {
+				setslots(WNONE);
+				goto endsynt;
+			}
+		}
 
     sp2: /* Syntax line processing */
         p = skipspc(p);

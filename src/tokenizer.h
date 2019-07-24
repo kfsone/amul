@@ -4,6 +4,21 @@
 #include "sourcefile.h"
 #include <h/amul.type.h>
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Tokenizer classifies sequences of characters in a SourceFile's Buffer.
+// It is only concerned with identifying character groups base type.
+//
+// TODO: Reduce the tokenizer into higher-level types:
+// 		TC_TERMINATOR
+// 		TC_WHITESPACE
+//		TC_SYMBOL
+//		TC_ALNUM
+//
+// Then allow a scanner to compose sub-types from that. It should be a lot
+// simpler and cleaner than the way I've currently done this.
+
+
 enum TokenType {
     TOKEN_INVALID,
     TOKEN_EOB,         // End of a block (paragraph), i.e. \n{2,}

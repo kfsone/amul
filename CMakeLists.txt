@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
-PROJECT(AMUL C)
+PROJECT(AMUL C CXX)
 
 SET(AMUL_LIB_NAME "amullib")
 SET(AMUL_COMPILER_NAME "amulcom")
@@ -9,6 +9,9 @@ FILE(GLOB AMUL_HEADERS ${PROJECT_SOURCE_DIR}/h/amul.*.h)
 
 SET(CMAKE_C_STANDARD 11)
 SET(CMAKE_C_STANDARD_REQUIRED ON)
+
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}")
 
@@ -27,17 +30,22 @@ ELSE ()
     ENDIF ()
 
     STRING(APPEND CMAKE_C_FLAGS_DEBUG " -O0 -g3")
+    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -O0 -g3")
     STRING(APPEND CMAKE_C_FLAGS " -Wall")
+    STRING(APPEND CMAKE_CXX_FLAGS " -Wall")
     STRING(APPEND CMAKE_C_FLAGS " -Wno-missing-braces")
     OPTION(AMUL_SANITIZERS "Enable address/undefined sanitizers" ON)
     IF (AMUL_SANITIZERS)
         STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fsanitize=address -fsanitize=undefined")
+        STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address -fsanitize=undefined")
         #STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fsanitize=memory")
         #STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fsanitize=safe-stack")
         STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fno-omit-frame-pointer")
+        STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-omit-frame-pointer")
         #STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fsanitize-stats")
         IF (CLANG)
             STRING(APPEND CMAKE_C_FLAGS_DEBUG " -fprofile-instr-generate -fcoverage-mapping")
+            STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fprofile-instr-generate -fcoverage-mapping")
         ENDIF ()
     ENDIF ()
 ENDIF ()

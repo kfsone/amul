@@ -1,11 +1,11 @@
 SET(TESTS_SOURCES
-    testmain.c
+    testmain.cpp
 
-    buffer_tests.c
-    filesystem_tests.c
-    hashmap_tests.c
-	module_tests.c
-    tokenizer_tests.c
+    buffer_tests.cpp
+    filesystem_tests.cpp
+    hashmap_tests.cpp
+	module_tests.cpp
+    tokenizer_tests.cpp
 )
 
 SET(TESTS_HEADERS

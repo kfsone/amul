@@ -1,21 +1,20 @@
 #include <h/amul.test.h>
 #include <src/buffer.h>
+#include "testing.h"
 
-extern struct Buffer s_buffer[];
-extern bool          s_bufferInUse[];
+extern Buffer s_buffer[];
+extern bool   s_bufferInUse[];
 
-void
-test_new_buffer(struct TestContext *t)
-{
-    struct Buffer *buffer = NULL;
+TestCase test_new_buffer{"buffer", "test_new_buffer", [](TestContext &t) {
+    Buffer *buffer = nullptr;
     char data[64];
-    EXPECT_ERROR(EINVAL, NewBuffer(NULL, 0, NULL));
-    EXPECT_ERROR(EINVAL, NewBuffer(data, 0, NULL));
-    EXPECT_ERROR(EINVAL, NewBuffer(data, sizeof(data), NULL));
+    EXPECT_ERROR(EINVAL, NewBuffer(nullptr, 0, nullptr));
+    EXPECT_ERROR(EINVAL, NewBuffer(data, 0, nullptr));
+    EXPECT_ERROR(EINVAL, NewBuffer(data, sizeof(data), nullptr));
     buffer = (struct Buffer*)data;
     EXPECT_ERROR(EINVAL, NewBuffer(data, sizeof(data), &buffer));
 
-    buffer = NULL;
+    buffer = nullptr;
     EXPECT_SUCCESS(NewBuffer(data, sizeof(data), &buffer));
 
     EXPECT_NOT_NULL(buffer);
@@ -28,14 +27,14 @@ test_new_buffer(struct TestContext *t)
 
     // Check that for 15 more allocations we continue to get the real buffers
     for (size_t i = 1; i < 16; ++i) {
-        buffer = NULL;
+        buffer = nullptr;
         EXPECT_SUCCESS(NewBuffer(data, sizeof(data), &buffer));
         EXPECT_PTR_EQUAL(buffer, &s_buffer[i]);
         EXPECT_TRUE(s_bufferInUse[i]);
     }
 
     // The next should be an allocation
-    buffer = NULL;
+    buffer = nullptr;
     EXPECT_SUCCESS(NewBuffer(data, sizeof(data), &buffer));
     EXPECT_NOT_NULL(buffer);
     EXPECT_PTR_EQUAL(&data[0], buffer->start);
@@ -46,13 +45,11 @@ test_new_buffer(struct TestContext *t)
     EXPECT_FALSE(buffer == &s_buffer[16]);
 
     // Store the allocated buffer for a release test
-    t->userData = buffer;
-}
+    t.userData = buffer;
+}};
 
-void
-test_close_buffer(struct TestContext *t)
-{
-    struct Buffer *buffer = NULL;
+TestCase test_close_buffer{"buffer", "test_close_buffer", [](TestContext &t) {
+    struct Buffer *buffer = nullptr;
 
     for (size_t i = 0; i < 16; ++i) {
         buffer = &s_buffer[i];
@@ -61,20 +58,20 @@ test_close_buffer(struct TestContext *t)
         EXPECT_NULL(buffer);
     }
 
-    buffer = (struct Buffer *)(t->userData);
+    buffer = (struct Buffer *)(t.userData);
     CloseBuffer(&buffer);
     EXPECT_NULL(buffer);
 
-	// Lastly, call CloseBuffer with NULL.
+	// Lastly, call CloseBuffer with nullptr.
 	CloseBuffer(&buffer);
-	CloseBuffer(NULL);
+	CloseBuffer(nullptr);
 
 
-    t->userData = NULL;
-}
+    t.userData = nullptr;
+}};
 
 void
-test_buffer_eof(struct TestContext *t)
+test_buffer_eof(TestContext &t)
 {
     char          data[8] = {0};
     struct Buffer b;
@@ -95,10 +92,10 @@ test_buffer_eof(struct TestContext *t)
 }
 
 void
-test_buffer_peek(struct TestContext *t)
+test_buffer_peek(TestContext &t)
 {
     char          data[8] = {"abc"};
-    struct Buffer b = {&data[0], &data[0], NULL};
+    struct Buffer b = {&data[0], &data[0], nullptr};
     EXPECT_VAL_EQUAL(0, BufferPeek(&b));
     EXPECT_PTR_EQUAL(&data[0], b.pos);
     ++b.end;
@@ -118,7 +115,7 @@ test_buffer_peek(struct TestContext *t)
 }
 
 void
-test_buffer_peek_nonprint(struct TestContext *t)
+test_buffer_peek_nonprint(TestContext &t)
 {
     char          data[] = {'\x00', '\x01', '\x02', 'a' };
     struct Buffer b = {&data[0], &data[0], &data[0]};
@@ -136,7 +133,7 @@ test_buffer_peek_nonprint(struct TestContext *t)
 }
 
 void
-test_buffer_next(struct TestContext *t)
+test_buffer_next(TestContext &t)
 {
     char          data[] = {'\x00', '\x01', '\x02', 'a', ' ', 'b', '\0', '\0', 'c', '\0' };
     struct Buffer b = {&data[0], &data[0], &data[0]};
@@ -173,7 +170,7 @@ test_buffer_next(struct TestContext *t)
 }
 
 void
-test_buffer_skip(struct TestContext *t)
+test_buffer_skip(TestContext &t)
 {
     char data[] = {"abXcd !"};
     struct Buffer b = {&data[0], &data[0], &data[0]};
@@ -195,7 +192,7 @@ test_buffer_skip(struct TestContext *t)
 }
 
 void
-test_buffer_size(struct TestContext *t)
+test_buffer_size(TestContext &t)
 {
     char data[16];
     struct Buffer buf = {&data[0], &data[0], &data[0]};
@@ -205,7 +202,7 @@ test_buffer_size(struct TestContext *t)
 }
 
 void
-buffer_tests(struct TestContext *t)
+buffer_tests(TestContext &t)
 {
     RUN_TEST(test_new_buffer);
     RUN_TEST(test_close_buffer);

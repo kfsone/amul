@@ -1,11 +1,12 @@
 #include "src/hashmap.h"
 #include <h/amul.test.h>
+#include "testing.h"
 
 #include <stdint.h>
 
 // Test the get_string_hash function
 void
-test_get_string_hash(struct TestContext *t)
+test_get_string_hash(TestContext &t)
 {
     // The hash for a should be the seed (5381) << 5 plus itself and the ascii for a
     hashval_t a_hash = (5381 << 5) + 5381 + 'a';
@@ -33,7 +34,7 @@ test_get_string_hash(struct TestContext *t)
 }
 
 void
-test_get_string_hash_view(struct TestContext *t)
+test_get_string_hash_view(TestContext &t)
 {
     hashval_t   hash = get_string_hash("hello");
     const char *key = "helloworld";
@@ -44,7 +45,7 @@ test_get_string_hash_view(struct TestContext *t)
 }
 
 void
-test_new_hash_map(struct TestContext *t)
+test_new_hash_map(TestContext &t)
 {
     struct HashMap *ptr = NULL;
     // check for einval until we request 4 buckets
@@ -79,7 +80,7 @@ test_new_hash_map(struct TestContext *t)
 }
 
 void
-test_add_str_to_hash(struct TestContext *t)
+test_add_str_to_hash(TestContext &t)
 {
     EXPECT_ERROR(EINVAL, AddStrToHash(NULL, NULL, 0));
 
@@ -172,7 +173,7 @@ test_add_str_to_hash(struct TestContext *t)
 }
 
 void
-test_add_to_hash(struct TestContext *t)
+test_add_to_hash(TestContext &t)
 {
     struct HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(4, &map));
@@ -187,7 +188,7 @@ test_add_to_hash(struct TestContext *t)
 }
 
 void
-test_lookup_str_hash_value(struct TestContext *t)
+test_lookup_str_hash_value(TestContext &t)
 {
     // Sanity check sanity checking.
     EXPECT_ERROR(EINVAL, LookupStrHashValue(NULL, NULL, NULL));
@@ -239,7 +240,7 @@ test_lookup_str_hash_value(struct TestContext *t)
 }
 
 void
-test_hash_large_population(struct TestContext *t)
+test_hash_large_population(TestContext &t)
 {
     // By "large", we expect at least one key to have 4+ entries.
 
@@ -267,7 +268,7 @@ test_hash_large_population(struct TestContext *t)
 }
 
 void
-hashmap_tests(struct TestContext *t)
+hashmap_tests(TestContext &t)
 {
     RUN_TEST(test_get_string_hash);
     RUN_TEST(test_get_string_hash_view);

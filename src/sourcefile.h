@@ -6,13 +6,13 @@
 
 struct SourceFile {
     char           filepath[MAX_PATH_LENGTH];
-    void *         mapping;
-    struct Buffer *buffer;
-    uint16_t       lineNo;
-    size_t         size;
+    void *         mapping { nullptr };
+    struct Buffer *buffer { nullptr };
+    uint16_t       lineNo { 0 };
+    size_t         size { 0 };
 };
 
 extern error_t NewSourceFile(const char *filename, struct SourceFile **sourcefilep);
 extern void CloseSourceFile(struct SourceFile **sourcefilep);
 
-#endif
+#endif  // AMUL_SRC_SOURCEFILE_H

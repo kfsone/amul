@@ -3,12 +3,14 @@
 #include <src/filesystem.h>
 #include <src/sourcefile.h>
 
+#include "testing.h"
+
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
 
 void
-test_path_copy(struct TestContext *t)
+test_path_copy(TestContext &t)
 {
     char into[64] = {0};
     EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "abcdefg"));
@@ -22,7 +24,7 @@ test_path_copy(struct TestContext *t)
 }
 
 void
-test_path_copy_offset(struct TestContext *t)
+test_path_copy_offset(TestContext &t)
 {
     char   into[64] = {0};
     size_t offset = 0;
@@ -40,7 +42,7 @@ test_path_copy_offset(struct TestContext *t)
 }
 
 void
-test_path_join(struct TestContext *t)
+test_path_join(TestContext &t)
 {
     char into[64];
 
@@ -49,7 +51,7 @@ test_path_join(struct TestContext *t)
 }
 
 void
-test_path_join_constraints(struct TestContext *t)
+test_path_join_constraints(TestContext &t)
 {
     char into[64];
 
@@ -74,7 +76,7 @@ test_path_join_constraints(struct TestContext *t)
 }
 
 void
-test_path_joiner(struct TestContext *t)
+test_path_joiner(TestContext &t)
 {
     char filepath[MAX_PATH_LENGTH];
     EXPECT_SUCCESS(path_joiner(filepath, ".", "title.txt"));
@@ -86,12 +88,12 @@ test_path_joiner(struct TestContext *t)
 }
 
 void
-test_get_files_size(struct TestContext *t)
+test_get_files_size(TestContext &t)
 {
     EXPECT_ERROR(EINVAL, GetFilesSize(NULL, NULL));
-    EXPECT_ERROR(EINVAL, GetFilesSize(t->argv[0], NULL));
+    EXPECT_ERROR(EINVAL, GetFilesSize(t.argv[0], NULL));
     size_t size = 0;
-    EXPECT_SUCCESS(GetFilesSize(t->argv[0], &size));
+    EXPECT_SUCCESS(GetFilesSize(t.argv[0], &size));
     EXPECT_FALSE(size == 0);
 
     const char *datafile = "getfilesize_test_file1.txt";
@@ -112,7 +114,7 @@ test_get_files_size(struct TestContext *t)
 }
 
 void
-test_file_mapping_checks(struct TestContext *t)
+test_file_mapping_checks(TestContext &t)
 {
     // all of these should produce contract failures
     void *data = NULL;
@@ -125,7 +127,7 @@ test_file_mapping_checks(struct TestContext *t)
 }
 
 void
-test_file_mapping(struct TestContext *t)
+test_file_mapping(TestContext &t)
 {
     const char *datafile = "mapping_test_file1.txt";
     const char *first = "Mapping test.";
@@ -159,9 +161,9 @@ test_file_mapping(struct TestContext *t)
 extern error_t makeTextFileName(struct SourceFile *, const char*);
 
 void
-test_make_test_file_name(struct TestContext *t)
+test_make_test_file_name(TestContext &t)
 {
-    struct SourceFile sf = {0};
+    SourceFile sf{};
     EXPECT_ERROR(EINVAL, makeTextFileName(NULL, NULL));
     EXPECT_ERROR(EINVAL, makeTextFileName(NULL, "a"));
     EXPECT_ERROR(EINVAL, makeTextFileName(&sf, NULL));
@@ -184,7 +186,7 @@ extern struct SourceFile s_sourceFile;
 extern bool s_sourceFileInUse;
 
 void
-test_sourcefile(struct TestContext *t)
+test_sourcefile(TestContext &t)
 {
     EXPECT_FALSE(s_sourceFileInUse);
 
@@ -252,16 +254,16 @@ test_sourcefile(struct TestContext *t)
 }
 
 void
-clearGameDir(struct TestContext *t)
+clearGameDir(TestContext &t)
 {
     gameDir[0] = 0;
 }
 
 void
-filesystem_tests(struct TestContext *t)
+filesystem_tests(TestContext &t)
 {
-    t->tearUp = clearGameDir;
-    t->tearDown = clearGameDir;
+    t.tearUp = clearGameDir;
+    t.tearDown = clearGameDir;
 
     RUN_TEST(test_path_copy);
     RUN_TEST(test_path_copy_offset);

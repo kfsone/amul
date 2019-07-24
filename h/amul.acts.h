@@ -58,34 +58,13 @@ the box', 'current state of door', 'no. of player carrying' etc...
         0, 0, 0                                                                                    \
     }
 
-#ifdef COMPILER
-#    define NACTUALS 33 /* No. of actual names	*/
 struct ACTUAL           /* Structure for 'actual' data */
 {
-    char *    name;  /* Name of actual	*/
-    int       value; /* The effective no.	*/
-    short int wtype; /* Wtype of word	*/
+    const char *name;  /* Name of actual	*/
+    int        value; /* The effective no.	*/
+    short int  wtype; /* Wtype of word	*/
 };
-
-struct ACTUAL actual[NACTUALS] = {
-        {"verb", IWORD + IVERB, WVERB},        {"adj", IWORD + IADJ1, WADJ},
-        {"adj1", IWORD + IADJ1, WADJ},         {"noun", IWORD + INOUN1, WNOUN},
-        {"noun1", IWORD + INOUN1, WNOUN},      {"player", IWORD + INOUN1, WPLAYER},
-        {"player1", IWORD + INOUN1, WPLAYER},  {"text", IWORD + INOUN1, WTEXT},
-        {"text1", IWORD + INOUN1, WTEXT},      {"room", IWORD + INOUN1, WROOM},
-        {"room1", IWORD + INOUN1, WROOM},      {"number", IWORD + INOUN1, WNUMBER},
-        {"number1", IWORD + INOUN1, WNUMBER},  {"prep", IWORD + IPREP, WPREP},
-        {"adj2", IWORD + IADJ2, WADJ},         {"noun2", IWORD + INOUN2, WNOUN},
-        {"player2", IWORD + INOUN2, WPLAYER},  {"text2", IWORD + INOUN2, WTEXT},
-        {"room2", IWORD + INOUN2, WROOM},      {"locate", MEPRM + LOCATE, WNOUN},
-        {"me", MEPRM + SELF, WPLAYER},         {"here", MEPRM + HERE, WROOM},
-        {"myrank", MEPRM + RANK, WNUMBER},     {"friend", MEPRM + FRIEND, WPLAYER},
-        {"helper", MEPRM + HELPER, WPLAYER},   {"enemy", MEPRM + ENEMY, WPLAYER},
-        {"weapon", MEPRM + WEAPON, WNOUN},     {"myscore", MEPRM + SCORE, WNUMBER},
-        {"mysctg", MEPRM + SCTG, WNUMBER},     {"mystr", MEPRM + STR, WNUMBER},
-        {"lastroom", MEPRM + LASTROOM, WROOM}, {"lastdir", MEPRM + LASTDIR, WVERB},
-        {"lastverb", MEPRM + LASTVB, WVERB},
-};
-#endif
+enum { NACTUALS = 33 };
+extern const ACTUAL actual[NACTUALS];
 
 #endif

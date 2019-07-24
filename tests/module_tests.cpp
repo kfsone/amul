@@ -1,6 +1,7 @@
 #include <src/filesystem.h>
 #include <src/modules.h>
 #include <h/amul.test.h>
+#include "testing.h"
 
 extern struct Module *s_modulesHead;
 extern struct Module *s_modulesTail;
@@ -39,13 +40,13 @@ modClose(struct Module *module, error_t err)
 }
 
 void
-modules_test_tearUp(struct TestContext *t)
+modules_test_tearUp(TestContext &t)
 {
-    *(struct ModuleState *)(t->userData) = (struct ModuleState){false, false, false};
+    *(struct ModuleState *)(t.userData) = (struct ModuleState){false, false, false};
 }
 
 void
-test_init_modules(struct TestContext *t)
+test_init_modules(TestContext &t)
 {
     EXPECT_NULL(s_freeModules);
     EXPECT_NULL(s_modulesHead);
@@ -82,7 +83,7 @@ test_init_modules(struct TestContext *t)
 }
 
 void
-test_register_context_module(struct TestContext *t)
+test_register_context_module(TestContext &t)
 {
     EXPECT_ERROR(EINVAL, RegisterContextModule((enum ModuleID)0, NULL));
     EXPECT_ERROR(EINVAL, RegisterContextModule(MAX_MODULE_ID, NULL));
@@ -90,7 +91,7 @@ test_register_context_module(struct TestContext *t)
     // Context modules *must* have a context
     EXPECT_ERROR(EINVAL, RegisterContextModule(MOD_CMDLINE, NULL));
 
-    EXPECT_SUCCESS(RegisterContextModule(MOD_CMDLINE, t));
+    EXPECT_SUCCESS(RegisterContextModule(MOD_CMDLINE, &t));
 
     // This shouldn't have touched the static list.
     EXPECT_PTR_EQUAL(s_freeModules, &s_staticModules[0]);
@@ -106,14 +107,14 @@ test_register_context_module(struct TestContext *t)
     EXPECT_NULL(s_modulesHead->init);
     EXPECT_NULL(s_modulesHead->start);
     EXPECT_NULL(s_modulesHead->close);
-    EXPECT_PTR_EQUAL(s_modulesHead->context, t);
+    EXPECT_PTR_EQUAL(s_modulesHead->context, &t);
     EXPECT_TRUE(s_modulesHead->allocd);
 
     EXPECT_STR_EQUAL("cmdline", s_modulesHead->name)
 }
 
 void
-test_get_module(struct TestContext *t)
+test_get_module(TestContext &t)
 {
     EXPECT_NULL(GetModule((enum ModuleID)0));
     EXPECT_NULL(GetModule(MAX_MODULE_ID));
@@ -125,26 +126,28 @@ test_get_module(struct TestContext *t)
 }
 
 void
-test_close_module(struct TestContext *t)
+test_close_module(TestContext &t)
 {
     EXPECT_ERROR(EINVAL, CloseModule(NULL, 0));
-    EXPECT_ERROR(EFAULT, CloseModule((struct Module *)t, 0));
+	Module fakemodule;
+	Module *modulep = &fakemodule;
+    EXPECT_ERROR(EFAULT, CloseModule(&modulep, 0));
 
     struct Module *module = GetModule(MOD_CMDLINE);
     EXPECT_NOT_NULL(module);
-    EXPECT_SUCCESS(CloseModule(module, 0));
+    EXPECT_SUCCESS(CloseModule(&module, 0));
     EXPECT_NULL(s_modulesHead);
     EXPECT_NULL(s_modulesTail);
     EXPECT_FALSE(s_modulesClosed);
     EXPECT_PTR_EQUAL(s_freeModules, &s_staticModules[0]);
 
-    EXPECT_ERROR(EFAULT, CloseModule(module, 0));
+    EXPECT_ERROR(EFAULT, CloseModule(&module, 0));
 }
 
 void
-test_new_static_module(struct TestContext *t)
+test_new_static_module(TestContext &t)
 {
-    struct ModuleState *ms = (struct ModuleState *)(t->userData);
+    struct ModuleState *ms = (struct ModuleState *)(t.userData);
     struct Module *     module = NULL;
 
     EXPECT_SUCCESS(NewModule(true, MOD_COMPILER, modInit, modStart, modClose, ms, &module));
@@ -165,9 +168,9 @@ test_new_static_module(struct TestContext *t)
 }
 
 void
-test_start_static_module(struct TestContext *t)
+test_start_static_module(TestContext &t)
 {
-    struct ModuleState *ms = (struct ModuleState *)(t->userData);
+    struct ModuleState *ms = (struct ModuleState *)(t.userData);
 
     EXPECT_NOT_NULL(s_modulesHead);
     EXPECT_PTR_EQUAL(s_modulesHead, s_modulesTail);
@@ -179,9 +182,9 @@ test_start_static_module(struct TestContext *t)
 }
 
 void
-test_close_static_module(struct TestContext *t)
+test_close_static_module(TestContext &t)
 {
-    struct ModuleState *ms = (struct ModuleState *)(t->userData);
+    struct ModuleState *ms = (struct ModuleState *)(t.userData);
 
     struct Module *module = GetModule(MOD_COMPILER);
     EXPECT_NOT_NULL(module);
@@ -189,7 +192,7 @@ test_close_static_module(struct TestContext *t)
     EXPECT_PTR_EQUAL(ms, module->context);
     EXPECT_PTR_EQUAL(&s_staticModules[1], s_freeModules);
 
-    EXPECT_SUCCESS(CloseModule(module, 42));
+    EXPECT_SUCCESS(CloseModule(&module, 42));
 
     EXPECT_FALSE(ms->init);
     EXPECT_FALSE(ms->start);
@@ -203,7 +206,7 @@ test_close_static_module(struct TestContext *t)
 }
 
 void
-test_multiple_modules(struct TestContext *t)
+test_multiple_modules(TestContext &t)
 {
     struct ModuleState ms1 = {false, false, false};
     struct Module *    module1 = NULL;
@@ -258,7 +261,7 @@ test_multiple_modules(struct TestContext *t)
     EXPECT_NULL(s_modulesTail->links.next);
 
     // Remove the middle module
-    EXPECT_SUCCESS(CloseModule(module2, 50));
+    EXPECT_SUCCESS(CloseModule(&module2, 50));
     EXPECT_TRUE(ms2.init && ms2.close);
     EXPECT_FALSE(ms2.start);
     EXPECT_VAL_EQUAL(ms2.closeErr, 50);
@@ -295,11 +298,11 @@ test_multiple_modules(struct TestContext *t)
 }
 
 void
-modules_tests(struct TestContext *t)
+modules_tests(TestContext &t)
 {
     struct ModuleState ms;
-    t->userData = &ms;
-    t->tearUp = modules_test_tearUp;
+    t.userData = &ms;
+    t.tearUp = modules_test_tearUp;
 
     RUN_TEST(test_init_modules);
     RUN_TEST(test_register_context_module);

@@ -72,10 +72,11 @@ CloseModules(error_t err)
     for (struct Module *cur = s_modulesTail; cur; cur = prev) {
         alog(AL_DEBUG, "Closing Module #%d: %s", cur->id, cur->name);
         prev = (struct Module *)cur->links.prev;
-        error_t reterr = CloseModule(cur, err);
+		const char *name = cur->name;
+        error_t reterr = CloseModule(&cur, err);
         if (reterr != 0) {
             fprintf(stderr, "*** INTERNAL ERROR: Module %s failed to terminate with %d\n",
-                    cur->name, reterr);
+                    name, reterr);
         }
     }
 
@@ -166,9 +167,11 @@ GetModule(enum ModuleID id)
 }
 
 error_t
-CloseModule(struct Module *module, error_t err)
+CloseModule(Module **modulep, error_t err)
 {
-    REQUIRE(module);
+    REQUIRE(modulep && *modulep);
+	Module *module = *modulep;
+	*modulep = nullptr;
 
     // Make sure this is a registered module
     struct Module *cur = s_modulesHead;
