@@ -161,7 +161,7 @@ extern error_t makeTextFileName(struct SourceFile *, const char*);
 void
 test_make_test_file_name(struct TestContext *t)
 {
-    struct SourceFile sf = {0};
+    struct SourceFile sf = {{0}};
     EXPECT_ERROR(EINVAL, makeTextFileName(NULL, NULL));
     EXPECT_ERROR(EINVAL, makeTextFileName(NULL, "a"));
     EXPECT_ERROR(EINVAL, makeTextFileName(&sf, NULL));
