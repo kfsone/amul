@@ -36,9 +36,11 @@
 //		aka: *(++buffer)
 // 
 struct Buffer {
-    const char *pos;
-    const char *end;
-    const char *start;
+    const char *m_cur;
+    const char *m_end;
+
+	Buffer(const char *begin, const char *end) : m_cur{begin}, m_end{end} {}
+	Buffer(const void *begin, size_t size) : m_cur{(const char*)begin, (const char*)begin
 };
 
 // Formal methods
