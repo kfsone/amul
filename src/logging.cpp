@@ -49,8 +49,7 @@ error_t
 InitLogging()
 {
     return NewModule(
-            true, MOD_LOGGING, loggingModuleInit, loggingModuleStart, loggingModuleClose, NULL,
-            NULL);
+            MOD_LOGGING, loggingModuleInit, loggingModuleStart, loggingModuleClose, NULL, NULL);
 }
 
 void
