@@ -118,5 +118,5 @@ initCommandLine(struct Module *module)
 error_t
 InitCommandLine(const struct CommandLine *cmdline)
 {
-    return NewModule(false, MOD_CMDLINE, initCommandLine, NULL, NULL, (void *)cmdline, NULL);
+    return NewModule(MOD_CMDLINE, initCommandLine, NULL, NULL, (void *)cmdline, NULL);
 }

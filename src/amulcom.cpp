@@ -2871,8 +2871,7 @@ void
 InitCompilerModule()
 {
     NewModule(
-            false, MOD_COMPILER, compilerModuleInit, compilerModuleStart, compilerModuleClose, NULL,
-            NULL);
+            MOD_COMPILER, compilerModuleInit, compilerModuleStart, compilerModuleClose, NULL, NULL);
 }
 
 /*---------------------------------------------------------*/

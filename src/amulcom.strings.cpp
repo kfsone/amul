@@ -85,7 +85,7 @@ closeStringModule(struct Module *module, error_t err)
 error_t
 InitStrings()
 {
-    NewModule(false, MOD_STRINGS, NULL, startStringModule, closeStringModule, NULL, NULL);
+    NewModule(MOD_STRINGS, NULL, startStringModule, closeStringModule, NULL, NULL);
     return 0;
 }
 
