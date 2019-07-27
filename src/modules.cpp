@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "modules.h"
@@ -68,7 +70,7 @@ StartModules()
 void
 CloseModules(error_t err)
 {
-    struct Module *prev = NULL;
+    struct Module *prev = nullptr;
     for (struct Module *cur = s_modulesTail; cur; cur = prev) {
         alog(AL_DEBUG, "Closing Module #%d: %s", cur->id, cur->name);
         prev = (struct Module *)cur->links.prev;
@@ -146,7 +148,7 @@ NewModule(
         error_t err = cur->init(cur);
         if (err != 0) {
             alog(AL_FATAL, "Module #%d: %s: initialization failed: %d", id, cur->name, err);
-			return err;
+            return err;
         }
     }
     if (ptr)
