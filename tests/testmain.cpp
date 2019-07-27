@@ -18,15 +18,14 @@ static struct Suite {
 	{"filesystem",  filesystem_tests},
 	{"hashmap", 	hashmap_tests},
 	{"modules", 	modules_tests},
-    {"tokenizer",   tokenizer_tests},
 
-	{NULL, NULL},
+	{nullptr, nullptr},
 };
 
 int
 main(int argc, const char **argv)
 {
-    struct TestContext context = {argc, argv, NULL, false, 0, 0, 0};
+    struct TestContext context = {argc, argv, nullptr, false, 0, 0, 0};
 
     for (size_t i = 0; suites[i].suiteFn; ++i) {
         // capture the current pass count so we can delta later.
@@ -45,9 +44,9 @@ main(int argc, const char **argv)
         printf("OK (%zu passes)\n", context.passes - passes);
         fflush(stdout);
 
-        context.userData = NULL;
-        context.tearUp = NULL;
-        context.tearDown = NULL;
+        context.userData = nullptr;
+        context.tearUp = nullptr;
+        context.tearDown = nullptr;
     }
 
     printf("SUCCESS: %zu/%zu tests passed, %zu evaluations\n", context.passes, context.tests,

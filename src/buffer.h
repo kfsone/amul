@@ -5,60 +5,45 @@
 
 #include <h/amul.type.h>
 
-struct Buffer {
-    const char *pos;
-    const char *end;
-    const char *start;
-};
-
-// Formal methods
-
-// Attempts to use a static buffer or allocates one instead.
-extern error_t NewBuffer(const char *data, const size_t dataSize, struct Buffer **receiver);
-// Release a buffer
-extern void CloseBuffer(struct Buffer **bufferp);
-
-// Inline helpers
-static inline size_t
-BufferSize(const struct Buffer *buffer)
+class Buffer
 {
-    return buffer->end - buffer->start;
-}
+  protected:
+    const char *m_pos{nullptr};
+    const char *m_end{nullptr};
+    const char *m_start{nullptr};
 
-static inline bool
-BufferEOF(const struct Buffer *buffer)
-{
-    return (buffer->pos >= buffer->end);
-}
+  public:
+    constexpr Buffer() noexcept {}
+    constexpr Buffer(const char *start, const char *end) noexcept
+        : m_pos{start}
+        , m_end{end}
+        , m_start{start}
+    {
+    }
 
-static inline char
-BufferPeek(struct Buffer *buffer)
-{
-    if (BufferEOF(buffer))
-        return 0;
-    while (*buffer->pos < 10) {
-        ++buffer->pos;
-        if (BufferEOF(buffer))
-            return 0;
+    constexpr auto   Start() const noexcept { return m_start; }
+    constexpr auto   End() const noexcept { return m_end; }
+    constexpr auto   Pos() const noexcept { return m_pos; }
+    constexpr size_t Size() const noexcept { return m_end - m_start; }
+    constexpr bool   Eof() const noexcept { return m_pos >= m_end; }
+
+	void Assign(const char* start, size_t length) noexcept {
+		m_start = m_pos = start;
+		m_end = start + length;
 	}
-    return *buffer->pos;
-}
+    char Peek() const noexcept { return !Eof() ? *m_pos : 0; }
+    char Next() noexcept { return !Eof() ? *(m_pos++) : 0; }
+    char Skip() noexcept
+    {
+        if (!Eof())
+            ++m_pos;
+        return Peek();
+    }
 
-static inline char
-BufferNext(struct Buffer *buffer)
-{
-    char c = BufferPeek(buffer);
-    if (c)
-        ++buffer->pos;
-    return c;
-}
-
-static inline char
-BufferSkip(struct Buffer *buffer)
-{
-    if (!BufferEOF(buffer))
-        return *(++(buffer->pos));
-    return 0;
-}
+	void Close() noexcept
+	{
+		m_pos = m_end = m_start = nullptr;
+	}
+};
 
 #endif  // AMUL_SRC_BUFFER_H
