@@ -255,12 +255,7 @@ NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
         return err;
     }
 
-    err = NewBuffer((const char*)sourcefile->mapping, sourcefile->size, &sourcefile->buffer);
-    if (err != 0) {
-        CloseSourceFile(&sourcefile);
-        return err;
-    }
-
+	sourcefile->buffer.Assign(static_cast<const char*>(sourcefile->mapping), sourcefile->size);
     s_sourceFileInUse = true;
     *sourcefilep = sourcefile;
 
@@ -271,7 +266,7 @@ void
 CloseSourceFile(struct SourceFile **sourcefilep)
 {
     if (sourcefilep && *sourcefilep) {
-        CloseBuffer(&(*sourcefilep)->buffer);
+        (*sourcefilep)->buffer.Close();
         CloseFileMapping(&(*sourcefilep)->mapping, (*sourcefilep)->size);
         *sourcefilep = NULL;
         s_sourceFileInUse = false;

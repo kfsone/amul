@@ -203,13 +203,13 @@ test_sourcefile(struct TestContext *t)
 
     EXPECT_STR_EQUAL(gameDir, "");
     EXPECT_ERROR(EINVAL, NewSourceFile(filename, &sourcefile));
-    EXPECT_NULL(s_sourceFile.buffer);
+    EXPECT_NULL(s_sourceFile.buffer.Start());
 
     strcpy(gameDir, ".");
     EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));
     EXPECT_ERROR(ENOENT, NewSourceFile(filename, &sourcefile));
     EXPECT_STR_EQUAL(txtfile, s_sourceFile.filepath);
-    EXPECT_NULL(s_sourceFile.buffer);
+    EXPECT_NULL(s_sourceFile.buffer.Start());
 
     // Check for an empty file returning ENODATA.
     FILE *fp = fopen(txtfile, "w");
@@ -217,7 +217,7 @@ test_sourcefile(struct TestContext *t)
     fclose(fp);
     EXPECT_ERROR(ENODATA, NewSourceFile(filename, &sourcefile));
     EXPECT_FALSE(s_sourceFileInUse);
-    EXPECT_NULL(s_sourceFile.buffer);
+    EXPECT_NULL(s_sourceFile.buffer.Start());
 
     // Now make the file bigger and check we get it mapped.
     const char *test1 = "Test 1.";
@@ -231,12 +231,12 @@ test_sourcefile(struct TestContext *t)
     EXPECT_TRUE(s_sourceFileInUse);
     EXPECT_STR_EQUAL(sourcefile->filepath, txtfile);
     EXPECT_NOT_NULL(sourcefile->mapping);
-    EXPECT_NOT_NULL(sourcefile->buffer);
+    EXPECT_NOT_NULL(sourcefile->buffer.Start());
     EXPECT_VAL_EQUAL(0, sourcefile->lineNo);
     EXPECT_VAL_EQUAL(strlen(test1) + 1 + strlen(test1), sourcefile->size);
-    EXPECT_VAL_EQUAL(sourcefile->buffer->start, sourcefile->mapping);
-    EXPECT_VAL_EQUAL(sourcefile->buffer->start, sourcefile->buffer->pos);
-    EXPECT_VAL_EQUAL(sourcefile->size, sourcefile->buffer->end - sourcefile->buffer->start);
+    EXPECT_VAL_EQUAL(sourcefile->buffer.Start(), sourcefile->mapping);
+    EXPECT_VAL_EQUAL(sourcefile->buffer.Start(), sourcefile->buffer.Pos());
+    EXPECT_VAL_EQUAL(sourcefile->size, sourcefile->buffer.End() - sourcefile->buffer.Start());
 
     EXPECT_STR_EQUAL((const char*)sourcefile->mapping, "Test 1. Test 2.");
 
