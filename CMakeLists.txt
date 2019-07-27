@@ -1,4 +1,7 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+# CMakeList.txt : CMake project for AMUL, include source and define
+# project specific logic here.
+#
+cmake_minimum_required (VERSION 3.10)
 
 PROJECT(AMUL CXX)
 
@@ -14,14 +17,10 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}")
 
-OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
-IF (AMUL_INCLUDE_TESTS)
-	ENABLE_TESTING()
-ENDIF ()
-
 IF (MSVC)
 
     add_compile_definitions("_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE")
+
 ELSE ()
 
     IF (CMAKE_C_COMPILER_ID MATCHES "[cC][lL][aA][nN][gG]")
@@ -60,7 +59,6 @@ ENDIF()
 
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(tests)
-
 
 # all:
 # 	ninja -j4
