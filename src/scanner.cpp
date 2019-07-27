@@ -41,6 +41,8 @@ nextAtom(Buffer &buf)
     }
 }
 
+
+
 /*
 struct AtomInst
 {

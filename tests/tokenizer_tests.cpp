@@ -2,11 +2,11 @@
 #include <src/buffer.h>
 #include <src/tokenizer.h>
 
-extern void _consumeEol(struct Buffer *buf, struct Token *token);
-extern void _consumeWhitespace(struct Buffer *buf, struct Token *token);
-extern void _consumeQuote(struct Buffer *buf, struct Token *token);
-extern void _consumeComment(struct Buffer *buf, struct Token *token);
-extern void _consumeText(struct Buffer *buf, struct Token *token);
+extern void _consumeEol(Buffer &buf, struct Token *token);
+extern void _consumeWhitespace(Buffer &buf, struct Token *token);
+extern void _consumeQuote(Buffer &buf, struct Token *token);
+extern void _consumeComment(Buffer &buf, struct Token *token);
+extern void _consumeText(Buffer &buf, struct Token *token);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // helper structs
@@ -14,7 +14,7 @@ extern void _consumeText(struct Buffer *buf, struct Token *token);
 enum { MAX_TEST_TOKENS = 64 };
 struct TokenizerTest {
     struct SourceFile sf;
-    struct Buffer     buffer;
+    Buffer     buffer;
     struct Token      tokens[MAX_TEST_TOKENS];
     size_t            scanned;
 };
@@ -22,10 +22,10 @@ struct TokenizerTest {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // helper functions
 
-static struct Buffer
+static Buffer
 init_buffer(const char *text, struct Token *token)
 {
-    struct Buffer buffer = {text, text + strlen(text), text};
+    Buffer buffer {text, text + strlen(text)};
     if (token) {
         token->type = (enum TokenType)0;
         token->start = text;
@@ -38,9 +38,9 @@ void
 _tearUpTokenizerTest(struct TestContext *t)
 {
     assert(t->userData == NULL);
-    struct TokenizerTest *tt = calloc(sizeof(struct TokenizerTest), 1);
+    struct TokenizerTest *tt = (TokenizerTest*)calloc(sizeof(struct TokenizerTest), 1);
     assert(tt);
-    tt->sf = (struct SourceFile){"source.txt", NULL, &tt->buffer, 0, 0};
+    tt->sf = {"source.txt", NULL, &tt->buffer, 0, 0};
     t->userData = (void *)tt;
 }
 
@@ -59,7 +59,7 @@ void
 test_consume_eol_cr(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer b = init_buffer("\nNewline", &token);
+    Buffer b = init_buffer("\nNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 1, b.pos);
     EXPECT_VAL_EQUAL('N', *b.pos);
@@ -72,7 +72,7 @@ void
 test_consume_eol_lf(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer b = init_buffer("\rNewline", &token);
+    Buffer b = init_buffer("\rNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 1, b.pos);
     EXPECT_VAL_EQUAL('N', *b.pos);
@@ -85,7 +85,7 @@ void
 test_consume_eol_crlf(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer b = init_buffer("\n\rNewline", &token);
+    Buffer b = init_buffer("\n\rNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 2, b.pos);
     EXPECT_VAL_EQUAL('N', *b.pos);
@@ -98,7 +98,7 @@ void
 test_consume_eol_lfcr(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer b = init_buffer("\r\nNewline", &token);
+    Buffer b = init_buffer("\r\nNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 2, b.pos);
     EXPECT_VAL_EQUAL('N', *b.pos);
@@ -111,7 +111,7 @@ void
 test_consume_eol_crcr(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer b = init_buffer("\n\nNewline", &token);
+    Buffer b = init_buffer("\n\nNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 1, b.pos);
     EXPECT_PTR_EQUAL(b.start, token.start);
@@ -122,7 +122,7 @@ void
 test_consume_eol_lflf(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer b = init_buffer("\r\rNewline", &token);
+    Buffer b = init_buffer("\r\rNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 1, b.pos);
     EXPECT_PTR_EQUAL(b.start, token.start);
@@ -133,7 +133,7 @@ void
 test_consume_eol_crlfcrlf(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer b = init_buffer("\n\r\n\rNewline", &token);
+    Buffer b = init_buffer("\n\r\n\rNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 2, b.pos);
     EXPECT_PTR_EQUAL(b.start, token.start);
@@ -144,7 +144,7 @@ void
 test_consume_eol_lfcrlfcr(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer b = init_buffer("\r\n\r\nNewline", &token);
+    Buffer b = init_buffer("\r\n\r\nNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 2, b.pos);
     EXPECT_PTR_EQUAL(b.start, token.start);
@@ -159,7 +159,7 @@ test_consume_whitespace_single_space(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer b = init_buffer(" ", &token);
+        Buffer b = init_buffer(" ", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token.type);
         EXPECT_PTR_EQUAL(b.start + 1, b.pos);
@@ -169,7 +169,7 @@ test_consume_whitespace_single_space(struct TestContext *t)
     }
     {
         struct Token  token;
-        struct Buffer b = init_buffer(" i", &token);
+        Buffer b = init_buffer(" i", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_PTR_EQUAL(b.start + 1, b.pos);
         EXPECT_VAL_EQUAL('i', *b.pos);
@@ -183,7 +183,7 @@ test_consume_whitespace_single_tab(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer b = init_buffer("\t", &token);
+        Buffer b = init_buffer("\t", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token.type);
         EXPECT_PTR_EQUAL(b.start + 1, b.pos);
@@ -193,7 +193,7 @@ test_consume_whitespace_single_tab(struct TestContext *t)
     }
     {
         struct Token  token;
-        struct Buffer b = init_buffer("\ti", &token);
+        Buffer b = init_buffer("\ti", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_PTR_EQUAL(b.start + 1, b.pos);
         EXPECT_VAL_EQUAL('i', *b.pos);
@@ -207,7 +207,7 @@ test_consume_whitespace_multi(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer b = init_buffer("   \t\t\t   \t\t\t", &token);
+        Buffer b = init_buffer("   \t\t\t   \t\t\t", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token.type);
         EXPECT_PTR_EQUAL(b.start + 12, b.pos);
@@ -218,7 +218,7 @@ test_consume_whitespace_multi(struct TestContext *t)
     }
     {
         struct Token  token;
-        struct Buffer b = init_buffer("   \t\t\t   \t\t\t\n", &token);
+        Buffer b = init_buffer("   \t\t\t   \t\t\t\n", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token.type);
         EXPECT_PTR_EQUAL(b.start + 12, b.pos);
@@ -234,7 +234,7 @@ test_consume_quote_dq(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("\"\"", &token);
+        Buffer buffer = init_buffer("\"\"", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, token.type);
         EXPECT_PTR_EQUAL(buffer.end, buffer.pos);
@@ -245,7 +245,7 @@ test_consume_quote_dq(struct TestContext *t)
     }
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("\"'\"!", &token);
+        Buffer buffer = init_buffer("\"'\"!", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_VAL_EQUAL('"', *token.end);
         EXPECT_VAL_EQUAL('!', *buffer.pos);
@@ -257,7 +257,7 @@ test_consume_quote_dq(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("\"a' \"!", &token);
+        Buffer buffer = init_buffer("\"a' \"!", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.start + 1, token.start);
         EXPECT_PTR_EQUAL(buffer.end - 2, token.end);
@@ -275,7 +275,7 @@ test_consume_quote_sq(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("''", &token);
+        Buffer buffer = init_buffer("''", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, token.type);
         EXPECT_PTR_EQUAL(buffer.end, buffer.pos);
@@ -286,7 +286,7 @@ test_consume_quote_sq(struct TestContext *t)
     }
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("'\"'!", &token);
+        Buffer buffer = init_buffer("'\"'!", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_VAL_EQUAL('\'', *token.end);
         EXPECT_VAL_EQUAL('!', *buffer.pos);
@@ -298,7 +298,7 @@ test_consume_quote_sq(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("'a\" '!", &token);
+        Buffer buffer = init_buffer("'a\" '!", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.start + 1, token.start);
         EXPECT_PTR_EQUAL(buffer.end - 2, token.end);
@@ -316,7 +316,7 @@ test_consume_quote_eol(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("\"...", &token);
+        Buffer buffer = init_buffer("\"...", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.start + 1, token.start);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -330,7 +330,7 @@ test_consume_quote_eol(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("\"...\n", &token);
+        Buffer buffer = init_buffer("\"...\n", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
         EXPECT_VAL_EQUAL('\n', *buffer.pos);
@@ -338,7 +338,7 @@ test_consume_quote_eol(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("\"...\r", &token);
+        Buffer buffer = init_buffer("\"...\r", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
         EXPECT_VAL_EQUAL('\r', *buffer.pos);
@@ -350,7 +350,7 @@ test_consume_comment(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer(";", &token);
+        Buffer buffer = init_buffer(";", &token);
         _consumeComment(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_COMMENT, token.type);
         EXPECT_PTR_EQUAL(buffer.end, buffer.pos);
@@ -360,14 +360,14 @@ test_consume_comment(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer(";;;;;    hello ", &token);
+        Buffer buffer = init_buffer(";;;;;    hello ", &token);
         _consumeComment(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
     }
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer(";;;;;    hello \n\r\n", &token);
+        Buffer buffer = init_buffer(";;;;;    hello \n\r\n", &token);
         _consumeComment(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
         EXPECT_VAL_EQUAL('\n', *token.end);
@@ -375,7 +375,7 @@ test_consume_comment(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer(";;;;;    hello \r\n\r\r\n", &token);
+        Buffer buffer = init_buffer(";;;;;    hello \r\n\r\r\n", &token);
         _consumeComment(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end - 3, token.end);
         EXPECT_VAL_EQUAL('\r', *token.end);
@@ -386,7 +386,7 @@ void
 test_consume_text_word(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer buffer = init_buffer("abc", &token);
+    Buffer buffer = init_buffer("abc", &token);
     _consumeText(&buffer, &token);
     EXPECT_VAL_EQUAL(TOKEN_WORD, token.type);
     EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -397,7 +397,7 @@ test_consume_text_symbol(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("$", &token);
+        Buffer buffer = init_buffer("$", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -405,7 +405,7 @@ test_consume_text_symbol(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("=", &token);
+        Buffer buffer = init_buffer("=", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -413,7 +413,7 @@ test_consume_text_symbol(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("_", &token);
+        Buffer buffer = init_buffer("_", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -421,7 +421,7 @@ test_consume_text_symbol(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("_=", &token);
+        Buffer buffer = init_buffer("_=", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
@@ -429,7 +429,7 @@ test_consume_text_symbol(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("=_", &token);
+        Buffer buffer = init_buffer("=_", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
@@ -437,7 +437,7 @@ test_consume_text_symbol(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("= ", &token);
+        Buffer buffer = init_buffer("= ", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
@@ -449,7 +449,7 @@ test_consume_text_identifier(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("$bc", &token);
+        Buffer buffer = init_buffer("$bc", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -457,7 +457,7 @@ test_consume_text_identifier(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("$1c", &token);
+        Buffer buffer = init_buffer("$1c", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -465,7 +465,7 @@ test_consume_text_identifier(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("$c_1", &token);
+        Buffer buffer = init_buffer("$c_1", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -473,7 +473,7 @@ test_consume_text_identifier(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("=1a2", &token);
+        Buffer buffer = init_buffer("=1a2", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -481,7 +481,7 @@ test_consume_text_identifier(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("!abc.1", &token);
+        Buffer buffer = init_buffer("!abc.1", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
         EXPECT_PTR_EQUAL(buffer.end - 2, token.end);
@@ -493,7 +493,7 @@ test_consume_text_number(struct TestContext *t)
 {
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("1", &token);
+        Buffer buffer = init_buffer("1", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -501,7 +501,7 @@ test_consume_text_number(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("123-", &token);
+        Buffer buffer = init_buffer("123-", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
@@ -509,7 +509,7 @@ test_consume_text_number(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("-123", &token);
+        Buffer buffer = init_buffer("-123", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -517,7 +517,7 @@ test_consume_text_number(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("12.3", &token);
+        Buffer buffer = init_buffer("12.3", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -525,7 +525,7 @@ test_consume_text_number(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer(".101", &token);
+        Buffer buffer = init_buffer(".101", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -533,7 +533,7 @@ test_consume_text_number(struct TestContext *t)
 
     {
         struct Token  token;
-        struct Buffer buffer = init_buffer("-.001", &token);
+        Buffer buffer = init_buffer("-.001", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
@@ -544,7 +544,7 @@ void
 test_consume_text_label(struct TestContext *t)
 {
     struct Token  token;
-    struct Buffer buffer;
+    Buffer buffer;
 
     buffer = init_buffer("abc=xyz", &token);
     _consumeText(&buffer, &token);

@@ -1,11 +1,10 @@
 SET(TESTS_SOURCES
-    testmain.c
+    testmain.cpp
 
-    buffer_tests.c
-    filesystem_tests.c
-    hashmap_tests.c
-	module_tests.c
-    tokenizer_tests.c
+    buffer_tests.cpp
+    filesystem_tests.cpp
+    hashmap_tests.cpp
+	module_tests.cpp
 )
 
 SET(TESTS_HEADERS
@@ -14,7 +13,6 @@ SET(TESTS_HEADERS
     ../src/hashmap.h
     ../src/modules.h
     ../src/sourcefile.h
-    ../src/tokenizer.h
 
     ${AMUL_LIB_SOURCES}
 

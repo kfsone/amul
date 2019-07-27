@@ -1,12 +1,11 @@
 SET(AMUL_LIB_SOURCES
-		buffer.c
-        filesystem.c
-		constants.c
-        hashmap.c
-        logging.c
-		modules.c
-		system.c
-		tokenizer.c
+        filesystem.cpp
+		constants.cpp
+        hashmap.cpp
+        logging.cpp
+		modules.cpp
+		system.cpp
+		tokenizer.cpp
 )
 
 SET(AMUL_LIB_HEADERS
@@ -25,11 +24,11 @@ SET(AMUL_LIB_HEADERS
 )
 
 SET(AMULCOM_SOURCES
-        amulcom.c
-		amulcom.cmdline.c
-        amulcom.main.c
-		amulcom.extras.c
-		amulcom.strings.c
+        amulcom.cpp
+		amulcom.cmdline.cpp
+        amulcom.main.cpp
+		amulcom.extras.cpp
+		amulcom.strings.cpp
 )
 
 SET(AMULCOM_HEADERS

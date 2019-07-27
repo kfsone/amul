@@ -8,92 +8,92 @@
 #include <h/amul.test.h>
 
 void
-_consumeEol(struct Buffer *buf, struct Token *token)
+_consumeEol(Buffer &buffer, Token &token) noexcept
 {
     // allow for \r\n, \n and \n\r
-    const char first = BufferNext(buf);
-    if (!BufferEOF(buf)) {
-        const char second = BufferPeek(buf);
+    const char first = buffer.Next();
+    if (!buffer.Eof()) {
+        const char second = buffer.Peek();
         if ((second == '\n' || second == '\r') && second != first)
-            BufferSkip(buf);
+            buffer.Skip();
     }
 
-    token->end = buf->pos;
-    token->type = TOKEN_EOL;
+    token.end = buffer.Pos();
+    token.type = TOKEN_EOL;
 }
 
 void
-_consumeWhitespace(struct Buffer *buf, struct Token *token)
+_consumeWhitespace(Buffer &buffer, Token &token) noexcept
 {
     char c = 0;
     do {
-        c = BufferSkip(buf);
+        c = buffer.Skip();
     } while (c == ' ' || c == '\t');
 
-    token->end = buf->pos;
-    token->type = TOKEN_WHITESPACE;
+    token.end = buffer.Pos();
+    token.type = TOKEN_WHITESPACE;
 }
 
 void
-_consumeQuote(struct Buffer *buf, struct Token *token)
+_consumeQuote(Buffer &buffer, Token &token) noexcept
 {
     // grab the first character
-    char quote = BufferNext(buf);
-    token->start = buf->pos;
+    const char quote = buffer.Next();
+    token.start = buffer.Pos();
     char escaped = false;
     for (;;) {
-        const char c = BufferPeek(buf);
+        const char c = buffer.Peek();
         if (c == quote && !escaped) {
-            token->end = buf->pos;
-            BufferSkip(buf);
+            token.end = buffer.Pos();
+            buffer.Skip();
             break;
         }
         if (c == '\n' || c == '\r' || c == 0) {
-            token->end = buf->pos;
+            token.end = buffer.Pos();
             break;
         }
         escaped = (!escaped && c == '\\');
-        BufferSkip(buf);
+        buffer.Skip();
     }
-    token->type = TOKEN_STRING_LITERAL;
+    token.type = TOKEN_STRING_LITERAL;
 }
 
 void
-_consumeComment(struct Buffer *buf, struct Token *token)
+_consumeComment(Buffer &buffer, Token &token) noexcept
 {
     for (;;) {
-        const char c = BufferSkip(buf);
+        const char c = buffer.Skip();
         if (c == '\n' || c == '\r') {
-            _consumeEol(buf, token);
+            _consumeEol(buffer, token);
             break;
         }
         if (c == 0)
             break;
     }
-    token->end = buf->pos;
-    token->type = TOKEN_COMMENT;
+    token.end = buffer.Pos();
+    token.type = TOKEN_COMMENT;
 }
 
 void
-_consumeText(struct Buffer *buf, struct Token *token)
+_consumeText(Buffer &buffer, Token &token) noexcept
 {
     // Ignore the first character so that we don't try to apply the
     // "isalnum" policy to the prefix, this allows '$' for system
     // messages; but check if it an alpha-numeric so we can distinguish
     // '$' from '$10' as SYMBOL vs REGULAR.
-    char       first = BufferPeek(buf);
+    const char first = buffer.Peek();
     const bool startsAlpha = isalpha(first);
     const bool startsNum = isdigit(first) || first == '-' || first == '.';
     bool       hasAlpha = startsAlpha;
     bool       hasNum = isdigit(first);
     bool       hasDot = first == '.';
 
-    token->type = TOKEN_WORD;
+    token.type = TOKEN_WORD;
 
     // Now we limit ourselves to alphanumeric with the exception of
     // '=', which we treat as a separator so long as it has no
     // whitespace either side of it.
-    for (char c = BufferSkip(buf); c; c = BufferSkip(buf)) {
+    for (char c = buffer.Skip(); c; c = buffer.Skip()) {
         if (isalpha(c)) {
             hasAlpha = true;
             continue;
@@ -112,87 +112,86 @@ _consumeText(struct Buffer *buf, struct Token *token)
             continue;
         if (!startsAlpha || c != '=')
             break;
-        token->type = TOKEN_LABEL;
-        BufferSkip(buf);
-        token->end = buf->pos;
+        token.type = TOKEN_LABEL;
+        buffer.Skip();
+        token.end = buffer.Pos();
         return;
     }
 
     if (startsNum && hasNum && !hasAlpha)  // exclude "-" on its own
-        token->type = TOKEN_NUMBER;
+        token.type = TOKEN_NUMBER;
     else if (!startsAlpha)
-        token->type = !(hasAlpha || hasNum) ? TOKEN_SYMBOL : TOKEN_IDENTIFIER;
-    token->end = buf->pos;
+        token.type = !(hasAlpha || hasNum) ? TOKEN_SYMBOL : TOKEN_IDENTIFIER;
+    token.end = buffer.Pos();
 }
 
-struct TokenizerState {
-    struct SourceFile *file;
-    struct Token *     curToken;
-    char               lastChar;
+struct TokenizerState
+{
+    SourceFile *file;
+    Token *     curToken;
+    char        lastChar;
 };
 
 error_t
 TokenizeParseable(
-        struct SourceFile *file, struct Token *tokens, size_t tokensSize, size_t *tokensScanned,
+        SourceFile &file, Token *tokens, size_t tokensSize, size_t *tokensScanned,
         enum TokenType endToken)
 {
-    REQUIRE(file);
     REQUIRE(tokens && tokensSize && tokensScanned);
-    REQUIRE(file->buffer);
 
     *tokensScanned = 0;
 
     // fail when we started at end of file
-    struct Buffer *buffer = file->buffer;
-    if (BufferEOF(buffer))
+    Buffer &buffer = file.buffer;
+    if (buffer.Eof())
         return ENOENT;
 
-    const struct Token *tokensStart = tokens;
-    struct Token *      tokensEnd = tokens + tokensSize;
-    struct Token *      prevToken = NULL;
-    const char *        lineStart = buffer->pos;
+    const Token *tokensStart = tokens;
+    Token		*tokensEnd = tokens + tokensSize;
+    Token		*prevToken = NULL;
+    const char  *lineStart = buffer.Pos();
 
-    while (!BufferEOF(buffer) && tokens < tokensEnd) {
-        tokens->lineOffset = (uint16_t)(buffer->pos - lineStart);
+    while (!buffer.Eof() && tokens < tokensEnd) {
+        tokens->lineOffset = (uint16_t)(buffer.Pos() - lineStart);
         if (tokens->lineOffset == 0)
-            ++file->lineNo;
-        tokens->lineNo = file->lineNo;
-        tokens->start = buffer->pos;
+            ++file.lineNo;
+        tokens->lineNo = file.lineNo;
+        tokens->start = buffer.Pos();
 
-        switch (BufferPeek(buffer)) {
+        switch (buffer.Peek()) {
         case '\r':
         case '\n':
-            _consumeEol(buffer, tokens);
+            _consumeEol(buffer, *tokens);
             // Potential upgrade to end-of-block
             for (; endToken != TOKEN_EOL;) {
-                char nextChar = BufferPeek(buffer);
+                char nextChar = buffer.Peek();
                 if (nextChar != '\n' && nextChar != '\r')
                     break;
-                ++file->lineNo;
-                _consumeEol(buffer, tokens);
+                ++file.lineNo;
+                _consumeEol(buffer, *tokens);
                 tokens->type = TOKEN_EOB;
             }
-            lineStart = buffer->pos;
+            lineStart = buffer.Pos();
             break;
         case ' ':
         case '\t':
-            _consumeWhitespace(buffer, tokens);
-			// Discard whitespace that occurs in-front of comments.
-            if (BufferPeek(buffer) != ';' || endToken == TOKEN_WHITESPACE)
+            _consumeWhitespace(buffer, *tokens);
+            // Discard whitespace that occurs in-front of comments.
+            if (buffer.Peek() != ';' || endToken == TOKEN_WHITESPACE)
                 break;
-            tokens->start = buffer->pos;
-            tokens->lineOffset = buffer->pos - lineStart;
+            tokens->start = buffer.Pos();
+            tokens->lineOffset = buffer.Pos() - lineStart;
             /*FALLTHROUGH*/
         case ';':
-            _consumeComment(buffer, tokens);
-            lineStart = buffer->pos;
+            _consumeComment(buffer, *tokens);
+            lineStart = buffer.Pos();
             break;
         case '"':
         case '\'':
-            _consumeQuote(buffer, tokens);
+            _consumeQuote(buffer, *tokens);
             break;
         default:
-            _consumeText(buffer, tokens);
+            _consumeText(buffer, *tokens);
             break;
         }
         prevToken = tokens;
