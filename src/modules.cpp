@@ -14,15 +14,6 @@
 struct Module *s_modulesHead;
 struct Module *s_modulesTail;
 
-// If there's ever a memory management module, it won't want to have the
-// module system first try and allocate memory for a module... So there
-// is a pool of static modules.
-
-enum { NUM_STATIC_MODULES = 4 };
-struct Module s_staticModules[NUM_STATIC_MODULES];
-
-struct Module *s_freeModules;
-
 bool s_modulesInitialized;
 bool s_modulesClosed;
 
@@ -44,10 +35,6 @@ InitModules()
     if (s_modulesInitialized == true)
         abort();
     s_modulesInitialized = true;
-    s_freeModules = &s_staticModules[0];
-    for (size_t i = 1; i < NUM_STATIC_MODULES; ++i) {
-        s_staticModules[i - 1].links.next = (struct DoubleLinkedNode *)&s_staticModules[i];
-    }
 }
 
 error_t
@@ -86,7 +73,7 @@ CloseModules(error_t err)
 
 error_t
 NewModule(
-        bool useStatic, enum ModuleID id, moduleinit_fn init /*opt*/, modulestart_fn start /*opt*/,
+        enum ModuleID id, moduleinit_fn init /*opt*/, modulestart_fn start /*opt*/,
         moduleclose_fn close /*opt*/, void *context /*opt*/, struct Module **ptr /*opt*/)
 {
     REQUIRE(id && id < MAX_MODULE_ID);
@@ -97,28 +84,7 @@ NewModule(
         return EEXIST;
     }
 
-    struct Module *instance = NULL;
-    struct Module *cur = s_freeModules;
-    for (; cur; cur = (struct Module *)cur->links.next) {
-        if (cur->allocd == !useStatic)
-            break;
-        instance = cur;
-    }
-
-    if (cur) {
-        // cut me out of the list
-        if (!instance) {  // first entry on the list
-            assert(cur == s_freeModules);
-            s_freeModules = (struct Module *)cur->links.next;
-        } else {
-            instance->links.next = cur->links.next;
-        }
-    } else if (useStatic) {
-        alog(AL_FATAL, "Cannot provision static module #%d: %s", id, moduleNames[id]);
-    } else {
-        cur = (struct Module *)AllocateMem(sizeof(struct Module));
-    }
-
+    Module *cur = (struct Module *)AllocateMem(sizeof(struct Module));
     if (cur == NULL) {
         alog(AL_FATAL, "Out of memory");
         return ENOMEM;
@@ -133,7 +99,6 @@ NewModule(
     cur->start = start;
     cur->close = close;
     cur->context = context;
-    cur->allocd = !useStatic;
 
     if (!s_modulesHead) {
         s_modulesHead = cur;
@@ -192,16 +157,9 @@ CloseModule(struct Module *module, error_t err)
     if (s_modulesTail == module)
         s_modulesTail = (struct Module *)module->links.prev;
 
-    bool allocd = module->allocd;
     memset(module, 0, sizeof(*module));
 
-    if (allocd)
-        ReleaseMem((void **)&module);
-    else {
-        // Put me at the front of the free list
-        module->links.next = (struct DoubleLinkedNode *)s_freeModules;
-        s_freeModules = module;
-    }
+    ReleaseMem((void **)&module);
 
     return reterr;
 }
@@ -209,5 +167,5 @@ CloseModule(struct Module *module, error_t err)
 error_t
 RegisterContextModule(enum ModuleID id, void *context)
 {
-    return NewModule(false, id, NULL, NULL, NULL, context, NULL);
+    return NewModule(id, NULL, NULL, NULL, context, NULL);
 }
