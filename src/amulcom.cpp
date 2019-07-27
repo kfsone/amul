@@ -51,6 +51,7 @@
 #include <h/amul.xtra.h>
 #include <h/amulcom.h>
 
+#include <assert.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
