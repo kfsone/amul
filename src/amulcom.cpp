@@ -110,7 +110,7 @@ void
 checkErrorCount()
 {
     if (al_errorCount > 30) {
-        alog(AL_FATAL, "Terminating due to %u errors", al_errorCount);
+        afatal("Terminating due to %u errors", al_errorCount);
     }
 }
 
@@ -168,7 +168,7 @@ nextc(bool required)
             alog(AL_NOTE, "%s", block);
     } while (c != EOF && (c == '*' || c == ';' || isspace(c)));
     if (c == EOF && required) {
-        alog(AL_FATAL, "File contained no data");
+        afatal("File contained no data");
     }
     if (c == EOF)
         return false;
@@ -236,7 +236,7 @@ checkedfread(void *data, size_t objSize, size_t objCount, FILE *fp)
 {
     int read = fread(data, objSize, objCount, fp);
     if (read != objCount) {
-        alog(AL_FATAL, "Wrong write count: expected %d, got %d", objCount, read);
+        afatal("Wrong write count: expected %d, got %d", objCount, read);
     }
     return read;
 }
@@ -246,7 +246,7 @@ checkedfwrite(void *data, size_t objSize, size_t objCount, FILE *fp)
 {
     int written = fwrite(data, objSize, objCount, fp);
     if (written != objCount) {
-        alog(AL_FATAL, "Wrong write count: expected %d, got %d", objCount, written);
+        afatal("Wrong write count: expected %d, got %d", objCount, written);
     }
     return written;
 }
@@ -389,7 +389,7 @@ void
 set_adj()
 {
     if (strlen(Word) > IDL || strlen(Word) < 3) {
-        alog(AL_FATAL, "Invalid adjective (length): %s", Word);
+        afatal("Invalid adjective (length): %s", Word);
     }
     if (g_gameInfo.numAdjectives == 0) {
         ZeroPad(Word, sizeof(Word));
@@ -417,30 +417,31 @@ set_adj()
     obj2.adj = g_gameInfo.numAdjectives++;
 }
 
+[[noreturn]]
 void
-object(const char *s)
+objectInvalid(const char *s)
 {
-    alog(AL_FATAL, "Object #%d: %s: invalid %s: %s", g_gameInfo.numNouns + 1, obj2.id, s, Word);
+    afatal("Object #%d: %s: invalid %s: %s", g_gameInfo.numNouns + 1, obj2.id, s, Word);
 }
 
 void
 set_start()
 {
     if (!isdigit(Word[0]))
-        object("start state");
+        objectInvalid("start state");
     obj2.state = atoi(Word);
     if (obj2.state < 0 || obj2.state > 100)
-        object("start state");
+        objectInvalid("start state");
 }
 
 void
 set_holds()
 {
     if (!isdigit(Word[0]))
-        object("holds= value");
+        objectInvalid("holds= value");
     obj2.contains = atoi(Word);
     if (obj2.contains < 0 || obj2.contains > 1000000)
-        object("holds= state");
+        objectInvalid("holds= state");
 }
 
 void
@@ -451,7 +452,7 @@ set_put()
             obj2.putto = i;
             return;
         }
-    object("put= flag");
+    objectInvalid("put= flag");
 }
 
 void
@@ -462,7 +463,7 @@ set_mob()
             obj2.mobile = i;
             return;
         }
-    object("mobile= flag");
+    objectInvalid("mobile= flag");
 }
 
 int
@@ -497,7 +498,7 @@ getNo(const char *prefix, const char *from)
 {
     int result = 0;
     if (sscanf(from, "%d", &result) != 1) {
-        alog(AL_FATAL, "Invalid '%s' entry: %s", prefix, from);
+        afatal("Invalid '%s' entry: %s", prefix, from);
     }
     return result;
 }
@@ -516,7 +517,7 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
 {
     for (;;) {
         if (!fgets(block, sizeof(block), ifp)) {
-            alog(AL_FATAL, "Invalid title.txt: Missing '%s' line", linetype);
+            afatal("Invalid title.txt: Missing '%s' line", linetype);
         }
 
         repspc(block);
@@ -526,7 +527,7 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
             continue;
 
         if (!canSkipLead(linetype, &p)) {
-            alog(AL_FATAL, "Invalid title.txt:Expected '%s' got: %s", linetype, p);
+            afatal("Invalid title.txt:Expected '%s' got: %s", linetype, p);
         }
 
         callback(linetype, p);
@@ -551,7 +552,7 @@ getBlockNo(const char *prefix, int *into)
 }
 
 bool
-chkline(const char *p)
+checkRankLine(const char *p)
 {
     if (*p == 0) {
         alog(AL_ERROR, "Rank line %" PRIu64 " incomplete", g_gameInfo.numRanks);
@@ -560,10 +561,11 @@ chkline(const char *p)
     return true;
 }
 
+[[noreturn]]
 void
-statinv(const char *s)
+stateInvalid(const char *s)
 {
-    alog(AL_FATAL, "Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameInfo.numNouns + 1,
+    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameInfo.numNouns + 1,
          obj2.id, s, block);
 }
 
@@ -659,7 +661,8 @@ preact(char *s)
     return s;
 }
 
-long chknum(const char *s) /* Check a numeric arguments */
+/* Check a numeric arguments */
+long chknum(const char *s)
 {
     long n;
 
@@ -846,12 +849,12 @@ getTextString(char *s, bool prefixed)
         char *  end = strstop(start, *s);
         error_t err = AddTextString(start, end, true, &id);
         if (err != 0)
-            alog(AL_FATAL, "Unable to add string literal: %d", err);
+            afatal("Unable to add string literal: %d", err);
     } else {
         getword(s);
         error_t err = LookupTextString(Word, STRING_MESSAGE, &id);
         if (err != 0 && err != ENOENT)
-            alog(AL_FATAL, "Error looking up string (%d): %s", err, s);
+            afatal("Error looking up string (%d): %s", err, s);
     }
 
     return id;
@@ -961,6 +964,7 @@ actualval(const char *s, int n)
     return -2; /* It was no actual! */
 }
 
+[[noreturn]]
 void
 badParameter(
         const VMOP *op, size_t paramNo, const char *category, const char *issue, const char *token)
@@ -970,7 +974,7 @@ badParameter(
         snprintf(msg, sizeof(msg), "%s: '%s'", issue, token);
         issue = msg;
     }
-    alog(AL_FATAL, "%s=%s: %s=%s: parameter#%" PRIu64 ": %s", proc ? "verb" : "room",
+    afatal("%s=%s: %s=%s: parameter#%" PRIu64 ": %s", proc ? "verb" : "room",
          proc ? verb.id : roomtab->id, category, op->name, paramNo + 1, issue);
 }
 
@@ -1152,10 +1156,11 @@ iswtype(char *s)
 }
 
 /* Declare a PROBLEM, and which verb its in! */
+[[noreturn]]
 void
 vbprob(const char *s, const char *s2)
 {
-    alog(AL_FATAL, "Verb: %s line: '%s': %s", verb.id, s2, s);
+    afatal("Verb: %s line: '%s': %s", verb.id, s2, s);
 }
 
 void
@@ -1172,9 +1177,9 @@ getmobmsg(const char *s)
     for (;;) {
         char *p = getTidyBlock(ifp);
         if (feof(ifp))
-            alog(AL_FATAL, "Mobile:%s: Unexpected end of file", mob.id);
+            afatal("Mobile:%s: Unexpected end of file", mob.id);
         if (*p == 0 || isEol(*p)) {
-            alog(AL_FATAL, "Mobile: %s: unexpected end of definition", mob.id);
+            afatal("Mobile: %s: unexpected end of definition", mob.id);
         }
         p = skipspc(p);
         if (*p == 0 || isEol(*p) || isCommentChar(*p))
@@ -1261,7 +1266,7 @@ title_proc()
 
     // Make message 0 be the splash screen
     if (TextStringFromFile("$title", ifp, STRING_FILE, NULL) != 0) {
-        alog(AL_FATAL, "Could not write splash text to message file");
+        afatal("Could not write splash text to message file");
     }
 }
 
@@ -1343,11 +1348,11 @@ load_rooms()
     }
     rmtab = (_ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameInfo.numRooms);
     if (rmtab == NULL) {
-        alog(AL_FATAL, "Out of memory for room id table");
+        afatal("Out of memory for room id table");
     }
     size_t roomsInFile = fread(rmtab, sizeof(*rmtab), g_gameInfo.numRooms, ifp);
     if (roomsInFile != g_gameInfo.numRooms) {
-        alog(AL_FATAL, "Room table appears to be corrupted. Recompile.");
+        afatal("Room table appears to be corrupted. Recompile.");
     }
 }
 
@@ -1458,11 +1463,11 @@ rank_proc()
             continue;
 
         p = getword(block);
-        if (chkline(p) != 0)
+        if (checkRankLine(p) != 0)
             continue;
 
         if (strlen(Word) < 3 || p - block > RANKL) {
-            alog(AL_FATAL, "Rank %" PRIu64 ": Invalid male rank: %s", g_gameInfo.numRanks + 1,
+            afatal("Rank %" PRIu64 ": Invalid male rank: %s", g_gameInfo.numRanks + 1,
                  Word);
         }
         int n = 0;
@@ -1474,10 +1479,10 @@ rank_proc()
         } while (Word[n - 1] != 0);
 
         p = getword(p);
-        if (chkline(p) != 0)
+        if (checkRankLine(p) != 0)
             continue;
         if (strcmp(Word, "=") != 0 && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
-            alog(AL_FATAL, "Rank %d: Invalid female rank: %s", g_gameInfo.numRanks + 1, Word);
+            afatal("Rank %d: Invalid female rank: %s", g_gameInfo.numRanks + 1, Word);
         }
         if (Word[0] != '=') {
             n = 0;
@@ -1490,7 +1495,7 @@ rank_proc()
         }
 
         p = getword(p);
-        if (chkline(p) != 0)
+        if (checkRankLine(p) != 0)
             continue;
         if (!isdigit(Word[0])) {
             alog(AL_ERROR, "Invalid score value: %s", Word);
@@ -1678,9 +1683,9 @@ state_proc()
     /* Get the weight of the object */
     char *p = getWordAfter("weight=", block);
     if (Word[0] == 0)
-        statinv("incomplete");
+        stateInvalid("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
-        statinv("weight value on");
+        stateInvalid("weight value on");
     state.weight = atoi(Word);
     if (obj2.flags & OF_SCENERY)
         state.weight = wizstr + 1;
@@ -1688,31 +1693,31 @@ state_proc()
     /* Get the value of it */
     p = getWordAfter("value=", p);
     if (Word[0] == 0)
-        statinv("incomplete");
+        stateInvalid("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
-        statinv("value entry on");
+        stateInvalid("value entry on");
     state.value = atoi(Word);
 
     /* Get the strength of it (hit points)*/
     p = getWordAfter("str=", p);
     if (Word[0] == 0)
-        statinv("incomplete");
+        stateInvalid("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
-        statinv("strength entry on");
+        stateInvalid("strength entry on");
     state.strength = atoi(Word);
 
     /* Get the damage it does as a weapon*/
     p = getWordAfter("dmg=", p);
     if (Word[0] == 0)
-        statinv("incomplete");
+        stateInvalid("incomplete");
     if (!isdigit(Word[0]) && Word[0] != '-')
-        statinv("damage entry on");
+        stateInvalid("damage entry on");
     state.damage = atoi(Word);
 
     /* Description */
     p = skiplead("desc=", skipspc(p));
     if (*p == 0)
-        statinv("incomplete");
+        stateInvalid("incomplete");
     if (*p == '\"' || *p == '\'') {
         state.description = getTextString(p, false);
         char quote = *p;
@@ -1726,7 +1731,7 @@ state_proc()
     if (state.description == -1) {
         char tmp[128];
         snprintf(tmp, sizeof(tmp), "desc= ID (%s) on", &Word[0]);
-        statinv(tmp);
+        stateInvalid(tmp);
     }
     while (*(p = skipspc(p)) != 0) {
         p = getword(p);
@@ -1734,7 +1739,7 @@ state_proc()
             break;
         int flag = isoflag2(Word);
         if (flag == -1)
-            statinv("flag on");
+            stateInvalid("flag on");
         state.flags |= bitset(flag);
     }
     checkedfwrite(&state.weight, sizeof(state), 1, ofp2);
@@ -1752,7 +1757,7 @@ objs_proc()
 
     obtab2 = (_OBJ_STRUCT *)AllocateMem(filesize() + 128 * sizeof(obj2));
     if (obtab2 == NULL)
-        alog(AL_FATAL, "Out of memory");
+        afatal("Out of memory");
     objtab2 = obtab2;
 
     if (!nextc(false)) {
@@ -1824,7 +1829,7 @@ objs_proc()
                     g_gameInfo.numMobs++;
                     break;
                 default:
-                    alog(AL_FATAL, "Internal Error: Code for object-parameter '%s' missing",
+                    afatal("Internal Error: Code for object-parameter '%s' missing",
                          obparms[idNo]);
                 }
             }
@@ -1836,7 +1841,7 @@ objs_proc()
         while (continuation) {
             char *p = getTidyBlock(ifp);
             if (!p)
-                alog(AL_FATAL, "object:%s: unexpected end of file", obj2.id);
+                afatal("object:%s: unexpected end of file", obj2.id);
 
             while (*p) {
                 continuation = false;
@@ -1861,7 +1866,7 @@ objs_proc()
         for (;;) {
             char *p = getTidyBlock(ifp);
             if (!p)
-                alog(AL_FATAL, "object:%s: unexpected end of file", obj2.id);
+                afatal("object:%s: unexpected end of file", obj2.id);
             if (!*p || isEol(*p))
                 break;
             state_proc();
@@ -1973,7 +1978,7 @@ trav_proc()
 
         } while (Word[0] != 0);
         if (!ttNumVerbs) {
-            alog(AL_FATAL, "Room has empty verb[s]= line: %s", roomtab->id);
+            afatal("Room has empty verb[s]= line: %s", roomtab->id);
         }
         /* Now process each instruction line */
         do {
@@ -2430,7 +2435,7 @@ lang_proc()
 
         p = getTidyBlock(ifp);
         if (!p)
-            alog(AL_FATAL, "verb:%s: unexpected end of file", verb.id);
+            afatal("verb:%s: unexpected end of file", verb.id);
         if (!*p || isEol(*p)) {
             lastc = 1;
             goto writeslot;
@@ -2637,7 +2642,7 @@ mob_proc1()
 
         p = getTidyBlock(ifp);
         if (!p)
-            alog(AL_FATAL, "mob: !%s: unexpected end of file", mob.id);
+            afatal("mob: !%s: unexpected end of file", mob.id);
 
         if (!canSkipLead("speed=", &p)) {
             mobmis("speed=");
@@ -2719,7 +2724,7 @@ mob_proc1()
     if (g_gameInfo.numMobPersonas != 0) {
         mobp = (_MOB_ENT *)AllocateMem(sizeof(mob) * g_gameInfo.numMobPersonas);
         if (mobp == NULL) {
-            alog(AL_FATAL, "Out of memory");
+            afatal("Out of memory");
         }
         CloseOutFiles();
 
@@ -2749,11 +2754,11 @@ NewContext(const char *filename)
 {
     Context *context = calloc(sizeof(Context), 1);
     if (context == NULL) {
-        alog(AL_FATAL, "Out of memory for context");
+        afatal("Out of memory for context");
     }
 
     if (EINVAL == path_join(context->filename, sizeof(context->filename), gameDir, filename)) {
-        alog(AL_FATAL, "Path length exceeds limit for %s/%s", gameDir, filename);
+        afatal("Path length exceeds limit for %s/%s", gameDir, filename);
     }
 
     return context;
@@ -2801,7 +2806,7 @@ compilePhase(const CompilePhase *phase)
     CloseOutFiles();
 
     if (al_errorCount > 0) {
-        alog(AL_FATAL, "Terminating due to errors.");
+        afatal("Terminating due to errors.");
     }
 }
 
@@ -2861,7 +2866,7 @@ compilerModuleStart(Module *module)
         MakeTextFileName(phase->name, filepath);
         int err = stat(filepath, &sb);
         if (err != 0)
-            alog(AL_FATAL, "Missing file (%d): %s", err, filepath);
+            afatal("Missing file (%d): %s", err, filepath);
     }
 
     return 0;

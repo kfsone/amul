@@ -86,7 +86,7 @@ NewModule(
 
     Module *cur = (Module *)AllocateMem(sizeof(Module));
     if (cur == NULL) {
-        alog(AL_FATAL, "Out of memory");
+		afatal("Out of memory");
         return ENOMEM;
     }
 
@@ -112,7 +112,7 @@ NewModule(
     if (cur->init) {
         error_t err = cur->init(cur);
         if (err != 0) {
-            alog(AL_FATAL, "Module #%d: %s: initialization failed: %d", id, cur->name, err);
+			afatal("Module #%d: %s: initialization failed: %d", id, cur->name, err);
             return err;
         }
     }
