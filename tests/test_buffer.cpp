@@ -132,7 +132,7 @@ TEST(BufferTest, BufferNext){
     EXPECT_EQ('w', buffer.Peek());
     EXPECT_EQ('o', buffer.Next());
     EXPECT_EQ('r', buffer.Next());
-    EXPECT_EQ('l', buffer.Peek());
+    EXPECT_EQ('r', buffer.Peek());
 }
 
 TEST(BufferTest, BufferClose)
