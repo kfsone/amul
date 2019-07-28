@@ -19,10 +19,10 @@ nextAtom(Buffer &buf)
     case AT_End: {
         const auto nextc = buf.Peek();
         if (firstc != 0) {
-			// skip \r or \n after it's compliment
-			if (nextc && nextc != firstc && charToAtom[firstc] == AT_End) {
-				buf.Skip();
-			}
+            // skip \r or \n after it's compliment
+            if (nextc && nextc != firstc && charToAtom[firstc] == AT_End) {
+                buf.Skip();
+            }
         }
         return at;
     }

@@ -47,7 +47,7 @@ usage(const char **argv)
 }
 
 error_t
-ParseCommandLine(const struct CommandLine *cmdline)
+ParseCommandLine(const CommandLine *cmdline)
 {
     const int    argc = cmdline->argc;
     const char **argv = cmdline->argv;
@@ -104,19 +104,19 @@ ParseCommandLine(const struct CommandLine *cmdline)
         path_copier(gameDir, pwd);
     }
 
-    alogLevel((enum LogLevel)desiredLogLevel);
+    alogLevel((LogLevel)desiredLogLevel);
 
     return 0;
 }
 
 error_t
-initCommandLine(struct Module *module)
+initCommandLine(Module *module)
 {
-    return ParseCommandLine((struct CommandLine *)(module->context));
+    return ParseCommandLine((CommandLine *)(module->context));
 }
 
 error_t
-InitCommandLine(const struct CommandLine *cmdline)
+InitCommandLine(const CommandLine *cmdline)
 {
     return NewModule(MOD_CMDLINE, initCommandLine, NULL, NULL, (void *)cmdline, NULL);
 }

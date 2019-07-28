@@ -29,7 +29,7 @@ get_string_hash_and_len(const char *string, const char *stringEnd, size_t *lengt
 //	0 on success and stores the address of the map in *into.
 //
 error_t
-NewHashMap(size_t buckets, struct HashMap **into)
+NewHashMap(size_t buckets, HashMap **into)
 {
     // 'buckets' must be a power of 2. Since a power of 2 is always
     // a single bit, and the first highest value with that bit set,
@@ -40,8 +40,7 @@ NewHashMap(size_t buckets, struct HashMap **into)
     REQUIRE(into);
     CONSTRAIN((buckets & (buckets - 1)) == 0);
 
-    struct HashMap *instance =
-            (struct HashMap *)calloc(sizeof(struct HashMap) + sizeof(struct HashBucket) * buckets, 1);
+    HashMap *instance = (HashMap *)calloc(sizeof(HashMap) + sizeof(HashBucket) * buckets, 1);
     CHECK_ALLOCATION(instance);
 
     instance->capacity = buckets;
@@ -57,14 +56,14 @@ NewHashMap(size_t buckets, struct HashMap **into)
 // Returns EINVAL if `map` is NULL
 //
 error_t
-CloseHashMap(struct HashMap **map)
+CloseHashMap(HashMap **map)
 {
     REQUIRE(map);
     if (!*map)
         return 0;
 
     for (size_t i = 0; i < (*map)->capacity; ++i) {
-        struct HashBucket *bucket = (*map)->buckets[i];
+        HashBucket *bucket = (*map)->buckets[i];
         if (bucket) {
             bucket->capacity = 0;
             free(bucket);
@@ -87,21 +86,21 @@ CloseHashMap(struct HashMap **map)
 //  0 if the entry was added
 //
 error_t
-AddToHash(struct HashMap *map, const char *key, const char *keyEnd, const hash_value_t value)
+AddToHash(HashMap *map, const char *key, const char *keyEnd, const hash_value_t value)
 {
     REQUIRE(map && key && *key);
     REQUIRE(keyEnd == NULL || keyEnd > key);
 
-    size_t             length = 0;
-    hashval_t          hashval = get_string_hash_and_len(key, keyEnd, &length);
-    size_t             bucketNo = hashval % map->capacity;
-    struct HashBucket *bucket = map->buckets[bucketNo];
+    size_t      length = 0;
+    hashval_t   hashval = get_string_hash_and_len(key, keyEnd, &length);
+    size_t      bucketNo = hashval % map->capacity;
+    HashBucket *bucket = map->buckets[bucketNo];
     if (length > MAX_HASH_KEY_STRLEN) {
         return EINVAL;
     }
 
-    struct HashNode *cursor = NULL;
-    size_t           capacity = 0;
+    HashNode *cursor = NULL;
+    size_t    capacity = 0;
     if (bucket) {
         capacity = bucket->capacity;
         for (size_t i = 0; i < capacity; ++i) {
@@ -135,15 +134,15 @@ AddToHash(struct HashMap *map, const char *key, const char *keyEnd, const hash_v
             break;
         }
 
-        size_t newSize = sizeof(struct HashBucket) + sizeof(struct HashNode) * newCapacity;
-        struct HashBucket *newBucket = (struct HashBucket *)realloc(bucket, newSize);
+        size_t      newSize = sizeof(HashBucket) + sizeof(HashNode) * newCapacity;
+        HashBucket *newBucket = (HashBucket *)realloc(bucket, newSize);
         CHECK_ALLOCATION(newBucket);
         bucket = map->buckets[bucketNo] = newBucket;
         bucket->capacity = newCapacity;
 
         cursor = bucket->nodes + capacity;
         // clear all the new data we just gained
-        const size_t newBytes = (newCapacity - capacity) * sizeof(struct HashNode);
+        const size_t newBytes = (newCapacity - capacity) * sizeof(HashNode);
         memset(cursor, 0, newBytes);
     }
 
@@ -165,7 +164,7 @@ AddToHash(struct HashMap *map, const char *key, const char *keyEnd, const hash_v
 //  0 on success and stores the value in *into if into is not NULL.
 //
 error_t
-LookupHashValue(const struct HashMap *map, const char *key, const char *keyEnd, hash_value_t *into)
+LookupHashValue(const HashMap *map, const char *key, const char *keyEnd, hash_value_t *into)
 {
     REQUIRE(map && key);
 
@@ -175,12 +174,12 @@ LookupHashValue(const struct HashMap *map, const char *key, const char *keyEnd, 
         return EINVAL;
     }
 
-    size_t             bucketNo = hashval % map->capacity;
-    struct HashBucket *bucket = map->buckets[bucketNo];
+    size_t      bucketNo = hashval % map->capacity;
+    HashBucket *bucket = map->buckets[bucketNo];
     if (!bucket)
         return ENOENT;
 
-    for (struct HashNode *cur = bucket->nodes; cur != bucket->nodes + bucket->capacity; ++cur) {
+    for (HashNode *cur = bucket->nodes; cur != bucket->nodes + bucket->capacity; ++cur) {
         if (strnicmp(key, cur->key, length) == 0) {
             if (cur->key[length] != 0)
                 continue;

@@ -32,6 +32,7 @@
 #include "amulcom.strings.h"
 
 #include "filesystem.h"
+#include "filesystem.inl.h"
 #include "modules.h"
 #include "system.h"
 
@@ -77,15 +78,13 @@ int    proc;       /* What we are processing	*/
 char * syntab;     /* Synonym table, re-read	*/
 long   wizstr;     /* Wizards strength		*/
 
-struct Task *mytask, *FindTask();
-
 char block[1024];  // scratch pad
 
-struct _OBJ_STRUCT *obtab2, *objtab2, obj2, *osrch, *osrch2;
+_OBJ_STRUCT *obtab2, *objtab2, obj2, *osrch, *osrch2;
 
 // counters
-struct GameInfo   g_gameInfo;
-struct GameConfig g_gameConfig;
+GameInfo   g_gameInfo;
+GameConfig g_gameConfig;
 
 FILE *ifp, *ofp1, *ofp2, *ofp3, *ofp4, *ofp5, *afp;
 
@@ -348,7 +347,7 @@ isrflag(const char *s)
 int
 isroom(const char *s)
 {
-    struct _ROOM_STRUCT *rp = rmtab;
+    _ROOM_STRUCT *rp = rmtab;
     for (int r = 0; r < g_gameInfo.numRooms; r++, rp++) {
         if (strcmp(rp->id, s) == 0)
             return r;
@@ -964,8 +963,7 @@ actualval(const char *s, int n)
 
 void
 badParameter(
-        const struct VMOP *op, size_t paramNo, const char *category, const char *issue,
-        const char *token)
+        const VMOP *op, size_t paramNo, const char *category, const char *issue, const char *token)
 {
     char msg[256];
     if (token) {
@@ -978,7 +976,7 @@ badParameter(
 
 // Check the parameters accompanying a vmop
 char *
-checkParameter(char *p, const struct VMOP *op, size_t paramNo, const char *category, FILE *fp)
+checkParameter(char *p, const VMOP *op, size_t paramNo, const char *category, FILE *fp)
 {
     int32_t      value = -1;
     const int8_t parameterType = op->parameters[paramNo];
@@ -1087,7 +1085,7 @@ write:
 }
 
 char *
-checkParameters(char *p, const struct VMOP *op, FILE *fp, const char *category)
+checkParameters(char *p, const VMOP *op, FILE *fp, const char *category)
 {
     for (size_t i = 0; i < op->parameterCount; i++) {
         if (!(p = checkParameter(p, op, i, category, fp)))
@@ -1097,13 +1095,13 @@ checkParameters(char *p, const struct VMOP *op, FILE *fp, const char *category)
 }
 
 char *
-checkActionParameters(char *p, const struct VMOP *op, FILE *fp)
+checkActionParameters(char *p, const VMOP *op, FILE *fp)
 {
     return checkParameters(p, op, fp, "action");
 }
 
 char *
-checkConditionParameters(char *p, const struct VMOP *op, FILE *fp)
+checkConditionParameters(char *p, const VMOP *op, FILE *fp)
 {
     return checkParameters(p, op, fp, "condition");
 }
@@ -1200,8 +1198,7 @@ getmobmsg(const char *s)
 }
 
 error_t
-consumeMessageFile(
-        FILE *ifp, const char *prefix, enum StringType stype, bool (*checkerFn)(const char *))
+consumeMessageFile(FILE *ifp, const char *prefix, StringType stype, bool (*checkerFn)(const char *))
 {
     if (!nextc(false))
         return ENOENT;
@@ -1344,7 +1341,7 @@ load_rooms()
         fseek(ifp, 0, SEEK_SET);
         rewind(ifp);
     }
-    rmtab = (struct _ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameInfo.numRooms);
+    rmtab = (_ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameInfo.numRooms);
     if (rmtab == NULL) {
         alog(AL_FATAL, "Out of memory for room id table");
     }
@@ -1613,7 +1610,7 @@ rank_proc()
 //    nts = 0;
 //    k = 0;
 //
-//    statab = (struct _OBJ_STATE *)data;
+//    statab = (_OBJ_STATE *)data;
 //    rmtab = (long *)data2;
 //    for (i = 0; i < nouns; i++) {
 //        if (*(objtab2 = (obtab2 + i))->id == 0) {
@@ -1741,7 +1738,7 @@ objs_proc()
     fopenw(objectRoomFile);
     fopena(adjectiveDataFile);
 
-    obtab2 = (struct _OBJ_STRUCT *)AllocateMem(filesize() + 128 * sizeof(obj2));
+    obtab2 = (_OBJ_STRUCT *)AllocateMem(filesize() + 128 * sizeof(obj2));
     if (obtab2 == NULL)
         alog(AL_FATAL, "Out of memory");
     objtab2 = obtab2;
@@ -2113,7 +2110,7 @@ chae_proc(const char *f, char *t)
 }
 
 void
-getVerbFlags(struct _VERB_STRUCT *verbp, char *p)
+getVerbFlags(_VERB_STRUCT *verbp, char *p)
 {
     static char defaultChae[] = {-1, 'C', 'H', 'A', 'E', -1, 'C', 'H', 'A', 'E'};
     memcpy(verbp->precedences, defaultChae, sizeof(verbp->precedences));
@@ -2183,7 +2180,7 @@ lang_proc()
     fopenw(verbTableFile);
     fopenw(verbParamFile);
 
-    vbtab = (struct _VERB_STRUCT *)AllocateMem(filesize() + 128 * sizeof(verb));
+    vbtab = (_VERB_STRUCT *)AllocateMem(filesize() + 128 * sizeof(verb));
     vbptr = vbtab;
 
     size_t of2p = ftell(ofp2);
@@ -2413,7 +2410,7 @@ lang_proc()
 
     endsynt:
         vbslot.ents = 0;
-        vbslot.ptr = (struct _VBTAB *)of3p;
+        vbslot.ptr = (_VBTAB *)of3p;
 
     commands:
         lastc = 'x';
@@ -2592,7 +2589,7 @@ mob_proc1()
 
     // "mob" is the mobile entity
     // "mobp" is a pointer to the runtime portion
-    struct _MOB *mobd = &mob.mob;
+    _MOB *mobd = &mob.mob;
 
     while (!feof(ifp) && nextc(false)) {
         checkErrorCount();
@@ -2708,7 +2705,7 @@ mob_proc1()
     }
 
     if (g_gameInfo.numMobPersonas != 0) {
-        mobp = (struct _MOB_ENT *)AllocateMem(sizeof(mob) * g_gameInfo.numMobPersonas);
+        mobp = (_MOB_ENT *)AllocateMem(sizeof(mob) * g_gameInfo.numMobPersonas);
         if (mobp == NULL) {
             alog(AL_FATAL, "Out of memory");
         }
@@ -2735,10 +2732,10 @@ struct Context {
     const char *lineStart;
 };
 
-struct Context *
+Context *
 NewContext(const char *filename)
 {
-    struct Context *context = calloc(sizeof(struct Context), 1);
+    Context *context = calloc(sizeof(Context), 1);
     if (context == NULL) {
         alog(AL_FATAL, "Out of memory for context");
     }
@@ -2755,9 +2752,7 @@ struct CompilePhase {
     const char *name;
     bool        isText;
     void (*handler)();
-};
-
-struct CompilePhase phases[] = {
+} phases[] = {
         {"title", true, title_proc},      // game "title" (and config)
         {"sysmsg", true, smsg_proc},      // system messages
         {"umsg", true, umsg_proc},        // user-defined string messages
@@ -2775,20 +2770,20 @@ struct CompilePhase phases[] = {
 };
 
 void
-compilePhase(const struct CompilePhase *phase)
+compilePhase(const CompilePhase *phase)
 {
     alog(AL_INFO, "Compiling: %s", phase->name);
     if (phase->isText) {
-        char filename[MAX_PATH_LENGTH];
-        snprintf(filename, sizeof(filename), "%s.txt", phase->name);
-        ifp = OpenGameFile(filename, "r");
+        char filepath[MAX_PATH_LENGTH];
+        MakeTextFileName(phase->name, filepath);
+        ifp = OpenGameFile(filepath, "r");
     }
 
     phase->handler();
 
     if (ifp) {
         fclose(ifp);
-        ifp = NULL;
+        ifp = nullptr;
     }
 
     CloseOutFiles();
@@ -2807,7 +2802,7 @@ compileGame()
 }
 
 error_t
-compilerModuleInit(struct Module *module)
+compilerModuleInit(Module *module)
 {
     snprintf(
             compilerVersion, sizeof(compilerVersion), "AMULCom v%d.%03d (%8s)", VERSION, REVISION,
@@ -2815,12 +2810,26 @@ compilerModuleInit(struct Module *module)
     return 0;
 }
 
-error_t
-compilerModuleStart(struct Module *module)
+void
+setProcessTitle(const char *title)
 {
+#if defined(AMIGA)
     // set process name
     mytask = FindTask(0L);
     mytask->tc_Node.ln_Name = compilerVersion;
+    return;
+#endif
+#if defined(_MSC_VER)
+    (void)title;  /// TODO: Implement Win32
+#else
+    (void)title;  /// TODO: Implement posix version
+#endif
+}
+
+error_t
+compilerModuleStart(Module *module)
+{
+    setProcessTitle(compilerVersion);
     alog(AL_INFO, "AMUL Compiler %s", compilerVersion);
 
     alog(AL_DEBUG, "Game Directory: %s", gameDir);
@@ -2828,18 +2837,16 @@ compilerModuleStart(struct Module *module)
     alog(AL_DEBUG, "Check DMoves  : %s", checkDmoves ? "true" : "false");
     alog(AL_DEBUG, "Reuse Rooms   : %s", reuseRoomData ? "true" : "false");
 
-    struct stat sb;
+    struct stat sb {
+        0
+    };
 
-    for (const struct CompilePhase *phase = &phases[0]; phase->name; ++phase) {
+    for (const CompilePhase *phase = &phases[0]; phase->name; ++phase) {
         if (phase->isText == false)
             continue;
 
-        char filename[MAX_PATH_LENGTH];
-        snprintf(filename, sizeof(filename), "%s.txt", phase->name);
-
         char filepath[MAX_PATH_LENGTH];
-        safe_gamedir_joiner(filename);
-
+        MakeTextFileName(phase->name, filepath);
         int err = stat(filepath, &sb);
         if (err != 0)
             alog(AL_FATAL, "Missing file (%d): %s", err, filepath);
@@ -2849,7 +2856,7 @@ compilerModuleStart(struct Module *module)
 }
 
 error_t
-compilerModuleClose(struct Module *module, error_t err)
+compilerModuleClose(Module *module, error_t err)
 {
     CloseOutFiles();
     CloseFile(&ifp);

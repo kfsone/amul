@@ -11,8 +11,8 @@
 
 #include <h/amigastubs.h>
 
-struct Module *s_modulesHead;
-struct Module *s_modulesTail;
+Module *s_modulesHead;
+Module *s_modulesTail;
 
 bool s_modulesInitialized;
 bool s_modulesClosed;
@@ -40,7 +40,7 @@ InitModules()
 error_t
 StartModules()
 {
-    for (struct Module *cur = s_modulesHead; cur; cur = (struct Module *)cur->links.next) {
+    for (Module *cur = s_modulesHead; cur; cur = (Module *)cur->links.next) {
         if (cur->start) {
             alog(AL_DEBUG, "Starting Module #%d: %s", cur->id, cur->name);
             error_t err = cur->start(cur);
@@ -57,10 +57,10 @@ StartModules()
 void
 CloseModules(error_t err)
 {
-    struct Module *prev = nullptr;
-    for (struct Module *cur = s_modulesTail; cur; cur = prev) {
+    Module *prev = nullptr;
+    for (Module *cur = s_modulesTail; cur; cur = prev) {
         alog(AL_DEBUG, "Closing Module #%d: %s", cur->id, cur->name);
-        prev = (struct Module *)cur->links.prev;
+        prev = (Module *)cur->links.prev;
         error_t reterr = CloseModule(cur, err);
         if (reterr != 0) {
             fprintf(stderr, "*** INTERNAL ERROR: Module %s failed to terminate with %d\n",
@@ -73,8 +73,8 @@ CloseModules(error_t err)
 
 error_t
 NewModule(
-        enum ModuleID id, moduleinit_fn init /*opt*/, modulestart_fn start /*opt*/,
-        moduleclose_fn close /*opt*/, void *context /*opt*/, struct Module **ptr /*opt*/)
+        ModuleID id, moduleinit_fn init /*opt*/, modulestart_fn start /*opt*/,
+        moduleclose_fn close /*opt*/, void *context /*opt*/, Module **ptr /*opt*/)
 {
     REQUIRE(id && id < MAX_MODULE_ID);
     REQUIRE(context || (init || start || close));
@@ -84,7 +84,7 @@ NewModule(
         return EEXIST;
     }
 
-    Module *cur = (struct Module *)AllocateMem(sizeof(struct Module));
+    Module *cur = (Module *)AllocateMem(sizeof(Module));
     if (cur == NULL) {
         alog(AL_FATAL, "Out of memory");
         return ENOMEM;
@@ -94,7 +94,7 @@ NewModule(
     cur->id = id;
     cur->name = moduleNames[id];
     cur->links.next = NULL;
-    cur->links.prev = (struct DoubleLinkedNode *)s_modulesTail;
+    cur->links.prev = (DoubleLinkedNode *)s_modulesTail;
     cur->init = init;
     cur->start = start;
     cur->close = close;
@@ -104,8 +104,8 @@ NewModule(
         s_modulesHead = cur;
         s_modulesTail = cur;
     } else {
-        s_modulesTail->links.next = (struct DoubleLinkedNode *)cur;
-        cur->links.prev = (struct DoubleLinkedNode *)s_modulesTail;
+        s_modulesTail->links.next = (DoubleLinkedNode *)cur;
+        cur->links.prev = (DoubleLinkedNode *)s_modulesTail;
         s_modulesTail = cur;
     }
 
@@ -122,10 +122,10 @@ NewModule(
     return 0;
 }
 
-struct Module *
-GetModule(enum ModuleID id)
+Module *
+GetModule(ModuleID id)
 {
-    for (struct Module *cur = s_modulesHead; cur; cur = (struct Module *)cur->links.next) {
+    for (Module *cur = s_modulesHead; cur; cur = (Module *)cur->links.next) {
         if (id == cur->id)
             return cur;
     }
@@ -133,14 +133,14 @@ GetModule(enum ModuleID id)
 }
 
 error_t
-CloseModule(struct Module *module, error_t err)
+CloseModule(Module *module, error_t err)
 {
     REQUIRE(module);
 
     // Make sure this is a registered module
-    struct Module *cur = s_modulesHead;
+    Module *cur = s_modulesHead;
     while (cur && cur != module)
-        cur = (struct Module *)cur->links.next;
+        cur = (Module *)cur->links.next;
     if (cur != module)
         return EFAULT;
 
@@ -153,9 +153,9 @@ CloseModule(struct Module *module, error_t err)
     if (module->links.next)
         module->links.next->prev = module->links.prev;
     if (s_modulesHead == module)
-        s_modulesHead = (struct Module *)module->links.next;
+        s_modulesHead = (Module *)module->links.next;
     if (s_modulesTail == module)
-        s_modulesTail = (struct Module *)module->links.prev;
+        s_modulesTail = (Module *)module->links.prev;
 
     memset(module, 0, sizeof(*module));
 
@@ -165,7 +165,7 @@ CloseModule(struct Module *module, error_t err)
 }
 
 error_t
-RegisterContextModule(enum ModuleID id, void *context)
+RegisterContextModule(ModuleID id, void *context)
 {
     return NewModule(id, NULL, NULL, NULL, context, NULL);
 }

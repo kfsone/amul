@@ -2,39 +2,34 @@
 
 #define REF(name) *name[static 0]
 
-struct AtomSet
-{
-    Atom        REF(atoms);
-    size_t      numAtoms;
-    Atom        REF(cur), REF(end);
+struct AtomSet {
+    Atom   REF(atoms);
+    size_t numAtoms;
+    Atom   REF(cur), REF(end);
 };
 
 typedef bool (*ASPredicate)(const Atom REF(*cur), const Atom REF(end))
 
 // PREDICATE declares a function prototype as an atom predicate
-#define PREDICATE(name)                         \
-bool                                            \
-name(const Atom REF(*cur), const Atom REF(end))
+#define PREDICATE(name) bool name(const Atom REF(*cur), const Atom REF(end))
 
 // TYPE_PREDICATE creates an instance of a PREDICATE that consumes
 // one+ instances of things that match an atom type.
-#define TYPE_PREDICATE(name, type)              \
-PREDICATE(name)                                 \
-{                                               \
-    if ((*cur) >= end || !type(**cur))          \
-        return false;                           \
-    do {                                        \
-        ++cur;                                  \
-    } while ((*cur) < end && type(**cur));      \
-    return true;                                \
-}
+#define TYPE_PREDICATE(name, type)                                                                 \
+    PREDICATE(name)                                                                                \
+    {                                                                                              \
+        if ((*cur) >= end || !type(**cur))                                                         \
+            return false;                                                                          \
+        do {                                                                                       \
+            ++cur;                                                                                 \
+        } while ((*cur) < end && type(**cur));                                                     \
+        return true;                                                                               \
+    }
 
-TYPE_PREDICATE(aAlpha, isalpha)
-TYPE_PREDICATE(aDigit, isdigit)
-TYPE_PREDICATE(aSpace, isblank)
+        TYPE_PREDICATE(aAlpha, isalpha) TYPE_PREDICATE(aDigit, isdigit)
+                TYPE_PREDICATE(aSpace, isblank)
 
-bool
-iseol(const char REF(p))
+                        bool iseol(const char REF(p))
 {
     return (p == '\n' || p == '\r');
 }
@@ -50,11 +45,8 @@ PREDICATE(aEol)
     return true;
 }
 
-#define SYMBOL_PREDICATE(name, symbol)          \
-PREDICATE(name)                                 \
-{                                               \
-    return symbolPredicate(cur, end, symbol);   \
-}
+#define SYMBOL_PREDICATE(name, symbol)                                                             \
+    PREDICATE(name) { return symbolPredicate(cur, end, symbol); }
 
 bool
 symbolPredicate(const Atom **cur, const Atom *end, char symbol)
@@ -83,7 +75,7 @@ PREDICATE(aFloat)
         }
         return false;
     }
-    return AtomSetConsume(cur, end, { aDot, aDigit, NULL });
+    return AtomSetConsume(cur, end, {aDot, aDigit, NULL});
 }
 
 PREDICATE(aNumber)
@@ -136,7 +128,7 @@ aStringLit(const Atom **cur, const Atom *end)
 {
     if (!symbolPredicate(cur, end, '"') && !symbolPredicate(cur, end, '\''))
         return false;
-    const char quote = **cur;
+    const char  quote = **cur;
     const Atom *pos = cur + 1;
     while (pos < end) {
         if (iseol(*pos))
@@ -155,11 +147,10 @@ aStringLit(const Atom **cur, const Atom *end)
     return true;
 }
 
-
 bool
 AtomSetConsume(const Atom REF(*cur), const Atom REF(end), ASPredicate REF(predicates))
 {
-    Atom REF = *cur;
+    Atom         REF = *cur;
     ASPredicate *pred = predicates;
     for (*pred) {
         if (pos >= as->end)
@@ -171,4 +162,3 @@ AtomSetConsume(const Atom REF(*cur), const Atom REF(end), ASPredicate REF(predic
     *cur = pos;
     return true;
 }
-
