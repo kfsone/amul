@@ -1,6 +1,6 @@
 #include "buffer.h"
-#include <gtest/gtest.h>
 #include "gtest_aliases.h"
+#include <gtest/gtest.h>
 
 class TestBuffer : public Buffer
 {
@@ -19,8 +19,8 @@ TEST(BufferTest, NewBuffer)
     EXPECT_EQ(nul_buf.Pos(), nullptr);
     EXPECT_EQ(nul_buf.End(), nullptr);
 
-    const char   *data = "hello";
-    const Buffer ptr_buf{data, data+5};
+    const char * data{"hello"};
+    const Buffer ptr_buf{data, data + 5};
     EXPECT_EQ(data, ptr_buf.Start());
     EXPECT_EQ(data, ptr_buf.Pos());
     EXPECT_EQ(data + 5, ptr_buf.End());
@@ -28,26 +28,26 @@ TEST(BufferTest, NewBuffer)
 
 TEST(BufferTest, BufferEof)
 {
-	const char *data = "a";
-    Buffer buffer{data, data+1};
+    const char *data{"a"};
+    Buffer      buffer{data, data + 1};
     EXPECT_FALSE(buffer.Eof());
-	buffer.Skip();
-	EXPECT_TRUE(buffer.Eof());
+    buffer.Skip();
+    EXPECT_TRUE(buffer.Eof());
 }
 
 TEST(BufferTest, BufferAssign)
 {
-	Buffer buffer{};
-	const char *text = "hello";
-	buffer.Assign(text, 0);
-	EXPECT_EQ(text, buffer.Start());
+    Buffer      buffer{};
+    const char *text{"hello"};
+    buffer.Assign(text, 0);
+    EXPECT_EQ(text, buffer.Start());
     EXPECT_EQ(text, buffer.Pos());
     EXPECT_EQ(text, buffer.End());
 
-	buffer.Assign(text+1, 4);
-    EXPECT_EQ(text+1, buffer.Start());
-    EXPECT_EQ(text+1, buffer.Pos());
-    EXPECT_EQ(text+5, buffer.End());
+    buffer.Assign(text + 1, 4);
+    EXPECT_EQ(text + 1, buffer.Start());
+    EXPECT_EQ(text + 1, buffer.Pos());
+    EXPECT_EQ(text + 5, buffer.End());
 }
 
 TEST(BufferTest, BufferPeek)
@@ -72,65 +72,75 @@ TEST(BufferTest, BufferPeek)
     EXPECT_EQ(&data[2], buffer.Pos());
 }
 
-TEST(BufferTest, BufferNext)
+TEST(BufferTest, BufferRead)
 {
     char   data[] = {'a', 'z', '\0'};
     Buffer buffer = Buffer{data, data};
 
     // Test with zero-width range
-    EXPECT_EQ(0, buffer.Next());
+    EXPECT_EQ(0, buffer.Read());
     EXPECT_EQ(buffer.Start(), buffer.Pos());
 
     buffer = Buffer{data, data + 1};
-    EXPECT_EQ('a', buffer.Next());
-    EXPECT_EQ(0, buffer.Next());
+    EXPECT_EQ('a', buffer.Read());
+    EXPECT_EQ(0, buffer.Read());
     EXPECT_EQ(buffer.Start() + 1, buffer.Pos());
 
     buffer = Buffer{data, data + 3};
-    EXPECT_EQ('a', buffer.Next());
-    EXPECT_EQ('z', buffer.Next());
+    EXPECT_EQ('a', buffer.Read());
+    EXPECT_EQ('z', buffer.Read());
     EXPECT_EQ(buffer.Start() + 2, buffer.Pos());
     EXPECT_FALSE(buffer.Eof());
-    EXPECT_EQ('\0', buffer.Next());
+    EXPECT_EQ('\0', buffer.Read());
     EXPECT_EQ(buffer.Start() + 3, buffer.Pos());
-    EXPECT_EQ('\0', buffer.Next());
+    EXPECT_EQ('\0', buffer.Read());
     EXPECT_EQ(buffer.Start() + 3, buffer.Pos());
     EXPECT_TRUE(buffer.Eof());
 }
 
 TEST(BufferTest, BufferSkip)
 {
-    char   data[] = {"abXc"};
-    Buffer buffer = Buffer{data, data};
+    const char *data{"abXc"};
+    Buffer      buffer = Buffer{data, data};
 
     // Confirm that it honors eof
     buffer.Skip();
     EXPECT_EQ(buffer.Start(), buffer.Pos());
 
-    buffer = Buffer{data, data+4};
+    buffer = Buffer{data, data + 4};
     buffer.Skip();
     EXPECT_EQ('b', buffer.Peek());
     buffer.Skip();
     buffer.Skip();
-    EXPECT_EQ('c', buffer.Next());
+    EXPECT_EQ('c', buffer.Read());
 }
 
 TEST(BufferTest, BufferSize)
 {
-    char   data[16];
-    Buffer buffer{data, data};
+    const char data[16]{};  // empty buffer
+    Buffer     buffer{data, data};
     EXPECT_EQ(0, buffer.Size());
 
+    static_assert(sizeof(data) > 15);
     buffer = Buffer{data, data + 15};
     EXPECT_EQ(15, buffer.Size());
 }
 
+TEST(BufferTest, BufferNext){
+    const char *data { "world" };
+    Buffer buffer{data, data+5};
+    EXPECT_EQ('w', buffer.Peek());
+    EXPECT_EQ('o', buffer.Next());
+    EXPECT_EQ('r', buffer.Next());
+    EXPECT_EQ('l', buffer.Peek());
+}
+
 TEST(BufferTest, BufferClose)
 {
-	const char* text = "hello";
-	Buffer buffer { text, text + 5 };
-	buffer.Close();
+    const char *text = "hello";
+    Buffer      buffer{text, text + 5};
+    buffer.Close();
     EXPECT_EQ(buffer.Start(), nullptr);
     EXPECT_EQ(buffer.Pos(), nullptr);
-	EXPECT_EQ(buffer.End(), nullptr);
+    EXPECT_EQ(buffer.End(), nullptr);
 }
