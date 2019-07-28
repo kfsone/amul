@@ -28,7 +28,7 @@ getStringID(size_t length)
     uint64_t offset = ftell(stringFP);
     uint64_t maxOffset = 1ULL << 32;
     if (offset >= maxOffset || offset + length >= maxOffset || offset + length < offset)
-        alog(AL_FATAL, "Text data exceeds 4GB");
+		afatal("Text data exceeds 4GB");
     return (stringid_t)(offset & 0xffffffff);
 }
 
@@ -55,7 +55,7 @@ startStringModule(Module *module)
 {
     error_t err = NewHashMap(1024, &stringIDs);
     if (err != 0)
-        alog(AL_FATAL, "Unable to create string table");
+		afatal("Unable to create string table");
 
     stringFP = OpenGameFile(stringTextFile, "w");  // Note: text mode, translate \r please
     REQUIRE(stringFP);
@@ -92,7 +92,7 @@ InitStrings()
 #define check_write_str(op, buffer, length, fp)                                                    \
     do {                                                                                           \
         if (fwrite(buffer, 1, (length), fp) != (length))                                           \
-            alog(AL_FATAL, "Unable to write %s", op);                                              \
+            afatal("Unable to write %s", op);                                              \
     } while (0)
 
 error_t
