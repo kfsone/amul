@@ -126,9 +126,10 @@ TEST(BufferTest, BufferSize)
     EXPECT_EQ(15, buffer.Size());
 }
 
-TEST(BufferTest, BufferNext){
-    const char *data { "world" };
-    Buffer buffer{data, data+5};
+TEST(BufferTest, BufferNext)
+{
+    const char *data{"world"};
+    Buffer      buffer{data, data + 5};
     EXPECT_EQ('w', buffer.Peek());
     EXPECT_EQ('o', buffer.Next());
     EXPECT_EQ('r', buffer.Next());
