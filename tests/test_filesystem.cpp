@@ -1,4 +1,5 @@
 #include "filesystem.h"
+#include "filesystem.inl.h"
 #include "sourcefile.h"
 #include <gtest/gtest.h>
 #include "gtest_aliases.h"
@@ -157,39 +158,38 @@ TEST(FilesystemTest, FileMapping)
     EXPECT_NULL(data);
 }
 
-extern error_t makeTextFileName(struct SourceFile *, const char*);
-
 TEST(FilesystemTest, MakeTestFileNameChecks)
 {
-    SourceFile sf = {{0}};
-    EXPECT_ERROR(EINVAL, makeTextFileName(NULL, NULL));
-    EXPECT_ERROR(EINVAL, makeTextFileName(NULL, "a"));
-    EXPECT_ERROR(EINVAL, makeTextFileName(&sf, NULL));
+	char filepath[MAX_PATH_LENGTH] {};
 
-	EXPECT_STREQ("", gameDir);
-	EXPECT_STREQ("", sf.filepath);
+    EXPECT_ERROR(EINVAL, MakeTextFileName(nullptr, filepath));
+	EXPECT_STREQ("", filepath);
+
+	// When gamedir is actually empty, it's invalid to append a path
+    EXPECT_STREQ("", gameDir);
+    EXPECT_ERROR(EINVAL, MakeTextFileName("/a/b/c", filepath));
+    EXPECT_STREQ(filepath, "");
 }
 
 TEST(FilesystemTest, MakeTestFileName)
 {
-    SourceFile sf = {{0}};
-    EXPECT_ERROR(EINVAL, makeTextFileName(&sf, "/a/b/c"));
-	EXPECT_STREQ(sf.filepath, "");
-    strcpy(gameDir, ".");
-    EXPECT_ERROR(EINVAL, makeTextFileName(&sf, NULL));
-	EXPECT_STREQ("", sf.filepath);
-    EXPECT_SUCCESS(makeTextFileName(&sf, "/a/b/c"));
-	EXPECT_STREQ(sf.filepath, "./a/b/c.txt");
+	char filepath[MAX_PATH_LENGTH] {0};
 
+    strcpy(gameDir, ".");
+    EXPECT_ERROR(EINVAL, MakeTextFileName(nullptr, filepath));
+	EXPECT_STREQ(filepath, "");
+    EXPECT_SUCCESS(MakeTextFileName("/a/b/c", filepath));
+	EXPECT_STREQ(filepath, "./a/b/c.txt");
     gameDir[0] = 0;
 }
 
 TEST(FilesystemTest, MakeTestFileNameRoot)
 {
-    SourceFile sf = {{0}};
+    char filepath[MAX_PATH_LENGTH]{0};
+
 	strcpy(gameDir, "/");
-    EXPECT_SUCCESS(makeTextFileName(&sf, "a/b/c"));
-    EXPECT_STREQ(sf.filepath, "/a/b/c.txt");
+    EXPECT_SUCCESS(MakeTextFileName("a/b/c", filepath));
+    EXPECT_STREQ(filepath, "/a/b/c.txt");
 	gameDir[0] = 0;
 }
 

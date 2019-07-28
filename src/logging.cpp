@@ -14,17 +14,17 @@ uint32_t al_errorCount = 0;
 static const char *levelName[MAX_LOG_LEVEL + 1] = {"Debug", "Info",  "Note",    "WARNING",
                                                    "ERROR", "FATAL", "DISABLED"};
 
-static enum LogLevel s_logLevel = MAX_LOG_LEVEL;
+static LogLevel s_logLevel = MAX_LOG_LEVEL;
 
 error_t
-loggingModuleInit(struct Module *module)
+loggingModuleInit(Module *module)
 {
     s_logLevel = AL_INFO;
     return 0;
 }
 
 error_t
-loggingModuleStart(struct Module *module)
+loggingModuleStart(Module *module)
 {
     if (!GetModule(MOD_CMDLINE)) {
         fprintf(stderr, "*** FATAL: Logging module started before cmdline was registered\n");
@@ -38,7 +38,7 @@ loggingModuleStart(struct Module *module)
 }
 
 error_t
-loggingModuleClose(struct Module *module, error_t err)
+loggingModuleClose(Module *module, error_t err)
 {
     alog(AL_DEBUG, "Logging disabled");
     s_logLevel = MAX_LOG_LEVEL;
@@ -53,7 +53,7 @@ InitLogging()
 }
 
 void
-alogLevel(enum LogLevel level)
+alogLevel(LogLevel level)
 {
     if (level < MAX_LOG_LEVEL)
         s_logLevel = level;
@@ -66,7 +66,7 @@ alogGetLevelName()
 }
 
 void
-alog(enum LogLevel level, const char *fmt, ...)
+alog(LogLevel level, const char *fmt, ...)
 {
     if (level < MAX_LOG_LEVEL && level >= s_logLevel) {
         if (level != AL_INFO)

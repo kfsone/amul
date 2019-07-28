@@ -3,12 +3,13 @@
 
 #include "buffer.h"
 #include "filesystem.h"
+#include "filesystem.inl.h"
 #include "sourcefile.h"
 
 #include <fcntl.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -101,8 +102,8 @@ PathJoin(char *into, size_t limit, const char *lhs, const char *rhs)
 
     size_t  length = 0;
     error_t err = PathCopy(into, limit, &length, lhs);
-	if (err != 0)
-		return err;
+    if (err != 0)
+        return err;
     if (length == 0) {
         into[length++] = '.';
     }
@@ -203,17 +204,8 @@ CloseFileMapping(void **datap, size_t length)
         *datap = NULL;
 }
 
-struct SourceFile s_sourceFile;
-bool              s_sourceFileInUse;
-
-error_t
-makeTextFileName(struct SourceFile *sourcefile, const char *filename)
-{
-    REQUIRE(sourcefile && filename);
-    char txtFilename[MAX_PATH_LENGTH];
-    snprintf(txtFilename, sizeof(txtFilename), "%s.txt", filename);
-    return path_joiner(sourcefile->filepath, gameDir, txtFilename);
-}
+SourceFile s_sourceFile;
+bool       s_sourceFileInUse;
 
 error_t
 GetFilesSize(const char *filepath, size_t *sizep)
@@ -229,16 +221,16 @@ GetFilesSize(const char *filepath, size_t *sizep)
 }
 
 error_t
-NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
+NewSourceFile(const char *filename, SourceFile **sourcefilep)
 {
     REQUIRE(filename && *filename && sourcefilep);
     if (s_sourceFileInUse)
         return ENFILE;
 
-    struct SourceFile *sourcefile = &s_sourceFile;
+    SourceFile *sourcefile = &s_sourceFile;
     memset(sourcefile, 0, sizeof(*sourcefile));
 
-    error_t err = makeTextFileName(sourcefile, filename);
+    error_t err = MakeTextFileName(filename, sourcefile->filepath);
     if (err != 0) {
         alog(AL_FATAL, "Full filename too long for %s/%s", gameDir, filename);
         return err;
@@ -256,7 +248,7 @@ NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
         return err;
     }
 
-	sourcefile->buffer.Assign(static_cast<const char*>(sourcefile->mapping), sourcefile->size);
+    sourcefile->buffer.Assign(static_cast<const char *>(sourcefile->mapping), sourcefile->size);
     s_sourceFileInUse = true;
     *sourcefilep = sourcefile;
 
@@ -264,7 +256,7 @@ NewSourceFile(const char *filename, struct SourceFile **sourcefilep)
 }
 
 void
-CloseSourceFile(struct SourceFile **sourcefilep)
+CloseSourceFile(SourceFile **sourcefilep)
 {
     if (sourcefilep && *sourcefilep) {
         (*sourcefilep)->buffer.Close();

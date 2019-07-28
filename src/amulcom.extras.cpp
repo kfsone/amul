@@ -35,18 +35,3 @@ striplead(const char *lead, char *from)
     } while (*(from++));
     return true;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-// AmigaStubs
-
-#include <h/amigastubs.h>
-
-static struct Task myTask;
-
-struct Task *
-FindTask(const char *name)
-{
-    if (name != NULL)
-        return NULL;
-    return &myTask;
-}

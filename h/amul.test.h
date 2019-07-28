@@ -42,5 +42,4 @@
             return ENOMEM;                                                                         \
     } while (0)
 
-
 #endif  // AMUL_H_AMUL_TEST_H
