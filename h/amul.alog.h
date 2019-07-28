@@ -45,18 +45,18 @@ enum LogLevel {
     MAX_LOG_LEVEL,
 };
 
-extern uint32_t al_errorCount;
-extern void     alog(LogLevel level, const char *fmt, ...);
+extern uint32_t    al_errorCount;
+extern void        alog(LogLevel level, const char *fmt, ...);
 extern void        alogLevel(LogLevel level);
 extern LogLevel    alogGetLevel();
 extern const char *alogGetLevelName();
 
 template <typename... Args>
-[[noreturn]] void afatal(const char *fmt, Args... args)
+[[noreturn]] void
+afatal(const char *fmt, Args... args)
 {
-	alog(AL_FATAL, fmt, args...);
+    alog(AL_FATAL, fmt, args...);
 }
-
 
 extern error_t InitLogging();
 

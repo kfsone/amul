@@ -164,7 +164,7 @@ NewFileMapping(const char *filepath, void **datap, size_t size)
     HANDLE maph = CreateFileMapping(osfh, NULL, PAGE_READONLY, 0, 0, NULL);
     close(fd);
     if (!maph) {
-		afatal("Unable to map file %s", filepath);
+        afatal("Unable to map file %s", filepath);
         return ENOENT;
     }
     void *data = MapViewOfFile(maph, FILE_MAP_READ, 0, 0, 0);
@@ -172,14 +172,14 @@ NewFileMapping(const char *filepath, void **datap, size_t size)
 #else
     void *data = mmap(NULL, size, PROT_READ, MMAP_FLAGS, fd, 0);
     if (data == MAP_FAILED) {
-		afatal("Failed to load file %s: %d: %s", filepath, errno, strerror(errno));
+        afatal("Failed to load file %s: %d: %s", filepath, errno, strerror(errno));
         return errno;
     }
     close(fd);
 #endif
 
     if (data == NULL) {
-		afatal("Unable to load file %s", filepath);
+        afatal("Unable to load file %s", filepath);
         return EINVAL;
     }
 
@@ -195,7 +195,7 @@ CloseFileMapping(void **datap, size_t length)
 #if defined(_MSC_VER)
         BOOL result = UnmapViewOfFile(*datap);
         if (!result)
-			afatal("Error closing file mapping");
+            afatal("Error closing file mapping");
 #else
         munmap(*datap, length);
 #endif
@@ -232,7 +232,7 @@ NewSourceFile(const char *filename, SourceFile **sourcefilep)
 
     error_t err = MakeTextFileName(filename, sourcefile->filepath);
     if (err != 0) {
-		afatal("Full filename too long for %s/%s", gameDir, filename);
+        afatal("Full filename too long for %s/%s", gameDir, filename);
         return err;
     }
 

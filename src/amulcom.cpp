@@ -417,8 +417,7 @@ set_adj()
     obj2.adj = g_gameInfo.numAdjectives++;
 }
 
-[[noreturn]]
-void
+[[noreturn]] void
 objectInvalid(const char *s)
 {
     afatal("Object #%d: %s: invalid %s: %s", g_gameInfo.numNouns + 1, obj2.id, s, Word);
@@ -561,12 +560,11 @@ checkRankLine(const char *p)
     return true;
 }
 
-[[noreturn]]
-void
+[[noreturn]] void
 stateInvalid(const char *s)
 {
-    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameInfo.numNouns + 1,
-         obj2.id, s, block);
+    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameInfo.numNouns + 1, obj2.id,
+           s, block);
 }
 
 int
@@ -662,7 +660,8 @@ preact(char *s)
 }
 
 /* Check a numeric arguments */
-long chknum(const char *s)
+long
+chknum(const char *s)
 {
     long n;
 
@@ -964,8 +963,7 @@ actualval(const char *s, int n)
     return -2; /* It was no actual! */
 }
 
-[[noreturn]]
-void
+[[noreturn]] void
 badParameter(
         const VMOP *op, size_t paramNo, const char *category, const char *issue, const char *token)
 {
@@ -975,7 +973,7 @@ badParameter(
         issue = msg;
     }
     afatal("%s=%s: %s=%s: parameter#%" PRIu64 ": %s", proc ? "verb" : "room",
-         proc ? verb.id : roomtab->id, category, op->name, paramNo + 1, issue);
+           proc ? verb.id : roomtab->id, category, op->name, paramNo + 1, issue);
 }
 
 // Check the parameters accompanying a vmop
@@ -1156,8 +1154,7 @@ iswtype(char *s)
 }
 
 /* Declare a PROBLEM, and which verb its in! */
-[[noreturn]]
-void
+[[noreturn]] void
 vbprob(const char *s, const char *s2)
 {
     afatal("Verb: %s line: '%s': %s", verb.id, s2, s);
@@ -1363,29 +1360,29 @@ room_proc()
     if (reuseRoomData)
         return;
 
-	// Seek to the next non-whitespace, non-comment character. The 'true' will
-	// make it an error not to find one.
+    // Seek to the next non-whitespace, non-comment character. The 'true' will
+    // make it an error not to find one.
     nextc(true);
 
-	// Open the output file as ofp1
+    // Open the output file as ofp1
     fopenw(roomDataFile);
 
     do {
-		// Terminate if we've reached the error limit.
+        // Terminate if we've reached the error limit.
         checkErrorCount();
 
-		// Seek to the next useful character (we'll already be there first time)
+        // Seek to the next useful character (we'll already be there first time)
         if (!nextc(false))
             break;
 
-		// Fetch all the text from here to the next double-eol (end of paragraph),
-		// convert tabs in it to spaces, etc.
+        // Fetch all the text from here to the next double-eol (end of paragraph),
+        // convert tabs in it to spaces, etc.
         char *p = getTidyBlock(ifp);
         if (!p)
             continue;
 
-		// Copy the text at 'p' into 'Word', unless it is prefixed with "room=",
-		// in which case first skip the prefix.
+        // Copy the text at 'p' into 'Word', unless it is prefixed with "room=",
+        // in which case first skip the prefix.
         p = getWordAfter("room=", p);
         if (strlen(Word) < 3 || strlen(Word) > IDL) {
             *p = 0;
@@ -1394,7 +1391,7 @@ room_proc()
             continue;
         }
 
-		// Because 'room' is a global, we have to clear it out.
+        // Because 'room' is a global, we have to clear it out.
         memset(&room, 0, sizeof(room));
         strncpy(room.id, Word, sizeof(room.id));
 
@@ -1425,7 +1422,7 @@ room_proc()
             room.flags |= bitset(no);
         }
 
-		// Everything else in the current block is the room description.
+        // Everything else in the current block is the room description.
         error_t err = TextStringFromFile(NULL, ifp, STRING_ROOM_DESC, &room.descid);
         if (err != 0) {
             alog(AL_ERROR, "room:%s: Unable to write description", room.id);
@@ -1467,8 +1464,7 @@ rank_proc()
             continue;
 
         if (strlen(Word) < 3 || p - block > RANKL) {
-            afatal("Rank %" PRIu64 ": Invalid male rank: %s", g_gameInfo.numRanks + 1,
-                 Word);
+            afatal("Rank %" PRIu64 ": Invalid male rank: %s", g_gameInfo.numRanks + 1, Word);
         }
         int n = 0;
         do {
@@ -1829,8 +1825,7 @@ objs_proc()
                     g_gameInfo.numMobs++;
                     break;
                 default:
-                    afatal("Internal Error: Code for object-parameter '%s' missing",
-                         obparms[idNo]);
+                    afatal("Internal Error: Code for object-parameter '%s' missing", obparms[idNo]);
                 }
             }
         }
