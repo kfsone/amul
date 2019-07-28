@@ -92,8 +92,8 @@ alog(LogLevel level, const char *fmt, ...)
             break;
         }
     }
-	if (level >= AL_FATAL) {
+    if (level >= AL_FATAL) {
         DEBUG_BREAK;
         Terminate(-1);
-	}
+    }
 }
