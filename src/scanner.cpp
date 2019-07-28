@@ -12,9 +12,9 @@ the domain-specific code can consume them meaningfully.
 
 Rooms are a simple example.
 
-	room=firstroom  light small
-	Welcome to the first room.
-	This is my description which can run many lines.
+    room=firstroom  light small
+    Welcome to the first room.
+    This is my description which can run many lines.
 
 Because AMUL is line and paragraph based, we can be opinionated about some parts
 of the process. For a start, we can recognize that the grammar will be line based
@@ -26,12 +26,12 @@ My current thinking is this:
 
 1. atomizing:
    hard coded classification of characters into groupings and strings:
-	illegal characters (non-printable),
-	terminating (end) characters such as '\0', eof, eol,
-	whitespace (space and tab),
-	letters (ascii 'a-z' and 'A-Z'),
-	digits (0-9),
-	symbols (all other printable punctuation)
+    illegal characters (non-printable),
+    terminating (end) characters such as '\0', eof, eol,
+    whitespace (space and tab),
+    letters (ascii 'a-z' and 'A-Z'),
+    digits (0-9),
+    symbols (all other printable punctuation)
 
 2. lexxing:
    meta-coded classification of atoms into standard groupings:
@@ -67,26 +67,26 @@ My current thinking is this:
    current state, and specifying which values should thus be captured for the ast
    or equivalent.
 
- 
+ 
 -----------------------------------
 Example:
 
 Consider two lines:
 
-	room=first
+    room=first
 
-	second \t light nolook
+    second \t light nolook
 
 Atomized:
 
-	<letters:room><symbol:=><letters:first><end:\n>
-	<leters:second><space: \t ><letters:light><space: ><letters:nolook>
+    <letters:room><symbol:=><letters:first><end:\n>
+    <leters:second><space: \t ><letters:light><space: ><letters:nolook>
 
 There are multiple Lex patterns that can match each line, for the first:
 
-	<letters:room><symbol:=><letters:first><end:\n>		// legitimate lex result
-	<label:room=><Word:first><end:\n>
-	<Label:first><end:\n>		// note 'room=' got skipped
+    <letters:room><symbol:=><letters:first><end:\n>		// legitimate lex result
+    <label:room=><Word:first><end:\n>
+    <Label:first><end:\n>		// note 'room=' got skipped
 
 Instead of guessing, the room-specific parser will need to provide a definition
 that says "look for this" so that the lexer is guided.
@@ -127,8 +127,6 @@ SYSMSG		:= Optional(Label("msgid=")) >> Value(Identifier('$'), "id") >> EOL
 
 
 */
-
-
 
 // nextAtom returns the next atom for the given buffer, and advances the
 // cursor for the extent of that atom; for example, consumes '\r\n' as one
