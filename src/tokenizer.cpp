@@ -11,7 +11,7 @@ void
 _consumeEol(Buffer &buffer, Token &token) noexcept
 {
     // allow for \r\n, \n and \n\r
-    const char first = buffer.Next();
+    const char first = buffer.Read();
     if (!buffer.Eof()) {
         const char second = buffer.Peek();
         if ((second == '\n' || second == '\r') && second != first)
@@ -27,7 +27,7 @@ _consumeWhitespace(Buffer &buffer, Token &token) noexcept
 {
     char c = 0;
     do {
-        c = buffer.Skip();
+        c = buffer.Next();
     } while (c == ' ' || c == '\t');
 
     token.end = buffer.Pos();
@@ -38,7 +38,7 @@ void
 _consumeQuote(Buffer &buffer, Token &token) noexcept
 {
     // grab the first character
-    const char quote = buffer.Next();
+    const char quote = buffer.Read();
     token.start = buffer.Pos();
     char escaped = false;
     for (;;) {
@@ -62,7 +62,7 @@ void
 _consumeComment(Buffer &buffer, Token &token) noexcept
 {
     for (;;) {
-        const char c = buffer.Skip();
+        const char c = buffer.Next();
         if (c == '\n' || c == '\r') {
             _consumeEol(buffer, token);
             break;
@@ -93,7 +93,7 @@ _consumeText(Buffer &buffer, Token &token) noexcept
     // Now we limit ourselves to alphanumeric with the exception of
     // '=', which we treat as a separator so long as it has no
     // whitespace either side of it.
-    for (char c = buffer.Skip(); c; c = buffer.Skip()) {
+    for (char c = buffer.Next(); c; c = buffer.Next()) {
         if (isalpha(c)) {
             hasAlpha = true;
             continue;
@@ -125,8 +125,7 @@ _consumeText(Buffer &buffer, Token &token) noexcept
     token.end = buffer.Pos();
 }
 
-struct TokenizerState
-{
+struct TokenizerState {
     SourceFile *file;
     Token *     curToken;
     char        lastChar;
@@ -135,7 +134,7 @@ struct TokenizerState
 error_t
 TokenizeParseable(
         SourceFile &file, Token *tokens, size_t tokensSize, size_t *tokensScanned,
-        enum TokenType endToken)
+        TokenType endToken)
 {
     REQUIRE(tokens && tokensSize && tokensScanned);
 
@@ -147,9 +146,9 @@ TokenizeParseable(
         return ENOENT;
 
     const Token *tokensStart = tokens;
-    Token		*tokensEnd = tokens + tokensSize;
-    Token		*prevToken = NULL;
-    const char  *lineStart = buffer.Pos();
+    Token *      tokensEnd = tokens + tokensSize;
+    Token *      prevToken = NULL;
+    const char * lineStart = buffer.Pos();
 
     while (!buffer.Eof() && tokens < tokensEnd) {
         tokens->lineOffset = (uint16_t)(buffer.Pos() - lineStart);
