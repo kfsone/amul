@@ -96,7 +96,7 @@ ParseCommandLine(const CommandLine *cmdline)
     if (getcwd(pwd, sizeof(pwd)) == NULL)
         afatal("Cannot get CWD");
 
-	if (strncmp(gameDir, "./", 2) == 0) {
+    if (strncmp(gameDir, "./", 2) == 0) {
         path_concater(pwd, gameDir + 2);
         gameDir[0] = 0;
     }
