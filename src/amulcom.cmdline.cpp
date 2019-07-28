@@ -93,7 +93,7 @@ ParseCommandLine(const CommandLine *cmdline)
     }
 
     char pwd[MAX_PATH_LENGTH];
-    if (getcwd(pwd, sizeof(pwd)) == NULL)
+    if (!getcwd(pwd, sizeof(pwd)))
         afatal("Cannot get CWD");
 
     if (strncmp(gameDir, "./", 2) == 0) {
