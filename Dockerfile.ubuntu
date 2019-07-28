@@ -35,7 +35,7 @@ RUN if ! getent hosts wafer.lan >/dev/null ; then \
 	rm -rf /var/cache/apt
 
 # Build our version of CMake
-COPY etc/vimrc ~/.vimrc
+COPY etc/vimrc $HOME/.vimrc
 COPY etc/cmake* /tmp/
 RUN /bin/bash /tmp/cmake.build.sh && rm -rf /tmp/*
 
