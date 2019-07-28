@@ -1358,20 +1358,29 @@ room_proc()
     if (reuseRoomData)
         return;
 
+	// Seek to the next non-whitespace, non-comment character. The 'true' will
+	// make it an error not to find one.
     nextc(true);
 
+	// Open the output file as ofp1
     fopenw(roomDataFile);
 
     do {
+		// Terminate if we've reached the error limit.
         checkErrorCount();
 
+		// Seek to the next useful character (we'll already be there first time)
         if (!nextc(false))
             break;
 
+		// Fetch all the text from here to the next double-eol (end of paragraph),
+		// convert tabs in it to spaces, etc.
         char *p = getTidyBlock(ifp);
         if (!p)
             continue;
 
+		// Copy the text at 'p' into 'Word', unless it is prefixed with "room=",
+		// in which case first skip the prefix.
         p = getWordAfter("room=", p);
         if (strlen(Word) < 3 || strlen(Word) > IDL) {
             *p = 0;
@@ -1379,6 +1388,8 @@ room_proc()
             skipblock();
             continue;
         }
+
+		// Because 'room' is a global, we have to clear it out.
         memset(&room, 0, sizeof(room));
         strncpy(room.id, Word, sizeof(room.id));
 
@@ -1409,6 +1420,7 @@ room_proc()
             room.flags |= bitset(no);
         }
 
+		// Everything else in the current block is the room description.
         error_t err = TextStringFromFile(NULL, ifp, STRING_ROOM_DESC, &room.descid);
         if (err != 0) {
             alog(AL_ERROR, "room:%s: Unable to write description", room.id);
