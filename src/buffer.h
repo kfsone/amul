@@ -32,12 +32,12 @@ class Buffer
 		m_end = start + length;
 	}
     char Peek() const noexcept { return !Eof() ? *m_pos : 0; }
-    char Next() noexcept { return !Eof() ? *(m_pos++) : 0; }
-    char Skip() noexcept
-    {
-        if (!Eof())
-            ++m_pos;
-        return Peek();
+    char Read() noexcept { return !Eof() ? *(m_pos++) : 0; }
+    void Skip() noexcept { if (!Eof()) ++m_pos; }
+    char Next() noexcept { 
+        if (!Eof() && ++m_pos < m_end)
+            return *m_pos;
+        return 0;
     }
 
 	void Close() noexcept

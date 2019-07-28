@@ -97,7 +97,7 @@ TEST(HashmapTest, AddStrToHashChecks)
 
 }
 
-TEST(HashMapTest, AddStrToHashBasic)
+TEST(HashmapTest, AddStrToHashBasic)
 {
     struct HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(4, &map));
