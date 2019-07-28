@@ -85,9 +85,8 @@ NewModule(
     }
 
     Module *cur = (Module *)AllocateMem(sizeof(Module));
-    if (cur == NULL) {
+    if (!cur) {
         afatal("Out of memory");
-        return ENOMEM;
     }
 
     // populate values
@@ -113,7 +112,6 @@ NewModule(
         error_t err = cur->init(cur);
         if (err != 0) {
             afatal("Module #%d: %s: initialization failed: %d", id, cur->name, err);
-            return err;
         }
     }
     if (ptr)
