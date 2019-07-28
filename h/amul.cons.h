@@ -18,7 +18,7 @@ extern const char *obputs[NPUTS];
 // Prepositions
 extern const char *prep[NPREP];
 
-extern const char *   syntax[NSYNTS];
+extern const char *syntax[NSYNTS];
 
 extern const char *gameDataFile;
 extern const char *stringTextFile;

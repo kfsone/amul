@@ -5,9 +5,8 @@
 
 // Remember to update amul.defs.h
 const char *rflag[NRFLAGS] = {
-                        "light",    "dmove",   "startloc", "randobjs", "dark",      "small",
-                        "death",    "nolook",  "silent",   "hide",     "sanctuary", "hideaway",
-                        "peaceful", "noexits", "anteroom", "nogo"};
+        "light",  "dmove", "startloc",  "randobjs", "dark",     "small",   "death",    "nolook",
+        "silent", "hide",  "sanctuary", "hideaway", "peaceful", "noexits", "anteroom", "nogo"};
 
 const char *obflags1[NOFLAGS] = {  // Object flags
         "opens", "scenery", "counter", "flammable", "shines", "fire", "invis", "smell"};
@@ -27,7 +26,7 @@ const char *prep[NPREP] = {  // Prepositions
 #define NO_ARGS                                                                                    \
     0, { 0, 0, 0 }
 
-const struct VMOP conditions[NCONDS] = {
+const VMOP conditions[NCONDS] = {
         // compiler conditionals
         {"&", NO_ARGS},
         {"-", NO_ARGS},
@@ -96,7 +95,7 @@ const struct VMOP conditions[NCONDS] = {
         {"exists", 1, {PNOUN}},
 };
 
-const struct VMOP actions[NACTS] = {
+const VMOP actions[NACTS] = {
         // actions
         {"quit", NO_ARGS},
         {"save", NO_ARGS},
@@ -196,7 +195,7 @@ const struct VMOP actions[NACTS] = {
         {"gstart", 2, {PDAEMON, PNUM}},
 };
 
-const char *   syntax[NSYNTS] = {  // syntax slot labels
+const char *syntax[NSYNTS] = {  // syntax slot labels
         "none", "any", "noun", "adj",  "prep",  "player",
         "room", "syn", "text", "verb", "class", "number"};
 

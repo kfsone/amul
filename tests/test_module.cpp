@@ -1,13 +1,13 @@
 #include "filesystem.h"
 #include "modules.h"
 
-#include <gtest/gtest.h>
 #include "gtest_aliases.h"
+#include <gtest/gtest.h>
 
-extern struct Module *s_modulesHead;
-extern struct Module *s_modulesTail;
-extern bool           s_modulesInitialized;
-extern bool           s_modulesClosed;
+extern Module *s_modulesHead;
+extern Module *s_modulesTail;
+extern bool    s_modulesInitialized;
+extern bool    s_modulesClosed;
 
 struct ModuleState {
     bool    inited{false};
@@ -17,7 +17,7 @@ struct ModuleState {
 };
 
 error_t
-modInit(struct Module *module)
+modInit(Module *module)
 {
     ((ModuleState *)(module->context))->inited = true;
     return 0;
@@ -55,7 +55,7 @@ TEST(ModuleTest, InitModules)
 
 TEST(ModuleTest, RegisterContextModuleChecks)
 {
-    EXPECT_ERROR(EINVAL, RegisterContextModule((enum ModuleID)0, NULL));
+    EXPECT_ERROR(EINVAL, RegisterContextModule((ModuleID)0, NULL));
     EXPECT_ERROR(EINVAL, RegisterContextModule(MAX_MODULE_ID, NULL));
 
     // Context modules *must* have a context
@@ -82,7 +82,7 @@ TEST(ModuleTest, RegisterContextModule)
 
 TEST(ModuleTest, GetModuleChecks)
 {
-    EXPECT_NULL(GetModule((enum ModuleID)0));
+    EXPECT_NULL(GetModule((ModuleID)0));
     EXPECT_NULL(GetModule(MAX_MODULE_ID));
 }
 
@@ -114,9 +114,9 @@ TEST(ModuleTest, CloseModule)
 
 TEST(ModuleTest, MultipleModules)
 {
-	ModuleState ms{};
-	ModuleState ms1{};
-	Module		*module1 {nullptr};
+    ModuleState ms{};
+    ModuleState ms1{};
+    Module *    module1{nullptr};
 
     EXPECT_SUCCESS(NewModule(MOD_CMDLINE, modInit, modStart, modClose, &ms1, &module1));
     EXPECT_NOT_NULL(module1);
@@ -129,7 +129,7 @@ TEST(ModuleTest, MultipleModules)
     EXPECT_EQ(MOD_CMDLINE, module1->id);
 
     ModuleState ms2{};
-    Module		*module2 = NULL;
+    Module *    module2 = NULL;
     EXPECT_SUCCESS(NewModule(MOD_COMPILER, modInit, modStart, modClose, &ms2, &module2));
     EXPECT_NOT_NULL(module2);
     EXPECT_EQ(s_modulesTail, module2);  // FILO order
@@ -139,20 +139,20 @@ TEST(ModuleTest, MultipleModules)
     EXPECT_FALSE(ms2.started);
     EXPECT_FALSE(ms2.closed);
 
-    EXPECT_EQ(s_modulesHead->links.next, (DoubleLinkedNode*)s_modulesTail);
-    EXPECT_EQ(s_modulesTail->links.prev, (DoubleLinkedNode*)s_modulesHead);
+    EXPECT_EQ(s_modulesHead->links.next, (DoubleLinkedNode *)s_modulesTail);
+    EXPECT_EQ(s_modulesTail->links.prev, (DoubleLinkedNode *)s_modulesHead);
 
     EXPECT_NULL(s_modulesHead->links.prev);
     EXPECT_NULL(s_modulesTail->links.next);
 
-    struct ModuleState ms3 = {false, false, false};
-    struct Module *    module3 = NULL;
+    ModuleState ms3 = {false, false, false};
+    Module *    module3 = NULL;
     EXPECT_SUCCESS(NewModule(MOD_STRINGS, modInit, modStart, modClose, &ms3, &module3));
     EXPECT_NOT_NULL(module3);
     EXPECT_EQ(s_modulesTail, module3);  // FILO order
-    EXPECT_EQ(s_modulesTail->links.prev, (DoubleLinkedNode*)module2);
+    EXPECT_EQ(s_modulesTail->links.prev, (DoubleLinkedNode *)module2);
     EXPECT_EQ(s_modulesHead, module1);
-    EXPECT_EQ(s_modulesHead->links.next, (DoubleLinkedNode*)module2);
+    EXPECT_EQ(s_modulesHead->links.next, (DoubleLinkedNode *)module2);
     EXPECT_EQ(&ms1, module1->context);
     EXPECT_EQ(&ms2, module2->context);
     EXPECT_EQ(&ms3, module3->context);
@@ -171,8 +171,8 @@ TEST(ModuleTest, MultipleModules)
     EXPECT_EQ(s_modulesTail, module3);
     EXPECT_NULL(s_modulesHead->links.prev);
     EXPECT_NULL(s_modulesTail->links.next);
-    EXPECT_EQ(s_modulesHead->links.next, (DoubleLinkedNode*)s_modulesTail);
-    EXPECT_EQ(s_modulesTail->links.prev, (DoubleLinkedNode*)s_modulesHead);
+    EXPECT_EQ(s_modulesHead->links.next, (DoubleLinkedNode *)s_modulesTail);
+    EXPECT_EQ(s_modulesTail->links.prev, (DoubleLinkedNode *)s_modulesHead);
 
     // Start the other two
     EXPECT_SUCCESS(StartModules());

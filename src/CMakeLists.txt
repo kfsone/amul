@@ -11,6 +11,7 @@ SET(AMUL_LIB_SOURCES
 SET(AMUL_LIB_HEADERS
 		buffer.h
 		filesystem.h
+		filesystem.inl.h
         hashmap.h
 		modules.h
 		sourcefile.h

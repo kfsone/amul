@@ -2,32 +2,32 @@
 #include <src/buffer.h>
 #include <src/tokenizer.h>
 
-extern void _consumeEol(Buffer &buf, struct Token *token);
-extern void _consumeWhitespace(Buffer &buf, struct Token *token);
-extern void _consumeQuote(Buffer &buf, struct Token *token);
-extern void _consumeComment(Buffer &buf, struct Token *token);
-extern void _consumeText(Buffer &buf, struct Token *token);
+extern void _consumeEol(Buffer &buf, Token *token);
+extern void _consumeWhitespace(Buffer &buf, Token *token);
+extern void _consumeQuote(Buffer &buf, Token *token);
+extern void _consumeComment(Buffer &buf, Token *token);
+extern void _consumeText(Buffer &buf, Token *token);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // helper structs
 
 enum { MAX_TEST_TOKENS = 64 };
 struct TokenizerTest {
-    struct SourceFile sf;
+    SourceFile sf;
     Buffer     buffer;
-    struct Token      tokens[MAX_TEST_TOKENS];
-    size_t            scanned;
+    Token      tokens[MAX_TEST_TOKENS];
+    size_t     scanned;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // helper functions
 
 static Buffer
-init_buffer(const char *text, struct Token *token)
+init_buffer(const char *text, Token *token)
 {
-    Buffer buffer {text, text + strlen(text)};
+    Buffer buffer{text, text + strlen(text)};
     if (token) {
-        token->type = (enum TokenType)0;
+        token->type = (TokenType)0;
         token->start = text;
         token->end = NULL;
     }
@@ -35,17 +35,17 @@ init_buffer(const char *text, struct Token *token)
 }
 
 void
-_tearUpTokenizerTest(struct TestContext *t)
+_tearUpTokenizerTest(TestContext *t)
 {
     assert(t->userData == NULL);
-    struct TokenizerTest *tt = (TokenizerTest*)calloc(sizeof(struct TokenizerTest), 1);
+    TokenizerTest *tt = (TokenizerTest *)calloc(sizeof(TokenizerTest), 1);
     assert(tt);
     tt->sf = {"source.txt", NULL, &tt->buffer, 0, 0};
     t->userData = (void *)tt;
 }
 
 void
-_tearDownTokenizerTest(struct TestContext *t)
+_tearDownTokenizerTest(TestContext *t)
 {
     assert(t->userData);
     free(t->userData);
@@ -56,9 +56,9 @@ _tearDownTokenizerTest(struct TestContext *t)
 // test the _consumeEol function
 
 void
-test_consume_eol_cr(struct TestContext *t)
+test_consume_eol_cr(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer b = init_buffer("\nNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 1, b.pos);
@@ -69,9 +69,9 @@ test_consume_eol_cr(struct TestContext *t)
 }
 
 void
-test_consume_eol_lf(struct TestContext *t)
+test_consume_eol_lf(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer b = init_buffer("\rNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 1, b.pos);
@@ -82,9 +82,9 @@ test_consume_eol_lf(struct TestContext *t)
 }
 
 void
-test_consume_eol_crlf(struct TestContext *t)
+test_consume_eol_crlf(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer b = init_buffer("\n\rNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 2, b.pos);
@@ -95,9 +95,9 @@ test_consume_eol_crlf(struct TestContext *t)
 }
 
 void
-test_consume_eol_lfcr(struct TestContext *t)
+test_consume_eol_lfcr(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer b = init_buffer("\r\nNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 2, b.pos);
@@ -108,9 +108,9 @@ test_consume_eol_lfcr(struct TestContext *t)
 }
 
 void
-test_consume_eol_crcr(struct TestContext *t)
+test_consume_eol_crcr(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer b = init_buffer("\n\nNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 1, b.pos);
@@ -119,9 +119,9 @@ test_consume_eol_crcr(struct TestContext *t)
 }
 
 void
-test_consume_eol_lflf(struct TestContext *t)
+test_consume_eol_lflf(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer b = init_buffer("\r\rNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 1, b.pos);
@@ -130,9 +130,9 @@ test_consume_eol_lflf(struct TestContext *t)
 }
 
 void
-test_consume_eol_crlfcrlf(struct TestContext *t)
+test_consume_eol_crlfcrlf(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer b = init_buffer("\n\r\n\rNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 2, b.pos);
@@ -141,9 +141,9 @@ test_consume_eol_crlfcrlf(struct TestContext *t)
 }
 
 void
-test_consume_eol_lfcrlfcr(struct TestContext *t)
+test_consume_eol_lfcrlfcr(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer b = init_buffer("\r\n\r\nNewline", &token);
     _consumeEol(&b, &token);
     EXPECT_PTR_EQUAL(b.start + 2, b.pos);
@@ -155,10 +155,10 @@ test_consume_eol_lfcrlfcr(struct TestContext *t)
 // test the _consumeWhitespace function
 
 void
-test_consume_whitespace_single_space(struct TestContext *t)
+test_consume_whitespace_single_space(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer b = init_buffer(" ", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token.type);
@@ -168,7 +168,7 @@ test_consume_whitespace_single_space(struct TestContext *t)
         EXPECT_PTR_EQUAL(b.pos, token.end);
     }
     {
-        struct Token  token;
+        Token  token;
         Buffer b = init_buffer(" i", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_PTR_EQUAL(b.start + 1, b.pos);
@@ -179,10 +179,10 @@ test_consume_whitespace_single_space(struct TestContext *t)
 }
 
 void
-test_consume_whitespace_single_tab(struct TestContext *t)
+test_consume_whitespace_single_tab(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer b = init_buffer("\t", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token.type);
@@ -192,7 +192,7 @@ test_consume_whitespace_single_tab(struct TestContext *t)
         EXPECT_PTR_EQUAL(b.pos, token.end);
     }
     {
-        struct Token  token;
+        Token  token;
         Buffer b = init_buffer("\ti", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_PTR_EQUAL(b.start + 1, b.pos);
@@ -203,10 +203,10 @@ test_consume_whitespace_single_tab(struct TestContext *t)
 }
 
 void
-test_consume_whitespace_multi(struct TestContext *t)
+test_consume_whitespace_multi(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer b = init_buffer("   \t\t\t   \t\t\t", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token.type);
@@ -217,7 +217,7 @@ test_consume_whitespace_multi(struct TestContext *t)
         EXPECT_VAL_EQUAL(0, *token.end);
     }
     {
-        struct Token  token;
+        Token  token;
         Buffer b = init_buffer("   \t\t\t   \t\t\t\n", &token);
         _consumeWhitespace(&b, &token);
         EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token.type);
@@ -230,10 +230,10 @@ test_consume_whitespace_multi(struct TestContext *t)
 }
 
 void
-test_consume_quote_dq(struct TestContext *t)
+test_consume_quote_dq(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("\"\"", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, token.type);
@@ -244,7 +244,7 @@ test_consume_quote_dq(struct TestContext *t)
         EXPECT_VAL_EQUAL('"', *token.start);
     }
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("\"'\"!", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_VAL_EQUAL('"', *token.end);
@@ -256,7 +256,7 @@ test_consume_quote_dq(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("\"a' \"!", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.start + 1, token.start);
@@ -271,10 +271,10 @@ test_consume_quote_dq(struct TestContext *t)
 }
 
 void
-test_consume_quote_sq(struct TestContext *t)
+test_consume_quote_sq(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("''", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, token.type);
@@ -285,7 +285,7 @@ test_consume_quote_sq(struct TestContext *t)
         EXPECT_VAL_EQUAL('\'', *token.start);
     }
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("'\"'!", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_VAL_EQUAL('\'', *token.end);
@@ -297,7 +297,7 @@ test_consume_quote_sq(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("'a\" '!", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.start + 1, token.start);
@@ -312,10 +312,10 @@ test_consume_quote_sq(struct TestContext *t)
 }
 
 void
-test_consume_quote_eol(struct TestContext *t)
+test_consume_quote_eol(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("\"...", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.start + 1, token.start);
@@ -329,7 +329,7 @@ test_consume_quote_eol(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("\"...\n", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
@@ -337,7 +337,7 @@ test_consume_quote_eol(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("\"...\r", &token);
         _consumeQuote(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
@@ -346,10 +346,10 @@ test_consume_quote_eol(struct TestContext *t)
 }
 
 void
-test_consume_comment(struct TestContext *t)
+test_consume_comment(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer(";", &token);
         _consumeComment(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_COMMENT, token.type);
@@ -359,14 +359,14 @@ test_consume_comment(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer(";;;;;    hello ", &token);
         _consumeComment(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end, token.end);
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer(";;;;;    hello \n\r\n", &token);
         _consumeComment(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end - 1, token.end);
@@ -374,7 +374,7 @@ test_consume_comment(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer(";;;;;    hello \r\n\r\r\n", &token);
         _consumeComment(&buffer, &token);
         EXPECT_PTR_EQUAL(buffer.end - 3, token.end);
@@ -383,9 +383,9 @@ test_consume_comment(struct TestContext *t)
 }
 
 void
-test_consume_text_word(struct TestContext *t)
+test_consume_text_word(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer buffer = init_buffer("abc", &token);
     _consumeText(&buffer, &token);
     EXPECT_VAL_EQUAL(TOKEN_WORD, token.type);
@@ -393,10 +393,10 @@ test_consume_text_word(struct TestContext *t)
 }
 
 void
-test_consume_text_symbol(struct TestContext *t)
+test_consume_text_symbol(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("$", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
@@ -404,7 +404,7 @@ test_consume_text_symbol(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("=", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
@@ -412,7 +412,7 @@ test_consume_text_symbol(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("_", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
@@ -420,7 +420,7 @@ test_consume_text_symbol(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("_=", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
@@ -428,7 +428,7 @@ test_consume_text_symbol(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("=_", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
@@ -436,7 +436,7 @@ test_consume_text_symbol(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("= ", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_SYMBOL, token.type);
@@ -445,10 +445,10 @@ test_consume_text_symbol(struct TestContext *t)
 }
 
 void
-test_consume_text_identifier(struct TestContext *t)
+test_consume_text_identifier(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("$bc", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
@@ -456,7 +456,7 @@ test_consume_text_identifier(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("$1c", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
@@ -464,7 +464,7 @@ test_consume_text_identifier(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("$c_1", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
@@ -472,7 +472,7 @@ test_consume_text_identifier(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("=1a2", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
@@ -480,7 +480,7 @@ test_consume_text_identifier(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("!abc.1", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token.type);
@@ -489,10 +489,10 @@ test_consume_text_identifier(struct TestContext *t)
 }
 
 void
-test_consume_text_number(struct TestContext *t)
+test_consume_text_number(TestContext *t)
 {
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("1", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
@@ -500,7 +500,7 @@ test_consume_text_number(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("123-", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
@@ -508,7 +508,7 @@ test_consume_text_number(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("-123", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
@@ -516,7 +516,7 @@ test_consume_text_number(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("12.3", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
@@ -524,7 +524,7 @@ test_consume_text_number(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer(".101", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
@@ -532,7 +532,7 @@ test_consume_text_number(struct TestContext *t)
     }
 
     {
-        struct Token  token;
+        Token  token;
         Buffer buffer = init_buffer("-.001", &token);
         _consumeText(&buffer, &token);
         EXPECT_VAL_EQUAL(TOKEN_NUMBER, token.type);
@@ -541,9 +541,9 @@ test_consume_text_number(struct TestContext *t)
 }
 
 void
-test_consume_text_label(struct TestContext *t)
+test_consume_text_label(TestContext *t)
 {
-    struct Token  token;
+    Token  token;
     Buffer buffer;
 
     buffer = init_buffer("abc=xyz", &token);
@@ -555,9 +555,9 @@ test_consume_text_label(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_failargs(struct TestContext *t)
+test_tokenize_parseable_failargs(TestContext *t)
 {
-    struct TokenizerTest *tt = (struct TokenizerTest *)(t->userData);
+    TokenizerTest *tt = (TokenizerTest *)(t->userData);
 
     EXPECT_ERROR(EINVAL, TokenizeLine(NULL, &tt->tokens[0], MAX_TEST_TOKENS, &tt->scanned));
     EXPECT_ERROR(EINVAL, TokenizeLine(&tt->sf, NULL, MAX_TEST_TOKENS, &tt->scanned));
@@ -570,17 +570,17 @@ test_tokenize_parseable_failargs(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_enoent(struct TestContext *t)
+test_tokenize_parseable_enoent(TestContext *t)
 {
     // passing an empty buffer should get us an ENOENT
-    struct TokenizerTest *tt = (struct TokenizerTest *)(t->userData);
+    TokenizerTest *tt = (TokenizerTest *)(t->userData);
     EXPECT_ERROR(ENOENT, TokenizeLine(&tt->sf, &tt->tokens[0], MAX_TEST_TOKENS, &tt->scanned));
 }
 
-struct TokenizerTest *
-_tokenTest(struct TestContext *t, const char *text, size_t maxTestTokens, enum TokenType endToken)
+TokenizerTest *
+_tokenTest(TestContext *t, const char *text, size_t maxTestTokens, TokenType endToken)
 {
-    struct TokenizerTest *tt = (struct TokenizerTest *)(t->userData);
+    TokenizerTest *tt = (TokenizerTest *)(t->userData);
     tt->sf.lineNo = 0;
     tt->scanned = 0;
     tt->buffer = init_buffer(text, NULL);
@@ -590,15 +590,15 @@ _tokenTest(struct TestContext *t, const char *text, size_t maxTestTokens, enum T
 }
 
 void
-test_tokenize_parseable_eob(struct TestContext *t)
+test_tokenize_parseable_eob(TestContext *t)
 {
     //                                         -1- -2- 3 4 -5- -6-
-    struct TokenizerTest *tt = _tokenTest(t, "\n\r\n\r\n\n\n\r\r\n", MAX_TEST_TOKENS, TOKEN_EOB);
+    TokenizerTest *tt = _tokenTest(t, "\n\r\n\r\n\n\n\r\r\n", MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_PTR_EQUAL(tt->buffer.end, tt->buffer.pos);
     EXPECT_VAL_EQUAL(0, *tt->buffer.pos);
 
-    struct Token *token = &tt->tokens[0];
+    Token *token = &tt->tokens[0];
     EXPECT_VAL_EQUAL(TOKEN_EOB, token->type);
     EXPECT_VAL_EQUAL(1, token->lineNo);
     EXPECT_VAL_EQUAL(0, token->lineOffset);
@@ -610,11 +610,11 @@ test_tokenize_parseable_eob(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_eol_cr(struct TestContext *t)
+test_tokenize_parseable_eol_cr(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "\n", MAX_TEST_TOKENS, TOKEN_EOB);
+    TokenizerTest *tt = _tokenTest(t, "\n", MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(1, tt->scanned);
-    struct Token *token = &tt->tokens[0];
+    Token *token = &tt->tokens[0];
     EXPECT_VAL_EQUAL(TOKEN_EOL, token->type);
     EXPECT_VAL_EQUAL(1, token->lineNo);
     EXPECT_VAL_EQUAL(0, token->lineOffset);
@@ -627,11 +627,11 @@ test_tokenize_parseable_eol_cr(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_eol_lf(struct TestContext *t)
+test_tokenize_parseable_eol_lf(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "\r", MAX_TEST_TOKENS, TOKEN_EOB);
+    TokenizerTest *tt = _tokenTest(t, "\r", MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(1, tt->scanned);
-    struct Token *token = &tt->tokens[0];
+    Token *token = &tt->tokens[0];
     EXPECT_VAL_EQUAL(TOKEN_EOL, token->type);
     EXPECT_VAL_EQUAL(1, token->lineNo);
     EXPECT_VAL_EQUAL(0, token->lineOffset);
@@ -644,11 +644,11 @@ test_tokenize_parseable_eol_lf(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_eol_crlf(struct TestContext *t)
+test_tokenize_parseable_eol_crlf(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "\r\n", MAX_TEST_TOKENS, TOKEN_EOB);
+    TokenizerTest *tt = _tokenTest(t, "\r\n", MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(1, tt->scanned);
-    struct Token *token = &tt->tokens[0];
+    Token *token = &tt->tokens[0];
     EXPECT_VAL_EQUAL(TOKEN_EOL, token->type);
     EXPECT_VAL_EQUAL(1, token->lineNo);
     EXPECT_VAL_EQUAL(0, token->lineOffset);
@@ -661,12 +661,12 @@ test_tokenize_parseable_eol_crlf(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_eol_break(struct TestContext *t)
+test_tokenize_parseable_eol_break(TestContext *t)
 {
     // Test that when endToken is TOKEN_EOL we only consume one eol
-    struct TokenizerTest *tt = _tokenTest(t, "\r\n\r\n", MAX_TEST_TOKENS, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "\r\n\r\n", MAX_TEST_TOKENS, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
-    struct Token *token = &tt->tokens[0];
+    Token *token = &tt->tokens[0];
     EXPECT_VAL_EQUAL(TOKEN_EOL, token->type);
     EXPECT_VAL_EQUAL(1, token->lineNo);
     EXPECT_VAL_EQUAL(0, token->lineOffset);
@@ -678,9 +678,9 @@ test_tokenize_parseable_eol_break(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_whitespace(struct TestContext *t)
+test_tokenize_parseable_whitespace(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "  \t   X", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "  \t   X", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -690,9 +690,9 @@ test_tokenize_parseable_whitespace(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_comment_no_eol(struct TestContext *t)
+test_tokenize_parseable_comment_no_eol(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "; Who knows", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "; Who knows", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_COMMENT, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -708,9 +708,9 @@ test_tokenize_parseable_comment_no_eol(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_comment_eol(struct TestContext *t)
+test_tokenize_parseable_comment_eol(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "; Who knows\n", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "; Who knows\n", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_COMMENT, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -722,9 +722,9 @@ test_tokenize_parseable_comment_eol(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_string_lit_single_wclose(struct TestContext *t)
+test_tokenize_parseable_string_lit_single_wclose(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "'This is \"test\" text'.", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "'This is \"test\" text'.", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -736,9 +736,9 @@ test_tokenize_parseable_string_lit_single_wclose(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_string_lit_double_wclose(struct TestContext *t)
+test_tokenize_parseable_string_lit_double_wclose(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "\"This is 'test' text\".", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "\"This is 'test' text\".", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -750,9 +750,9 @@ test_tokenize_parseable_string_lit_double_wclose(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_string_lit_single_weol(struct TestContext *t)
+test_tokenize_parseable_string_lit_single_weol(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "'This is \"test\" text\n", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "'This is \"test\" text\n", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
     EXPECT_VAL_EQUAL('T', *tt->tokens[0].start);
@@ -762,9 +762,9 @@ test_tokenize_parseable_string_lit_single_weol(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_string_lit_double_weol(struct TestContext *t)
+test_tokenize_parseable_string_lit_double_weol(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "\"This is 'test' text\n", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "\"This is 'test' text\n", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
     EXPECT_VAL_EQUAL('T', *tt->tokens[0].start);
@@ -774,9 +774,9 @@ test_tokenize_parseable_string_lit_double_weol(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_string_lit_escaped(struct TestContext *t)
+test_tokenize_parseable_string_lit_escaped(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "'This is \\'test\\' text'.", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "'This is \\'test\\' text'.", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_STRING_LITERAL, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -786,9 +786,9 @@ test_tokenize_parseable_string_lit_escaped(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_label(struct TestContext *t)
+test_tokenize_parseable_label(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "thing1=thing2=thing3", 1, TOKEN_LABEL);
+    TokenizerTest *tt = _tokenTest(t, "thing1=thing2=thing3", 1, TOKEN_LABEL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_LABEL, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -798,9 +798,9 @@ test_tokenize_parseable_label(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_number(struct TestContext *t)
+test_tokenize_parseable_number(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "123.5 ", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "123.5 ", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_NUMBER, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -823,9 +823,9 @@ test_tokenize_parseable_number(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_word(struct TestContext *t)
+test_tokenize_parseable_word(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "hello_world ", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "hello_world ", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_WORD, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -836,9 +836,9 @@ test_tokenize_parseable_word(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_identifier(struct TestContext *t)
+test_tokenize_parseable_identifier(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "$123 ", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "$123 ", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -854,9 +854,9 @@ test_tokenize_parseable_identifier(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_symbol(struct TestContext *t)
+test_tokenize_parseable_symbol(TestContext *t)
 {
-    struct TokenizerTest *tt = _tokenTest(t, "$! ", 1, TOKEN_EOL);
+    TokenizerTest *tt = _tokenTest(t, "$! ", 1, TOKEN_EOL);
     EXPECT_VAL_EQUAL(1, tt->scanned);
     EXPECT_VAL_EQUAL(TOKEN_SYMBOL, tt->tokens[0].type);
     EXPECT_VAL_EQUAL(1, tt->tokens[0].lineNo);
@@ -867,7 +867,7 @@ test_tokenize_parseable_symbol(struct TestContext *t)
 }
 
 void
-test_tokenize_parseable_block(struct TestContext *t)
+test_tokenize_parseable_block(TestContext *t)
 {
     const char *text =          // this should be 6 tokens:
             "\t\t ; comment\n"  // comment (swallows eol)
@@ -876,53 +876,52 @@ test_tokenize_parseable_block(struct TestContext *t)
             " \t "              // whitespace
             "flag"              // word
             "\n\n\r\n"          // EOB
-            "Xignore me\n\n"
-            ;
-    struct TokenizerTest *tt = _tokenTest(t, text, MAX_TEST_TOKENS, TOKEN_EOB);
+            "Xignore me\n\n";
+    TokenizerTest *tt = _tokenTest(t, text, MAX_TEST_TOKENS, TOKEN_EOB);
     EXPECT_VAL_EQUAL(6, tt->scanned);
 
-    struct Token *token = tt->tokens;
+    Token *token = tt->tokens;
     EXPECT_VAL_EQUAL(TOKEN_COMMENT, token->type);
     EXPECT_VAL_EQUAL(';', *token->start);
     EXPECT_VAL_EQUAL(1, token->lineNo);
     EXPECT_VAL_EQUAL(3, token->lineOffset);
 
-	++token;
+    ++token;
     EXPECT_VAL_EQUAL(TOKEN_LABEL, token->type);
     EXPECT_VAL_EQUAL('h', *token->start);
     EXPECT_VAL_EQUAL(2, token->lineNo);
     EXPECT_VAL_EQUAL(0, token->lineOffset);
 
-	++token;
+    ++token;
     EXPECT_VAL_EQUAL(TOKEN_IDENTIFIER, token->type);
     EXPECT_VAL_EQUAL('$', *token->start);
     EXPECT_VAL_EQUAL(2, token->lineNo);
     EXPECT_VAL_EQUAL(6, token->lineOffset);
 
-	++token;
+    ++token;
     EXPECT_VAL_EQUAL(TOKEN_WHITESPACE, token->type);
     EXPECT_VAL_EQUAL(' ', *token->start);
     EXPECT_VAL_EQUAL(2, token->lineNo);
     EXPECT_VAL_EQUAL(12, token->lineOffset);
 
-	++token;
+    ++token;
     EXPECT_VAL_EQUAL(TOKEN_WORD, token->type);
     EXPECT_VAL_EQUAL('f', *token->start);
     EXPECT_VAL_EQUAL(2, token->lineNo);
     EXPECT_VAL_EQUAL(15, token->lineOffset);
 
-	++token;
+    ++token;
     EXPECT_VAL_EQUAL(TOKEN_EOB, token->type);
     EXPECT_VAL_EQUAL('\n', *token->start);
     EXPECT_VAL_EQUAL(2, token->lineNo);
     EXPECT_VAL_EQUAL(19, token->lineOffset);
 
-	EXPECT_VAL_EQUAL(4, tt->sf.lineNo);
+    EXPECT_VAL_EQUAL(4, tt->sf.lineNo);
     EXPECT_VAL_EQUAL('X', *tt->buffer.pos);
 }
 
 void
-tokenizer_tests(struct TestContext *t)
+tokenizer_tests(TestContext *t)
 {
     RUN_TEST(test_consume_eol_cr);
     RUN_TEST(test_consume_eol_lf);

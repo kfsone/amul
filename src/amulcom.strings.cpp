@@ -8,8 +8,8 @@
 #include <h/amul.test.h>
 #include <h/amul.xtra.h>
 
-static FILE *          stringFP;
-static struct HashMap *stringIDs;  // string name -> {stypes and position in file}
+static FILE *   stringFP;
+static HashMap *stringIDs;  // string name -> {stypes and position in file}
 
 struct StringIDEntry {
     uint32_t   stringTypes;  // masked values
@@ -33,7 +33,7 @@ getStringID(size_t length)
 }
 
 error_t
-testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *entryp)
+testLabelEntry(const char *label, StringType stype, StringIDEntry *entryp)
 {
     REQUIRE(label && entryp);
     error_t err = LookupStrHashValue(stringIDs, label, (uint64_t *)entryp);
@@ -44,14 +44,14 @@ testLabelEntry(const char *label, enum StringType stype, struct StringIDEntry *e
 }
 
 error_t
-initStringModule(struct Module *module)
+initStringModule(Module *module)
 {
     REQUIRE(!stringFP);
     return 0;
 }
 
 error_t
-startStringModule(struct Module *module)
+startStringModule(Module *module)
 {
     error_t err = NewHashMap(1024, &stringIDs);
     if (err != 0)
@@ -64,11 +64,11 @@ startStringModule(struct Module *module)
 }
 
 error_t
-closeStringModule(struct Module *module, error_t err)
+closeStringModule(Module *module, error_t err)
 {
     alog(AL_DEBUG, "Strings: cap %" PRIu64 ", size %" PRIu64, stringIDs->capacity, stringIDs->size);
     for (size_t i = 0; i < stringIDs->capacity; ++i) {
-        const struct HashBucket *bucket = stringIDs->buckets[i];
+        const HashBucket *bucket = stringIDs->buckets[i];
         if (!bucket)
             continue;
         alog(AL_DEBUG, "bucket #%04" PRIu64 ": capacity: %04" PRIu64, i, bucket->capacity);
@@ -121,7 +121,7 @@ AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
 
 // Consume a paragraph of a file, undoing leading indents and copying text
 error_t
-TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_t *idp)
+TextStringFromFile(const char *label, FILE *fp, StringType stype, stringid_t *idp)
 {
     REQUIRE(fp);
 
@@ -129,8 +129,8 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
     stringid_t id = getStringID(0);
 
     if (label) {
-        struct StringIDEntry entry;
-        error_t              err = testLabelEntry(label, stype, &entry);
+        StringIDEntry entry;
+        error_t       err = testLabelEntry(label, stype, &entry);
         if (err != ENOENT)
             return err;
         entry.stringTypes |= stype;
@@ -176,15 +176,15 @@ TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_
 
 error_t
 RegisterTextString(
-        const char *label, const char *start, const char *end, bool isLine, enum StringType stype,
+        const char *label, const char *start, const char *end, bool isLine, StringType stype,
         stringid_t *idp)
 {
     REQUIRE(start && end && idp);
     REQUIRE(stringFP && stringIDs);
 
     // Has this label already been registered?
-    struct StringIDEntry entry;
-    error_t err = testLabelEntry(label, stype, &entry);
+    StringIDEntry entry;
+    error_t       err = testLabelEntry(label, stype, &entry);
     if (err != ENOENT)
         return err;
 
@@ -200,11 +200,11 @@ RegisterTextString(
 }
 
 error_t
-LookupTextString(const char *label, enum StringType stype, stringid_t *idp)
+LookupTextString(const char *label, StringType stype, stringid_t *idp)
 {
     REQUIRE(label && idp);
 
-    struct StringIDEntry entry;
+    StringIDEntry entry;
 
     error_t err = testLabelEntry(label, stype, &entry);
     if (err != EEXIST)

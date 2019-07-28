@@ -1,6 +1,6 @@
-#include <h/amul.type.h>
 #include "gtest_aliases.h"
 #include <gtest/gtest.h>
+#include <h/amul.type.h>
 #include <stdint.h>
 
 #include "hashmap.h"
@@ -48,7 +48,7 @@ TEST(HashmapTest, GetStringHashView)
 
 TEST(HashmapTest, NewHashMapChecks)
 {
-    struct HashMap *ptr = nullptr;
+    HashMap *ptr = nullptr;
     // check for einval until we request 4 buckets
     EXPECT_EQ(EINVAL, NewHashMap(0, &ptr));
     EXPECT_NULL(ptr);
@@ -69,7 +69,7 @@ TEST(HashmapTest, NewHashMapChecks)
 
 TEST(HashmapTest, NewHashMap)
 {
-    struct HashMap *ptr = nullptr;
+    HashMap *ptr = nullptr;
     // asking for 4 should get us a map of 4 buckets
     EXPECT_SUCCESS(NewHashMap(4, &ptr));
     EXPECT_NOT_NULL(ptr);
@@ -88,18 +88,17 @@ TEST(HashmapTest, AddStrToHashChecks)
 {
     EXPECT_ERROR(EINVAL, AddStrToHash(NULL, NULL, 0));
 
-    struct HashMap *map = NULL;
+    HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(4, &map));
     EXPECT_NOT_NULL(map);
 
     EXPECT_ERROR(EINVAL, AddStrToHash(map, NULL, 0));
     EXPECT_ERROR(EINVAL, AddStrToHash(map, "1234567890123456789012345678901234567890", 0));
-
 }
 
 TEST(HashmapTest, AddStrToHashBasic)
 {
-    struct HashMap *map = NULL;
+    HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(4, &map));
     EXPECT_NOT_NULL(map);
 
@@ -109,7 +108,7 @@ TEST(HashmapTest, AddStrToHashBasic)
 
 TEST(HashmapTest, AddStrToHash)
 {
-    struct HashMap *map = NULL;
+    HashMap *map = NULL;
     NewHashMap(4, &map);
 
     AddStrToHash(map, "hello", 3);
@@ -175,9 +174,9 @@ TEST(HashmapTest, AddStrToHash)
     EXPECT_EQ(999, map->buckets[2]->nodes[0].value);
 
     EXPECT_EQ(4, map->buckets[1]->capacity);
-	EXPECT_STREQ(map->buckets[1]->nodes[0].key, "hello");
+    EXPECT_STREQ(map->buckets[1]->nodes[0].key, "hello");
     EXPECT_EQ(111, map->buckets[1]->nodes[0].value);
-	EXPECT_STREQ(map->buckets[1]->nodes[1].key, "foo");
+    EXPECT_STREQ(map->buckets[1]->nodes[1].key, "foo");
     EXPECT_EQ(112, map->buckets[1]->nodes[1].value);
 
     EXPECT_SUCCESS(AddStrToHash(map, "hello", 0));
@@ -189,7 +188,7 @@ TEST(HashmapTest, AddStrToHash)
 
 TEST(HashmapTest, AddToHash)
 {
-    struct HashMap *map = NULL;
+    HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(4, &map));
     EXPECT_NOT_NULL(map);
 
@@ -206,7 +205,7 @@ TEST(HashmapTest, LookupStrHashValue)
     // Sanity check sanity checking.
     EXPECT_ERROR(EINVAL, LookupStrHashValue(NULL, NULL, NULL));
 
-    struct HashMap *map = NULL;
+    HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(4, &map));
     EXPECT_NOT_NULL(map);
 
@@ -255,7 +254,7 @@ TEST(HashmapTest, LargePopulation)
 {
     // By "large", we expect at least one key to have 4+ entries.
 
-    struct HashMap *map = NULL;
+    HashMap *map = NULL;
     EXPECT_SUCCESS(NewHashMap(16, &map));
     EXPECT_NOT_NULL(map);
 

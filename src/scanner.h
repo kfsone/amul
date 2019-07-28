@@ -15,4 +15,3 @@ enum AtomType {
 };
 
 #endif  // AMUL_ATOMTYPE_H
-

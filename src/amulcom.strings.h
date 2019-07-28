@@ -9,7 +9,7 @@
 
 error_t InitStrings();
 
-size_t  GetStringCount();
+size_t GetStringCount();
 
 error_t AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp);
 

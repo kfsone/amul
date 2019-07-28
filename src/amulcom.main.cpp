@@ -8,14 +8,14 @@
 int
 main(int argc, const char **argv)
 {
-    struct CommandLine cmdline = {argc, argv, NULL};
+    CommandLine cmdline = {argc, argv, nullptr};
 
     InitModules();
 
     ERROR_CHECK(InitLogging());
     ERROR_CHECK(InitCommandLine(&cmdline));
 
-    error_t retval = amulcom_main();
+    const error_t retval = amulcom_main();
 
     CloseModules(retval);
 
