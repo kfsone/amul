@@ -81,7 +81,7 @@ set_mob(void)                   /* Set mobile character for an object */
         wordno = is_word(Word);
     else
         {
-		char mobname[IDLEN+1];
+		char mobname[IDLEN+2];
 		snprintf(mobname, sizeof(mobname), "!%s", Word);
         wordno = is_word(mobname);
         }
