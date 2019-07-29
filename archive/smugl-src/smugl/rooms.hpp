@@ -8,7 +8,8 @@
 class Room : public ROOM
     {
 public:
-    virtual int describe(void);
+	virtual ~Room() {}
+    virtual int describe(void) override;
     inline class TTEnt *Tabptr(void);
     void arrive(const char *how = me->arr);
     void depart(const char *how = me->dep);

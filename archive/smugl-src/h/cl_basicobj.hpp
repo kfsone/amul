@@ -14,6 +14,8 @@
 class BASIC_OBJ
     {
 public:
+	virtual ~BASIC_OBJ() {}
+
     //// Basic_Obj::FUNCTIONS
     virtual int describe(void) = 0;
     virtual int describe_verbose(void) = 0;
@@ -45,6 +47,16 @@ public:
     msgno_t l_descrip;          // Extended description
     basic_obj dmove;            // Where to move objects on death;
                                 // -1 for drop in parent
+
+	template<typename T>
+	T* getNext(T*) noexcept {
+		for (auto *cur = next; cur; cur = cur->next) {
+			auto *ptr = dynamic_cast<T*>(cur);
+			if (ptr)
+				return ptr;
+		}
+		return nullptr;
+	}
    };
 
 #define WRITE(field) \

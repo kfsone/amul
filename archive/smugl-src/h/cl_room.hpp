@@ -12,11 +12,12 @@
 class ROOM : public BASIC_OBJ
     {				// Room def struct
 public:
+	virtual ~ROOM() {}
     //// Room::FUNCTIONS
-    virtual int describe(void) { return 0; };
-    virtual int describe_verbose(void) { return 0; };
-    virtual int Write(FILE *);
-    virtual int Read(FILE *);
+    virtual int describe(void) override { return 0; };
+    virtual int describe_verbose(void) override { return 0; };
+    virtual int Write(FILE *) override;
+    virtual int Read(FILE *) override;
 
     //// Room::DATA
     u_long visitor_bf;          // Bit field - which users have visited?

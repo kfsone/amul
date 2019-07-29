@@ -27,10 +27,10 @@ long roomCount, nounCount;
 static inline void incoming_connection(void);
 
 // Return filesize optimized for memory allocations
-static long
+static size_t
 memsize(const char *file)
     {
-    long size = filesize(datafile(file));
+    ssize_t size = filesize(datafile(file));
     if (size == -1)
         {
         error(LOG_ERR, "can't access %s: %s", datafile(file), strerror(errno));
@@ -39,7 +39,7 @@ memsize(const char *file)
     // In order to ensure we allow for boundary rationalising,
     // such as on M68k architecture, allow for an additional
     // two long words - that'll allow for boundaries, etc
-    return NORMALISE(size);
+    return ptr_align((size_t)size);
     }
 
 // Evaluate and return the amount of memory required to load the
@@ -65,12 +65,12 @@ memory_required(void)
 
     // Unfortunately I don't store these, so we have to repeat
     // the "experiment" afterwards
-    mem = NORMALISE(sizeof(struct DATA));
-    mem += memsize((const char *)umsgifn) + memsize(umsgfn);
+    mem = ptr_align(sizeof(struct DATA));
+    mem += memsize(umsgifn) + memsize(umsgfn);
     mem += memsize(ranksfn);
-    mem += NORMALISE(sizeof(class Room) * roomCount);
+    mem += ptr_align(sizeof(class Room) * roomCount);
     mem += memsize(mobfn);
-    mem += NORMALISE(sizeof(class Object) * nounCount);
+    mem += ptr_align(sizeof(class Object) * nounCount);
     mem += memsize(statfn);
     mem += memsize(langfn);
     mem += memsize(ttfn) + memsize(ttpfn);

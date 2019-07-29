@@ -21,7 +21,7 @@ static int antype(char *);
 static int isnounh(char *);
 static int rdmode(char);
 static int spell(char *);
-static int stat(char *);
+static int isstat(char *);
 static long bvmode(char);
 static int onoff(char *);
 static int randgo(char *);
@@ -105,7 +105,7 @@ chkp(char *p, arg_t type, int c, int z)
                 value = bvmode(p2char);
                 break;
           case -4:  /* Player-statistic type */
-                value = stat(p2);
+                value = isstat(p2);
                 break;
           case -3:  /* Spell type */
                 value = spell(p2);
@@ -157,7 +157,7 @@ chkp(char *p, arg_t type, int c, int z)
                 /* Make sure it's a noun AND it has the mobile flag */
                 if ((value = is_bob(p2, WNOUN)) == -1)
                     break;
-                if (((OBJ *)bobs[value])->mobile == -1)
+                if (static_cast<OBJ*>(bobs[value])->mobile == -1)
                     value = -1;
                 break;
           default:
@@ -202,8 +202,7 @@ chkp(char *p, arg_t type, int c, int z)
     if (arg_alloc % GROW_SIZE == 0)
         {
 	long new_alloc = arg_alloc + GROW_SIZE;
-	argtab = (arg_t *)grow(argtab, new_alloc * sizeof(long),
-                               "Sizing Argument Table");
+	argtab = static_cast<arg_t *>(grow(argtab, new_alloc * sizeof(long), "Sizing Argument Table"));
 	argptr = argtab + arg_alloc;
         }
     /* Now store the argument into memory */
@@ -255,11 +254,11 @@ chknum(const char *s)                 /* Check a numeric arguments */
 	return -1000001;
         }
     if (*s == '-')
-	return (long) -n;
+	return -n;
     if (*s == '>')
-	return (long) (n | LESS);
+	return (n | LESS);
     if (*s == '<')
-	return (long) (n | MORE);
+	return (n | MORE);
     return n;
     }
 
@@ -360,8 +359,7 @@ isnounh(char *s)
 
     int last = -1;              // Closest match
     int i = 0;
-    OBJ *ptr = obtab;
-    for ( ; i < nouns && ptr; i++, ptr = (OBJ *)ptr->next)
+    for (OBJ *ptr = obtab ; i < nouns && ptr; i++, ptr = static_cast<OBJ*>(ptr->next))
         {
 	if (ptr->id != id)
 	    continue;
@@ -410,7 +408,7 @@ spell(char *s)
 
 /* Player statistics */
 static int
-stat(char *s)
+isstat(char *s)
     {
     if (strcmp(s, "sctg") == 0L)
 	return STSCTG;

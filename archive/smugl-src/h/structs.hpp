@@ -70,8 +70,10 @@ struct MOB_ENT
 struct VERB
     {               // Verb def struct
     vocid_t id;                 // The Verb itself
-    char sort[4];               // Sort method...(yawn)
-    char sort2[4];              // Sort #2!
+	union {
+		char precedence[2][4];
+		char precedences[8];
+	};
     short ents;                 // No. of slot entries
     flag_t flags;               // Travel? etc...
     struct SLOTTAB *ptr;        // Pointer to slots tab

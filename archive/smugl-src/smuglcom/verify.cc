@@ -67,7 +67,7 @@ main(int argc, char *argv[])
     umsgip = (long *)mem;
     mem = NULL;
     read_in(umsgfn, CHUNKS);
-    umsgp = (char *)mem;
+    umsgp = mem;
     mem = NULL;
 
     /* Next we're gonna need the vocab table */
@@ -377,7 +377,7 @@ read_in(const char *s, size_t sized)
     while ((bytes = fread(mem + (cnt * sized), 1, sized, fp)) == sized)
         {
 	mem = (char *)realloc(mem, size + sized + 1);
-	bzero(mem + size, (size_t)(sized + 1));
+	bzero(mem + size, sized + 1);
 	size += sized;
 	cnt++;
         }
