@@ -5,6 +5,6 @@
 # If you don't have GCC, you can't use this (atm)
 
 # For linux:
-CFLAGS="-DDEBUG -g -Wall -Wstrict-prototypes -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-prototypes -Wmissing-declarations" ./configure
+CFLAGS="-DDEBUG -O0 -std=c++14 -g -Wall -Wstrict-prototypes -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-prototypes -Wmissing-declarations" ./configure
 # If you REALLY want to be pedantic
 #CFLAGS="-DDEBUG -g -Wall -Wshadow -Wstrict-prototypes -Wcast-qual -Wwrite-strings -Wconversion -Wmissing-prototypes -Wmissing-declarations" ./configure
