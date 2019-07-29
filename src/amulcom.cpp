@@ -703,7 +703,7 @@ isgen(char c)
 }
 
 static const char *announceTypes[MAX_ANNOUNCE_TYPE] = {"global", "everyone", "outside", "here",
-                                                      "others", "all",      "cansee",  "notsee"};
+                                                       "others", "all",      "cansee",  "notsee"};
 int
 announceType(const char *s)
 {
@@ -2124,11 +2124,11 @@ getVerbFlags(_VERB_STRUCT *verbp, char *p)
         }
         // So we expect it to be a precedence specifier
         if (precedence < 2) {
-			if (chae_proc(Word, verbp->precedence[precedence]) == -1)
-				return;
-			++precedence;
-			continue;
-		}
+            if (chae_proc(Word, verbp->precedence[precedence]) == -1)
+                return;
+            ++precedence;
+            continue;
+        }
 
         alog(AL_ERROR, "Expected verb flag/precedence, got: %s", Word);
     }
@@ -2238,7 +2238,7 @@ lang_proc()
         }
 
         /* Syntax line loop */
-    synloop:
+    synloop : {
         setslots(WNONE);
         verb.ents++;
         p = skiplead("verb", p);
@@ -2254,6 +2254,7 @@ lang_proc()
             setslots(WNONE);
             goto endsynt;
         }
+    }
 
     sp2: /* Syntax line processing */
         p = skipspc(p);
@@ -2775,9 +2776,9 @@ compilePhase(const CompilePhase *phase)
     if (phase->isText) {
         char filepath[MAX_PATH_LENGTH];
         MakeTextFileName(phase->name, filepath);
-		FILE *fp = fopen(filepath, "r");
-		if (!fp)
-			afatal("Could not open %s file: %s", phase->name, filepath);
+        FILE *fp = fopen(filepath, "r");
+        if (!fp)
+            afatal("Could not open %s file: %s", phase->name, filepath);
         ifp = fp;
     }
 

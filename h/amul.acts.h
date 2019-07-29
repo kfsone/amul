@@ -62,9 +62,9 @@ the box', 'current state of door', 'no. of player carrying' etc...
 #    define NACTUALS 33 /* No. of actual names	*/
 struct ACTUAL           /* Structure for 'actual' data */
 {
-    char *    name;  /* Name of actual	*/
-    int       value; /* The effective no.	*/
-    short int wtype; /* Wtype of word	*/
+    const char *name;  /* Name of actual	*/
+    int         value; /* The effective no.	*/
+    short int   wtype; /* Wtype of word	*/
 };
 
 struct ACTUAL actual[NACTUALS] = {
