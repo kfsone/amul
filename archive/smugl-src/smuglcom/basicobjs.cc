@@ -139,10 +139,6 @@ add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags)
 
     nbobs++ ;
     printf("Added %s basic obj#%ld:", word(ptr->id), nbobs) ;
-    for ( counter_t i = 0 ; i < nbobs ; ++i )
-    {
-      printf(" %p", bobs[i]) ;
-    }
     printf("\n") ;
 
     return nbobs;

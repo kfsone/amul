@@ -50,5 +50,5 @@ depend::
 
 # Stuff for dealing with version files
 ../h/$(VER).h: ../h/$(VER).rev
-	@$(srcdir)/bin/mkrev -b $(srcdir)/h/$(VER)
+	@perl $(srcdir)/bin/mkrev -b $(srcdir)/h/$(VER)
 	@touch $@
