@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include <cstring>
 #include <stdexcept>
 
 namespace Smugl
@@ -19,7 +19,7 @@ struct FileError : public std::exception
 	const int m_errno ;
 	mutable std::string m_error ;
 
-	virtual const char* what() const
+	virtual const char* what() const noexcept override
 	{
 		if ( m_error.empty() )
 		{

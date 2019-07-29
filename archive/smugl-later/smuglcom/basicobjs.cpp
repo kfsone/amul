@@ -104,7 +104,7 @@ is_inside(basic_obj boItem, basic_obj boContainer)
 
 	for (con = bobs[boContainer]->conTent; con != -1; con = containers[con].conNext)
 	{
-		if ((containers[con].boSelf == boItem))
+		if (containers[con].boSelf == boItem)
 			return true;
 	}
 	return false;

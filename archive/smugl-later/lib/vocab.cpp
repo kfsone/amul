@@ -23,7 +23,7 @@ word(vocid_t idx)
     {
     if (idx == vocUNKNOWN)
         return "(undef)";
-    register off_t offset = vc->index[idx];
+    off_t offset = vc->index[idx];
     if (idx > vc->items)
         {
         if (offset == -1L)
@@ -140,11 +140,6 @@ read_in_vocab(void *membase)
 		rv = _read(fd, &vc->cur_vocab, sizeof(size_t));
 		if ( rv < 0 )
 			throw rv ;
-		if (membase < 0)
-			{                       /* We just wanted to size up */
-			_close(fd);
-			return NULL;
-			}
 		/* Followed by the reverse index */
 		rv = _read(fd, &vc->hash_size, sizeof(long) * VOCROWS);
 		if ( rv < 0 )
