@@ -52,10 +52,10 @@ TEST(BufferTest, BufferAssign)
 
 TEST(BufferTest, BufferPeek)
 {
-	Buffer buffer{};
-	EXPECT_EQ(buffer.Peek(), '\0');
-	buffer.Assign("g", 1);
-	EXPECT_EQ(buffer.Peek(), 'g');
+    Buffer buffer{};
+    EXPECT_EQ(buffer.Peek(), '\0');
+    buffer.Assign("g", 1);
+    EXPECT_EQ(buffer.Peek(), 'g');
 }
 
 TEST(BufferTest, BufferRead)

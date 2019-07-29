@@ -38,26 +38,26 @@ TokenStream::Atomize()
 {
     Atom *comment = nullptr;
     do {
-		const char *start = buffer.it();
-		AtomType at { NextAtomType(buffer) };
+        const char *start = buffer.it();
+        AtomType    at{NextAtomType(buffer)};
         switch (at) {
         case A_END:
             if (*start) {
-				atoms.Push(Atom{A_END, "\n", 1});
+                atoms.Push(Atom{A_END, "\n", 1});
             } else {
-				atoms.Push(Atom{A_END, "", 0});
+                atoms.Push(Atom{A_END, "", 0});
             }
             break;
         case A_SPACE:
-			atoms.Push(Atom{A_SPACE, " ", 1});
+            atoms.Push(Atom{A_SPACE, " ", 1});
             break;
         case A_PUNCT:
             if (*start == ';' && !comment)
                 comment = atoms.m_cur;
-			/*FALLTHROUGH*/
+            /*FALLTHROUGH*/
         default:
-			size_t len = buffer.it() - start;
-			atoms.Push(Atom{at, start, len});
+            size_t len = buffer.it() - start;
+            atoms.Push(Atom{at, start, len});
         }
     } while (*atoms.Back() != A_END);
 

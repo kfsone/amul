@@ -1,6 +1,7 @@
 #ifndef H_LIB_LOGGING_H
 #define H_LIB_LOGGING_H 1
 
+#include <cstdlib>
 #include <inttypes.h>
 
 #ifndef HAVE_ERROR_T
@@ -56,6 +57,7 @@ template <typename... Args>
 afatal(const char *fmt, Args... args)
 {
     alog(AL_FATAL, fmt, args...);
+    exit(1);
 }
 
 extern error_t InitLogging();

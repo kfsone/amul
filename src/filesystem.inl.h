@@ -1,6 +1,7 @@
 #ifndef AMUL_SRC_FILESYSTEM_INL_H
 #define AMUL_SRC_FILESYSTEM_INL_H
 
+#include <cstdio>
 #include <h/amul.test.h>
 
 // Inline / template functions that would otherwise clutter up filesystem.h

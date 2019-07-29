@@ -176,9 +176,8 @@ NewFileMapping(const char *filepath, void **datap, size_t size)
     close(fd);
 #endif
 
-    if (data == nullptr) {
+    if (data == nullptr)
         afatal("Unable to load file %s", filepath);
-    }
 
     *datap = data;
 
@@ -223,9 +222,9 @@ NewSourceFile(const char *filename, SourceFile **sourcefilep)
     REQUIRE(filename && *filename && sourcefilep);
     if (s_sourceFileInUse)
         return ENFILE;
-	// gamedir must be populated
-	if (!gameDir[0])
-		return EDOM;
+    // gamedir must be populated
+    if (!gameDir[0])
+        return EDOM;
 
     SourceFile *sourcefile = &s_sourceFile;
     memset(sourcefile, 0, sizeof(*sourcefile));
@@ -233,7 +232,7 @@ NewSourceFile(const char *filename, SourceFile **sourcefilep)
     error_t err = MakeTextFileName(filename, sourcefile->filepath);
     if (err != 0) {
         alog(AL_ERROR, "Full filename too long for %s/%s", gameDir, filename);
-		return EDOM;
+        return EDOM;
     }
 
     err = GetFilesSize(sourcefile->filepath, &sourcefile->size);
