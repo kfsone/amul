@@ -3,6 +3,7 @@
 static const char rcsid[] = "$Id: client.cc,v 1.3 1997/05/22 02:21:20 oliver Exp $";
 
 #include "smugl.hpp"
+#include "client.hpp"
 #include "misc.hpp"
 #include "ipc.hpp"
 #include "io.hpp"

@@ -157,7 +157,7 @@ main(int argc, char *argv[])
         }
     }
 
-void
+static void
 describe_std_flags(flag_t std_flags)
     {
     printf(" std_flags: %08lx: ", std_flags);
@@ -173,7 +173,7 @@ describe_std_flags(flag_t std_flags)
             {
             if (flags++)
                 printf(" | ");
-            printf(std_flag[i]);
+            printf("%s", std_flag[i]);
             }
         }
     printf("\n");

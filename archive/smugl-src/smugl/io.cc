@@ -75,7 +75,7 @@ ans(const char *s)
  * to this function
  */
 void
-tx(const char *s, char c=0)
+tx(const char *s, char c)
     {
     char tstr[OBLIM * 2];	// YEUCH! on the stack!?!
     char *p = tstr;
@@ -358,7 +358,7 @@ txc(char c)
 
 // wrapper for 'read' system call, which copes with interrupted
 // system calls, etc
-int
+static int
 do_read(char *p)
     {
     int ret = 0;

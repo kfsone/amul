@@ -316,7 +316,7 @@ matching_phrase(SLOTTAB *slot)
 // As yet we don't think we know what the user has
 // said, were simply looking for patterns that may
 // match what they said.
-slotResult
+static slotResult
 slot_process(SLOTTAB *slot)
     {
     unsigned int ent;
