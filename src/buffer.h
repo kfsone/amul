@@ -5,48 +5,47 @@
 
 #include <h/amul.type.h>
 
-class Buffer
-{
-  protected:
-    const char *m_pos{nullptr};
-    const char *m_end{nullptr};
+struct Buffer {
     const char *m_start{nullptr};
+    const char *m_cur{nullptr};
+    const char *m_end{nullptr};
 
-  public:
     constexpr Buffer() noexcept {}
     constexpr Buffer(const char *start, const char *end) noexcept
-        : m_pos{start}
+        : m_start{start}
+        , m_cur{start}
         , m_end{end}
-        , m_start{start}
     {
     }
-
-    constexpr auto   Start() const noexcept { return m_start; }
-    constexpr auto   End() const noexcept { return m_end; }
-    constexpr auto   Pos() const noexcept { return m_pos; }
-    constexpr size_t Size() const noexcept { return m_end - m_start; }
-    constexpr bool   Eof() const noexcept { return m_pos >= m_end; }
+    constexpr Buffer(const char *start, size_t len) noexcept
+        : Buffer{start, start + len}
+    {
+    }
+    template <size_t Size>
+    constexpr Buffer(const char (&str)[Size]) noexcept
+        : Buffer{&str[0], &str[0] + Size}
+    {
+    }
 
     void Assign(const char *start, size_t length) noexcept
     {
-        m_start = m_pos = start;
-        m_end = start + length;
-    }
-    char Peek() const noexcept { return !Eof() ? *m_pos : 0; }
-    char Read() noexcept { return !Eof() ? *(m_pos++) : 0; }
-    void Skip() noexcept
-    {
-        if (!Eof())
-            ++m_pos;
-    }
-    char Next() noexcept
-    {
-        if (!Eof() && ++m_pos < m_end)
-            return *m_pos;
-        return 0;
+        m_start = start;
+        m_cur = start;
+        m_end = m_start + length;
     }
 
-    void Close() noexcept { m_pos = m_end = m_start = nullptr; }
+    constexpr const char *begin() const noexcept { return m_start; }
+    constexpr const char *end() const noexcept { return m_end; }
+    constexpr const char *it() const noexcept { return m_cur; }
+
+    constexpr bool   Eof() const noexcept { return it() >= end(); }
+    constexpr size_t Size() const noexcept { return end() - begin(); }
+
+	char Peek() const noexcept { return !Eof() ? *m_cur : 0; }
+    char Read() noexcept { return (!Eof()) ? *(m_cur++) : 0; }
+    void Skip() noexcept { m_cur += !Eof() ? 1 : 0; }
+
+    void Close() noexcept { Assign(nullptr, 0); }
 };
 
 #endif  // AMUL_SRC_BUFFER_H

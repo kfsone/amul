@@ -214,14 +214,15 @@ TEST(FilesystemTest, SourceFileChecks)
     s_sourceFileInUse = false;
 
 	EXPECT_STREQ(gameDir, "");
-    EXPECT_ERROR(EINVAL, NewSourceFile(filename, &sourcefile));
-    EXPECT_NULL(s_sourceFile.buffer.Start());
+    EXPECT_ERROR(EDOM, NewSourceFile(filename, &sourcefile));
+    EXPECT_NULL(s_sourceFile.buffer.begin());
 
     strcpy(gameDir, ".");
     EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));
     EXPECT_ERROR(ENOENT, NewSourceFile(filename, &sourcefile));
     EXPECT_STREQ(txtfile, s_sourceFile.filepath);
-    EXPECT_NULL(s_sourceFile.buffer.Start());
+    EXPECT_NULL(s_sourceFile.buffer.begin());
+	gameDir[0] = 0;
 }
 
 TEST(FilesystemTest, SourceFileNoData)
@@ -233,14 +234,16 @@ TEST(FilesystemTest, SourceFileNoData)
     unlink(txtfile);
 
     // Check for an empty file returning ENODATA.
+	strcpy(gameDir, ".");
     FILE *fp = fopen(txtfile, "w");
     EXPECT_NOT_NULL(fp);
     fclose(fp);
     EXPECT_ERROR(ENODATA, NewSourceFile(filename, &sourcefile));
     EXPECT_FALSE(s_sourceFileInUse);
-    EXPECT_NULL(s_sourceFile.buffer.Start());
+    EXPECT_NULL(s_sourceFile.buffer.begin());
 
 	unlink(txtfile);
+	gameDir[0] = 0;
 }
 
 TEST(FilesystemTest, SourceFile)
@@ -258,17 +261,20 @@ TEST(FilesystemTest, SourceFile)
     EXPECT_NOT_NULL(fp);
     fprintf(fp, "%s %s", test1, test2);
     fclose(fp);
+
+	strcpy(gameDir, ".");
+
     EXPECT_SUCCESS(NewSourceFile(filename, &sourcefile));
     EXPECT_EQ(&s_sourceFile, sourcefile);
     EXPECT_TRUE(s_sourceFileInUse);
     EXPECT_STREQ(sourcefile->filepath, txtfile);
     EXPECT_NOT_NULL(sourcefile->mapping);
-    EXPECT_NOT_NULL(sourcefile->buffer.Start());
+    EXPECT_NOT_NULL(sourcefile->buffer.begin());
     EXPECT_EQ(0, sourcefile->lineNo);
     EXPECT_EQ(strlen(test1) + 1 + strlen(test1), sourcefile->size);
-    EXPECT_EQ(sourcefile->buffer.Start(), sourcefile->mapping);
-    EXPECT_EQ(sourcefile->buffer.Start(), sourcefile->buffer.Pos());
-    EXPECT_EQ(sourcefile->size, sourcefile->buffer.End() - sourcefile->buffer.Start());
+    EXPECT_EQ(sourcefile->buffer.begin(), sourcefile->mapping);
+    EXPECT_EQ(sourcefile->buffer.begin(), sourcefile->buffer.it());
+    EXPECT_EQ(sourcefile->size, sourcefile->buffer.end() - sourcefile->buffer.begin());
 
 	EXPECT_STREQ((const char*)sourcefile->mapping, "Test 1. Test 2.");
 
@@ -281,10 +287,7 @@ TEST(FilesystemTest, SourceFile)
 
     unlink(txtfile);
     EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));
-}
 
-TEST(FilesystemTest, ClearGameDir)
-{
-    gameDir[0] = 0;
+	gameDir[0] = 0;
 }
 

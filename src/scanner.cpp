@@ -67,7 +67,8 @@ My current thinking is this:
    current state, and specifying which values should thus be captured for the ast
    or equivalent.
 
- 
+ 
+
 -----------------------------------
 Example:
 
@@ -128,35 +129,18 @@ SYSMSG		:= Optional(Label("msgid=")) >> Value(Identifier('$'), "id") >> EOL
 
 */
 
-// nextAtom returns the next atom for the given buffer, and advances the
-// cursor for the extent of that atom; for example, consumes '\r\n' as one
-// atom, or consumes entire alpha sequences as 'letter'.
-//
-AtomType
-nextAtom(Buffer &buf)
+/*
+
+Token streaming has to be relatively fluent, so it has to be composable, so it probably needs to involve expression types.
+
+Seperator = OnePlus(whitespace | end);
+Word      = word() & Check(Separator);
+
+RoomId = Labeled("room=", Word());
+
+template<typename LhsT, typename RhsT, typename... Args>
+struct Expression : public Expression<RhsT, Args...>
 {
-    const auto firstc = buf.Read();
-    switch (const AtomType at = charToAtom[firstc]; at) {
-    case AT_Illegal:
-    case AT_Symbol:
-        return at;
-    case AT_End: {
-        const auto nextc = buf.Peek();
-        if (firstc != 0) {
-            // skip \r or \n after it's compliment
-            if (nextc && nextc != firstc && charToAtom[firstc] == AT_End) {
-                buf.Skip();
-            }
-        }
-        return at;
-    }
-    case AT_Space:
-    case AT_Letter:
-    case AT_Digit:
-        // check the *next* character
-        while (charToAtom[buf.Read()] == at) {
-            // continue
-        }
-        return at;
-    }
+	
 }
+*/

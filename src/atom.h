@@ -1,0 +1,41 @@
+#ifndef AMUL_SRC_ATOM_H
+#define AMUL_SRC_ATOM_H
+
+#include "atomtype.h"
+
+struct Atom {
+    AtomType    m_type;
+    const char *m_start;
+    const char *m_end;
+
+  public:
+    explicit constexpr Atom(AtomType at, const char *start, size_t len) noexcept
+        : m_type{at}
+        , m_start{start}
+        , m_end{start + len}
+    {
+    }
+
+    explicit constexpr Atom(AtomType at = A_INVALID) noexcept
+        : Atom{at, "", 0}
+    {
+    }
+    explicit constexpr Atom(const char *text) noexcept
+        : Atom{A_PUNCT, text, 1}
+    {
+    }
+
+    constexpr const AtomType &Type() const noexcept { return m_type; }
+    constexpr const char      First() const noexcept { return m_end > m_start ? *m_start : 0; }
+    constexpr bool            operator==(AtomType at) const noexcept { return m_type == at; }
+    constexpr bool            operator==(char punct) const noexcept
+    {
+        return m_type == A_PUNCT && *m_start == punct;
+    }
+    constexpr bool operator!=(AtomType at) const noexcept { return !(operator==(at)); }
+    constexpr bool operator!=(char punct) const noexcept { return !(operator==(punct)); }
+};
+
+AtomType NextAtomType(struct Buffer&);
+
+#endif  // AMUL_SRC_ATOM_H

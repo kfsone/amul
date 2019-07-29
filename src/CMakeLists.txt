@@ -1,14 +1,16 @@
 SET(AMUL_LIB_SOURCES
+		atom.cpp
         filesystem.cpp
 		constants.cpp
         hashmap.cpp
         logging.cpp
 		modules.cpp
 		system.cpp
-		tokenizer.cpp
 )
 
 SET(AMUL_LIB_HEADERS
+		atom.h
+		atomtype.h
 		buffer.h
 		filesystem.h
 		filesystem.inl.h
@@ -16,7 +18,6 @@ SET(AMUL_LIB_HEADERS
 		modules.h
 		sourcefile.h
 		system.h
-		tokenizer.h
 
         ../h/amul.alog.h
 		../h/amul.cons.h
@@ -30,11 +31,16 @@ SET(AMULCOM_SOURCES
         amulcom.main.cpp
 		amulcom.extras.cpp
 		amulcom.strings.cpp
+		tokenstream.cpp
 )
 
 SET(AMULCOM_HEADERS
         amulcom.h
 		amulcom.strings.h
+		atomtype.h
+		char-to-atom.h
+		token.h
+		tokentype.h
 
         ${AMUL_HEADERS}
 )
