@@ -1,9 +1,26 @@
 #pragma once
 /* Portability definitions */
 
+#include "config.h"
+#if !defined(HAVE_CONFIG_H)
+#error "Wrong config.h"
+#endif
+
+#include <cstdlib>
+#include <cstddef>
+#include <cstdint>
+#include <cinttypes>
+#include <cstdio>
+
+#if defined(HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #if defined(_WIN32) || defined(_MSC_VER)
 /******************************************/
 /*  WINDOWS Defines / Includes, etc       */
+
+#define WIN32_LEAN_AND_MEAN
 
 # include <windows.h>
 # include <io.h>

@@ -140,7 +140,7 @@ lang_proc(void)					/* Process language table */
 			p = skipline(ls = s = p);
 			if (!*s)
 			{
-				if (!verb.ents && !verb.flags & VB_TRAVEL)
+				if (!verb.ents && !(verb.flags & VB_TRAVEL))
 					warne("%s: No entries!\n", word(verb.id));
 				break;
 			}

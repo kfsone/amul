@@ -36,8 +36,8 @@ main(int argc, char* argv[])
 		Smugl::MappedFile mf(".." PATH_SEP "test" PATH_SEP "testfile.txt") ;
 
 		printf("We have mapped %s\n", mf.filename().c_str()) ;
-		printf("It's size is %u bytes\n", mf.sizeBytes()) ;
-		printf("Bytes remaining are: %u\n", mf.remainingBytes()) ;
+		printf("It's size is %zu bytes\n", mf.sizeBytes()) ;
+		printf("Bytes remaining are: %zu\n", mf.remainingBytes()) ;
 		printf("basePtr=%p current=%p end=%p\n", mf.basePtr(), mf.currentPtr(), mf.endPtr()) ;
 
 		if ( mf.atEof() )
@@ -99,7 +99,7 @@ main(int argc, char* argv[])
 		}
 		if ( mf.lineNo() > 1 )
 		{
-			printf("FAIL: lineNo over-advanced.\n", mf.lineNo()) ;
+			printf("FAIL: lineNo %zu over-advanced.\n", mf.lineNo()) ;
 			return -1 ;
 		}
 
