@@ -1,3 +1,4 @@
+# Generated automatically from Makefile.in by configure.
 # $Id: Makefile.in,v 1.2 1997/04/28 01:10:06 oliver Exp $
 # Makefile for AMUL
 #
@@ -16,7 +17,7 @@ depend:
 
 tags:
 	@echo "Making tags files..."
-	@for i in $(DIRS) ; do cd $$i ; echo " - $$i" ; rm -f *TAGS* ; @TAGS@ *.[Cch] ; cd .. ; done
+	@for i in $(DIRS) ; do cd $$i ; echo " - $$i" ; rm -f *TAGS* ; etags *.[Cch] ; cd .. ; done
 
 clean:
 	@for i in $(DIRS) ; do cd $$i ; make clean ; cd .. ; done
