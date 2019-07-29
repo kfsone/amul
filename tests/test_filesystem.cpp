@@ -1,11 +1,11 @@
 #include "filesystem.h"
 #include "filesystem.inl.h"
+#include "gtest_aliases.h"
 #include "sourcefile.h"
 #include <gtest/gtest.h>
-#include "gtest_aliases.h"
 
 #ifndef _MSC_VER
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 TEST(FilesystemTest, PathCopy)
@@ -14,11 +14,11 @@ TEST(FilesystemTest, PathCopy)
     EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "abcdefg"));
     EXPECT_STREQ("abcdefg", into);
     EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "/abcdefg"));
-	EXPECT_STREQ("/abcdefg", into);
+    EXPECT_STREQ("/abcdefg", into);
     EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "\\abcdefg"));
-	EXPECT_STREQ("/abcdefg", into);
+    EXPECT_STREQ("/abcdefg", into);
     EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "///\\\\abcdefg"));
-	EXPECT_STREQ("/abcdefg", into);
+    EXPECT_STREQ("/abcdefg", into);
 }
 
 TEST(FilesystemTest, PathCopyOffset)
@@ -26,13 +26,13 @@ TEST(FilesystemTest, PathCopyOffset)
     char   into[64] = {0};
     size_t offset = 0;
     EXPECT_SUCCESS(PathCopy(into, sizeof(into), &offset, "///\\\\abcdefg"));
-	EXPECT_STREQ("/abcdefg", into);
+    EXPECT_STREQ("/abcdefg", into);
     EXPECT_EQ(8, offset);
 
     offset = 2;
     EXPECT_SUCCESS(PathCopy(into, sizeof(into), &offset, "fred"));
     EXPECT_EQ(7, offset);
-	EXPECT_STREQ("/a/fred", into);
+    EXPECT_STREQ("/a/fred", into);
 
     EXPECT_SUCCESS(PathCopy(into, sizeof(into), &offset, "/"));
     EXPECT_EQ(7, offset);
@@ -43,7 +43,7 @@ TEST(FilesystemTest, PathJoin)
     char into[64];
 
     EXPECT_SUCCESS(PathJoin(into, sizeof(into), "/\\////a//\\////", "\\//b\\//"));
-	EXPECT_STREQ("/a/b", into);
+    EXPECT_STREQ("/a/b", into);
 }
 
 TEST(FilesystemTest, PathJoinConstraints)
@@ -58,27 +58,27 @@ TEST(FilesystemTest, PathJoinConstraints)
     EXPECT_ERROR(EINVAL, PathJoin(into, 3, ".", "a"));
 
     EXPECT_SUCCESS(PathJoin(into, sizeof(into), ".", "a"));
-	EXPECT_STREQ(into, "./a");
+    EXPECT_STREQ(into, "./a");
     EXPECT_SUCCESS(PathJoin(into, 4, ".", "a"));
     EXPECT_SUCCESS(PathJoin(into, 4, ".//", "a"));
     EXPECT_SUCCESS(PathJoin(into, 4, ".///////////////////", "a"));
     EXPECT_SUCCESS(PathJoin(into, 4, ".//", "////a"));
-	EXPECT_STREQ("./a", into);
+    EXPECT_STREQ("./a", into);
 
     EXPECT_SUCCESS(PathJoin(
             into, sizeof(into), "\\\\////\\\\//\\//a\\//b\\////\\c", "//////d////\\\\\\e//"));
-	EXPECT_STREQ(into, "/a/b/c/d/e");
+    EXPECT_STREQ(into, "/a/b/c/d/e");
 }
 
 TEST(FilesystemTest, PathJoiner)
 {
     char filepath[MAX_PATH_LENGTH];
     EXPECT_SUCCESS(path_joiner(filepath, ".", "title.txt"));
-	EXPECT_STREQ(filepath, "./title.txt");
+    EXPECT_STREQ(filepath, "./title.txt");
 
     char gameDir[MAX_PATH_LENGTH] = "c:\\users\\oliver\\\\//";
     EXPECT_SUCCESS(gamedir_joiner("\\precious\\rooms.txt"));
-	EXPECT_STREQ(filepath, "c:/users/oliver/precious/rooms.txt");
+    EXPECT_STREQ(filepath, "c:/users/oliver/precious/rooms.txt");
 }
 
 TEST(FilesystemTest, GetFileSizeChecks)
@@ -86,18 +86,18 @@ TEST(FilesystemTest, GetFileSizeChecks)
     const char *datafile = "getfilesize_test_file1.txt";
     EXPECT_ERROR(EINVAL, GetFilesSize(NULL, NULL));
     EXPECT_ERROR(EINVAL, GetFilesSize(datafile, NULL));
-	size_t size = 0;
-	EXPECT_ERROR(EINVAL, GetFilesSize(NULL, &size));
-	EXPECT_EQ(size, 0);
+    size_t size = 0;
+    EXPECT_ERROR(EINVAL, GetFilesSize(NULL, &size));
+    EXPECT_EQ(size, 0);
 }
 
 TEST(FilesystemTest, GetFileSizeNoSuchFile)
 {
     const char *datafile = "getfilesize_test_file1.txt";
     unlink(datafile);
-	size_t size = 0;
+    size_t size = 0;
     EXPECT_ERROR(ENOENT, GetFilesSize(datafile, &size));
-	EXPECT_EQ(size, 0);
+    EXPECT_EQ(size, 0);
 }
 
 TEST(FilesystemTest, GetFileSizeNewFile)
@@ -105,10 +105,10 @@ TEST(FilesystemTest, GetFileSizeNewFile)
     const char *datafile = "getfilesize_test_file1.txt";
     FILE *      fp = fopen(datafile, "w");
     EXPECT_NOT_NULL(fp);
-	fprintf(fp, "%s", datafile);
+    fprintf(fp, "%s", datafile);
     fclose(fp);
 
-	size_t size = 0;
+    size_t size = 0;
     EXPECT_SUCCESS(GetFilesSize(datafile, &size));
     EXPECT_EQ(size, strlen(datafile));
 
@@ -123,7 +123,7 @@ TEST(FilesystemTest, FileMappingChecks)
     EXPECT_ERROR(EINVAL, NewFileMapping("", NULL, 1));
     EXPECT_ERROR(EINVAL, NewFileMapping("a", NULL, 1));
     EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 0));
-    data = (void*)(uintptr_t)0xdeadbeef;
+    data = (void *)(uintptr_t)0xdeadbeef;
     EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 1));
 }
 
@@ -150,22 +150,22 @@ TEST(FilesystemTest, FileMapping)
 
     EXPECT_SUCCESS(NewFileMapping(datafile, &data, size));
     EXPECT_NOT_NULL(data);
-    EXPECT_SUCCESS(strncmp(first, (const char*)data, strlen(first)));
+    EXPECT_SUCCESS(strncmp(first, (const char *)data, strlen(first)));
     unlink(datafile);
 
-    EXPECT_SUCCESS(strncmp(first, (const char*)data, strlen(first)));
+    EXPECT_SUCCESS(strncmp(first, (const char *)data, strlen(first)));
     CloseFileMapping(&data, size);
     EXPECT_NULL(data);
 }
 
 TEST(FilesystemTest, MakeTestFileNameChecks)
 {
-	char filepath[MAX_PATH_LENGTH] {};
+    char filepath[MAX_PATH_LENGTH]{};
 
     EXPECT_ERROR(EINVAL, MakeTextFileName(nullptr, filepath));
-	EXPECT_STREQ("", filepath);
+    EXPECT_STREQ("", filepath);
 
-	// When gamedir is actually empty, it's invalid to append a path
+    // When gamedir is actually empty, it's invalid to append a path
     EXPECT_STREQ("", gameDir);
     EXPECT_ERROR(EINVAL, MakeTextFileName("/a/b/c", filepath));
     EXPECT_STREQ(filepath, "");
@@ -173,13 +173,13 @@ TEST(FilesystemTest, MakeTestFileNameChecks)
 
 TEST(FilesystemTest, MakeTestFileName)
 {
-	char filepath[MAX_PATH_LENGTH] {0};
+    char filepath[MAX_PATH_LENGTH]{0};
 
     strcpy(gameDir, ".");
     EXPECT_ERROR(EINVAL, MakeTextFileName(nullptr, filepath));
-	EXPECT_STREQ(filepath, "");
+    EXPECT_STREQ(filepath, "");
     EXPECT_SUCCESS(MakeTextFileName("/a/b/c", filepath));
-	EXPECT_STREQ(filepath, "./a/b/c.txt");
+    EXPECT_STREQ(filepath, "./a/b/c.txt");
     gameDir[0] = 0;
 }
 
@@ -187,14 +187,14 @@ TEST(FilesystemTest, MakeTestFileNameRoot)
 {
     char filepath[MAX_PATH_LENGTH]{0};
 
-	strcpy(gameDir, "/");
+    strcpy(gameDir, "/");
     EXPECT_SUCCESS(MakeTextFileName("a/b/c", filepath));
     EXPECT_STREQ(filepath, "/a/b/c.txt");
-	gameDir[0] = 0;
+    gameDir[0] = 0;
 }
 
 extern SourceFile s_sourceFile;
-extern bool s_sourceFileInUse;
+extern bool       s_sourceFileInUse;
 
 TEST(FilesystemTest, SourceFileChecks)
 {
@@ -203,17 +203,17 @@ TEST(FilesystemTest, SourceFileChecks)
     const char *filename = "sourcefile_test_file1";
     const char *txtfile = "./sourcefile_test_file1.txt";
     unlink(txtfile);
-    
-	EXPECT_FALSE(s_sourceFileInUse);
 
-	EXPECT_ERROR(EINVAL, NewSourceFile(NULL, &sourcefile));
+    EXPECT_FALSE(s_sourceFileInUse);
+
+    EXPECT_ERROR(EINVAL, NewSourceFile(NULL, &sourcefile));
     EXPECT_ERROR(EINVAL, NewSourceFile("a", NULL));
 
     s_sourceFileInUse = true;
     EXPECT_ERROR(ENFILE, NewSourceFile("a", &sourcefile));
     s_sourceFileInUse = false;
 
-	EXPECT_STREQ(gameDir, "");
+    EXPECT_STREQ(gameDir, "");
     EXPECT_ERROR(EDOM, NewSourceFile(filename, &sourcefile));
     EXPECT_NULL(s_sourceFile.buffer.begin());
 
@@ -222,19 +222,18 @@ TEST(FilesystemTest, SourceFileChecks)
     EXPECT_ERROR(ENOENT, NewSourceFile(filename, &sourcefile));
     EXPECT_STREQ(txtfile, s_sourceFile.filepath);
     EXPECT_NULL(s_sourceFile.buffer.begin());
-	gameDir[0] = 0;
+    gameDir[0] = 0;
 }
 
 TEST(FilesystemTest, SourceFileNoData)
 {
     SourceFile *sourcefile{nullptr};
-    size_t      size = 0;
     const char *filename = "sourcefile_test_file1";
     const char *txtfile = "./sourcefile_test_file1.txt";
     unlink(txtfile);
 
     // Check for an empty file returning ENODATA.
-	strcpy(gameDir, ".");
+    strcpy(gameDir, ".");
     FILE *fp = fopen(txtfile, "w");
     EXPECT_NOT_NULL(fp);
     fclose(fp);
@@ -242,14 +241,14 @@ TEST(FilesystemTest, SourceFileNoData)
     EXPECT_FALSE(s_sourceFileInUse);
     EXPECT_NULL(s_sourceFile.buffer.begin());
 
-	unlink(txtfile);
-	gameDir[0] = 0;
+    unlink(txtfile);
+    gameDir[0] = 0;
 }
 
 TEST(FilesystemTest, SourceFile)
 {
     SourceFile *sourcefile{nullptr};
-	size_t      size = 0;
+    size_t      size = 0;
     const char *filename = "sourcefile_test_file1";
     const char *txtfile = "./sourcefile_test_file1.txt";
     unlink(txtfile);
@@ -257,12 +256,12 @@ TEST(FilesystemTest, SourceFile)
     // Now make the file bigger and check we get it mapped.
     const char *test1 = "Test 1.";
     const char *test2 = "Test 2.";
-    FILE *fp = fopen(txtfile, "w");
+    FILE *      fp = fopen(txtfile, "w");
     EXPECT_NOT_NULL(fp);
     fprintf(fp, "%s %s", test1, test2);
     fclose(fp);
 
-	strcpy(gameDir, ".");
+    strcpy(gameDir, ".");
 
     EXPECT_SUCCESS(NewSourceFile(filename, &sourcefile));
     EXPECT_EQ(&s_sourceFile, sourcefile);
@@ -276,18 +275,17 @@ TEST(FilesystemTest, SourceFile)
     EXPECT_EQ(sourcefile->buffer.begin(), sourcefile->buffer.it());
     EXPECT_EQ(sourcefile->size, sourcefile->buffer.end() - sourcefile->buffer.begin());
 
-	EXPECT_STREQ((const char*)sourcefile->mapping, "Test 1. Test 2.");
+    EXPECT_STREQ((const char *)sourcefile->mapping, "Test 1. Test 2.");
 
     // If we try to re-open the source file we should get a ENFILE
     EXPECT_ERROR(ENFILE, NewSourceFile(filename, &sourcefile));
     EXPECT_NOT_NULL(sourcefile);
 
-	CloseSourceFile(&sourcefile);
+    CloseSourceFile(&sourcefile);
     EXPECT_NULL(sourcefile);
 
     unlink(txtfile);
     EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));
 
-	gameDir[0] = 0;
+    gameDir[0] = 0;
 }
-

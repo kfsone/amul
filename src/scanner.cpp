@@ -67,7 +67,8 @@ My current thinking is this:
    current state, and specifying which values should thus be captured for the ast
    or equivalent.
 
- 
+ 
+
 
 -----------------------------------
 Example:
@@ -131,7 +132,8 @@ SYSMSG		:= Optional(Label("msgid=")) >> Value(Identifier('$'), "id") >> EOL
 
 /*
 
-Token streaming has to be relatively fluent, so it has to be composable, so it probably needs to involve expression types.
+Token streaming has to be relatively fluent, so it has to be composable, so it probably needs to
+involve expression types.
 
 Seperator = OnePlus(whitespace | end);
 Word      = word() & Check(Separator);
@@ -141,6 +143,7 @@ RoomId = Labeled("room=", Word());
 template<typename LhsT, typename RhsT, typename... Args>
 struct Expression : public Expression<RhsT, Args...>
 {
-	
+    
+
 }
 */

@@ -2,6 +2,7 @@
 #define AMUL_SRC_ATOM_H
 
 #include "atomtype.h"
+#include <cstddef>
 
 struct Atom final {
     const char *m_start;
@@ -10,14 +11,18 @@ struct Atom final {
 
   public:
     explicit constexpr Atom(AtomType at, const char *start, size_t len) noexcept
-		: m_start{start}
-		, m_type{at}
+        : m_start{start}
+        , m_type{at}
         , m_end{start + len}
     {
     }
 
-    explicit constexpr Atom(AtomType at = A_INVALID) noexcept
+    explicit constexpr Atom(AtomType at) noexcept
         : Atom{at, "", 0}
+    {
+    }
+    constexpr Atom() noexcept
+        : Atom{A_INVALID}
     {
     }
     explicit constexpr Atom(const char *text) noexcept
@@ -25,7 +30,7 @@ struct Atom final {
     {
     }
 
-	explicit Atom(struct Buffer &buffer) noexcept;
+    explicit Atom(struct Buffer &buffer) noexcept;
 
     constexpr const AtomType &Type() const noexcept { return m_type; }
     constexpr const char      First() const noexcept { return m_end > m_start ? *m_start : 0; }
@@ -38,6 +43,6 @@ struct Atom final {
     constexpr bool operator!=(char punct) const noexcept { return !(operator==(punct)); }
 };
 
-AtomType NextAtomType(struct Buffer&);
+AtomType NextAtomType(struct Buffer &);
 
 #endif  // AMUL_SRC_ATOM_H

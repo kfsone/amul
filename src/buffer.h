@@ -41,9 +41,9 @@ struct Buffer {
     constexpr bool   Eof() const noexcept { return it() >= end(); }
     constexpr size_t Size() const noexcept { return end() - begin(); }
 
-	char Peek() const noexcept { return !Eof() ? *m_cur : 0; }
-    char Read() noexcept { return (!Eof()) ? *(m_cur++) : 0; }
-    void Skip() noexcept { m_cur += !Eof() ? 1 : 0; }
+    uint8_t Peek() const noexcept { return !Eof() ? *m_cur : 0; }
+    uint8_t Read() noexcept { return (!Eof()) ? *(m_cur++) : 0; }
+    void    Skip() noexcept { m_cur += !Eof() ? 1 : 0; }
 
     void Close() noexcept { Assign(nullptr, 0); }
 };

@@ -10,7 +10,7 @@ AtomType
 NextAtomType(Buffer &buffer)
 {
     const auto firstc = buffer.Read();
-    switch (const AtomType at = charToAtom[firstc]; at) {
+    switch (const AtomType at = charToAtom[firstc & 0xff]; at) {
     case A_INVALID:
     case A_PUNCT:
         return at;
@@ -18,7 +18,7 @@ NextAtomType(Buffer &buffer)
         const auto nextc = buffer.Peek();
         if (firstc != 0) {
             // skip \r or \n after it's compliment
-            if (nextc && nextc != firstc && charToAtom[nextc] == A_END) {
+            if (nextc && nextc != firstc && charToAtom[nextc & 0xff] == A_END) {
                 buffer.Skip();
             }
         }
@@ -28,16 +28,15 @@ NextAtomType(Buffer &buffer)
     case A_LETTER:
     case A_DIGIT:
         // check the *next* character
-        while (charToAtom[buffer.Peek()] == at) {
+        while (charToAtom[buffer.Peek() & 0xff] == at) {
             buffer.Skip();
         }
         return at;
     }
 
-	// unreachable
+    // unreachable
     return A_INVALID;
 }
-
 
 Atom::Atom(Buffer &buffer) noexcept
     : m_start(buffer.it())

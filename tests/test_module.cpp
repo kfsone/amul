@@ -114,7 +114,6 @@ TEST(ModuleTest, CloseModule)
 
 TEST(ModuleTest, MultipleModules)
 {
-    ModuleState ms{};
     ModuleState ms1{};
     Module *    module1{nullptr};
 
