@@ -3,15 +3,15 @@
 
 #include "atomtype.h"
 
-struct Atom {
-    AtomType    m_type;
+struct Atom final {
     const char *m_start;
+    AtomType    m_type;
     const char *m_end;
 
   public:
     explicit constexpr Atom(AtomType at, const char *start, size_t len) noexcept
-        : m_type{at}
-        , m_start{start}
+		: m_start{start}
+		, m_type{at}
         , m_end{start + len}
     {
     }
@@ -24,6 +24,8 @@ struct Atom {
         : Atom{A_PUNCT, text, 1}
     {
     }
+
+	explicit Atom(struct Buffer &buffer) noexcept;
 
     constexpr const AtomType &Type() const noexcept { return m_type; }
     constexpr const char      First() const noexcept { return m_end > m_start ? *m_start : 0; }
