@@ -4,3 +4,5 @@ etc/cmake.build.sh text eol=lf
 etc/Makefile text eol=lf
 etc/vimrc text eol=lf
 
+*.sh text eol=lf
+
