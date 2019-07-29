@@ -76,9 +76,7 @@ read_in_rooms(void* base)
 
 	for (counter_t i = 0; i < data->rooms; dest++, i++)
 	{
-		Room* fakeRoom = new Room;	///TODO: Check this isn't a leak.
-
-		memcpy(dest, fakeRoom, sizeof(Room));
+		*dest = Room{};
 		dest->Read(fp);
 
 		if ((dest->flags & ANTERM) && data->anterm)
@@ -126,9 +124,7 @@ read_in_objects(void* base)
 	Object* cur = static_cast<Object*>(base);
 	for (counter_t i = 0; i < data->objects; i++, cur++)
 	{
-		Object* fakeObj = new Object; ///TODO: Make sure this isn't a leak.
-
-		memcpy(cur, fakeObj, sizeof(Object));
+		*cur = Object{};
 		cur->Read(fp);
 
 		if (cur->nstates > 0)
@@ -324,7 +320,7 @@ load_database(void* const membase)	// Load all the files in the database
 	ptr = read_in_travel(ptr);
 	mention("Syns");
 	ptr = read_in_aliases(ptr);
-	printf("LOADED. [%u bytes]\n", (((char*)ptr) - ((char*)membase)));
+	printf("LOADED. [%zu bytes]\n", static_cast<const char*>(ptr) - static_cast<const char*>(membase));
 
 	// Clear some of the fields in data
 
@@ -346,9 +342,7 @@ load_database(void* const membase)	// Load all the files in the database
 
 	for (i = 0, ppCur = data->user; i < MAXU; i++, ppCur++)
 	{
-		Player* fakePlayer = new Player; ///TODO: Check this isn't a leak.
-
-		memcpy(ppCur, fakePlayer, sizeof(Player));
+		*ppCur = Player{};
 		ppCur->state = OFFLINE;
 		ppCur->id = -1;
 		ppCur->_name[0] = 0;

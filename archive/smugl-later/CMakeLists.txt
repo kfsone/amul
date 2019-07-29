@@ -1,5 +1,8 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.10)
 PROJECT( SMUGL )
+
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 INCLUDE(include/PlatformChecks.cmake)
 
@@ -18,7 +21,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR} ${SMUGL_BINARY_DIR})
 
 add_custom_target(
 	revision.h
-	COMMAND ${CMAKE_SOURCE_DIR}/make-revision.py -i project.rev -p Smugl -o ${SMUGL_BINARY_DIR}/revision.h
+	COMMAND perl ${CMAKE_SOURCE_DIR}/make-revision.py -i project.rev -p Smugl -o ${SMUGL_BINARY_DIR}/revision.h
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	DEPENDS ${CMAKE_SOURCE_DIR}/make-revision.py
 )
