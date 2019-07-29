@@ -1,4 +1,4 @@
-#include "atomtype.h"
+#include "atom.h"
 #include "buffer.h"
 #include "char-to-atom.h"
 
@@ -7,19 +7,19 @@
 // atom, or consumes entire alpha sequences as 'letter'.
 //
 AtomType
-NextAtomType(Buffer &buf)
+NextAtomType(Buffer &buffer)
 {
-    const auto firstc = buf.Read();
+    const auto firstc = buffer.Read();
     switch (const AtomType at = charToAtom[firstc]; at) {
     case A_INVALID:
     case A_PUNCT:
         return at;
     case A_END: {
-        const auto nextc = buf.Peek();
+        const auto nextc = buffer.Peek();
         if (firstc != 0) {
             // skip \r or \n after it's compliment
             if (nextc && nextc != firstc && charToAtom[nextc] == A_END) {
-                buf.Skip();
+                buffer.Skip();
             }
         }
         return at;
@@ -28,12 +28,20 @@ NextAtomType(Buffer &buf)
     case A_LETTER:
     case A_DIGIT:
         // check the *next* character
-        while (charToAtom[buf.Peek()] == at) {
-            buf.Skip();
+        while (charToAtom[buffer.Peek()] == at) {
+            buffer.Skip();
         }
         return at;
     }
 
 	// unreachable
     return A_INVALID;
+}
+
+
+Atom::Atom(Buffer &buffer) noexcept
+    : m_start(buffer.it())
+    , m_type(NextAtomType(buffer))
+    , m_end(buffer.end())
+{
 }
