@@ -719,13 +719,13 @@ isgen(char c)
     return -1;
 }
 
-static const char *announceType[MAX_ANNOUNCE_TYPE] = {"global", "everyone", "outside", "here",
+static const char *announceTypes[MAX_ANNOUNCE_TYPE] = {"global", "everyone", "outside", "here",
                                                       "others", "all",      "cansee",  "notsee"};
 int
-antype(const char *s)
+announceType(const char *s)
 {
     for (int i = 0; i < MAX_ANNOUNCE_TYPE; ++i) {
-        if (stricmp(s, announceType[i]))
+        if (stricmp(s, announceTypes[i]))
             return i;
     }
     alog(AL_ERROR, "Invalid announcement target: %s", s);
@@ -1032,7 +1032,7 @@ checkParameter(char *p, const VMOP *op, size_t paramNo, const char *category, FI
         value = rdmode(toupper(*token));
         break;
     case -1:
-        value = antype(token);
+        value = announceType(token);
         break;
     case PROOM:
         value = isroom(token);
@@ -2788,7 +2788,10 @@ compilePhase(const CompilePhase *phase)
     if (phase->isText) {
         char filepath[MAX_PATH_LENGTH];
         MakeTextFileName(phase->name, filepath);
-        ifp = OpenGameFile(filepath, "r");
+		FILE *fp = fopen(filepath, "r");
+		if (!fp)
+			afatal("Could not open %s file: %s", phase->name, filepath);
+        ifp = fp;
     }
 
     phase->handler();
