@@ -70,7 +70,7 @@ room_proc(void)
     for (rmp = NULL; rmp == NULL || nextc(0) == 0; rooms++)
         {
         // Create a new object
-        rmp = (ROOM *)grow(NULL, sizeof(ROOM), "New Room");
+		rmp = new ROOM;
         if (!roomtab)
             roomtab = rmp;
 
@@ -152,7 +152,7 @@ room_proc(void)
             bufmem[len - 1] = 0;
             fwrite(bufmem, len, 1, msgfp);
 
-            while (fgets(bufmem + mem_off, (size_t)(rdalloc - mem_off), ifp))
+            while (fgets(bufmem + mem_off, rdalloc - mem_off, ifp))
                 {
                 char *base = bufmem + mem_off;
                 /* Was it a blank line? */
@@ -222,8 +222,6 @@ room_proc(void)
 void
 finish_rooms(void)
     {
-    ROOM *rmp;
-
     /* Process the dmove tables */
     /* The DMOVE flag specifies that when a player dies in a given room,
      * their inventory should be relocated to a different room (e.g. if
@@ -234,7 +232,8 @@ finish_rooms(void)
     while ((dmv = first))
         {
 	first = dmv->next;
-	rmp = (ROOM *)bobs[dmv->room];
+	ROOM *rmp = dynamic_cast<ROOM*>(bobs[dmv->room]);
+	assert(rmp);
 	basic_obj dest = is_container(dmv->to);
 	if (dest == -1 || bobs[dest]->max_weight == 0)
 	    error("%s: Invalid dmove location, '%s'\n",
@@ -249,11 +248,9 @@ finish_rooms(void)
 
     /* Write copy of stuff to disk */
     fopenw(roomsfn);
-    for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = (ROOM *)rmp->next)
+    for (ROOM *rmp = roomtab; rmp && rmp->type == WROOM; rmp = rmp->getNext(rmp))
         {
-	ROOM temp;
-	temp = *rmp;
-	temp.Write(ofp1);
+	rmp->Write(ofp1);
         }
     close_ofps();
     }

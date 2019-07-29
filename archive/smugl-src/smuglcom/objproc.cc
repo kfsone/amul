@@ -81,11 +81,9 @@ set_mob(void)                   /* Set mobile character for an object */
         wordno = is_word(Word);
     else
         {
-        char *p = (char *) malloc(strlen(Word) + 1);
-        *p = '!';
-        strcpy(p + 1, Word);
-        wordno = is_word(p);
-        free(p);
+		char mobname[IDLEN+1];
+		snprintf(mobname, sizeof(mobname), "!%s", Word);
+        wordno = is_word(mobname);
         }
     if (wordno != -1)
 	{
@@ -248,7 +246,7 @@ write:
 void
 objs_proc(void)
     {                           /* Process the objects file */
-    char *p, *s;
+    char *s;
 
     nouns = 0;
 
@@ -261,8 +259,8 @@ objs_proc(void)
 	errabort();
 	return;
         }				/* Nothing to process */
-    p = cleanget();
-    p = skipspc(p);
+    char *src = cleanget();
+    char *p = skipspc(src);
 
     do
         {
@@ -275,7 +273,7 @@ objs_proc(void)
         if (!Word[0])
             continue;
 
-        obj = (OBJ *)grow(NULL, sizeof(OBJ), "New Object");
+		obj = new OBJ;
         if (!obtab)
             obtab = obj;
 
@@ -392,13 +390,12 @@ objs_proc(void)
         nouns++;
         }
     while (*p);
+	free(src);
     if (!err)
         {
-        OBJ temp;
-        for (obj = obtab; obj; obj = (OBJ *)obj->next)
+        for (obj = obtab; obj; obj = obj->getNext(obj))
             {
-            temp = *obj;
-            temp.Write(ofp1);
+            obj->Write(ofp1);
             }
         }
     errabort();			/* Abort if an error */

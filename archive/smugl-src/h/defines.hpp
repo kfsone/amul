@@ -5,8 +5,19 @@
 #ifndef	DEFINES_H
 #define	DEFINES_H	1
 
-#define NORMALISE(x) ((((unsigned long)(x)) + (sizeof(long) * 2)) & 0xfffffffc)
-#define VOIDADD(p, o) (void *)((char *)p + (unsigned long)o)
+#include <cstdint>
+
+template<typename T>
+constexpr T ptr_align(T value) noexcept
+{
+	constexpr size_t mask = sizeof(uint64_t) - 1;
+	return reinterpret_cast<T>(reinterpret_cast<uintptr_t>(reinterpret_cast<const char*>(value) + mask) & ~mask);
+}
+
+constexpr void *void_add(void *ptr, size_t increment) noexcept
+{
+	return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(ptr) + increment);
+}
 
 #ifndef	FALSE
 #define	FALSE	0
@@ -49,6 +60,7 @@ enum player_state
 #define	TEXTS	3
 
 #define	PV	"0.999b"        // Parser version
+enum { IDLEN = 64 };			// Maximum length for an ID
 #define	RANKL	32              // Length of rank descs
 #define	NAMEL	20              // Length of names
 #define ADNAMEL 64              // Length of the game's name

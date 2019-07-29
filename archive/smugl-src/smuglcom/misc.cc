@@ -14,7 +14,7 @@ grow(void *ptr, size_t size, const char *msg)
 
     if (ptr == NULL)
         {
-        p = (void *) malloc(size);
+        p = malloc(size);
         if (p == NULL)
             {
             error("Out of memory: %s\n", msg);
@@ -23,7 +23,7 @@ grow(void *ptr, size_t size, const char *msg)
         return p;
         }
 
-    p = (void *) realloc(ptr, size);
+    p = realloc(ptr, size);
     if (p == NULL)
         {
 	error("Can't extend memory: %s\n", msg);

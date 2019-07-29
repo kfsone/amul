@@ -254,7 +254,7 @@ tx(const char *s, char c)
             cur_x = 0;          // Assuming terminal has automargins
         xpos = cur_x;           // Update cursor position
 
-        write(conn_sock_fd, tstr, (long)(p - tstr)); // Print the text
+        write(conn_sock_fd, tstr, p - tstr); // Print the text
 
         // If we have exceeded the screen length, or if we've reached
         // a form-feed mid-text, use a 'more' prompt

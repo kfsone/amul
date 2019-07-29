@@ -19,22 +19,22 @@
 # define DEC
 #endif
 
-DEC long FPos;			/* Used during TT/Lang writes */
-DEC char Word[64];		/* For internal use only <grin> */
-DEC char temp[180];		/* temporary string */
-DEC long err;			/* Error count */
-DEC short proc;			/* What we are processing */
+DEC long FPos;				/* Used during TT/Lang writes */
+DEC char Word[IDLEN + 1];	/* For internal use only <grin> */
+DEC char temp[180];			/* temporary string */
+DEC long err;				/* Error count */
+DEC short proc;				/* What we are processing */
 DEC time_t compiled;		/* Bits for time etc */
-DEC char *data;			/* Pointer to data buffer */
-DEC char *data2;		/* Secondary buffer area */
-DEC char *syntab;		/* Synonym table, re-read */
-DEC long mins;			/* Length of data & gametime */
-DEC long obmem;			/* Size of Objects.TXT */
-DEC long vbmem;			/* Size of Lang.Txt */
-DEC long wizstr;		/* Wizards strength */
-DEC char *mobdat;		/* Mobile data */
-DEC char inc_hash_stats;        /* Command line switch */
-DEC counter_t cur_room;         /* "Current room" (for travel table) */
+DEC char *data;				/* Pointer to data buffer */
+DEC char *data2;			/* Secondary buffer area */
+DEC char *syntab;			/* Synonym table, re-read */
+DEC long mins;				/* Length of data & gametime */
+DEC long obmem;				/* Size of Objects.TXT */
+DEC long vbmem;				/* Size of Lang.Txt */
+DEC long wizstr;			/* Wizards strength */
+DEC char *mobdat;			/* Mobile data */
+DEC char inc_hash_stats;    /* Command line switch */
+DEC counter_t cur_room;     /* "Current room" (for travel table) */
 
 DEC char warn, needcr, exi;
 
@@ -79,22 +79,21 @@ DEC FILE *msgfp;
 
 DEC FILE *ofp4;
 DEC ROOM room;
-DEC struct VERB verb;
-DEC struct SLOTTAB vbslot;
-DEC struct VBTAB vt;
-DEC struct RANKS rank;
-DEC struct OBJ_STATE state;
-DEC struct MOB_ENT mob;
+DEC VERB verb;
+DEC SLOTTAB vbslot;
+DEC VBTAB vt;
+DEC RANKS rank;
+DEC OBJ_STATE state;
+DEC MOB_ENT mob;
 DEC ROOM *roomtab;	/* ptr->table, ptr->a room */
-DEC struct VERB *vbtab, *vbptr;
-DEC struct SLOTTAB *slottab, *stptr;
-DEC struct RANKS *ranktab;
-DEC struct NTAB *ntabp;
+DEC VERB *vbtab, *vbptr;
+DEC SLOTTAB *slottab, *stptr;
+DEC RANKS *ranktab;
 DEC OBJ *obj, *obtab;
-DEC struct OBJ_STATE *statab, *statep;
-DEC struct TT_ENT tt, *ttp, *ttabp;
-DEC struct MOB_ENT *mobp, *mobile;
-DEC struct MOB_TAB *mtab, *mobtab;
+DEC OBJ_STATE *statab, *statep;
+DEC TT_ENT tt, *ttp, *ttabp;
+DEC MOB_ENT *mobp, *mobile;
+DEC MOB_TAB *mtab, *mobtab;
 
 enum
 {				/* Text file numbers */

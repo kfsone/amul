@@ -19,12 +19,12 @@ static void vbprob(const char *s, char *p);
 extern counter_t arg_alloc;
 extern long *argtab, *argptr;
 
-static struct VBTAB *vttab;	/* Table of 'vt's */
+static VBTAB *vttab;	/* Table of 'vt's */
 counter_t vt_alloc;             /* Number of 'vt's in use */
-static struct VBTAB *vtp;	/* Current 'vt' */
-static struct SLOTTAB *sttab;	/* Table of slottab's */
+static VBTAB *vtp;	/* Current 'vt' */
+static SLOTTAB *sttab;	/* Table of slottab's */
 counter_t st_alloc;             /* Allocation of slottabs */
-static struct SLOTTAB *stp;	/* Current slottab */
+static SLOTTAB *stp;	/* Current slottab */
 
 /* The default 'CHAE' pattern is -1/C/H/E for both sets */
 static const char default_chae[] = { -1, 'C', 'H', 'E', -1, 'C', 'H', 'E' };
@@ -44,9 +44,9 @@ lang_proc(void)                 /* Process language table */
     proc = 1;
     fopenw(langfn);
 
-    p = (char *)cleanget(256 * sizeof(*vbtab));
+    p = cleanget(256 * sizeof(*vbtab));
 
-    vbtab = (struct VERB *)p;
+    vbtab = (VERB *)p;
     vbptr = vbtab;
 
     p = skipspc(p + (256 * sizeof(*vbtab)));
@@ -105,7 +105,7 @@ lang_proc(void)                 /* Process language table */
                 warne("verb %s conflicts with a room id (bad idea)\n", Word);
             }
         verb.id = new_word(Word, FALSE);
-        strcpy(verb.sort, default_chae);
+        memcpy(verb.precedences, default_chae, sizeof(verb.precedence));
         verbs++;
 
         /* Check the verb flags and/or 'chae' options */
@@ -123,16 +123,16 @@ lang_proc(void)                 /* Process language table */
                 verb.flags |= VB_DREAM;
                 s = getword(s);
                 }
-            if (*Word && chae_proc(Word, verb.sort) == -1)
+            if (*Word && chae_proc(Word, verb.precedence[0]) == -1)
                 {
                 s = getword(s);
                 if (*Word)
-                    chae_proc(Word, verb.sort2);
+                    chae_proc(Word, verb.precedence[1]);
                 }
             }
 
         verb.ents = 0;
-        verb.ptr = (struct SLOTTAB *) (st_alloc * sizeof(vbslot));
+        verb.ptr = (SLOTTAB *) (st_alloc * sizeof(vbslot));
 
         /* Skip Empty lines */
         do
@@ -315,7 +315,7 @@ sp2:			/* Syntax line processing */
 
 endsynt:
         vbslot.ents = 0;
-        vbslot.ptr = (struct VBTAB *) (vt_alloc * sizeof(vt));
+        vbslot.ptr = (VBTAB *) (vt_alloc * sizeof(vt));
 
 commands:
         lastc = 'x';
@@ -412,9 +412,7 @@ writecna:
         if (vt_alloc % GROW_SIZE == 0)
             {
             counter_t new_alloc = vt_alloc + GROW_SIZE;
-            vttab = (struct VBTAB *)grow(vttab,
-                                         (size_t)(new_alloc * sizeof(vt)),
-                                         "Resizing 'vt' table");
+            vttab = (VBTAB *)grow(vttab, new_alloc * sizeof(vt), "Resizing 'vt' table");
             vtp = vttab + vt_alloc;
             }
         *(vtp++) = vt;
@@ -425,7 +423,7 @@ writeslot:
         if (st_alloc % GROW_SIZE == 0)
             {
             counter_t new_alloc = st_alloc + GROW_SIZE;
-            sttab = (struct SLOTTAB *)grow(sttab, new_alloc * sizeof(vbslot),
+            sttab = (SLOTTAB *)grow(sttab, new_alloc * sizeof(vbslot),
                                            "Resizing 'vbslot' table");
             stp = sttab + st_alloc;
             }
@@ -548,24 +546,23 @@ setslots(int i)
 
 static int
 iswtype(char *s)
-    {                           /* Determine if 's' is a 'word type' */
-    int i;                      /* e.g. 'noun', etc */
-    for (i = 0; i < NSYNTS; i++)
-        {
-	if (!strcmp(s, syntax[i]))
-            {
-	    *s = 0;
-	    return i - 1;
-            }
-	if (strncmp(s, syntax[i], syntl[i]))
-	    continue;
-	if (*(s + syntl[i]) != '=')
-	    continue;
-	strcpy(s, s + syntl[i] + 1);
-	return i - 1;
-        }
-    return -3;
-    }
+{                           /* Determine if 's' is a 'word type', e.g. 'noun', etc */
+    for (int i = 0; i < NSYNTS; i++) {
+		char *p = skiplead(syntax[i], s);
+		if (p == s)
+			continue;
+		if (*p == 0) {
+			// Exact match
+			*s = 0;
+			return i - 1;
+		}
+		if (*p != '=' || *(p+1) == 0)
+			continue;
+		memmove(s, p + 1, strlen(p));
+		return i - 1;
+   	}
+  	return -3;
+}
 
 static void
 vbprob(const char *s, char *p)

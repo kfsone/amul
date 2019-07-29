@@ -11,11 +11,13 @@
 class OBJ : public BASIC_OBJ
     {				// Object (temporary) definition
 public:
+	virtual ~OBJ() {}
+
     //// Object::FUNCTIONS
-    virtual int describe(void) { return 0; };
-    virtual int describe_verbose(void) { return 0; };
-    virtual int Write(FILE *);
-    virtual int Read(FILE *);
+    virtual int describe(void) override { return 0; };
+    virtual int describe_verbose(void) override { return 0; };
+    virtual int Write(FILE *) override;
+    virtual int Read(FILE *) override;
 
     //// Object::DATA
     char putto;                 // Where things go

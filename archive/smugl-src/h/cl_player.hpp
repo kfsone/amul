@@ -12,11 +12,13 @@
 class PLAYER : public BASIC_OBJ
     {
 public:
+	virtual ~PLAYER() {}
+
     //// Player::FUNCTIONS
-    virtual int describe(void) { return 0; };
-    virtual int describe_verbose(void) { return 0; }
-    virtual int Write(FILE *);
-    virtual int Read(FILE *);
+    virtual int describe(void) override { return 0; };
+    virtual int describe_verbose(void) override { return 0; }
+    virtual int Write(FILE *) override;
+    virtual int Read(FILE *) override;
 
     //// Player::DATA
     char _name[NAMEL + 1];      // Player's name
