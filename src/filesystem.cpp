@@ -201,7 +201,7 @@ CloseFileMapping(void **datap, size_t length)
         *datap = NULL;
 }
 
-SourceFile s_sourceFile;
+SourceFile s_sourceFile{};
 bool       s_sourceFileInUse;
 
 error_t
@@ -223,13 +223,17 @@ NewSourceFile(const char *filename, SourceFile **sourcefilep)
     REQUIRE(filename && *filename && sourcefilep);
     if (s_sourceFileInUse)
         return ENFILE;
+	// gamedir must be populated
+	if (!gameDir[0])
+		return EDOM;
 
     SourceFile *sourcefile = &s_sourceFile;
     memset(sourcefile, 0, sizeof(*sourcefile));
 
     error_t err = MakeTextFileName(filename, sourcefile->filepath);
     if (err != 0) {
-        afatal("Full filename too long for %s/%s", gameDir, filename);
+        alog(AL_ERROR, "Full filename too long for %s/%s", gameDir, filename);
+		return EDOM;
     }
 
     err = GetFilesSize(sourcefile->filepath, &sourcefile->size);

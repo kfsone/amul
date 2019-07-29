@@ -35,6 +35,7 @@ ELSE ()
 ENDIF()
 
 
+add_gtest(AtomTest ${AMUL_LIB_NAME} test_atom.cpp ../src/atom.h ../src/atomtype.h ../src/buffer.h)
 add_gtest(BufferTest ${AMUL_LIB_NAME} test_buffer.cpp ../src/buffer.h)
 add_gtest(FilesystemTest ${AMUL_LIB_NAME} test_filesystem.cpp ../src/filesystem.h)
 add_gtest(HashmapTest ${AMUL_LIB_NAME} test_hashmap.cpp ../src/hashmap.h)
