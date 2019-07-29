@@ -33,7 +33,7 @@ LIBS            = -L$(LIBDIR) -lsmugl @LIBS@ @LDFLAGS@
 # Tidy up rules
 clean::
 	rm -f *.o *.bak *~ core *.core *TAGS*
-	@TAGS@ *.cc *.h
+	@TAGS@ *.cc *.hpp
 
 distclean: clean
 	rm -f $(EXES) *.a *.status *.cache *.log Makefile Makefile.dep

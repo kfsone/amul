@@ -10,7 +10,9 @@ extern class Player *userbase;
 class Player : public PLAYER
     {
 public:
-    virtual int describe(void);
+	virtual ~Player() {}
+
+    virtual int describe(void) override;
 
     const char *name(void);     // Return the player's name
     inline int number(void) { return (int) (this - userbase); };

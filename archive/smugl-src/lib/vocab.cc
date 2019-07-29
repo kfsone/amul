@@ -25,14 +25,14 @@ word(vocid_t idx)
     {
     if (idx == vocUNKNOWN)
         return "(undef)";
-    register off_t offset = vc->index[idx];
+    off_t offset = vc->index[idx];
     if (idx > vc->items)
         {
         if (offset == -1L)
             return "(undef string)";
-        else return (const char *)(vc->index[idx]);
+        else return reinterpret_cast<const char*>(vc->index[idx]);
         }
-    else return (const char *)(vc->vocab + offset);
+    else return reinterpret_cast<const char*>(vc->vocab + offset);
     }
 
 /* Calculate the hash of a word */
@@ -63,7 +63,7 @@ hash_of(const char *p)
             c = '_';
         hash_len++;
         hash = (hash << 4) + (c - '!');
-        if (hash & (unsigned long)(0xe0000000))
+        if (hash & 0xe0000000UL)
             hash = ((hash ^ (hash_len * 13)) % 5783);
         }
     hash += (hash_len * VOCROWS) % 1049;
@@ -200,7 +200,7 @@ read_in_vocab(void *membase)
         }
     else
         {
-        vc->vocab = (char *)malloc((u_long)vc->vocab_alloc);
+        vc->vocab = (char *)malloc(vc->vocab_alloc);
         if (vc->vocab == NULL)
             {
             printf(">> Out of memory for vocab data.\n");
@@ -208,7 +208,7 @@ read_in_vocab(void *membase)
             }
         }
     bzero(vc->vocab, vc->vocab_alloc);
-    read(fd, vc->vocab, (u_long)vc->cur_vocab);
+    read(fd, vc->vocab, vc->cur_vocab);
     close(fd);
 
     return membase;

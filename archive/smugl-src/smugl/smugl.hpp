@@ -73,8 +73,7 @@ extern void txc(char);
 extern void announce(long to, const char *msg);
 extern void announce(long to, long msg);
 extern void announce_into(long to, const char *msg);
-static inline void announce_into(long to, long msg)
-	{ announce_into(to, message(msg)); };
+static inline void announce_into(long to, long msg) { announce_into(to, message(msg)); }
 
 // Macros
 #define ALLBUT(i) ~(1<<i)       // Bit mask for that excludes 'i'

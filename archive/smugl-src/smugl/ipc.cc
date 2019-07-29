@@ -53,7 +53,7 @@ char sems[num_SEMS];            // Which semaphores we're holding
 static void tidy_ipc(void);
 void ipc_init(void);
 void sem_lock(int n), sem_unlock(int n);
-static void *shmalloc(long memory);
+static void *shmalloc(size_t memory);
 
 // Clean up the IPC and shared memory (presumably for reset or exit)
 // We need the arguments because we're also a signal handler, and
@@ -116,7 +116,7 @@ init_ipc(long memory)
     data->errors = 0;
     data->semid  = -1;
     // Increment and round-up shmbase
-    data->shmbase = (void *)NORMALISE(data + 1);
+    data->shmbase = ptr_align(data + 1);
 
     // Now setup the sempahores used for locking control
     data->semid = semget(IPC_PRIVATE, num_SEMS, (IPC_CREAT | IPC_EXCL | 0666));
@@ -152,9 +152,11 @@ init_ipc(long memory)
  * returns the pointer to it.
  */
 void *
-shmalloc(long memory)
+shmalloc(size_t memory)
     {
     void *new_shm = (char *)-1;
+	// Convert to a multiple of page size with a uintptr guard either side.
+	memory = (memory + sizeof(uintptr_t) * 2 + 4095) & ~4095;
     shmid = shmget(IPC_PRIVATE, memory, (IPC_CREAT | IPC_EXCL | 0666));
     if (shmid != -1)
         new_shm = shmat(shmid, NULL, 0);

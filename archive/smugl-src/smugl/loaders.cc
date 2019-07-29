@@ -31,13 +31,12 @@ static void *
 read_in_umsgs(void *base)
     {
     int i;
-    long size;
     long msgs;
 
     // First load in the index
-    size = read_file(umsgifn, base, TRUE);
+    size_t size = read_file(umsgifn, base, TRUE);
     data->msgbase = (long *)base;
-    base = VOIDADD(base, size);
+    base = void_add(base, size);
     msgs = size / sizeof(long); // Number of messages
 
     // Adjust the index pointers to point at the real text
@@ -47,18 +46,17 @@ read_in_umsgs(void *base)
     // Second load in the actual text
     size = read_file(umsgfn, base, TRUE);
 
-    return (void *)NORMALISE(VOIDADD(base, size));
+    return ptr_align(void_add(base, size));
     }
 
 // Read in the rank table
 static void *
 read_in_ranks(void *base)
     {
-    long size;
-    size = read_file(ranksfn, base, TRUE);
+    size_t size = read_file(ranksfn, base, TRUE);
     data->rankbase = (class Rank *)base;
     data->ranks = size / sizeof(Rank);
-    return (void *)NORMALISE(VOIDADD(base, size));
+    return ptr_align(void_add(base, size));
     }
 
 // Room objects
@@ -104,18 +102,17 @@ read_in_rooms(void *base)
         }
 
     fclose(fp);
-    return (void *)NORMALISE(dest);
+    return ptr_align(dest);
     }
 
 // Mobile entities
 static void *
 read_in_mobiles(void *base)
     {
-    long size;
-    size = read_file(mobfn, base, TRUE);
+    size_t size = read_file(mobfn, base, TRUE);
     data->mobbase = (class Mobile *)base;
     data->mobiles = size / sizeof(Mobile);
-    return (void *)NORMALISE((char *)base + size);
+    return ptr_align(void_add(base, size));
     }
 
 // Nouns (objects)
@@ -127,12 +124,11 @@ read_in_objects(void *base)
     Object *cur;
     fileInfo *fi;
     int i;
-    long size;
 
     // Read in the state descriptions
-    size = read_file(statfn, base, TRUE);
+    size_t size = read_file(statfn, base, TRUE);
     statep = (class State *)base;
-    base = VOIDADD(base, size);
+    base = void_add(base, size);
     
     // Read in the main object sections
     fi = locate_file(objsfn, TRUE);
@@ -159,7 +155,7 @@ read_in_objects(void *base)
             }
 	}
 
-    return (void *)NORMALISE(cur);
+    return ptr_align(cur);
     }
 
 // Read in the basic object index and containers
@@ -175,7 +171,7 @@ read_in_basic_objs(void *base)
     bobs = (BASIC_OBJ **)&(((container_t *)base)[2]);
     // Finally, the containers
     containers = (CONTAINER *)(bobs + nbobs);
-    return (void *)NORMALISE(containers + ncontainers);
+    return ptr_align(containers + ncontainers);
     }
 
 // This one gets a bit messy because the compiler leaves us some work to do
@@ -184,7 +180,7 @@ static void *
 read_in_verbs(void *base)
     {
     int i;
-    counter_t size, slots, cmds;
+    counter_t slots, cmds;
     counter_t *counters;
     class Verb *vbp;
     struct SLOTTAB *slotp;
@@ -192,7 +188,7 @@ read_in_verbs(void *base)
     long *argp;
 
     // Read in the base verb objects
-    size = read_file(langfn, base, TRUE);
+    size_t size = read_file(langfn, base, TRUE);
 
     // The first 3 values are counters:
     counters = (counter_t *)base;
@@ -240,23 +236,22 @@ read_in_verbs(void *base)
                 }
             }
         }
-    return (void *)NORMALISE(VOIDADD(base, size));
+    return ptr_align(void_add(base, size));
     }
 
 // Read in the travel table
 static inline void *
 read_in_travel(void *base)
     {
-    long size;
     int i;
     class TTEnt *ttp;
     long *argp;
 
     // First read in the TT_ENT data
-    size = read_file(ttfn, base, TRUE);
+    size_t size = read_file(ttfn, base, TRUE);
     data->ttbase = (class TTEnt *)base;
     data->ttents = size / sizeof(struct TT_ENT);
-    base = VOIDADD(base, size);
+    base = void_add(base, size);
 
     // Now read in the condition/action parameters
     size = read_file(ttpfn, base, TRUE);
@@ -278,19 +273,17 @@ read_in_travel(void *base)
             argp += action[ttp->action].argc;
         }
 
-    return (void *)NORMALISE(VOIDADD(base, size));
+    return ptr_align(void_add(base, size));
     }
 
 // Read in the aliases (synonyms) file
 static void *
 read_in_aliases(void *base)
     {
-    long size;
-
-    size = read_file(synsifn, base, TRUE);
+    size_t size = read_file(synsifn, base, TRUE);
     data->aliasbase = (class Alias *)base;
     data->aliases = size / sizeof(struct ALIAS);
-    return VOIDADD(base, size);
+    return void_add(base, size);
     }
 
 // Tell the user what stage we're at

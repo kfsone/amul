@@ -79,7 +79,7 @@ sanitise_input(void)
 // phrases (or sentences) and passes them on to the
 // next level
 void
-parse(char *string)
+parse(char *str)
     {
     int phrase_no = 0;
 
@@ -88,19 +88,17 @@ parse(char *string)
     exiting = ecFalse;
     parse_failed = FALSE;
 
-    char *dest;
-    char *token;
-    while (*string && !forced && !exiting && !parse_failed)
+    while (*str && !forced && !exiting && !parse_failed)
         {
-        dest = phrase;          // Start a new phrase
+        char *dest = phrase;          // Start a new phrase
         *dest = 0;
 
-        while (*string)
+        while (*str)
             {
             // Skip next whitespace set
-            while (isspace(*string))
-                string++;
-            if (!*string)
+            while (isspace(*str))
+                str++;
+            if (!*str)
                 break;
 
             // Add whitespace between tokens
@@ -109,35 +107,35 @@ parse(char *string)
 
             // In quotes, do an almost raw copy,
             // stopping only for EOL or the same quote
-            if (*string == '"' || *string == '\'')
+            if (*str == '"' || *str == '\'')
                 {
-                char quote = *(string++);
+                char quote = *(str++);
                 *(dest++) = quote;
-                while (*string && *string != quote)
-                    *(dest++) = *(string++);
-                if (*string)
-                    *(dest++) = *(string++);
+                while (*str && *str != quote)
+                    *(dest++) = *(str++);
+                if (*str)
+                    *(dest++) = *(str++);
                 continue;
                 }
 
             // Capture the beginning of this token
-            token = dest;
+            char *tokenStart = dest;
 
-            while (*string && strchr(",.!?; ", *string) == 0)
-                *(dest++) = *(string++);
+            while (*str && strchr(",.!?; ", *str) == 0)
+                *(dest++) = *(str++);
             *dest = 0;
 
-            if (*string && strchr(",.!?;", *string))
+            if (*str && strchr(",.!?;", *str))
                 {
-                string++;
+                str++;
                 break;
                 }
 
             // Tokens that we treat as 'eol'
-            if (strcmp(token, "then") == 0)
+            if (strcmp(tokenStart, "then") == 0)
                 {
-                while (token > phrase && isspace(*(token - 1)))
-                    *(--token) = 0;
+                while (tokenStart > phrase && isspace(*(tokenStart - 1)))
+                    *(--tokenStart) = 0;
                 break;
                 }
             }
@@ -171,30 +169,30 @@ parse(char *string)
 // Determines if the given token represents one of the special words
 // e.g., him, her, she, it, etc...
 static inline basic_obj
-special_word(char *token)
+special_word(char *candidate)
     {
-    if (strcmp(token, "me") == 0
-        || strcmp(token, "myself") == 0
-        || strcmp(token, "self") == 0)
+    if (strcmp(candidate, "me") == 0
+        || strcmp(candidate, "myself") == 0
+        || strcmp(candidate, "self") == 0)
         return me->id;
     if (last_him
-        && (strcmp(token, "he") == 0
-            || strcmp(token, "him") == 0
-            || strcmp(token, "his") == 0))
+        && (strcmp(candidate, "he") == 0
+            || strcmp(candidate, "him") == 0
+            || strcmp(candidate, "his") == 0))
         return last_him->id;
     if (last_her
-        && (strcmp(token, "she") == 0
-            || strcmp(token, "her") == 0
-            || strcmp(token, "hers") == 0))
+        && (strcmp(candidate, "she") == 0
+            || strcmp(candidate, "her") == 0
+            || strcmp(candidate, "hers") == 0))
         return last_her->id;
     return vocUNKNOWN;
     }
 
 ////////////////////////////////////////////////////
-// tokenise_phrase(char *string)
+// tokenise_phrase(char *str)
 // Break a phrase up into tokens
 int
-tokenise_phrase(char *string)
+tokenise_phrase(char *str)
     {
     // Nuke the current phrase
     for (tokens = 0; tokens < MAX_TOK; tokens++)
@@ -207,25 +205,25 @@ tokenise_phrase(char *string)
     // tokWORD:   A valid vocabulary entry
     // also
     // tokUNK:    We didn't recognise this [shouldn't be used]
-    while (string && *string)
+    while (str && *str)
         {
-        if (*string == '"' || *string == '\'')
+        if (*str == '"' || *str == '\'')
             {
             tokens++;                // A valid token
-            char quot = *(string++);
+            char quot = *(str++);
             token[tokens].type = tokSTRING;
-            token[tokens].ptr = string;
-            while (*string && *string != quot)
-                string++;
-            if (*string)
-                *(string++) = 0;
-            if (isspace(*string))
-                string++;
+            token[tokens].ptr = str;
+            while (*str && *str != quot)
+                str++;
+            if (*str)
+                *(str++) = 0;
+            if (isspace(*str))
+                str++;
             }
         else
             {
             vocid_t this_id;
-            char *next_tok = string;
+            char *next_tok = str;
             char original_char = 0;
             // Check the immediate string for a word; since words can
             // contain spaces, we expand outward, checking 
@@ -239,10 +237,10 @@ tokenise_phrase(char *string)
                     *next_tok = 0;
                     }
                 // Try it as a regular word
-                this_id = is_word(string);
+                this_id = is_word(str);
                 // Try it as a special case
                 if (this_id == -1)
-                    this_id = special_word(string);
+                    this_id = special_word(str);
                 if (this_id == -1 && next_tok)
                     *next_tok = original_char;
                 if (next_tok && original_char)
@@ -270,7 +268,7 @@ tokenise_phrase(char *string)
                 token[tokens].type = tokWORD;
                 token[tokens].id   = this_id;
                 }
-            string = next_tok;
+            str = next_tok;
             }
         }
     return 0;
@@ -281,7 +279,7 @@ tokenise_phrase(char *string)
 // Returns TRUE or FALSE whether the current tokens
 // may possibly match given language slot
 static int
-matching_phrase(SLOTTAB *slot)
+matching_phrase(SLOTTAB *slotp)
     {
     // This is fiddly, on the grounds that we may have to juggle
     // tokens around. Why? Because of adjectives. The trouble is,
@@ -293,10 +291,10 @@ matching_phrase(SLOTTAB *slot)
     // 1. If we only have one token, we match WNONE and WANY
     if (debug)
 	txprintf("Tokens:%d, wtype0:%d, wtype1:%d\n",
-		    tokens, slot->wtype[0], slot->wtype[1]);
-    if (tokens == 0 && (slot->wtype[0] == slot->wtype[1]))
+		    tokens, slotp->wtype[0], slotp->wtype[1]);
+    if (tokens == 0 && (slotp->wtype[0] == slotp->wtype[1]))
 	{
-	if (slot->wtype[0] == WNONE || slot->wtype[0] == WANY)
+	if (slotp->wtype[0] == WNONE || slotp->wtype[0] == WANY)
 	    return TRUE;
 	// We obviously don't suit this one
 	return FALSE;
@@ -304,7 +302,7 @@ matching_phrase(SLOTTAB *slot)
 
     // 2. The next simplest case is when we have two tokens,
     // the verb and another word. It must be a noun-class object
-    if (tokens == 1 && slot->wtype[1] == WNONE)
+    if (tokens == 1 && slotp->wtype[1] == WNONE)
 	{
 	return FALSE;
 	}
@@ -317,15 +315,15 @@ matching_phrase(SLOTTAB *slot)
 // said, were simply looking for patterns that may
 // match what they said.
 static slotResult
-slot_process(SLOTTAB *slot)
+slot_process(SLOTTAB *slotp)
     {
     unsigned int ent;
     bool lastCond = FALSE;
     VBTAB *vt;
 
-    assert(slot->ptr != NULL);
+    assert(slotp->ptr != NULL);
 
-    for (ent = 0, vt = slot->ptr; ent < slot->ents; ent++, vt++)
+    for (ent = 0, vt = slotp->ptr; ent < slotp->ents; ent++, vt++)
 	{
 	if (debug)
 	    txprintf("Entry#%d: cond=%s%d, action=%d\n",
@@ -414,18 +412,18 @@ parse_phrase()
 		    {
 		    slotResult srResult;
 
-		    SLOTTAB *slot = maybe.Vb->ptr + i;
+		    SLOTTAB *slotp = maybe.Vb->ptr + i;
 		    if (debug)
 			txprintf("Slot %d has %ld entries for (%s:%ld,%s:%ld)\n",
-			    i, slot->ents,
-			    syntax[slot->wtype[0] + 1], slot->slot[0],
-			    syntax[slot->wtype[1] + 1], slot->slot[1]);
-		    if (matching_phrase(slot) == FALSE)
+			    i, slotp->ents,
+			    syntax[slotp->wtype[0] + 1], slotp->slot[0],
+			    syntax[slotp->wtype[1] + 1], slotp->slot[1]);
+		    if (matching_phrase(slotp) == FALSE)
 			continue;
 		    if (debug)
 			txprintf("+ Interested in that one.\n");
 
-		    srResult = slot_process(slot);
+		    srResult = slot_process(slotp);
 		    if (srResult != slotIgnore)
 			return srResult;
 		    }

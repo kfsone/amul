@@ -5,6 +5,7 @@
 static const char rcsid[] = "$Id: travproc.cc,v 1.9 1999/06/11 14:27:02 oliver Exp $";
 
 #include "smuglcom.hpp"
+#include <cassert>
 
 extern long arg_alloc, *argtab, *argptr;
 
@@ -39,7 +40,8 @@ trav_proc(void)
 	    p = skipdata(p);
             continue;
             }
-        rmp = (ROOM *)bobs[cur_room];
+        rmp = dynamic_cast<ROOM*>(bobs[cur_room]);
+		assert(rmp != nullptr);
 	if (rmp->tabptr != -1)
             {
 	    error("%s: Travel already defined.\n", Word);
@@ -214,14 +216,16 @@ vbproc:			/* Process verb list */
         ntt++;
         }
     while (*p);
+
     if (!err && ntt != rooms && warn == 1)
         {
-	rmp = roomtab;
-	for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = (ROOM *)rmp->next)
+	for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = rmp->getNext(rmp)) {
 	    if (rmp->tabptr == -1
                 && (rmp->std_flags & bob_DEATH) != bob_DEATH)
 		warne("No exits for %s\n", word(rmp->id));
+}
         }
+
     fwrite(argtab, sizeof(*argtab), (size_t)arg_alloc, ofp2);
     free(argtab);
     arg_alloc = 0;
