@@ -1,8 +1,10 @@
 dnl $Id: configure.in,v 1.5 1997/04/28 01:10:07 oliver Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision: 1.5 $)
-AC_INIT(h/SMUGL.h)
+AC_INIT([h/SMUGL.h], [1.5])
 AC_CONFIG_HEADER(h/config.h)
+AC_CONFIG_SRCDIR([lib/misc.cc], [smugl/smugl.cc], [smuglcom/smuglcom.cc])
+AM_INIT_AUTOMAKE
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -43,10 +45,5 @@ AC_CHECK_FUNCS(getcwd mkdir select socket strdup strerror vfprintf, ,
 AC_CHECK_FUNCS(vsyslog)
 
 AC_OUTPUT(smuglcom/Makefile lib/Makefile test/Makefile smugl/Makefile h/Makefile Makefile)
-if test "$CFLAGS" = "-g -O2"; then
- AC_MSG_RESULT()
- AC_MSG_RESULT(Note: '-O2' optimization selected. For better results you may want to try:)
- AC_MSG_RESULT(Note:   CFLAGS='-g -O6' ./configure)
-fi
 AC_MSG_RESULT()
 AC_MSG_RESULT(Now do make depend ; make)

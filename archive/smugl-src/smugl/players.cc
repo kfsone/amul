@@ -77,7 +77,7 @@ Player::remove_name(void)
 
 // Initialise the 'bob' fields
 void
-Player::init_bob(basic_obj bobno=-1)
+Player::init_bob(basic_obj bobno)
     {
     id = -1;                    // No ID at present
     if (bobno != -1)
@@ -149,7 +149,7 @@ Player::reset(void)
 
 // Move the player from here to another room
 int
-Player::go_to(basic_obj dest_rm, const char *dep_msg=NULL, const char *arr_msg=NULL)
+Player::go_to(basic_obj dest_rm, const char *dep_msg, const char *arr_msg)
     {
     class Room *dest = (Room *)bobs[dest_rm];
     if ((dest->flags & SMALL) && PlayerIdx::locate_in(dest_rm))
@@ -196,7 +196,7 @@ PlayerIdx::locate(char *s)      // Locate player by name
 
 // Iterate through players in a room
 class Player *
-PlayerIdx::locate_in(basic_obj cont, class Player *from=NULL, long want_id=-1)
+PlayerIdx::locate_in(basic_obj cont, class Player *from, long want_id)
     {
     class Player *curnt = from;
 
@@ -214,8 +214,7 @@ PlayerIdx::locate_in(basic_obj cont, class Player *from=NULL, long want_id=-1)
 
 // Iterate through players in a room, but exclude self
 class Player *
-PlayerIdx::locate_others_in(basic_obj in, class Player *from=NULL,
-                            long wantid=-1)
+PlayerIdx::locate_others_in(basic_obj in, class Player *from, long wantid)
     {
     Player *player = locate_in(in, from, wantid);
     if (player == me)

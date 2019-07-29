@@ -213,7 +213,7 @@ section(int i)                  /* Start a new compile section */
 void
 tx(const char *s)
     {
-    printf(s);
+    printf("%s", s);
     fflush(stdout);
     }
 

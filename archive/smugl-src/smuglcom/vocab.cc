@@ -17,6 +17,8 @@ static const char rcsid[] = "$Id: vocab.cc,v 1.7 1997/05/22 02:21:44 oliver Exp 
 #include "protos.hpp"
 #include "libprotos.hpp"
 
+#include <iostream>
+
 /* Statistical information */
 static long  hash_allocs;           /* Number of times we alloc'd the hash */
 static long  str_allocs;            /* Number of times we alloc'd vocab */
@@ -122,25 +124,23 @@ hash_stats(void)
             }
         }
 
-    printf("Vocab Hash Statistics:\n");
-    printf(" Vocab String Space: %d(%d), Allocs: %ld\n",
-             VC.vocab_alloc, VC.cur_vocab, str_allocs);
-    printf(" Reverse Index Allocs: %ld\n", idx_allocs);
-    printf(" Hash Rows: %d, Mem: %ld, Allocs: %ld, Use: %ld(%d) - %ld(%d) Avg: %ld\n",
-             VOCROWS, hash_total_alloc, hash_allocs,
-             lowest, at_low, VC.hash_depth, at_high, avg / avg_div);
-    printf(" Zeros = Even:%d, Odd:%d\n", zeros[0], zeros[1]);
-    printf(" Entries in the Hash: %ld\n", VC.items);
-    for (i = 1; i <= VC.hash_depth; i++)
-        {
-        for (j = 0; j < VOCROWS; j++)
-	    {
-            if (VC.hash_size[j] >= i)
-                putchar('#');
-            else putchar('.');
-            }
-        putchar('\n');
+	std::cout << "Vocab Hash Statistics:\n";
+	std::cout << " Vocab string space: "
+			  << VC.vocab_alloc << "(" << VC.cur_vocab << "), "
+			  << "Allocs: " << str_allocs << "\n";
+	std::cout << " Reverse index allocs: " << idx_allocs << "\n";
+	std::cout << " Hash rows: " << VOCROWS << ", Mem: " << hash_total_alloc
+			  << ", Allocs: " << hash_allocs << ", Use: " << lowest << "(" << at_low << ")"
+			  << " - " << VC.hash_depth << "(" << at_high << "), Avg: " << avg / avg_div
+			  << "\n";
+    std::cout << " Zeros = Even:" << zeros[0] << ", Odd:" << zeros[1] << "\n";
+	std::cout << " Entries in the hash: " << VC.items << "\n";
+    for (i = 1; i <= VC.hash_depth; i++) {
+        for (j = 0; j < VOCROWS; j++) {
+			std::cout << (VC.hash_size[j] >= 1 ? '#' : '.');
         }
+        std::cout << "\n";
+    }
     }
 
 void

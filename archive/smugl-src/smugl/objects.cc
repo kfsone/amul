@@ -69,7 +69,7 @@ ObjectIdx::locate(long id)      // Locate an object by it's vocab id
 // neccesary; you should be able to say:
 //  for (curnt = room->child; curnt; curnt = curnt->next_here) ...
 class Object *
-ObjectIdx::locate_in(basic_obj in, class Object *from=NULL, long want_id=-1)
+ObjectIdx::locate_in(basic_obj in, class Object *from, long want_id)
     {
     class Object *curnt = from;
 

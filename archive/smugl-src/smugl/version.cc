@@ -8,6 +8,7 @@ static const char rcsid[] = "$Id: version.cc,v 1.2 1997/04/25 01:13:37 oliver Ex
 # include "SMUGL.h"
 #endif
 #include "stdio.h"
+#include "smugl.hpp"
 
 char vername[81];               // Version string
 
