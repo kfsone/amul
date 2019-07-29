@@ -138,7 +138,7 @@ add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags)
     ptr->std_flags = flags;
 
     nbobs++ ;
-    printf("Added %s basic obj#%d:", word(ptr->id), nbobs) ;
+    printf("Added %s basic obj#%ld:", word(ptr->id), nbobs) ;
     for ( counter_t i = 0 ; i < nbobs ; ++i )
     {
       printf(" %p", bobs[i]) ;
@@ -180,7 +180,7 @@ save_basic_objs(void)
 
 // Locate a basic obj by name
 basic_obj
-is_bob(char *name, char type=-1)
+is_bob(char *name, char type/*=-1*/)
     {
     vocid_t id = is_word(name);
     if (id == -1)

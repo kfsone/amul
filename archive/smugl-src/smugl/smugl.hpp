@@ -46,7 +46,7 @@
 #endif
 
 // For indecision stuff
-typedef union Indecision
+union Indecision
     {
     class Room *Rm;
     class Mobile *Mob;
@@ -86,3 +86,8 @@ enum { READfd, WRITEfd };       // For reading/writing pipe fd's
 
 #define ufANSI  0x001           // ANSI bit
 #define ufCRLF  0x002           // Add LineFeed
+
+extern bool quit();
+extern void look();
+
+void set_version_string();

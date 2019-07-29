@@ -8,6 +8,7 @@ static const char rcsid[] = "$Id: manager.cc,v 1.18 1999/09/10 15:57:31 oliver E
 #endif
 #include <signal.h>
 #include <sys/resource.h>
+#include "manager.hpp"
 #include "variables.hpp"
 #include "consts.hpp"
 #include "libprotos.hpp"
@@ -81,7 +82,7 @@ memory_required(void)
     }
 
 // Collect notification of dead children
-void
+static void
 child_reaper(int)
     {
     int pid;
@@ -179,7 +180,7 @@ run_the_game(void)
         if (FD_ISSET(listen_sock_fd, &rd_fds))
             {                   // New Connection arriving
             if (debug)
-                syslog(LOG_INFO, "accepting game connection #%d",
+                syslog(LOG_INFO, "accepting game connection #%ld",
                        data->connections + 1);
             if (accept_connection() == FALSE)
                 return;         // Failed to accept() new connection
@@ -259,10 +260,10 @@ incoming_connection(void)
         listen_sock_fd = -1;    // We don't need it
         manager = 0;            // Flag that we're not the manager
         slot = assigned_slot;   // So we know which slot we're on
-        close(clifd[slot][WRITEfd]); // Handle for writing to me
+        close(clifd[slot & 0xff][WRITEfd]); // Handle for writing to me
         close(servfd[READfd]);  // Server's read handle
-        ipc_fd = clifd[slot][READfd]; // Listen here for IPC
-        me = &data->user[slot]; // Used throughout the game to refer to self
+        ipc_fd = clifd[slot & 0xff][READfd]; // Listen here for IPC
+        me = &data->user[slot & 0xff]; // Used throughout the game to refer to self
         me->init_bob();
         me->state = OFFLINE;
 

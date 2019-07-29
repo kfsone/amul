@@ -129,7 +129,7 @@ BASIC_OBJ::describe(void)
 // starting from a given basic_obj
 // Returns -1 on fail
 basic_obj
-BobIdx::find(vocid_t name, char type=WANY, basic_obj from=-1)
+BobIdx::find(vocid_t name, char type, basic_obj from)
     {
     BASIC_OBJ *cur;
     if (from >= nbobs - 1 || from < -1)

@@ -219,7 +219,7 @@ blkget()
 ** Used for reading any files which don't have text-blocks
 */
 char *
-cleanget(off_t off=0)
+cleanget(off_t off)
     {
     char *p;
     p = func_get(off);

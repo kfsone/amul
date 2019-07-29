@@ -36,7 +36,7 @@ Rank::detail(void)
     }
 
 char *
-Rank::copy(char *dest, Gender sex=me->sex, int verbose=TRUE)
+Rank::copy(char *dest, Gender sex, int verbose)
     {
     if (verbose && me->pre[0])
         {

@@ -119,7 +119,7 @@ Room::leave(class Verb *vb)
     {                           // Called with a verb pointer
     HEAVYDEBUG("Room::leave");
     int i = 0;
-    int did_anything = FALSE;
+	bool did_anything = false;
     class TTEnt *ttp;           // TT Entry pointer
     if (tabptr == -1)           // Anything to see?
         {
@@ -132,7 +132,7 @@ Room::leave(class Verb *vb)
         {
         if (ttp->verb == vb->id)
             {
-            did_anything = TRUE; // We've seen something to do
+			did_anything = true;
             // XXX ** TEMPORARY **
             if (ttp->not_condition || ttp->condition != CALWAYS ||
                 ttp->action_type == ACT_DO)
@@ -162,12 +162,12 @@ Room::leave(class Verb *vb)
             }
         }
 
-    return FALSE;
+	return (did_anything) ? TRUE : FALSE;
     }
 
 // Leave a room
 void
-Room::depart(const char *how = me->dep)
+Room::depart(const char *how)
     {                           // Someone/thing is leaving this room
     HEAVYDEBUG("Room::depart");
     sem_lock(sem_MOTION);
@@ -181,7 +181,7 @@ Room::depart(const char *how = me->dep)
 // Arrive in another room. The player isn't notified that they've moved.
 // We don't tell players in the previous room that they've left either
 void
-Room::arrive(const char *how = me->arr)
+Room::arrive(const char *how)
     {                           // Player is arriving in this room
     HEAVYDEBUG("Room::arrive");
     sem_lock(sem_MOTION);
@@ -194,7 +194,7 @@ Room::arrive(const char *how = me->arr)
 
 // Arrive in a new room, and describe it.
 void
-Room::enter(const char *how = me->arr)
+Room::enter(const char *how)
     {                           // Enter a location properly
     HEAVYDEBUG("Room::enter");
     arrive(how);

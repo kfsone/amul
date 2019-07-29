@@ -8,6 +8,7 @@
 static const char rcsid[] = "$Id: login.cc,v 1.11 1999/06/08 15:36:50 oliver Exp $";
 
 #include "smugl.hpp"
+#include "login.hpp"
 #include "consts.hpp"
 #include "libprotos.hpp"
 #include "ranks.hpp"
@@ -81,7 +82,7 @@ login(void)                     // Log a player in
     if (myRank < RankIdx::top_rank() && me->score >= (myRank + 1)->score)
         {
         if (debug)
-            syslog(LOG_INFO, "%s has %ld points for rank %d but not %d",
+            syslog(LOG_INFO, "%s has %ld points for rank %ld but not %ld",
                    me->_name, me->score, myRank->number(), (myRank + 1)->number());
         tx(message(NOTASK), '\n');
         }

@@ -203,7 +203,7 @@ sem_unlock(int semnum)
     }
 
 // Setup and initialise a listening socket
-int
+static int
 setup_socket(short port, long addr, SOCK *sock, int listen_to)
     {
     int sock_fd;
@@ -343,7 +343,7 @@ accept_command(void)
 // general interprocess communications.
 
 // The initialiasor; set up an ipcMsg
-ipcMsg::ipcMsg(char Type=0, long Data=0, short Pri=0)
+ipcMsg::ipcMsg(char Type, long Data, short Pri)
     {
     type = Type;
     pri = Pri;
@@ -384,7 +384,7 @@ ipcMsg::send(int fd, void *extra)
 // server, and it's left to the server to forward to other users
 // This version does some of the populating for you
 void
-ipcMsg::send(unsigned long To, short Len=0, void *extra=NULL) 
+ipcMsg::send(unsigned long To, short Len, void *extra) 
     {
     if (manager && !To)
         return;                 // Manager can't self-message
@@ -407,8 +407,7 @@ ipcMsg::send(unsigned long To, short Len=0, void *extra=NULL)
 
 // Send an IPC message -- specifying extra default values. Basically a wrapper
 void
-ipcMsg::send(u_long To, char Type, long Data, char Pri, short Len=0,
-             void *Extra=NULL)
+ipcMsg::send(u_long To, char Type, long Data, char Pri, short Len, void *Extra)
     {
     type = Type;
     data = Data;

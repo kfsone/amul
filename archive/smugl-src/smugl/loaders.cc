@@ -9,6 +9,7 @@ static const char rcsid[] = "$Id: loaders.cc,v 1.16 1999/06/11 14:26:45 oliver E
 #define LOADERS_C 1
 
 #include "smugl.hpp"
+#include "loaders.hpp"
 #include "structs.hpp"
 #include "consts.hpp"
 #include "misc.hpp"
@@ -26,7 +27,7 @@ static const char rcsid[] = "$Id: loaders.cc,v 1.16 1999/06/11 14:26:45 oliver E
 #include "manager.hpp"
 
 // Read in the text messages and their indexes
-static inline void *
+static void *
 read_in_umsgs(void *base)
     {
     int i;
@@ -50,7 +51,7 @@ read_in_umsgs(void *base)
     }
 
 // Read in the rank table
-static inline void *
+static void *
 read_in_ranks(void *base)
     {
     long size;
@@ -63,7 +64,7 @@ read_in_ranks(void *base)
 // Room objects
 // We have to read the rooms in seperately so that we can
 // process them into place
-static inline void *
+static void *
 read_in_rooms(void *base)
     {
     fileInfo *fi;
@@ -107,7 +108,7 @@ read_in_rooms(void *base)
     }
 
 // Mobile entities
-static inline void *
+static void *
 read_in_mobiles(void *base)
     {
     long size;
@@ -118,7 +119,7 @@ read_in_mobiles(void *base)
     }
 
 // Nouns (objects)
-static inline void *
+static void *
 read_in_objects(void *base)
     {
     FILE *fp;
@@ -162,11 +163,10 @@ read_in_objects(void *base)
     }
 
 // Read in the basic object index and containers
-static inline void *
+static void *
 read_in_basic_objs(void *base)
     {
-    long size;
-    size = read_file(bobfn, base, TRUE);
+    read_file(bobfn, base, TRUE);
     // The first two longs of the file are the counters
     nbobs = ((container_t *)base)[0];
     ncontainers = ((container_t *)base)[1];
@@ -180,7 +180,7 @@ read_in_basic_objs(void *base)
 
 // This one gets a bit messy because the compiler leaves us some work to do
 // in terms of updating pointers, etc.
-void *
+static void *
 read_in_verbs(void *base)
     {
     int i;
@@ -282,7 +282,7 @@ read_in_travel(void *base)
     }
 
 // Read in the aliases (synonyms) file
-void *
+static void *
 read_in_aliases(void *base)
     {
     long size;
@@ -294,7 +294,7 @@ read_in_aliases(void *base)
     }
 
 // Tell the user what stage we're at
-static inline void
+static void
 mention(const char *s)
     {
     // Print everything on one line - no carriage return. As a result,
@@ -304,7 +304,7 @@ mention(const char *s)
     }
 
 // Read the primary game file
-static inline void
+static void
 read_in_advfn(void)
     {
     FILE *fp = fopen(datafile(advfn), "r");
