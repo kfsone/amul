@@ -17,7 +17,7 @@ depend:
 
 tags:
 	@echo "Making tags files..."
-	@for i in $(DIRS) ; do cd $$i ; echo " - $$i" ; rm -f *TAGS* ; etags *.[Cch] ; cd .. ; done
+	@for i in $(DIRS) ; do cd $$i ; echo " - $$i" ; rm -f *TAGS* ; etags *.cc *.hpp ; cd .. ; done
 
 clean:
 	@for i in $(DIRS) ; do cd $$i ; make clean ; cd .. ; done
