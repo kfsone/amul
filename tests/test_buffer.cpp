@@ -7,23 +7,23 @@ class TestBuffer : public Buffer
   public:
     using Buffer::Buffer;
     void IncEnd(uint32_t i = 1) noexcept { m_end += i; }
-    void IncPos(uint32_t i = 1) noexcept { m_pos += i; }
+    void IncPos(uint32_t i = 1) noexcept { m_cur += i; }
 
-    void ResetPos() noexcept { m_pos = m_start; }
+    void ResetPos() noexcept { m_cur = m_start; }
 };
 
 TEST(BufferTest, NewBuffer)
 {
     const Buffer nul_buf{};
-    EXPECT_EQ(nul_buf.Start(), nullptr);
-    EXPECT_EQ(nul_buf.Pos(), nullptr);
-    EXPECT_EQ(nul_buf.End(), nullptr);
+    EXPECT_EQ(nul_buf.begin(), nullptr);
+    EXPECT_EQ(nul_buf.it(), nullptr);
+    EXPECT_EQ(nul_buf.end(), nullptr);
 
     const char * data{"hello"};
     const Buffer ptr_buf{data, data + 5};
-    EXPECT_EQ(data, ptr_buf.Start());
-    EXPECT_EQ(data, ptr_buf.Pos());
-    EXPECT_EQ(data + 5, ptr_buf.End());
+    EXPECT_EQ(data, ptr_buf.begin());
+    EXPECT_EQ(data, ptr_buf.it());
+    EXPECT_EQ(data + 5, ptr_buf.end());
 }
 
 TEST(BufferTest, BufferEof)
@@ -40,36 +40,22 @@ TEST(BufferTest, BufferAssign)
     Buffer      buffer{};
     const char *text{"hello"};
     buffer.Assign(text, 0);
-    EXPECT_EQ(text, buffer.Start());
-    EXPECT_EQ(text, buffer.Pos());
-    EXPECT_EQ(text, buffer.End());
+    EXPECT_EQ(text, buffer.begin());
+    EXPECT_EQ(text, buffer.it());
+    EXPECT_EQ(text, buffer.end());
 
     buffer.Assign(text + 1, 4);
-    EXPECT_EQ(text + 1, buffer.Start());
-    EXPECT_EQ(text + 1, buffer.Pos());
-    EXPECT_EQ(text + 5, buffer.End());
+    EXPECT_EQ(text + 1, buffer.begin());
+    EXPECT_EQ(text + 1, buffer.it());
+    EXPECT_EQ(text + 5, buffer.end());
 }
 
 TEST(BufferTest, BufferPeek)
 {
-    const char *data{"abc"};
-    TestBuffer  buffer{data, data};
-    EXPECT_EQ(0, buffer.Peek());
-    EXPECT_EQ(&data[0], buffer.Pos());
-    buffer.IncEnd();
-    EXPECT_EQ('a', buffer.Peek());
-    EXPECT_EQ(&data[0], buffer.Pos());
-    buffer.IncPos();
-    EXPECT_EQ(0, buffer.Peek());
-    EXPECT_EQ(&data[1], buffer.Pos());
-
-    // Increment end twice to check things work when end > pos + 1
-    buffer.IncEnd(2);
-    EXPECT_EQ('b', buffer.Peek());
-    EXPECT_EQ(&data[1], buffer.Pos());
-    buffer.IncPos();
-    EXPECT_EQ('c', buffer.Peek());
-    EXPECT_EQ(&data[2], buffer.Pos());
+	Buffer buffer{};
+	EXPECT_EQ(buffer.Peek(), '\0');
+	buffer.Assign("g", 1);
+	EXPECT_EQ(buffer.Peek(), 'g');
 }
 
 TEST(BufferTest, BufferRead)
@@ -79,22 +65,22 @@ TEST(BufferTest, BufferRead)
 
     // Test with zero-width range
     EXPECT_EQ(0, buffer.Read());
-    EXPECT_EQ(buffer.Start(), buffer.Pos());
+    EXPECT_EQ(buffer.begin(), buffer.it());
 
     buffer = Buffer{data, data + 1};
     EXPECT_EQ('a', buffer.Read());
     EXPECT_EQ(0, buffer.Read());
-    EXPECT_EQ(buffer.Start() + 1, buffer.Pos());
+    EXPECT_EQ(buffer.begin() + 1, buffer.it());
 
     buffer = Buffer{data, data + 3};
     EXPECT_EQ('a', buffer.Read());
     EXPECT_EQ('z', buffer.Read());
-    EXPECT_EQ(buffer.Start() + 2, buffer.Pos());
+    EXPECT_EQ(buffer.begin() + 2, buffer.it());
     EXPECT_FALSE(buffer.Eof());
     EXPECT_EQ('\0', buffer.Read());
-    EXPECT_EQ(buffer.Start() + 3, buffer.Pos());
+    EXPECT_EQ(buffer.begin() + 3, buffer.it());
     EXPECT_EQ('\0', buffer.Read());
-    EXPECT_EQ(buffer.Start() + 3, buffer.Pos());
+    EXPECT_EQ(buffer.begin() + 3, buffer.it());
     EXPECT_TRUE(buffer.Eof());
 }
 
@@ -105,7 +91,7 @@ TEST(BufferTest, BufferSkip)
 
     // Confirm that it honors eof
     buffer.Skip();
-    EXPECT_EQ(buffer.Start(), buffer.Pos());
+    EXPECT_EQ(buffer.begin(), buffer.it());
 
     buffer = Buffer{data, data + 4};
     buffer.Skip();
@@ -126,22 +112,12 @@ TEST(BufferTest, BufferSize)
     EXPECT_EQ(15, buffer.Size());
 }
 
-TEST(BufferTest, BufferNext)
-{
-    const char *data{"world"};
-    Buffer      buffer{data, data + 5};
-    EXPECT_EQ('w', buffer.Peek());
-    EXPECT_EQ('o', buffer.Next());
-    EXPECT_EQ('r', buffer.Next());
-    EXPECT_EQ('r', buffer.Peek());
-}
-
 TEST(BufferTest, BufferClose)
 {
     const char *text = "hello";
     Buffer      buffer{text, text + 5};
     buffer.Close();
-    EXPECT_EQ(buffer.Start(), nullptr);
-    EXPECT_EQ(buffer.Pos(), nullptr);
-    EXPECT_EQ(buffer.End(), nullptr);
+    EXPECT_EQ(buffer.begin(), nullptr);
+    EXPECT_EQ(buffer.it(), nullptr);
+    EXPECT_EQ(buffer.end(), nullptr);
 }
