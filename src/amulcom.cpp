@@ -8,24 +8,7 @@
        ####  ####     ####   ####   #######   ########
 
 
-              ****    AMULCOM.C.......Adventure Compiler    ****
-              ****               Main Program!              ****
-
-    Copyright (C) Oliver Smith, 1990. Copyright (C) Kingfisher s/w 1990
-  Program Designed, Developed and Written By: Oliver Smith & Richard Pike
-
- Notes:
-
-   When the LOCATE function is installed, as-well as as the 'i' words, we must
-  have a user variable, 'located'. This will allow the user to fiddle and
-  tinker with the locate function... We will also need a 'setword' so that
-  you could write:
-
-   locate id [pref=]c|h|a|e|i [state=]# in=ID|cont=ID|outside|REGardless[/#]
-
-   Last Amendments: 26/08/90   12:30   OS   Installed GameTime= (title.txt)
-            27/09/90   14:52   OS   Enhanced ObjProc.C (uses MC rtns)
-
+amulcom.cpp :: AMUL Compiler. Copyright (C) KingFisher Software 1990-2019.
 */
 
 #include "amulcom.h"
@@ -2140,10 +2123,14 @@ getVerbFlags(_VERB_STRUCT *verbp, char *p)
             continue;
         }
         // So we expect it to be a precedence specifier
-        if (precedence < 2 && chae_proc(Word, verbp->precedence[precedence]) == -1)
-            return;
+        if (precedence < 2) {
+			if (chae_proc(Word, verbp->precedence[precedence]) == -1)
+				return;
+			++precedence;
+			continue;
+		}
 
-        alog(AL_ERROR, "Expected verb flag or precedence, got: %s", Word);
+        alog(AL_ERROR, "Expected verb flag/precedence, got: %s", Word);
     }
 }
 
