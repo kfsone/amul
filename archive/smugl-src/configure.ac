@@ -5,13 +5,14 @@ AC_INIT([h/SMUGL.h], [1.5])
 AC_CONFIG_HEADER(h/config.h)
 AC_CONFIG_SRCDIR([lib/misc.cc], [smugl/smugl.cc], [smuglcom/smuglcom.cc])
 AM_INIT_AUTOMAKE
+LT_INIT
+AC_CONFIG_MACRO_DIRS([m4])
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
 AC_CHECK_PROGS(PERL, perl5.003 perl5.002 perl5.001 perl5 perl, /usr/bin/perl, /usr/bin:/usr/local/bin:/bin:$PATH:/usr/sbin:/etc:/usr/etc)
 if test -z "$PERL"; then
  AC_MSG_ERROR(couldnt find perl 5 on your system)
