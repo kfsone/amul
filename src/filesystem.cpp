@@ -204,14 +204,17 @@ SourceFile s_sourceFile{};
 bool       s_sourceFileInUse;
 
 error_t
-GetFilesSize(const char *filepath, size_t *sizep)
+GetFilesSize(const char *filepath, size_t *sizep, bool required)
 {
     REQUIRE(filepath && sizep);
 
     struct stat sb = {};
     error_t     err = stat(filepath, &sb);
-    if (err != 0)
+    if (err != 0) {
+        if (required)
+            afatal("Could not access file (%d): %s", errno, filepath);
         return ENOENT;
+    }
     *sizep = sb.st_size;
     return 0;
 }
