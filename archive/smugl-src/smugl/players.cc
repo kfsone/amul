@@ -82,7 +82,6 @@ Player::init_bob(basic_obj bobno)
     id = -1;                    // No ID at present
     if (bobno != -1)
         bob = bobno;            // Basic object number
-    next = bobs[bobno + 1];     // Yeuch
     type = WPLAYER;
     std_flags = 0;              // Especially not bob_INPLAY
     weight = 0;

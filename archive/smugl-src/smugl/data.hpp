@@ -62,7 +62,7 @@ struct DATA
     counter_t connections;      // Connections this game has seen
     int  connected;             // Number of people connected
     int  pid[MAXU];             // Process ID's
-    class Player user[MAXU];    // Player details
+    Player user[MAXU];    		// Player details
     };
 
 extern struct DATA *data;
