@@ -317,7 +317,6 @@ void
 load_database(void *membase)    // Load all the files in the database
     {
     container_t conPlayer;
-    Player *ppCur;
     int i;
 
     vc = &data->VC;             // Set the vocab table base
@@ -362,15 +361,15 @@ load_database(void *membase)    // Load all the files in the database
     // of this player
     conPlayer = ncontainers - MAXU;
 
-    for (i = 0, ppCur = data->user; i < MAXU; i++, ppCur++)
+    for (i = 0; i < MAXU; i++)
         {
-        new (ppCur) Player;
-        bobs[bobno] = (BASIC_OBJ *)(data->user + i);
-        data->user[i].conLocation = conPlayer;
-        data->user[i].init_bob(bobno);
-
-    bobno++;
-    conPlayer++;
+        Player *cur = data->user[i];
+        new (cur) Player;
+        bobs[bobno] = cur;
+        cur->conLocation = conPlayer;
+        cur->init_bob(bobno);
+        bobno++;
+        conPlayer++;
         }
 
     // Now we need to set all the 'next' values to make the
