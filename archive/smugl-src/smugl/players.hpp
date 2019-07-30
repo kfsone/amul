@@ -10,6 +10,7 @@ extern class Player *userbase;
 class Player : public PLAYER
     {
 public:
+    Player() {}
 	virtual ~Player() {}
 
     virtual int describe(void) override;

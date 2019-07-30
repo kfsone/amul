@@ -131,11 +131,6 @@ read_in_vocab(void *membase)
     read(fd, &vc->hash_depth, sizeof(counter_t));
     /* The size of 'vocab' */
     read(fd, &vc->cur_vocab, sizeof(size_t));
-    if (membase < 0)
-        {                       /* We just wanted to size up */
-        close(fd);
-        return NULL;
-        }
     /* Followed by the reverse index */
     read(fd, &vc->hash_size, sizeof(long) * VOCROWS);
     /* Designate memory for reverse index, including player entries */

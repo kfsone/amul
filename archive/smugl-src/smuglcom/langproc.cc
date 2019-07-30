@@ -223,6 +223,7 @@ sp2:			/* Syntax line processing */
               case WSYN:
                     warne("%s/Internal: Syns not supported!\n", word(verb.id));
                     x = WANY;
+                    break;
               case WTEXT:
                     x = ismsgid(Word);
                     break;
@@ -231,11 +232,13 @@ sp2:			/* Syntax line processing */
                     break;
               case WCLASS:
                     x = WANY;
+                    break;
               case WNUMBER:
                     if (Word[0] == '-')
                         x = -atoi(Word + 1);
                     else
                         x = atoi(Word);
+                    break;
               default:
                     printf("** Internal: Invalid W-type!\n");
                 }

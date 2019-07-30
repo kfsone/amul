@@ -25,27 +25,27 @@ public:
     void clear(void);           // Used by SMUGLCOM
 
     //// Basic_Obj::DATA
-    vocid_t id;                 // Vocab table entry
-    vocid_t adj;                // Adjective
-    basic_obj bob;              // Because we're stored non-linearly
-    BASIC_OBJ *next;            // forward linked list
-    short type;                 // Type of object (player, noun, ...)
-    short state;                // Current state
-    flag_t std_flags;           // Common object flags
-    flag_t flags;               // Type specific flags
-    long weight;                // How much it weighs (on it's own)
-    long max_weight;            // Maximum contents (grammes)
-    long contents_weight;       // Grammes contained
-    long value;                 // What's this worth?
-    long damage;                // How much damage we've taken
-    long strength;              // How much we can take
-    counter_t locations;        // How many locations it's in
-    counter_t contents;         // How many objects we contain
-    container_t conLocation;    // Where it's at
-    container_t conTent;        // What it contains
-    msgno_t s_descrip;          // Short description
-    msgno_t l_descrip;          // Extended description
-    basic_obj dmove;            // Where to move objects on death;
+    vocid_t id {-1};            // Vocab table entry
+    vocid_t adj {-1};           // Adjective
+    basic_obj bob{-1};          // Because we're stored non-linearly
+    BASIC_OBJ *next{nullptr};   // forward linked list
+    short type{0};              // Type of object (player, noun, ...)
+    short state{0};             // Current state
+    flag_t std_flags{0};        // Common object flags
+    flag_t flags{0};            // Type specific flags
+    long weight{0};             // How much it weighs (on it's own)
+    long max_weight{0};         // Maximum contents (grammes)
+    long contents_weight{0};    // Grammes contained
+    long value{0};              // What's this worth?
+    long damage{0};             // How much damage we've taken
+    long strength{0};           // How much we can take
+    counter_t locations{0};     // How many locations it's in
+    counter_t contents{0};      // How many objects we contain
+    container_t conLocation{0}; // Where it's at
+    container_t conTent{0};     // What it contains
+    msgno_t s_descrip{0};       // Short description
+    msgno_t l_descrip{0};       // Extended description
+    basic_obj dmove{0};         // Where to move objects on death;
                                 // -1 for drop in parent
 
 	template<typename T>
