@@ -29,7 +29,7 @@ ELSE ()
     ENDIF ()
 
     STRING(APPEND AMUL_FLAGS_DEBUG " -O0 -g3")
-    STRING(APPEND AMUL_FLAGS " -Wall")
+    STRING(APPEND AMUL_FLAGS " -Wall -Wshadow -Wwrite-strings")
     OPTION(AMUL_SANITIZERS "Enable address/undefined sanitizers" ON)
     IF (AMUL_SANITIZERS)
         STRING(APPEND AMUL_FLAGS_DEBUG " -fsanitize=address -fsanitize=undefined")

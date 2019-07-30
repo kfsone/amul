@@ -217,7 +217,7 @@ fopenr(const char *filename)
 int
 checkedfread(void *data, size_t objSize, size_t objCount, FILE *fp)
 {
-    int read = fread(data, objSize, objCount, fp);
+    size_t read = fread(data, objSize, objCount, fp);
     if (read != objCount) {
         afatal("Wrong write count: expected %d, got %d", objCount, read);
     }
@@ -227,7 +227,7 @@ checkedfread(void *data, size_t objSize, size_t objCount, FILE *fp)
 int
 checkedfwrite(void *data, size_t objSize, size_t objCount, FILE *fp)
 {
-    int written = fwrite(data, objSize, objCount, fp);
+    size_t written = fwrite(data, objSize, objCount, fp);
     if (written != objCount) {
         afatal("Wrong write count: expected %d, got %d", objCount, written);
     }
@@ -271,10 +271,10 @@ tidy(char *ptr)
 }
 
 char *
-getTidyBlock(FILE *ifp)
+getTidyBlock(FILE *fp)
 {
     for (;;) {
-        if (!fgets(block, sizeof(block), ifp))
+        if (!fgets(block, sizeof(block), fp))
             return NULL;
 
         tidy(block);
@@ -294,11 +294,11 @@ is_verb(const char *s)
     }
 
     vbptr = vbtab;
-    for (int i = 0; i < g_gameInfo.numVerbs; i++, vbptr++) {
+    for (size_t i = 0; i < g_gameInfo.numVerbs; i++, vbptr++) {
         if (stricmp(vbptr->id, s) == 0)
             return i;
     }
-    if (stricmp(verb.id, s) == 0)
+    if (stricmp(g_verb.id, s) == 0)
         return g_gameInfo.numVerbs + 1;
 
     return -1;
@@ -956,7 +956,7 @@ badParameter(
         issue = msg;
     }
     afatal("%s=%s: %s=%s: parameter#%" PRIu64 ": %s", proc ? "verb" : "room",
-           proc ? verb.id : roomtab->id, category, op->name, paramNo + 1, issue);
+           proc ? g_verb.id : roomtab->id, category, op->name, paramNo + 1, issue);
 }
 
 // Check the parameters accompanying a vmop
@@ -1094,7 +1094,7 @@ checkConditionParameters(char *p, const VMOP *op, FILE *fp)
 void
 chae_err()
 {
-    alog(AL_ERROR, "Verb: %s: Invalid '#CHAE' flag: %s", verb.id, Word);
+    alog(AL_ERROR, "Verb: %s: Invalid '#CHAE' flag: %s", g_verb.id, Word);
 }
 
 /* Set the VT slots */
@@ -1140,7 +1140,7 @@ iswtype(char *s)
 [[noreturn]] void
 vbprob(const char *s, const char *s2)
 {
-    afatal("Verb: %s line: '%s': %s", verb.id, s2, s);
+    afatal("Verb: %s line: '%s': %s", g_verb.id, s2, s);
 }
 
 void
@@ -1183,15 +1183,15 @@ getmobmsg(const char *s)
 }
 
 error_t
-consumeMessageFile(FILE *ifp, const char *prefix, StringType stype, bool (*checkerFn)(const char *))
+consumeMessageFile(FILE *fp, const char *prefix, StringType stype, bool (*checkerFn)(const char *))
 {
     if (!nextc(false))
         return ENOENT;
 
-    while (!feof(ifp) && nextc(false)) {
+    while (!feof(fp) && nextc(false)) {
         checkErrorCount();
 
-        char *p = getTidyBlock(ifp);
+        char *p = getTidyBlock(fp);
         if (!p)
             continue;
 
@@ -1207,7 +1207,7 @@ consumeMessageFile(FILE *ifp, const char *prefix, StringType stype, bool (*check
             skipblock();
         }
 
-        TextStringFromFile(Word, ifp, stype, NULL);
+        TextStringFromFile(Word, fp, stype, NULL);
     }
 
     return 0;
@@ -1443,7 +1443,7 @@ rank_proc()
             continue;
 
         p = getword(block);
-        if (checkRankLine(p) != 0)
+        if (!checkRankLine(p))
             continue;
 
         if (strlen(Word) < 3 || p - block > RANKL) {
@@ -1458,7 +1458,7 @@ rank_proc()
         } while (Word[n - 1] != 0);
 
         p = getword(p);
-        if (checkRankLine(p) != 0)
+        if (!checkRankLine(p))
             continue;
         if (strcmp(Word, "=") != 0 && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
             afatal("Rank %d: Invalid female rank: %s", g_gameInfo.numRanks + 1, Word);
@@ -1474,7 +1474,7 @@ rank_proc()
         }
 
         p = getword(p);
-        if (checkRankLine(p) != 0)
+        if (!checkRankLine(p))
             continue;
         if (!isdigit(Word[0])) {
             alog(AL_ERROR, "Invalid score value: %s", Word);
@@ -1912,6 +1912,7 @@ trav_proc()
             skipblock();
             continue;
         }
+		roomtab = rmtab + rmn;
         if (roomtab->tabptr != -1) {
             alog(AL_ERROR, "Multiple tt entries for room: %s", roomtab->id);
             skipblock();
@@ -1936,7 +1937,7 @@ trav_proc()
             alog(AL_ERROR, "Missing verb[s]= entry for room: %s", roomtab->id);
             goto vbloop;
         }
-        verb.id[0] = 0;
+        g_verb.id[0] = 0;
         roomtab->tabptr = t;
         roomtab->ttlines = 0;
     vbproc: /* Process verb list */
@@ -2021,7 +2022,7 @@ trav_proc()
             if ((tt.action = isroom(Word)) != -1)
                 goto write;
             if ((tt.action = isact(Word)) == -1) {
-                alog(AL_ERROR, "Room %s has unrecognized tt action: %s", Word, (rmtab + rmn)->id);
+                alog(AL_ERROR, "Room %s has unrecognized tt action: %s", Word, roomtab->id);
                 goto xloop;
             }
         gotohere:
@@ -2153,10 +2154,10 @@ registerTravelVerbs(char *p)
             continue;
         }
         /// TODO: size check
-        strncpy(verb.id, Word, sizeof(verb.id));
-        checkedfwrite(verb.id, sizeof(verb), 1, ofp1);
+        strncpy(g_verb.id, Word, sizeof(g_verb.id));
+        checkedfwrite(&g_verb, sizeof(g_verb), 1, ofp1);
         proc = 0;
-        *(vbtab + (g_gameInfo.numVerbs++)) = verb;
+        *(vbtab + (g_gameInfo.numVerbs++)) = g_verb;
         alog(AL_DEBUG, "Added TRAVEL verb: %s", Word);
     }
 }
@@ -2179,7 +2180,7 @@ lang_proc()
     fopenw(verbTableFile);
     fopenw(verbParamFile);
 
-    vbtab = (_VERB_STRUCT *)AllocateMem(filesize() + 128 * sizeof(verb));
+    vbtab = (_VERB_STRUCT *)AllocateMem(filesize() + 128 * sizeof(g_verb));
     vbptr = vbtab;
 
     size_t of2p = ftell(ofp2);
@@ -2213,20 +2214,20 @@ lang_proc()
             continue;
         }
 
-        memset(&verb, 0, sizeof(verb));
-        strncpy(verb.id, Word, sizeof(verb.id));
+        memset(&g_verb, 0, sizeof(g_verb));
+        strncpy(g_verb.id, Word, sizeof(g_verb.id));
 
         ++g_gameInfo.numVerbs;
-        alog(AL_DEBUG, "verb#%04d:%s", g_gameInfo.numVerbs, verb.id);
+        alog(AL_DEBUG, "verb#%04d:%s", g_gameInfo.numVerbs, g_verb.id);
 
-        getVerbFlags(&verb, p);
+        getVerbFlags(&g_verb, p);
 
         p = getTidyBlock(ifp);
         if (!p)
-            alog(AL_ERROR, "Unexpected end of file during verb: %s", verb.id);
+            alog(AL_ERROR, "Unexpected end of file during verb: %s", g_verb.id);
         if (!*p || isEol(*p)) {
-            if (verb.ents == 0 && (verb.flags & VB_TRAVEL)) {
-                alog(AL_WARN, "Verb has no entries: %s", verb.id);
+            if (g_verb.ents == 0 && (g_verb.flags & VB_TRAVEL)) {
+                alog(AL_WARN, "Verb has no entries: %s", g_verb.id);
             }
             goto write;
         }
@@ -2240,7 +2241,7 @@ lang_proc()
         /* Syntax line loop */
     synloop : {
         setslots(WNONE);
-        verb.ents++;
+        g_verb.ents++;
         p = skiplead("verb", p);
         char *qualifier = getword(p);
         qualifier = skipspc(qualifier);
@@ -2418,7 +2419,7 @@ lang_proc()
 
         p = getTidyBlock(ifp);
         if (!p)
-            afatal("verb:%s: unexpected end of file", verb.id);
+            afatal("verb:%s: unexpected end of file", g_verb.id);
         if (!*p || isEol(*p)) {
             lastc = 1;
             goto writeslot;
@@ -2524,9 +2525,9 @@ lang_proc()
 
         lastc = '\n';
     write:
-        checkedfwrite(verb.id, sizeof(verb), 1, ofp1);
+        checkedfwrite(&g_verb, sizeof(g_verb), 1, ofp1);
         proc = 0;
-        *(vbtab + (g_gameInfo.numVerbs - 1)) = verb;
+        *(vbtab + (g_gameInfo.numVerbs - 1)) = g_verb;
     }
 }
 
