@@ -76,9 +76,10 @@ TEST(FilesystemTest, PathJoiner)
     EXPECT_SUCCESS(path_joiner(filepath, ".", "title.txt"));
     EXPECT_STREQ(filepath, "./title.txt");
 
-    char gameDir[MAX_PATH_LENGTH] = "c:\\users\\oliver\\\\//";
+    strcpy(gameDir, "c:\\users\\oliver\\\\//");
     EXPECT_SUCCESS(gamedir_joiner("\\precious\\rooms.txt"));
     EXPECT_STREQ(filepath, "c:/users/oliver/precious/rooms.txt");
+    gameDir[0] = 0;
 }
 
 TEST(FilesystemTest, GetFileSizeChecks)

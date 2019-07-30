@@ -33,7 +33,7 @@ struct Atom final {
     explicit Atom(struct Buffer &buffer) noexcept;
 
     constexpr const AtomType &Type() const noexcept { return m_type; }
-    constexpr const char      First() const noexcept { return m_end > m_start ? *m_start : 0; }
+    constexpr char            First() const noexcept { return m_end > m_start ? *m_start : 0; }
     constexpr bool            operator==(AtomType at) const noexcept { return m_type == at; }
     constexpr bool            operator==(char punct) const noexcept
     {

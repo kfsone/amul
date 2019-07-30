@@ -26,7 +26,7 @@ struct Aport *  amul;
 struct _PLAYER *    usr, *me, him, *you;
 struct LS *         linestat, *me2, *you2;
 struct _ROOM_STRUCT room, *roomtab, *rmtab; /* ptr->table, ptr->a room */
-struct _VERB_STRUCT verb, *vbtab, *vbptr;
+struct _VERB_STRUCT g_verb, *vbtab, *vbptr;
 struct _SLOTTAB     vbslot, *slottab, *stptr;
 struct _VBTAB       vt, *vtp, *vtabp;
 struct _RANK_STRUCT rank, *rktab, *ranktab;

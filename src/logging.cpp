@@ -17,14 +17,14 @@ static const char *levelName[MAX_LOG_LEVEL + 1] = {"Debug", "Info",  "Note",    
 static LogLevel s_logLevel = MAX_LOG_LEVEL;
 
 error_t
-loggingModuleInit(Module *module)
+loggingModuleInit(Module * /*module*/)
 {
     s_logLevel = AL_INFO;
     return 0;
 }
 
 error_t
-loggingModuleStart(Module *module)
+loggingModuleStart(Module * /*module*/)
 {
     if (!GetModule(MOD_CMDLINE)) {
         fprintf(stderr, "*** FATAL: Logging module started before cmdline was registered\n");
@@ -38,7 +38,7 @@ loggingModuleStart(Module *module)
 }
 
 error_t
-loggingModuleClose(Module *module, error_t err)
+loggingModuleClose(Module * /*module*/, error_t /*err*/)
 {
     alog(AL_DEBUG, "Logging disabled");
     s_logLevel = MAX_LOG_LEVEL;
