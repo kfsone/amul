@@ -20,6 +20,7 @@ static const char rcsid[] = "$Id: ipc.cc,v 1.13 1999/05/25 13:08:12 oliver Exp $
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <poll.h>
 #include "manager.hpp"
 #include "ipc.hpp"
 #include "io.hpp"
@@ -467,28 +468,22 @@ ipcMsg::receive(void)
 void
 check_for_ipc(void)
     {
-    timeval zero;
-    fd_set test;
-    FD_ZERO(&test);
-    FD_SET(ipc_fd, &test);
-    zero.tv_sec = 0;
-    zero.tv_usec = 0;
-    int sel;
-    do
-        {
-        sel = select(ipc_fd + 1, &test, NULL, &test, &zero);
-        if (sel == -1 && (errno == EINTR || errno == EAGAIN))
+    for (;;) {
+        pollfd fds { ipc_fd, POLLIN|POLLRDHUP|POLLPRI, 0 };
+        switch (poll(&fds, 1, 0)) {
+        case 0:  // no events
+            return;
+        case 1:  // events on ipc_fd
+            ipc_proc();
             continue;
-        else if (sel == -1)
-            {
+        case -1:  // error
+            if (errno == EINTR || errno == EAGAIN)
+                continue;
             tx(INTERNAL_ERROR);
             error(LOG_ERR, "check_for_ipc::select failed - exiting\n");
             exit(1);
             }
-        else if (sel != 0)
-            ipc_proc();
         }
-    while (sel != 0);
     }
 
 // Handle an incoming ipc interruption
