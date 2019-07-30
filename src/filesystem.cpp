@@ -208,7 +208,7 @@ GetFilesSize(const char *filepath, size_t *sizep)
 {
     REQUIRE(filepath && sizep);
 
-    struct stat sb = {0};
+    struct stat sb = {};
     error_t     err = stat(filepath, &sb);
     if (err != 0)
         return ENOENT;
