@@ -5,7 +5,7 @@
 
 #include <h/amul.type.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
 #    define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
@@ -22,8 +22,11 @@ ReleaseMem(void **ptr)
 {
     if (ptr && *ptr) {
         free(*ptr);
-        *ptr = NULL;
+        *ptr = nullptr;
     }
 }
+
+template<typename T>
+void ReleaseMem(T **ptr) { ReleaseMem((void**)ptr); }
 
 #endif
