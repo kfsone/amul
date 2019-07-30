@@ -28,12 +28,16 @@ typedef int8_t   BYTE;
 typedef void     VOID;
 typedef void *   APTR;
 
+#define NT_MESSAGE 0
+#define NT_TASK    1
+#define NT_PORT    2
+
 typedef struct Node {
     struct Node *ln_Succ;  // Pointer to next (successor)
     struct Node *ln_Pred;  // Pointer to previous (predecessor)
     UBYTE        ln_Type;
     BYTE         ln_Pri;   // Priority, for sorting
-    char *       ln_Name;  // ID string, null terminated
+    const char * ln_Name;  // ID string, null terminated
 } Node;
 
 // http://amigadev.elowar.com/read/ADCD_2.1/Includes_and_Autodocs_2._guide/node007D.html
@@ -118,10 +122,10 @@ typedef struct IOStdReq {
 #    define mp_SoftInt mp_SigTask  // Alias
 
 struct Aport {
-    struct Message msg;
-    long           type, from, data;
-    long           p1, p2, p3, p4; /* Action parameters	  */
-    char *         ptr;
+    Message msg;
+    long    type, from, data;
+    long    p1, p2, p3, p4; /* Action parameters	  */
+    char    *ptr;
 };
 
 // mp_Flags: Port arrival actions (PutMsg)

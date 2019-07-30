@@ -10,7 +10,7 @@ extern char gameDir[MAX_PATH_LENGTH];
 
 void UnlinkGameFile(const char *gamefile);
 
-error_t GetFilesSize(const char *filepath, size_t *size);
+error_t GetFilesSize(const char *filepath, size_t *size, bool required=false);
 
 // Create a memory mapping of a file.
 error_t NewFileMapping(const char *filepath, void **datap, size_t size);

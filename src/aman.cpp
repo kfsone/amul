@@ -24,40 +24,54 @@
 #define UINFO                                                                                      \
     ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (rooms * sizeof(short)) + (sizeof(mob) * mobs)
 
+#include <cstdio>
+#include <ctime>
+
 #include <h/aman.h>
+#include <h/amul.type.h>
+#include <h/amul.alog.h>
 #include <h/amul.cons.h>
 #include <h/amul.defs.h>
+#include <h/amul.gcfg.h>
 #include <h/amul.vars.h>
 #if defined(__AMIGA__)
 #    include <devices/timer.h>
+struct TRQ      ResReq;                /* Reset request & Incoming from timer */
 #else
 #    include <h/amigastubs.h>
 #endif
-#include <time.h>
 
-char *          ttxt, lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE], *xread(), *now();
-char            globflg[MAXD];                /* Is daemon global?   */
+#include "filesystem.h"
+#include "system.h"
+
+#define PRSizeT "zu"
+
+FILE *ifp;
+GameInfo   g_gameInfo;
+GameConfig g_gameConfig;
+
+char *          lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE];
+char            vername[128];
+bool            globflg[MAXD];                /* Is daemon global?   */
 long            reslp, TDBase, daemons, mins; /* Daemons to process! */
 short int       count[MAXD], num[MAXD];       /* Daemon counters in minutes! & No.s */
 char            own[MAXD];                    /* And their owners... */
 long            val[MAXD][2], typ[MAXD][2];   /* Values and types... */
 struct Aport *  am;
-struct TRQ      ResReq;                /* Reset request & Incoming from timer */
 struct MsgPort *trport;                /* Timer port */
 long            invis, invis2, calls;  /* Invisibility Stuff & # of calls */
 long            obtlen, nextdaem, ded; /* nextdaem = time to next daemon, ded = deduct */
 
-long online, clock, cclock;
+long online, cclock;
 char resety, forcereset, quiet;
 
 int CXBRK() /* Prevent CTRL-C'ing */ { return 0; }
 
-char *now() /* Get current time/date */
+static char *
+now() /* Get current time/date */
 {
-    if (clock == 0)
-        time(&clock);
-    ttxt = (char *)ctime(&clock) + 4;
-    clock = 0;
+    time_t timenow = time(nullptr);
+    char *ttxt = (char *)ctime(&timenow) + 4;
     *(ttxt + strlen(ttxt) - 1) = 0; /* Strip cr/lf */
     return ttxt;
 }
@@ -86,6 +100,7 @@ givebackmemory()
     vtpp = NULL;
 }
 
+[[noreturn]]
 void
 quit() /* Exit program tidily */
 {
@@ -95,10 +110,6 @@ quit() /* Exit program tidily */
         DeletePort(reply);
     if (port != NULL)
         DeletePort(port);
-    if (TDBase != NULL) {
-        AbortIO((struct IORequest *)&ResReq);
-        CloseDevice((struct IORequest *)&ResReq);
-    }
     if (trport != NULL)
         DeletePort(trport);
     givebackmemory();
@@ -106,49 +117,45 @@ quit() /* Exit program tidily */
 }
 
 // Report memory allocation error
+[[noreturn]]
 static void
-memfail(char *s)
+memfail(const char *s)
 {
-    sprintf(block, "** Unable to allocate memory for %s! **\n", s);
-    log(block);
-    quit();
+    afatal("Out of memory for %s");
 }
 
 // Report a read failure
+[[noreturn]]
 static void
-readfail(char *s, int got, int wanted)
+readfail(const char *s, size_t got, size_t wanted)
 {
-    printf("** Error: Expected %d ", wanted);
-    printf(s);
-    printf(" entries, only got %d!\n", got);
-    quit();
+    afatal("Expected %" PRSizeT " %s entries, got %" PRSizeT "", wanted, s, got);
 }
 
-// report Open ERror
+// report open error
+[[noreturn]]
 static void
-openError(char *s, char *t)
+openError(const char *s, const char *t)
 {
-    printf("\x07** Error: Can't open file %s for %sing!\n\n", s, t);
-    quit();
+    afatal("Unable to open '%s' for %sing", s, t);
 }
 
 // Open a file for reading
 static void
-fopenr(char *s)
+fopenr(const char *s)
 {
-    if (ifp != NULL)
-        fclose(ifp);
-    sprintf(block, "%s%s", dir, s);
-    if ((ifp = fopen(block, "rb")) == NULL)
-        openError(block, "read");
+    char filepath[MAX_PATH_LENGTH];
+    safe_gamedir_joiner(s);
+    ifp = fopen(filepath, "rb");
+    if (!ifp)
+        oer(filepath, "read");
 }
 
 // Size/Read data files
 char *
-xread(char *s, long *n, char *t)
+xread(const char *s, long *n, const char *t)
 {
-    char *p;
-    int   i;
+    char *p {nullptr};
 
     fopenr(s);
     fseek(ifp, 0, 2L);
@@ -157,14 +164,14 @@ xread(char *s, long *n, char *t)
     if (*n != 0) {
         if ((p = (char *)AllocateMem(*n)) == NULL)
             memfail(t);
-        if ((i = fread(p, 1, *n, ifp)) != *n)
+        if (int i = fread(p, 1, *n, ifp); i != *n)
             readfail(t, i, *n);
     }
     return p;
 }
 
 char *
-readf(char *s, char *p)
+readf(const char *s, char *p)
 {
     fopenr(s);
     fread(p, 32767, 32767, ifp);
@@ -183,8 +190,9 @@ execute(const char*)
 static void
 setam()
 {
-    /// TODO: On the Amiga, it was the caller's responsibility to free messages
-    am = (struct Aport *)AllocateMem(sizeof(*amul));
+    ///TODO: On the Amiga, it was the caller's responsibility to free messages
+    static Aport s_am;
+    am = &s_am;
     am->msg.mn_Node.ln_Type = NT_MESSAGE;
     am->msg.mn_ReplyPort = reply;
     am->msg.mn_Length = (UWORD)sizeof(*am);
@@ -195,10 +203,8 @@ setam()
 static void
 reset_users()
 {
-    int    i;
-    struct Message *xx;
-
     online = 0; // Allows for daemons & mobiles
+    online = 0; /* Allows for daemons & mobiles */
     for (i = 0; i < MAXNODE; i++) {
         if ((linestat + i)->state <= 0)
             continue;
@@ -206,7 +212,7 @@ reset_users()
         setam();
         am->type = MCLOSEING;
         am->msg.mn_ReplyPort = port;
-        PutMsg((linestat + i)->rep, am);
+        PutMsg((linestat + i)->rep, (Message*)am);
     }
     while (online > 0) {
         WaitPort(port);
@@ -227,7 +233,7 @@ reset_users()
 loop2:
     if ((am = (struct Aport *)GetMsg(reply)) != NULL) {
         am->type = am->data = -'R';
-        ReplyMsg(am);
+        ReplyMsg((Message*)am);
         goto loop2;
     }
     while ((xx = GetMsg(port)) != NULL)
@@ -239,34 +245,39 @@ loop2:
     online = 0;
 }
 
-static void
-warn(char *s)
+template<typename... Args>
+void
+warn(const char *fmt, Args... args)
 {
-    for (size_t i = 0; i < MAXU; i++)
+    alog(AL_WARN, fmt, args...);
+
+    char message[512];
+    snprintf(message, fmt, args...);
+    for (size_t i = 0; i < MAXU; i++) {
         if ((linestat + i)->state != OFFLINE) {
             setam();
-            am->ptr = s;
+            am->ptr = message;
             am->type = MRWARN;
-            PutMsg((linestat + i)->rep, am);
+            PutMsg((linestat + i)->rep, (Message*)am);
         }
+    }
 }
 
-// Receive shutdown request
 static void
-kill()
+kill() /* Shutdown receiver */
 {
-    sprintf(block, "!! (X) %s: shutdown request, from ", now());
-    log(block);
-    if (Af != -1) {
-        sprintf(block, "line %ld.\n", Af + 1);
-        log(block);
-    } else
-        log("the void!\n");
+    char source[32];
+    if (Af != -1)
+        sprintf(source, "line %u.", uint32_t(Af + 1));
+    else
+        strcpy(source, "external");
+    alog(AL_WARN, "!! (X) %s: shutdown request from %s", now(), source);
+
     if (online != 0) {
-        sprintf(block, "&&%25s: Request denied, %ld users on-line!\n", " ", online);
-        log(block);
+        alog(AL_NOTE, "&&%25s: Request denied: %u users on-line", " ", uint32_t(online));
         Ad = At = 'X';
     } else {
+        warn("Game shutdown initiated by administrator.");
         reset_users();
         Ad = At = 'O';
         resety = -1;
@@ -274,8 +285,8 @@ kill()
 }
 
 // User connecting
-// static void
-cnct()
+static void
+cnct() /* User connection! */
 {
     int i;
 
@@ -304,34 +315,7 @@ cnct()
     }
 }
 
-// Remove daemon from list
-void
-pack(int i)
-{
-    int j;
-    if (i != (daemons - 1)) {
-        j = daemons - 1;
-        num[i] = num[j];
-        own[i] = own[j];
-        count[i] = count[j];
-        globflg[i] = globflg[j];
-        val[i][0] = val[j][0];
-        val[i][1] = val[j][1];
-        typ[i][0] = typ[j][0];
-        typ[i][1] = typ[j][1];
-        i = j;
-    }
-    own[i] = -1;
-    count[i] = -1;
-    val[i][0] = -1;
-    val[i][1] = -1;
-    typ[i][0] = -1;
-    typ[i][1] = -1;
-    globflg[i] = -1;
-    daemons--;
-}
-
-// Cancel daemon...
+// Cancel demon
 void
 dkill(short int d)
 {
@@ -339,7 +323,7 @@ dkill(short int d)
 
     nextdaem = mins * 60;
     for (i = 1; i < daemons; i++) {
-        if (((d != -1 && globflg[i] == TRUE) || own[i] == Af) && (num[i] == d || d == -1))
+        if (((d != -1 && globflg[i]) || own[i] == Af) && (num[i] == d || d == -1))
             pack(i);
         if (i != daemons && count[i] < nextdaem)
             nextdaem = count[i];
@@ -357,7 +341,7 @@ start(char owner)
     typ[daemons][0] = Ap3;
     typ[daemons][1] = Ap4;
     own[daemons] = owner;
-    count[daemons] = (short int)Ap;
+    count[daemons] = reinterpret_cast<decltype(count[daemons])>(Ap); ///TODO: FIX
     num[daemons] = Ad;
     daemons++;
     if (count[daemons - 1] < nextdaem)
@@ -368,7 +352,7 @@ start(char owner)
 void
 gstart()
 {
-    globflg[daemons] = TRUE;
+    globflg[daemons] = true;
     start(MAXU); /* Set global flag & go! */
 }
 
@@ -376,7 +360,7 @@ gstart()
 void
 pstart()
 {
-    globflg[daemons] = FALSE;
+    globflg[daemons] = false;
     start(Af);
 }
 
@@ -388,7 +372,7 @@ check(int d)
     Ad = -1;
     Ap1 = -1;
     for (i = 1; i < daemons; i++)
-        if ((own[i] == Af || globflg[i] == TRUE) && num[i] == d) {
+        if ((own[i] == Af || globflg[i]) && num[i] == d) {
             Ad = i;
             Ap1 = count[i];
             break;
@@ -396,12 +380,11 @@ check(int d)
 }
 
 // User disconnection
-void
+static void
 discnct()
 {
     if (Af < MAXU && (linestat + Af)->state == PLAYING) {
-        sprintf(block, "<- (%d) %s: user disconnected.\n", Af, now());
-        log(block);
+        alog(AL_INFO, "<- (%u) %s: user disconnected", uint32_t(Af), now());
     }
     if (Af < MAXU)
         online--;
@@ -425,12 +408,12 @@ data()
         Ad = online;
         Ap = (char *)usr;
         Ap1 = calls;
-        Ap2 = (long)vername;
-        Ap3 = (long)adname;
-        Ap4 = (long)linestat;
+        Ap2 = (uintptr_t)vername;
+        Ap3 = (uintptr_t)g_gameConfig.gameName;
+        Ap4 = (uintptr_t)linestat;
         break;
     case 0:
-        strcpy(Ap, dir);
+        strcpy(Ap, gameDir);
         amul->p1 = count[0];
         Ap1 = (long)&count[0];
         break;
@@ -503,9 +486,8 @@ data()
 static void
 login()
 {
-    sprintf(block, "-> (%d) %s: \"%s\" logged in.\n", Af, now(), (usr + Af)->name);
+    alog(AL_INFO, "-> (%d) %s: \"%s\" logged in.", Af, now(), (usr + Af)->name);
     (linestat + Af)->state = PLAYING;
-    log(block);
 }
 
 // Shutdown request
@@ -528,7 +510,7 @@ asend(int type, int data)
     Am.mn_Node.ln_Type = NT_MESSAGE;
     Am.mn_ReplyPort = reply;
     Am.mn_Length = (UWORD)sizeof(*amul);
-    PutMsg(port, amul);
+    PutMsg(port, (Message*)amul);
     WaitPort(reply);
     GetMsg((struct MsgPort *)reply);
     if (quiet == 0)
@@ -554,7 +536,7 @@ asend(int type, int data)
             printf("... Game extended by %ld seconds ...\n", Ap1);
             break;
         default:
-            printf("** Internal AMUL error ** (Returned '%c')\n", Ad);
+            printf("** Internal AMUL error ** (Returned '%c')\n", static_cast<char>(Ad));
             break;
         }
     ReleaseMem(&amul);
@@ -583,8 +565,7 @@ rest()
     if (Ad > 0) {
         Ap1 = Ad;
         count[0] = Ad + 1;
-        sprintf(block, "** System reset invoked - %ld seconds remaining...\n", Ad);
-        warn(block);
+        warn("** System reset invoked - %" PRSizeT " seconds remaining...\n", size_t(Ad));
         Ad = At = -'X';
         return;
     }
@@ -604,11 +585,10 @@ extend(short int tics)
 
     newtime = count[0] + tics + 1;
     if (count[0] > 120)
-        sprintf(block, "...Game time extended - reset will now occur in %ld %s and %ld %s...\n",
+        alog(AL_NOTE, "...Game time extended - reset will now occur in %ld %s and %ld %s...\n",
                 newtime / 60, "minutes", newtime - ((newtime / 60) * 60), "seconds");
     else
-        sprintf(block, "...Reset postponed - it will now occur in %ld %s...\n", newtime, "seconds");
-    warn(block);
+        alog(AL_NOTE, "...Reset postponed - it will now occur in %ld %s...\n", newtime, "seconds");
     Ap1 = tics;
     count[0] = newtime;
     Ad = 'E';
@@ -619,16 +599,14 @@ static void
 res()
 {
     int onwas;
-    sprintf(block, "][ (%c) %s: Reset requested! %ld user(s) online...\n",
+    warn("][ (%c) %s: Reset requested! %ld user(s) online...\n",
             (Af >= 0 && Af < 11) ? '0' + Af : '#', now(), online);
-    log(block);
     onwas = online;
     reset_users();
     if (onwas != 0)
-        sprintf(block, "== (#) %s: All users disconnected...\n", now());
+        alog(AL_NOTE, "== (#) %s: All users disconnected...\n", now());
     else
-        sprintf(block, "== (#) %s: Reset completed!\n", now());
-    log(block);
+        alog(AL_NOTE, "== (#) %s: Reset completed!\n", now());
     Delay(90);  // Always wait atleast a few seconds
 }
 
@@ -645,61 +623,34 @@ lock()
     bid[Af] = -1;
 }
 
-// Log data to AMUL.Log
-static void
-log(char *s)
-{
-    FILE *fp;
-
-    if ((fp = fopen("AMUL.Log", "ab+")) == NULL)
-        openError("AMUL.Log", "logg");
-    fseek((FILE *)fp, 0, 2L);
-    fprintf((FILE *)fp, s);
-    fclose((FILE *)fp);
-}
-
-static void
+void
 logwiz(int who)
 {
-    sprintf(block, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)!!!\n", Af + '0', now(),
+    alog(AL_NOTE, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)", Af + '0', now(),
             (usr + Af)->name, (usr + Af)->rank + 1);
-    log(block);
 }
 
-static void
+void
 logit(char *s)
 {
-    sprintf(block, "@@ (%c) %s: %s\n", Af + '0', now(), s);
-    log(block);
-}
-
-static int
-fsize(char *s)
-{
-    int n;
-    fopenr(s);
-    fseek(ifp, 0, 2L);
-    n = ftell(ifp);
-    fclose(ifp);
-    ifp = NULL;
-    return n;
+    alog(AL_INFO, "@@ (%c) %s: %s", Af + '0', now(), s);
 }
 
 // Read in & evaluate data files
 static void
 setup()
 {
-    long  i, rc, l, act, j, k;
-    long *         pt;
+    long rc = 0;
+    long  i, l, act, j, k;
+    long *pt;
     char *p;
 
-    rc = 0;
     fopenr(gameDataFile);
-    fgets(adname, 41, ifp);
-    adname[strlen(adname) - 1] = 0;
-    fscanf(ifp, "%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld", &rooms,
-           &ranks, &verbs, &syns, &nouns, &adjs, &ttents, &umsgs, &cclock, &mins, &invis, &invis2,
-           &minsgo, &mobs, &rscale, &tscale, &mobchars);
+    fread(&g_gameConfig, sizeof(g_gameConfig), 1, ifp);
+    fread(&g_gameInfo, sizeof(g_gameInfo), 1, ifp);
+    fclose(ifp);
+    ifp = nullptr;
+
     if ((p = AllocateMem(UINFO)) == NULL)
         memfail("User tables");
     usr = (struct _PLAYER *)p;
@@ -727,10 +678,10 @@ setup()
         readfail("verb table", i, verbs);
 
     /* 3, 5, 6 & 7: Read objects */
-    obtlen = fsize(objectDataFile);
-    desctlen = fsize(obdsfn);
-    ormtablen = fsize(objectRoomFile);
-    statablen = fsize(objectStateFile);
+    GetFileSize(objectDataFile, obtlen, true);
+    GetFileSize(obdsfn, desctlen, true);
+    GetFileSize(objectRoomFile, ormtablen, true);
+    GetFileSize(objectStateFile, statablen, true);
     if ((p = AllocateMem(obtlen + desctlen + ormtablen + statablen)) == NULL)
         memfail("object data");
     obtab = (struct obj *)readf(objectDataFile, p);
@@ -750,8 +701,8 @@ setup()
 
     /* 10 & 11: User Messages */
 
-    umsgil = fsize(umsgifn);
-    umsgl = fsize(umsgfn);
+    GetFileSize(umsgifn, umsgil, true);
+    GetFileSize(umsgfn, umsgl, true);
     if ((p = AllocateMem(umsgil + umsgl)) == NULL)
         memfail("user messages");
     umsgip = (long *)readf(umsgifn, p);
@@ -783,9 +734,9 @@ setup()
     }
 
     /* 14: Load Slot table */
-    stlen = fsize(verbSlotFile);
-    vtlen = fsize(verbTableFile);
-    vtplen = fsize(verbParamFile);
+    GetFileSize(verbSlotFile, stlen, true);
+    GetFileSize(verbTableFile, vtlen, true);
+    GetFileSize(verbParamFile, vtplen, true);
     if ((p = AllocateMem(stlen + vtlen + vtplen)) == NULL)
         memfail("language data");
     slottab = (struct _SLOTTAB *)readf(verbSlotFile, p);
@@ -793,9 +744,9 @@ setup()
     vtpp = (long *)readf(verbParamFile, p + stlen + vtlen);
 
     /* 17: Get the Synonym data & adjectives */
-    synlen = fsize(synonymDataFile);
-    synilen = fsize(synonymIndexFile);
-    adtablen = fsize(adjectiveDataFile);
+    GetFileSize(synonymDataFile, synlen, true);
+    GetFileSize(synonymIndexFile, synilen, true);
+    GetFileSize(adjectiveDataFile, adtablen, true);
     if ((p = AllocateMem(synlen + synilen + adtablen)) == NULL)
         memfail("synonym data");
     synp = (char *)readf(synonymDataFile, p);
@@ -848,14 +799,13 @@ kernel()
     int   i;
     FILE *fp;
 
-    strcpy(block, "--------------------------------------------------------------\n");
-    log(block);
+    alog(AL_INFO, "------------------------------------------------------------");
     online = resety = forcereset = 0;
     for (i = 0; i < MAXD; i++) {
         count[i] = -1;
         own[i] = -1;
         val[i][0] = val[i][1] = typ[i][0] = typ[i][1] = 0;
-        globflg[i] = FALSE;
+        globflg[i] = false;
     }
     daemons = 1;
     nextdaem = count[0] = mins * 60;
@@ -866,18 +816,12 @@ kernel()
         (linestat + i)->helping = -1;
         (linestat + i)->following = -1;
     }
-    ResReq.tr_time.tv_secs = 1;
-    ResReq.tr_time.tv_micro = XR;
-    ResReq.tr_node.io_Command = TR_ADDREQUEST;
-    SendIO(&ResReq.tr_node);
-    sprintf(block, "== (=) %s: [3mLoaded '%s'.[0m\n", now(), adname);
-    log(block);
+    alog(AL_INFO, "== (=) %s: Loaded '%s'.", now(), g_gameConfig.gameName);
     forcereset = ded = 0;
 
     /* Activate the daemon processor */
 
-    sprintf(block, "run >NIL: amul -%c", 3); /* Request daemon processor */
-    Execute(block, 0L, 0L);                  /* activate it! */
+    execute("amul -\03");
 
     while (resety == 0) {
         Wait(-1);
@@ -899,30 +843,25 @@ kernel()
                     am->p3 = typ[i][0];
                     am->p4 = typ[i][1];
                     am->type = MDAEMON;
-                    PutMsg((linestat + own[i])->rep, am);
+                    PutMsg((linestat + own[i])->rep, (Message*)am);
                     pack(i);
                     i--;
                 }
             }
             if (count[0] == 300) {
-                warn("--+ Next reset in 5 minutes +--\n");
+                warn("--+ Next reset in 5 minutes +--");
             }
             if (count[0] == 120) {
-                warn("--+ 120 seconds until next reset +--\n");
+                warn("--+ 120 seconds until next reset +--");
             }
             if (count[0] == 60) {
-                warn("--+ Final warning - 60 seconds to reset +--\n");
+                warn("--+ Final warning - 60 seconds to reset +--");
             }
             if (count[0] <= 0) {
                 count[0] = -10;
                 resety = 1;
                 if (forcereset == 0)
-                    printf("[ Automatic Reset ]\n");
-            } else {
-                ResReq.tr_time.tv_secs = 1;
-                ResReq.tr_time.tv_micro = XR;
-                ResReq.tr_node.io_Command = TR_ADDREQUEST;
-                SendIO(&ResReq.tr_node);
+                    warn("[ Automatic Reset ]\n");
             }
         }
         if ((amul = (struct Aport *)GetMsg((struct MsgPort *)port)) == NULL)
@@ -979,8 +918,7 @@ kernel()
             break; /* Global daemon */
         default:
             At = -1;
-            sprintf(block, "$$ (X) %s: *INVALID Message Type, %ld!*\n", now(), At);
-            log(block);
+            alog(AL_ERROR, "$$ (X) %s: *INVALID Message Type, %ld!*", now(), At);
             break;
         }
         ReplyMsg((struct Message *)amul);
@@ -992,7 +930,6 @@ kernel()
         Ad = At = -'R';
         ReplyMsg((struct Message *)amul);
     }
-    AbortIO(&ResReq.tr_node);
 
     if (resety == 1) {
         res();
@@ -1009,6 +946,57 @@ kernel()
         resety = -1;
 }
 
+[[noreturn]]
+executeCommand(int argc, const char *argv[])
+{
+    if (!port) {
+        afatal("AMAN is not running");
+    }
+    size_t mins {0};
+    if (argc == 3)
+        sscanf(argv[2], "%zu", &mins);
+    count[0] = mins;
+    switch (toupper(*(argv[1] + 1))) {
+    case 'K':
+        shutreq(0);
+        break;
+    case 'R':
+        shutreq(1);
+        break;
+    case 'X':
+        if (argc != 3)
+            afatal("Missing minute value after -x option");
+        sendext(count[0]);
+        break;
+    }
+    exit(0);
+}
+
+void
+parseArguments(int argc, const char* argv[])
+{
+    if (argc == 1) {
+        strcpy(gameDir, ".");
+        return;
+    }
+
+    if (argv[1][0] == '-' && strchr(argv[1][1], "krx")) {
+        executeCommand(argc, argv);
+    }
+
+    int argn = 1;
+    if (!stricmp(argv[argn], "-q")) {
+        ++argn;
+        quiet = 1;
+    }
+    if (argn < argc) {
+        error_t err = path_copier(gameDir, argv[argn]);
+        if (err != 0)
+            alogfatal("Invalid game path: %s", argv[argn]);
+    } else
+        strcpy(gameDir, ".");
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -1020,47 +1008,6 @@ main(int argc, char *argv[])
         exit(0);
     }
     port = FindPort(mannam); /* Check for existing port */
-    if (argc != 1 && (stricmp(argv[1], "-k") == NULL || stricmp(argv[1], "-r") == NULL ||
-                      stricmp(argv[1], "-x") == NULL)) {
-        if (port == NULL) {
-            printf("AMAN %s running!\n", "not");
-            exit(0);
-        }
-        mins = 0;
-        if (argc == 3)
-            sscanf(argv[2], "%ld", &mins);
-        count[0] = mins;
-        switch (toupper(*(argv[1] + 1))) {
-        case 'K':
-            shutreq(0);
-            break;
-        case 'R':
-            shutreq(1);
-            break;
-        case 'X':
-            if (argc != 3)
-                exit(0 * printf("** Missing parameter after -x option.\n"));
-            sendext(count[0]);
-            break;
-        }
-        exit(0);
-    }
-    quiet = 0;
-
-    if (argc != 1) {
-        if (stricmp(argv[1], "-q") == NULL) {
-            quiet = 1;
-            if (argc > 2)
-                strcpy(dir, argv[2]);
-            else
-                dir[0] = 0;
-        } else
-            strcpy(dir, argv[1]);
-        if (dir[strlen(dir)] != '/' && dir[strlen(dir)] != ':')
-            strcat(dir, "/");
-        ;
-    } else
-        dir[0] = 0;
     if (port != NULL) {
         printf("AMAN %s running!\n", "already");
         exit(0);
