@@ -8,6 +8,8 @@ static const char rcsid[] = "$Id: loaders.cc,v 1.16 1999/06/11 14:26:45 oliver E
 
 #define LOADERS_C 1
 
+#include <new>
+
 #include "smugl.hpp"
 #include "loaders.hpp"
 #include "structs.hpp"
@@ -65,18 +67,15 @@ read_in_ranks(void *base)
 static void *
 read_in_rooms(void *base)
     {
-    fileInfo *fi;
-    FILE *fp;
-    Room *dest;
     long i;
 
-    fi = locate_file(roomsfn, TRUE);
-    fp = fopen(fi->name, "rb");
+    fileInfo *fi = locate_file(roomsfn, TRUE);
+    FILE* fp = fopen(fi->name, "rb");
     if (fp == NULL)
-	{
-	error(LOG_ERR, "unable to read %s", roomsfn);
-	exit(1);
-	}
+    {
+    error(LOG_ERR, "unable to read %s", roomsfn);
+    exit(1);
+    }
 
     data->roombase = (class Room *)base;
     data->rooms = roomCount;
@@ -84,17 +83,16 @@ read_in_rooms(void *base)
     // Work out how many start rooms there are...
     data->start_rooms = 0;
 
-    dest = data->roombase;
+    Room *roomcur = data->roombase;
     data->anterm = NULL;
 
-    for (i = 0; i < data->rooms; dest++, i++)
+    for (i = 0; i < data->rooms; roomcur++, i++)
         {
-        Room *fakeRoom = new Room;
-	memcpy(dest, fakeRoom, sizeof(Room));
-	dest->Read(fp);
+        Room *dest = new (roomcur) Room;
+        dest->Read(fp);
         
         if ((dest->flags & ANTERM) && data->anterm)
-            error(LOG_NOTICE, "redundant anteroom '%s' ignored",				word(dest->id));
+            error(LOG_NOTICE, "redundant anteroom '%s' ignored", word(dest->id));
         else if (dest->flags & ANTERM)
             data->anterm = dest;
         if (dest->flags & STARTL)
@@ -102,7 +100,7 @@ read_in_rooms(void *base)
         }
 
     fclose(fp);
-    return ptr_align(dest);
+    return ptr_align(roomcur);
     }
 
 // Mobile entities
@@ -134,26 +132,25 @@ read_in_objects(void *base)
     fi = locate_file(objsfn, TRUE);
     fp = fopen(fi->name, "rb");
     if (fp == NULL)
-	{
-	error(LOG_ERR, "unable to read %s", objsfn);
-	exit(1);
-	}
+    {
+    error(LOG_ERR, "unable to read %s", objsfn);
+    exit(1);
+    }
     data->objbase = (class Object *)base;
     data->objects = nounCount;
 
     cur = (Object *)base;
     for (i = 0; i < data->objects; i++, cur++)
-	{
-	Object *fakeObj = new Object;
-	memcpy(cur, fakeObj, sizeof(Object));
-	cur->Read(fp);
+    {
+        new (cur) Object;
+        cur->Read(fp);
 
         if (cur->nstates > 0)
             {
             cur->states = statep;
             statep += cur->nstates;
             }
-	}
+    }
 
     return ptr_align(cur);
     }
@@ -367,21 +364,13 @@ load_database(void *membase)    // Load all the files in the database
 
     for (i = 0, ppCur = data->user; i < MAXU; i++, ppCur++)
         {
-	Player *fakePlayer = new Player;
-
-        memcpy(ppCur, fakePlayer, sizeof(Player));
-        ppCur->state = OFFLINE;
-        ppCur->id = -1;
-        ppCur->_name[0] = 0;
-        ppCur->std_flags = 0; // Especially not 'bob_INPLAY'
-        ppCur->flags = 0;
-
+        new (ppCur) Player;
         bobs[bobno] = (BASIC_OBJ *)(data->user + i);
         data->user[i].conLocation = conPlayer;
         data->user[i].init_bob(bobno);
 
-	bobno++;
-	conPlayer++;
+    bobno++;
+    conPlayer++;
         }
 
     // Now we need to set all the 'next' values to make the
@@ -396,33 +385,33 @@ load_database(void *membase)    // Load all the files in the database
       for (i = 0; i < data->rooms; i++) 
         {
         Room *room = data->roombase + i;
-	container_t conChild;
+    container_t conChild;
 
         printf("+ Room: RoomNo=%4d, ID=%4ld, Name=%s, Contains %ld\n",
-	        i, room->id, word(room->id), room->contents);
-	assert((room->contents <= 0) || (room->conTent >= 0 && room->conTent <= ncontainers));
+            i, room->id, word(room->id), room->contents);
+    assert((room->contents <= 0) || (room->conTent >= 0 && room->conTent <= ncontainers));
 
-	for (conChild = room->conTent;
-	     conChild >= 0 && conChild <= ncontainers;
-	     conChild = containers[conChild].conNext)
-	  {
-	  basic_obj boSelf, boParent;
+    for (conChild = room->conTent;
+         conChild >= 0 && conChild <= ncontainers;
+         conChild = containers[conChild].conNext)
+      {
+      basic_obj boSelf, boParent;
 
-	  boSelf = containers[conChild].boSelf;
-	  boParent = containers[conChild].boContainer;
+      boSelf = containers[conChild].boSelf;
+      boParent = containers[conChild].boContainer;
 
-	  printf("| + Item=%s Bob=%ld, bob->bob=%ld, container=%ld\n",
-		 word(bobs[boSelf]->id), boSelf, bobs[boSelf]->bob, boParent);
-	  }
+      printf("| + Item=%s Bob=%ld, bob->bob=%ld, container=%ld\n",
+         word(bobs[boSelf]->id), boSelf, bobs[boSelf]->bob, boParent);
+      }
         }
 
       printf("\nScanning Object Tree\n");
       for (i = 0; i < data->objects; i++)
-	{
+    {
         Object *obj = data->objbase + i;
 
         printf("+ Object: ObjNo=%4d, ID=%4ld, Name=%s, Contains %ld, Locations=%ld\n",
-	        i, obj->id, word(obj->id), obj->contents, obj->locations);
-	}
+            i, obj->id, word(obj->id), obj->contents, obj->locations);
+    }
       }
     }
