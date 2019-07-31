@@ -1,0 +1,27 @@
+;* VERB SYNONYMS
+north		n
+northeast	ne
+east		e
+southeast	se
+south		s
+southwest	sw
+west		w
+northwest	nw
+up		u
+down		d
+out		o leave
+in		enter
+quit		qq
+who		players others
+look		l
+score		sc
+examine		exa exam
+brief		brief_mode bm
+verbose		verbose_mode vbm vm
+roomcount	room_count rmcount rm_count rc_mode rmc_mode
+exits		ex
+get		g take grab pick_up pick
+drop		dr put_down put
+give		gi
+inventory	i inv invent
+

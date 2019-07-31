@@ -1,0 +1,26 @@
+; title.txt is the splash screen and general game configuration file
+
+name=AMUL Test Game
+
+; Standard 'game' time is 80 minutes (period between resets)
+resettime=80
+
+; Players of rank 3 can see invisible players
+seeinvis=3
+
+; Players of rank 4 can see super invisible players too
+seesuperinvis=4
+
+; Rank 4 is required to use the 'super-go' facility
+sgorank=4
+
+; 90% of an objects value is deducted for a top rank player
+; (note: labels are case insensitive)
+RankScale=90
+
+; 55% of an objects value is deducted at the beginning of the game
+timeScale=55
+
+-- Title.Txt title screen --
+
+AMUL Test Adventure. Last compile: @lc. Last reset: @lr. Reset duration: 80 mins

@@ -1,0 +1,5 @@
+; For long or recurring object state/description text.
+
+stickdesc
+    There is a stick here.
+

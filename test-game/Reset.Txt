@@ -1,0 +1,2 @@
+Reset.Txt:
+  The game world resets to its starting state periodically. Players can accumulate score and rank across resets unless they die.

@@ -1,0 +1,257 @@
+; System Message file.
+;
+; This file lets the game developer define strings for all of the built-in
+; instances where the game needs to send text to the players.
+;
+; For legacy reasons, each System Message is named "$1" thru "$75".
+;
+; If the first line of the body of a message is indented, the same indent
+; will be removed from subsequent lines.
+
+
+$1
+	Can't enter game: reset in progress.
+
+$2
+	Can't enter game: too many players.
+
+;;;TODO: Use '\' instead of '{'
+; When a message ends with '{' no newline is appended.
+$3
+	Press ENTER: {
+
+$4
+	Enter character name: {
+
+$5
+	Invalid name, please choose another.
+
+$6
+	That name is reserved, please choose another.
+
+$7
+	Someone just attempted to log in as you (@me).
+
+$8
+	"@me" is already in the game.
+
+$9
+	"@me" will be a new character, is that correct (Y/N)? {
+
+$10
+	Will "@me" be (M)ale or (F)emale? {
+
+$11
+	Please enter either M or F.
+
+;;;TODO: Separate "choose password" and "enter password"
+;;;TODO: Password confirmation
+$12
+	Password: {
+
+$13
+	Password must be bettern 3 and 8 characters long.
+
+$14
+	(If you're not sure of the answer to this, choose N)
+	Do you want the game to send ANSI codes (Y/N)? {
+
+$15
+	@me the @mr has been created, welcome to the game.
+
+$16
+	Too many login failures, disconnecting.
+
+$17
+	Note: %u failed login attempts since you last played.
+
+$18
+	Welcome back, @me the @mr! You have now played @gp times.
+
+$19
+	ANSI decoration enabled. If you see lots of "[31m"s etc, your client does not support ANSI.
+
+$20	@me the @mr has joined the game.
+
+$21
+	AMUL Test Game help
+
+	Movement commands: N, S, E, W, NE, SE, SW, NW, U, D, IN, O.	
+
+$22  ; Say goodbye to a first time player (I recommend you remind them of their password)
+	Farewell, @me. Your password is "@pw". 
+
+$23
+	@me logged out.
+
+$24
+ 
+	You have died...
+ 
+
+$25
+	@me has died.
+
+$26
+	Your spell fizzled.
+
+$27			; when listing other players online (who/verbose)
+	 is playing{
+
+$28
+	DING: You are now @me the @mr.
+
+$29
+	Saving at %u points.
+
+$30
+	Confirm quit [y/N]: {
+
+$31
+	It is now too dark to see.
+
+$32
+	It is now light enough to see.
+
+$33
+	It is too dark to see.
+
+$34			; When the player tries to 'WHAT' in a dark room.
+	It is too dark to make anything out.
+
+$35			; When WHAT sees nothing in a hideaway.
+	You can see nothing special here.
+
+$36			; How to describe another player in the room (first %s = name, second %s = rank)
+	%s the %s is here{
+
+$37			; When the reset happens.
+	--|> Something magical is happening <|--
+
+$38			; Parser unable to interpret input
+	I don't understand that.
+
+$39			; You tried to move in a direction you can't.
+	You can't go @vb from here.
+
+$40			; Something you tried to but can't do.
+	You can't do that.
+
+$41			; You've just done a supergo
+	Loading ... Please wait.
+
+$42			; When a player leaves (supergo)
+	@me suddenly isn't here anymore.
+
+$43			; When a player arrives (supergo)
+	@me appeared suddenly, out of nowhere.
+
+$44			; First word was understood, but not a verb.
+	I didn't understand the way you put that.
+
+$45			; Understood the verb, but not the rest
+	I don't understand what you're referring to.
+
+$46			; Understood the verb, but no matching syntax lines
+	Understood the words, but not the meaning.
+
+$47			; You've just been summoned
+	--|> You have been magically summoned <|--
+
+$48			; When a player leaves (summoned)
+	@me suddenly isn't here anymore.
+
+$49			; When a player arrives (summoned)
+	@me appears suddenly, out of nowhere.
+
+$50
+	@me has just woken up.
+
+$51
+	You are suddenly awake!
+
+$52			; Fail to summon a player from this location.
+	%s is already here.
+
+$53			; Player exited room by travel.
+	@me has just left.
+
+$54			; Player entered room by travel.
+	@me has just arrived.
+
+$55
+	There is not enough room for two in there. 
+
+$56
+	Someone else just tried to enter.
+
+$57			; Gender changed by admin
+	You have been turned into a @gn by a spell.
+
+; * NOTE
+;
+;   The text in the fight-sequence where the opponent DEFENDS against a
+;   blow is sent BY THE ATTACKING player. Therefore you should use
+;
+;	You defend against an attack from @me
+;   not
+;	You defend against an attack from @pl
+;
+; *NW = No Weapon
+; *WP = Weapon
+
+$58			; YOU hit @pl				*NW
+	You strike @pl with your bare hands.
+
+$59			; tell @pl he blocked YOUR attack	*NW
+	You manage to parry a blow from @xx.
+
+$60			; YOU hit @pl				*WP
+	You score a direct hit on @pl with your @o1.
+
+$61			; YOU WOULD have hit, but @pl blocked	*WP
+	Using your @o2 you manage to block a feeble attack from @xx.
+
+$62			; tell @pl YOU struck			*NW
+	@xx manages to score a hefty blow on you!
+
+$63			; @pl blocked YOUR attack		*NW
+	@pl easily blocks a clumsy lunge from you.
+
+$64			; tell @pl YOU struck			*WP
+	@xx strikes you with @go @o1!
+
+$65			; @pl blocked your attack		*WP
+	@pl easily blocks a feeble attack from you with @go @g2.
+
+$66			; You miss - dimwit			*NW
+	You attack @pl but miss.
+
+$67			; tell @pl you missed			*NW
+	@xx attacks you but misses.
+
+$68			; Wizard message (when a user makes it, that is)
+	Congratulations! You have become @me the @mr! Permadeath no-longer applies to this character, and you will have access to many new powers.
+
+$69			; Scored enough points but not enough tasks for new rank
+	You have not completed the required task(s) to reach the next level.
+
+$70
+	You can see nothing.
+
+$71			;;;TODO: WTF is this?
+	{
+
+$72
+	You can make nothing out.
+
+$73
+	Fighting is forbidden here.
+
+$74
+	You aren't powerful to cast that spell, you'll have to wait until you reach a higher rank.
+
+$75
+	You don't have enough magical power to cast the spell.
+
+; <End of file>

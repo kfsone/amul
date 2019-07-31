@@ -1,0 +1,6 @@
+; Lets you associate text with a message ID so you can re-use it or write multi-line strings
+
+msgid=liar
+	Liar! You promised you'd never leave me!
+
+; This can now be referenced in travel or lang.txt as just 'liar'.

@@ -1,0 +1,45 @@
+room=startroom
+verbs=south out
+	hallway
+verbs=north
+	respond "That's the opposite of the direction I said the hallyway was in."
+
+room=hallway
+verbs=west in
+	quietplace
+verbs=south out
+	endroom
+
+room=quietplace
+verbs=east out
+	hallway
+
+room=endroom
+verbs=north in
+	hallway
+verbs=east in
+	cubby
+
+;;;TODO: Make it possible to set a flag on a player that persists only until
+;;;the leave the current location.
+room=limbo
+verbs=north east southeast southwest 
+	reply "Ok, lets see where that takes us"
+	goto limbo
+verbs=northwest
+	if active .lnw then cancel .lnw
+	else start .lnw
+	goto limbo
+verbs=south
+	if active .ls then cancel .ls
+	&> limbo
+	if ! active .lnw then cancel .ls
+	&> limbo
+	start .ls
+	goto limbo
+verbs=northeast
+	active .ls cancel .ls
+	&> startroom
+	active .lnw reply "Well, lets see where that takes us"
+	& cancel .lnw
+	goto limbo

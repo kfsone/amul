@@ -111,3 +111,8 @@ Trivial in visual studio, not sure in other IDEs. To do it by hand:
 	$ ./AtomTest && ./BufferTest && ..
 ```
 
+## Compiling a game
+
+Use 'amulcom' and give it the path to the game files. There are two sample
+games: test-game and precious.
+

@@ -1,0 +1,2 @@
+Scenario.Txt:
+  Introductory text displayed to a player on new character creation.
