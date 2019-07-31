@@ -1,0 +1,40 @@
+; Objects.Txt for Precious Days
+
+; Doors:  State 0 = Open,   State 1 = Closed,   State 2 = Locked.
+; Flames: State 0 = Lit,    State 1 = Doused,   State 2 = Exhausted. 
+; NOTE: The 'fire' flag can ALSO be used for burning objects...
+
+; ---------------------------- Main Objects -------------------------------- ;
+
+noun=dummy scenery counter
+  store
+	0 0 0 0 none
+
+; You can have more than one instance of an object:
+noun=stick flammable fire
+	startroom
+	    2 2 0 0 "There is a stick burning on the floor."
+		2 1 0 0 "There is a stick on the floor."
+		2 0 0 0 "A badly charred stick lies on the floor."
+
+noun=stick flammable fire
+	endroom
+	    2 2 0 0 "There is a stick burning on the floor."
+		2 1 0 0 "There is a stick on the floor."
+		2 0 0 0 "A badly charred stick lies on the floor."
+
+; Or you can have an object "presence" in many rooms. This object stands in
+; for weather, and by setting it to state 1, there will be an "It is raining"
+; message in each room this is present.
+; The 'scenery' flag causes the description (It is raining) to merge into
+; the room description rather than being listed separately as an object.
+noun=rain scenery
+  startroom hall endroom
+	0 0 0 0 none
+	0 0 0 0 "It is raining."
+
+; Example of an NPC
+noun=cat  mobile=cat
+  hall
+	700 0 0 0 "A cute little cat sits contentedly nearby." alive
+	700 0 0 0 "The battered and bleeding remains of a small cat lie at your feet."

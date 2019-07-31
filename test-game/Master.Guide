@@ -1,0 +1,26 @@
+ Tips for MASTER PLAYERS!
+
+--* Remember all magic's avaiable to mortals are 100% effectual for you.
+--* The following commands are available to Masters ONLY!
+
+	set pre <player> <text>    Add to a players rank description
+	set post <player> <text>   < ditto >
+
+	set arr <player> <text>    How a player is described on arrival
+	set dep <player> <text>    And on leaving a room
+
+	mpr phone                  Sets the phone ringing.
+	obgo <noun>                SuperGo to 'noun's current room.
+
+--* Each time a room is described Master's can see a special 'label' in
+    brackets after the short description. You can automatically jump between
+    any two rooms by 'super-going' to your destination, SIMPLY by typing the
+    label of the room you want to go to. For example: KITCHEN will take you
+    to the kitchens!
+--* There are THREE rooms provided especially for masters:
+	LIMBO, STORE and HEAVEN.
+--* Often there are rooms where objects are hidden from ordinary players
+    (such as STORE). In these rooms a Master can list the objects by typing
+	WHAT
+--* Don't forget when you are SUPERINVIS (SINVIS) other players are unaware
+    of your existance within the game!

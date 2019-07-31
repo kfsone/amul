@@ -1,0 +1,30 @@
+room=startroom peaceful startloc lit
+Starting room.
+Harsh green light illuminates this room in a way that gives you an urge to
+cosplay Mr Anderson from the matrix. A hall leads south to somewhere else.
+
+room=hall
+	Hallway.
+	With a greenish room to the north and a blueish room to the south, it is
+	something of a relief that the room to the west looks quiet and uninteresting.
+
+room=quietplace silent
+	Quiet and uninteresting room.
+	Non-descript would be the word you were looking for if you weren't already wondering 'is it quiet in here?'
+
+room=endroom
+	Blue room.
+	This spacious room is various shades of blue, all of which seem pleasant. The hallway to your north isn't blue,
+	and the tiny room to the east is a dark litle cubbyhole that may or may not be blue.
+
+; Small limits number of players who can enter the room to 1 at a time
+; dark means no self-illumination
+; sanctuary means you get points for any objects you drop here
+room=cubby small dark sanctuary
+	Cubby hole.
+	You've forced yourself into a space barely large enough for a cut's meow, never mind swinging the cat, but at least you have a light source so you can appreciate the accomplishment. Be aware this is a REALLY small room and you are taking up most of it.
+
+; GM room
+room=limbo nolook hide hideaway silent peaceful
+	Limbo.
+	Indistinct white mists swirl around you and an insensetive breeze blows at you in no actual direction. This place is nowhere.

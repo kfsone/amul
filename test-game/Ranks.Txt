@@ -1,0 +1,43 @@
+ ---  Internal  ---
+;
+; The comment line before the ranks gives you a rough idea what each of the
+; fields is. Just as a reminder:
+;
+;	male		male-rank name
+;	female		female-rank name (put = if same as male)
+;	score		minimum score to attain this rank
+;	str		default strength
+;	stamina		default stamina
+;	dext		default dexterity
+;	wsdm		default wisdom
+;	exp		level of experience achieved
+;	mag		magic points given initially
+;	g		maximum grammes carried
+;	obj		maximum no. of objects carried
+;	pkill		points for killing someone of this level
+;	task		Task required to achieve this level
+;	prompt		Default is '>' - prompt for a command input
+;			(note, if the prompt includes a space, use quotes)
+; To put a space in a rank name, use an underscore (eg Bold_Hero)
+; If female-rank = male-rank, put '=' in the female rank (unless you WANT to
+; type it out in full again)
+; To put a space in/after a prompt, place quotes around the prompt.
+; * MAX LENGTH OF A PROMPT IS 16 CHARACTERS *
+
+;male       female	     score  str stam dext wsdm exp  mag      g  obj  pkill task prompt
+;-----------------------------------------------------------------------------------------
+Apprentice  =                0   10   10   10   10   0    1   5000    6     10    0 "~ "
+Junior      =              100   12   12   12   12  10    2   6000    8     20    0 ": "
+Senior      =              200   15   15   15   15  20    4   8000   10     40    1 "} "
+Lead        =              400   25   25   25   25  40   10 100000   20     80    1 "# "
+
+; Regarding stats:
+; The meaning of stats I'd seen in different games was confusing, and I think it would be
+; better for these to have a well defined set of defaults but actually otherwise let the
+; designer have full control over how many stats their game has and what they each mean.
+;
+; This could easily be facilitated by having some general "mechanic" VM instructions
+; that expose formulae the designer can fill out.
+;
+; formula=chance-to-hit with attacker and target:
+;   attacker.dexterity - target.defense / 100 * target.dexterity
