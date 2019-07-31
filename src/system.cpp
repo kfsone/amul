@@ -40,7 +40,7 @@ MsgPort *CreatePort(const char *portName, uint32_t priority)
     port->mp_Node.ln_Name = portName;
     auto portp = port.get();
 
-    s_portTable.insert(portName, std::move(port));
+    s_portTable.emplace(portName, std::move(port));
 
     return portp;
 }
