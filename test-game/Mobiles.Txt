@@ -1,0 +1,32 @@
+; To create an NPC in AMUL you need an object to represent it and a
+; "persona" to describe how it will behave, and "Mobiles.txt" describes
+; the personas.
+
+; verb NPCs will use to attack
+fight=none
+
+; verb NPCs will use to run away
+flee=none
+
+; verbs NPCs will use to move around
+travel=north northeast east southeast south southwest west northwest +
+       up down in out
+
+
+; 'dead=1' means put the object in state 1 if the npc dies.
+!cat	dead=1 dmove=heaven
+; will it tolerate this?
+	speed=10 travel=50 fight=0 act=40 wait=10 fear=0 attack=99 hitpower=0
+	arrive="A cute little cat slinks into a corner of the room."
+	depart="Somewhat disapointedly, the cat leaves..."
+	flee="After an impressive display of teeth and claws, the cat flees to the @vb."
+	strike=none	; it won't happen!
+	miss="The cat makes no attempt to retaliate, but merely looks at you accusingly."
+	dies="With a final, pitiful miaow, the cat keels over, dead."
+commands:		; actions this mobile can perform
+	action others "The cat wags its tail, impatiently."
+	action others "The cat rubs itself, lovingly, against your legs."
+	announce others "The cat purrs, loudly and lovingly."
+	announce others "The cat lets out a loud 'MIAAOOWWW'."
+	dark announceto myroom "You hear something scratching nearby..."
+;	ishere bowl do "lapmilk		; drink the milk
