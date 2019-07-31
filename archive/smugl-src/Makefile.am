@@ -12,3 +12,7 @@ SUBDIRS = $(DIRS)
 release:
 	@touch h/*.rev
 	@make all
+
+dep depend:
+	for d in $(SUBDIRS) ; do :>$$d/Makefile.dep ; done
+	for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done
