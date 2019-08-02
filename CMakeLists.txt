@@ -56,7 +56,13 @@ IF (AMUL_CPPCHECK)
 ENDIF ()
 
 ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(test)
+
+OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
+IF (AMUL_INCLUDE_TESTS)
+	MESSAGE(STATUS "Testing enabled")
+	enable_testing()
+	ADD_SUBDIRECTORY(test)
+ENDIF()
 
 # all:
 #   ninja -j4

@@ -377,7 +377,7 @@ start(char owner)
     typ[daemons][0] = Ap3;
     typ[daemons][1] = Ap4;
     own[daemons] = owner;
-    count[daemons] = (int)amul->opaque;
+    count[daemons] = (int)(uintptr_t)amul->opaque;
     num[daemons] = Ad;
     daemons++;
     if (count[daemons - 1] < nextdaem)

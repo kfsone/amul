@@ -88,6 +88,9 @@ TEST(ModuleTest, GetModuleChecks)
 
 TEST(ModuleTest, GetModule)
 {
+	EXPECT_NOT_NULL(s_modulesHead);
+	EXPECT_STREQ("cmdline", s_modulesHead->name);
+
     Module *module = GetModule(MOD_CMDLINE);
     EXPECT_NOT_NULL(module);
     EXPECT_EQ(module, s_modulesHead);
