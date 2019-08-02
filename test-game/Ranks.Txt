@@ -1,4 +1,4 @@
- ---  Internal  ---
+; ---  Internal  ---
 ;
 ; The comment line before the ranks gives you a rough idea what each of the
 ; fields is. Just as a reminder:
@@ -23,7 +23,6 @@
 ; type it out in full again)
 ; To put a space in/after a prompt, place quotes around the prompt.
 ; * MAX LENGTH OF A PROMPT IS 16 CHARACTERS *
-
 ;male       female	     score  str stam dext wsdm exp  mag      g  obj  pkill task prompt
 ;-----------------------------------------------------------------------------------------
 Apprentice  =                0   10   10   10   10   0    1   5000    6     10    0 "~ "

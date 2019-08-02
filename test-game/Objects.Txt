@@ -7,7 +7,7 @@
 ; ---------------------------- Main Objects -------------------------------- ;
 
 noun=dummy scenery counter
-  store
+  cubby
 	0 0 0 0 none
 
 ; You can have more than one instance of an object:

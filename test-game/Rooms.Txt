@@ -1,4 +1,4 @@
-room=startroom peaceful startloc lit
+room=startroom peaceful startloc light
 Starting room.
 Harsh green light illuminates this room in a way that gives you an urge to
 cosplay Mr Anderson from the matrix. A hall leads south to somewhere else.
