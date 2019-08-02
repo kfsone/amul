@@ -115,7 +115,7 @@ main(int argc, char *argv[]) /* Main Program */
     me2->rep = reply;
     if (Ad == -'R') {
         tx("\n...Reset In Progress...\n");
-        Delay(40);
+        Delay(50);
         quit();
     }
     reset(); /* Read in data files */

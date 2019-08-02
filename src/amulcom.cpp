@@ -63,7 +63,7 @@ long   wizstr;     /* Wizards strength		*/
 
 char block[1024];  // scratch pad
 
-_OBJ_STRUCT *obtab2, *objtab2, obj2, *osrch, *osrch2;
+_OBJ_STRUCT *obtab2, obj2;
 
 // counters
 GameConfig g_gameConfig;
@@ -402,7 +402,7 @@ set_adj()
 [[noreturn]] void
 objectInvalid(const char *s)
 {
-    afatal("Object #%d: %s: invalid %s: %s", g_gameConfig.numNouns + 1, obj2.id, s, Word);
+    afatal("Object #%d: %s: invalid %s: %s", g_gameConfig.numObjects + 1, obj2.id, s, Word);
 }
 
 void
@@ -545,7 +545,7 @@ checkRankLine(const char *p)
 [[noreturn]] void
 stateInvalid(const char *s)
 {
-    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameConfig.numNouns + 1, obj2.id,
+    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameConfig.numObjects + 1, obj2.id,
            s, block);
 }
 
@@ -563,13 +563,11 @@ getObjectDescriptionID(const char *text)
 int
 isnoun(const char *s)
 {
-    int i;
-
-    objtab2 = obtab2;
+	///TODO: This should check the noun table...
     if (stricmp(s, "none") == 0)
         return -2;
-    for (i = 0; i < g_gameConfig.numNouns; i++, objtab2++)
-        if (stricmp(s, objtab2->id) == 0)
+    for (int i = 0; i < g_gameConfig.numObjects; i++)
+        if (stricmp(s, obtab2[i].id) == 0)
             return i;
     return -1;
 }
@@ -577,11 +575,8 @@ isnoun(const char *s)
 int
 iscont(const char *s)
 {
-    int i;
-
-    objtab2 = obtab2;
-    for (i = 0; i < g_gameConfig.numNouns; i++, objtab2++)
-        if (stricmp(s, objtab2->id) == 0 && objtab2->contains > 0)
+    for (int i = 0; i < g_gameConfig.numObjects; i++)
+        if (stricmp(s, obtab2[i].id) == 0 && obtab2[i].contains > 0)
             return i;
     return -1;
 }
@@ -725,22 +720,22 @@ isnounh(const char *s)
         return -2;
     FILE *fp = OpenGameFile(objectRoomFile, "rb");
     l = -1;
-    objtab2 = obtab2;
 
-    for (i = 0; i < g_gameConfig.numNouns; i++, objtab2++) {
-        if (stricmp(s, objtab2->id) != 0)
+    for (i = 0; i < g_gameConfig.numObjects; i++) {
+		const _OBJ_STRUCT& object = obtab2[i];
+        if (stricmp(s, object.id) != 0)
             continue;
-        fseek(fp, (long)(uintptr_t)objtab2->rmlist, 0L);  /// TODO: Dispose
-        for (j = 0; j < objtab2->nrooms; j++) {
+        fseek(fp, (uintptr_t)object.rmlist, 0L);  /// TODO: Dispose
+        for (j = 0; j < object.nrooms; j++) {
             fread(&orm, 4, 1, fp);
             if (orm == rmn) {
                 l = i;
-                i = g_gameConfig.numNouns + 1;
-                j = objtab2->nrooms;
+                i = g_gameConfig.numObjects + 1;
+                j = obj2.nrooms;
                 break;
             }
         }
-        if (i < g_gameConfig.numNouns)
+        if (i < g_gameConfig.numObjects)
             l = i;
     }
     fclose(fp);
@@ -1737,7 +1732,6 @@ objs_proc()
     obtab2 = (_OBJ_STRUCT *)AllocateMem(filesize() + 128 * sizeof(obj2));
     if (obtab2 == NULL)
         afatal("Out of memory");
-    objtab2 = obtab2;
 
     if (!nextc(false)) {
         return;
@@ -1766,7 +1760,7 @@ objs_proc()
         }
 
         obj2.adj = obj2.mobile = -1;
-        obj2.idno = g_gameConfig.numNouns;
+        obj2.idno = g_gameConfig.numObjects;
         obj2.state = 0;
         obj2.nrooms = 0;
         obj2.contains = 0;
@@ -1855,14 +1849,14 @@ objs_proc()
         if (obj2.nstates > 100)
             alog(AL_ERROR, "object:%s: too many states defined (%d)", obj2.nstates);
 
-        *(obtab2 + (g_gameConfig.numNouns++)) = obj2;
+        *(obtab2 + (g_gameConfig.numObjects++)) = obj2;
     }
 
     /*
     closeOutFiles();
     sort_objs();
     */
-    checkedfwrite(obtab2, sizeof(obj2), g_gameConfig.numNouns, ofp1);
+    checkedfwrite(obtab2, sizeof(obj2), g_gameConfig.numObjects, ofp1);
 }
 
 /*
@@ -2903,9 +2897,9 @@ amulcom_main()
 
     alog(AL_NOTE, "Execution finished normally");
     alog(AL_INFO, "Statistics for %s:", g_gameConfig.gameName);
-    alog(AL_INFO, "		Rooms: %6" PRIu64 "	Ranks:   %6" PRIu64 "	Nouns: %6" PRIu64 "",
-         g_gameConfig.numRooms, g_gameConfig.numRanks, g_gameConfig.numNouns);
-    alog(AL_INFO, "		Adj's: %6" PRIu64 "	Verbs:   %6" PRIu64 "	 Syns: %6" PRIu64 "",
+    alog(AL_INFO, "		Rooms: %6" PRIu64 "	Ranks:   %6" PRIu64 " Objects: %6" PRIu64 "",
+         g_gameConfig.numRooms, g_gameConfig.numRanks, g_gameConfig.numObjects);
+    alog(AL_INFO, "		Adj's: %6" PRIu64 "	Verbs:   %6" PRIu64 "    Syns: %6" PRIu64 "",
          g_gameConfig.numAdjectives, g_gameConfig.numVerbs, g_gameConfig.numSynonyms);
     alog(AL_INFO, "		T.T's: %6" PRIu64 "	Strings: %6" PRIu64 "    Text: %6" PRIu64 "", g_gameConfig.numTTEnts,
          g_gameConfig.numStrings, g_gameConfig.stringBytes);

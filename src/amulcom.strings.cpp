@@ -71,7 +71,6 @@ closeStringModule(Module *module, error_t err)
         const HashBucket *bucket = stringIDs->buckets[i];
         if (bucket)
         	alog(AL_DEBUG, "bucket #%04" PRIu64 ": capacity: %04" PRIu64, i, bucket->capacity);
-        }
     }
     CloseFile(&stringFP);
     CloseHashMap(&stringIDs);
