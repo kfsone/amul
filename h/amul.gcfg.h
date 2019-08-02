@@ -9,7 +9,7 @@
 enum { GAME_NAME_LENGTH = 64 };
 
 struct GameConfig {
-	///TODO: Add amul version number
+    /// TODO: Add amul version number
     char gameName[GAME_NAME_LENGTH];
     // This rank is required to see an invisible player/thing
     int32_t seeInvisRank;  // `amul1:"invis"`
@@ -26,15 +26,15 @@ struct GameConfig {
 
     time_t compiled;        // When the game was compiled
     size_t numStrings;      // Number of strings in the string table
-	size_t stringBytes;		// Total length of string data
+    size_t stringBytes;     // Total length of string data
     size_t numRanks;        // Size of rank table
     size_t numRooms;        // Size of room table
     size_t numTTEnts;       // Size of travel table
     size_t numObjects;      // Size of object table
-	size_t numObjStates;	// Total object state count
+    size_t numObjStates;    // Total object state count
     size_t numVerbs;        // Size of verb table
-	size_t numVerbSlots;	// size of the slot component of verbs
-	size_t numVerbOps;		// Total count of verb C&A
+    size_t numVerbSlots;    // size of the slot component of verbs
+    size_t numVerbOps;      // Total count of verb C&A
     size_t numSynonyms;     // Size of synonym table
     size_t numAdjectives;   // Size of adjective table
     size_t numMobs;         // Size of mobile table
@@ -42,28 +42,28 @@ struct GameConfig {
 };
 
 struct GameData final : public GameConfig {
-	void *m_dataPtr;		// raw pointer to the data
-	///TODO: Game Info and Game Config
-	//
-	const char   *m_strings;
-	const char   *m_adjectives;
+    void *m_dataPtr;  // raw pointer to the data
+    /// TODO: Game Info and Game Config
+    //
+    const char *m_strings;
+    const char *m_adjectives;
 
-	struct _RANK_STRUCT *m_ranks;
+    struct _RANK_STRUCT *m_ranks;
 
-	struct _ROOM_STRUCT *m_rooms;
-	struct _TT_ENT		*m_travel;
+    struct _ROOM_STRUCT *m_rooms;
+    struct _TT_ENT *     m_travel;
 
-	struct _OBJ_STRUCT	*m_objects;
-	struct _OBJ_STATE	*m_objStates;
+    struct _OBJ_STRUCT *m_objects;
+    struct _OBJ_STATE * m_objStates;
 
-	struct _VERB_STRUCT *m_verbs;
-	struct _SLOTTAB	    *m_verbSlots;
-	struct _VBTAB	    *m_verbOps;
+    struct _VERB_STRUCT *m_verbs;
+    struct _SLOTTAB *    m_verbSlots;
+    struct _VBTAB *      m_verbOps;
 
-	~GameData() {}
+    ~GameData() {}
 
-	error_t Load();
-	error_t Save() const { return 0; }
+    error_t Load();
+    error_t Save() const { return 0; }
 };
 
 #endif

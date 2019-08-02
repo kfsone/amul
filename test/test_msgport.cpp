@@ -1,7 +1,7 @@
-#include "system.h"
-#include "msgports.h"
 #include "gtest_aliases.h"
 #include <gtest/gtest.h>
+#include "system.h"
+#include "msgports.h"
 
 #include <map>
 #include <memory>

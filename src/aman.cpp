@@ -22,7 +22,8 @@
 #define TRQ timerequest
 
 #define UINFO                                                                                      \
-    ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) + (sizeof(mob) * g_gameData.numMobs)
+    ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) +       \
+            (sizeof(mob) * g_gameData.numMobs)
 
 #include <cassert>
 #include <cctype>
@@ -31,22 +32,22 @@
 #include <thread>
 
 #if !defined(_MSC_VER)
-#include <unistd.h>
+#    include <unistd.h>
 #else
-#include <direct.h>
+#    include <direct.h>
 #endif
 
 #include <h/aman.h>
-#include <h/amul.type.h>
 #include <h/amul.alog.h>
 #include <h/amul.cons.h>
 #include <h/amul.defs.h>
 #include <h/amul.gcfg.h>
+#include <h/amul.type.h>
 #include <h/amul.vars.h>
 #include <h/amul.vmop.h>
 #if defined(__AMIGA__)
 #    include <devices/timer.h>
-TRQ      ResReq;                /* Reset request & Incoming from timer */
+TRQ ResReq;  // Reset request & Incoming from timer
 #else
 #    include <h/amigastubs.h>
 #endif
@@ -55,35 +56,39 @@ TRQ      ResReq;                /* Reset request & Incoming from timer */
 #include "msgports.h"
 #include "system.h"
 
-#define PRSizeT "zu"
+FILE *   ifp;
+GameData g_gameData;
 
-FILE *ifp;
-GameData   g_gameData;
-
-char            lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE];
-char            vername[128];
-bool            globflg[MAXD];                /* Is daemon global?   */
-long            reslp, TDBase, daemons;   	  /* Daemons to process! */
-int       		count[MAXD], num[MAXD];       /* Daemon counters in minutes! & No.s */
-char            own[MAXD];                    /* And their owners... */
-long            val[MAXD][2], typ[MAXD][2];   /* Values and types... */
-Aport *  am;
-MsgPort *trport;                /* Timer port */
-long            invis, invis2, calls;  /* Invisibility Stuff & # of calls */
-long            nextdaem, ded; /* nextdaem = time to next daemon, ded = deduct */
-roomid_t		*ormtab;
+char      lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE];
+char      vername[128];
+bool      globflg[MAXD];               // Is daemon global?
+long      reslp, TDBase, daemons;      // Daemons to process!
+int       count[MAXD], num[MAXD];      // Daemon counters in minutes! & No.s
+char      own[MAXD];                   // And their owners...
+long      val[MAXD][2], typ[MAXD][2];  // Values and types...
+Aport *   am;
+MsgPort * trport;                // Timer port
+long      invis, invis2, calls;  // Invisibility Stuff & # of calls
+long      nextdaem, ded;         // nextdaem = time to next daemon, ded = deduct
+roomid_t *ormtab;
 
 long online;
 char resety, forcereset, quiet;
 
-int CXBRK() /* Prevent CTRL-C'ing */ { return 0; }
+// Prevent CTRL-C'ing
+int
+CXBRK()
+{
+    return 0;
+}
 
+// Get current time/date as string
 static char *
-now() /* Get current time/date */
+now()
 {
     time_t timenow = time(nullptr);
-    char *ttxt = (char *)ctime(&timenow) + 4;
-    *(ttxt + strlen(ttxt) - 1) = 0; /* Strip cr/lf */
+    char * ttxt = (char *)ctime(&timenow) + 4;
+    *(ttxt + strlen(ttxt) - 1) = 0;  // Strip cr/lf
     return ttxt;
 }
 
@@ -111,9 +116,8 @@ givebackmemory()
     vtpp = NULL;
 }
 
-[[noreturn]]
-void
-quit() /* Exit program tidily */
+[[noreturn]] void
+quit()
 {
     if (ifp != NULL)
         fclose(ifp);
@@ -140,15 +144,15 @@ memfail(const char *s)
 static void
 readfail(const char *s, size_t got, size_t wanted)
 {
-    afatal("Expected %" PRSizeT " %s entries, got %" PRSizeT "", wanted, s, got);
+    afatal("Expected %zu %s entries, got %zu", wanted, s, got);
 }
 
 // report open error
 [[noreturn]]
 static void
-openError(const char *s, const char *t)
+openError(const char *filepath, const char *activity)
 {
-    afatal("Unable to open '%s' for %sing", s, t);
+    afatal("Unable to open '%s' for %sing", filepath, activity);
 }
 
 // Open a file for reading
@@ -159,14 +163,14 @@ fopenr(const char *s)
     safe_gamedir_joiner(s);
     ifp = fopen(filepath, "rb");
     if (!ifp)
-        oer(filepath, "read");
+        openError(filepath, "read");
 }
 
 // Size/Read data files
 char *
 xread(const char *s, size_t *countInto, const char *t)
 {
-    char *p {nullptr};
+    char *p{nullptr};
 
     fopenr(s);
     fseek(ifp, 0, 2L);
@@ -201,18 +205,47 @@ execute(const char*)
 static void
 setam()
 {
-    ///TODO: On the Amiga, it was the caller's responsibility to free messages
+    /// TODO: On the Amiga, it was the caller's responsibility to free messages
     static Aport s_am;
     am = &s_am;
     am->mn_ReplyPort = reply;
     am->from = -1;
 }
 
+// Remove daemon from list
+static void
+pack(int i)
+{
+    int j;
+    if (i != (daemons - 1)) {
+        j = daemons - 1;
+        num[i] = num[j];
+        own[i] = own[j];
+        count[i] = count[j];
+        globflg[i] = globflg[j];
+        val[i][0] = val[j][0];
+        val[i][1] = val[j][1];
+        typ[i][0] = typ[j][0];
+        typ[i][1] = typ[j][1];
+        i = j;
+    }
+    own[i] = -1;
+    count[i] = -1;
+    val[i][0] = -1;
+    val[i][1] = -1;
+    typ[i][0] = -1;
+    typ[i][1] = -1;
+    globflg[i] = false;
+    daemons--;
+}
+
 // Force users to log-out & kill extra lines
 static void
 reset_users()
 {
-    online = 0; /* Allows for daemons & mobiles */
+    int i;
+
+    online = 0;  // Allows for daemons & mobiles
     for (i = 0; i < MAXNODE; i++) {
         if ((linestat + i)->state <= 0)
             continue;
@@ -220,37 +253,37 @@ reset_users()
         setam();
         am->type = MCLOSEING;
         am->mn_ReplyPort = port;
-		(linestat +i)->rep->Put(MessagePtr(am));
+        (linestat + i)->rep->Put(MessagePtr(am));
     }
     while (online > 0) {
-		MessagePtr amsg { port->Wait() };
-		am = static_cast<Aport*>(amsg.get());
-		if (am == nullptr)
-			break;
+        MessagePtr amsg{port->Wait()};
+        am = static_cast<Aport *>(amsg.get());
+        if (am == nullptr)
+            break;
         if (am->from != -'O') {
             printf("\x07 !! Invalid message!\n");
             am->type = am->data = -'R';
             ReplyMsg(std::move(amsg));
-			continue;
+            continue;
         } else {
-        	online--;
-		}
+            online--;
+        }
     }
 
-	for (;;) {
-		MessagePtr amsg { reply->Get() };
-		am = static_cast<Aport*>(amsg.get());
-		if (am == nullptr)
-			break;
+    for (;;) {
+        MessagePtr amsg{reply->Get()};
+        am = static_cast<Aport *>(amsg.get());
+        if (am == nullptr)
+            break;
         am->type = am->data = -'R';
         ReplyMsg(std::move(amsg));
     }
-	port->Clear();
-	reply->Clear();
+    port->Clear();
+    reply->Clear();
     online = 0;
 }
 
-template<typename... Args>
+template <typename... Args>
 void
 warn(const char *fmt, Args... args)
 {
@@ -260,9 +293,9 @@ warn(const char *fmt, Args... args)
     snprintf(message, sizeof(message), fmt, args...);
     for (size_t i = 0; i < MAXU; i++) {
         if ((linestat + i)->state != OFFLINE) {
-			auto amsg = std::make_unique<Aport>(reply, MRWARN);
-			amsg->opaque = strdup(message);
-			(linestat+i)->rep->Put(std::move(amsg));
+            auto amsg = std::make_unique<Aport>(reply, MRWARN);
+            amsg->opaque = strdup(message);
+            (linestat + i)->rep->Put(std::move(amsg));
         }
     }
 }
@@ -358,7 +391,7 @@ void
 gstart()
 {
     globflg[daemons] = true;
-    start(MAXU); /* Set global flag & go! */
+    start(MAXU);  // Set global flag & go!
 }
 
 // Initiate private daemon
@@ -418,11 +451,11 @@ data()
         amul->p4 = (uintptr_t)linestat;
         break;
     case 0:
-		amul->opaque = gameDir;
-		amul->p1 = count[0];	///TODO: Fix
+        amul->opaque = gameDir;
+        amul->p1 = count[0];  /// TODO: Fix
         break;
     case 1:
-		amul->opaque = &g_gameData;
+        amul->opaque = &g_gameData;
         break;
     default:
         amul->opaque = nullptr;
@@ -445,9 +478,9 @@ asend(int type, int data)
         printf("Unable to create killer port!\n");
         return;
     }
-	auto aptr = std::make_unique<Aport>(reply, type, -1, data);
+    auto aptr = std::make_unique<Aport>(reply, type, -1, data);
     port->Put(std::move(aptr));
-	port->Wait();
+    port->Wait();
     if (quiet == 0)
         switch (amul->data) {
         case 'R':
@@ -483,13 +516,13 @@ asend(int type, int data)
 static void
 shutreq(int x)
 {
-	asend((x == 0) ? MKILL : MRESET, count[0]);
+    asend((x == 0) ? MKILL : MRESET, count[0]);
 }
 
 static void
 sendext(int t)
 {
-	asend(MEXTEND, t);
+    asend(MEXTEND, t);
 }
 
 // RESeT in progress
@@ -500,7 +533,7 @@ rest()
     if (amul->data > 0) {
         amul->p1 = amul->data;
         count[0] = amul->data + 1;
-        warn("** System reset invoked - %" PRSizeT " seconds remaining...\n", size_t(amul->data));
+        warn("** System reset invoked - %zu seconds remaining...\n", size_t(Ad));
         amul->data = amul->type = -'X';
         return;
     }
@@ -521,7 +554,7 @@ extend(short int tics)
     newtime = count[0] + tics + 1;
     if (count[0] > 120)
         alog(AL_NOTE, "...Game time extended - reset will now occur in %ld %s and %ld %s...\n",
-                newtime / 60, "minutes", newtime - ((newtime / 60) * 60), "seconds");
+             newtime / 60, "minutes", newtime - ((newtime / 60) * 60), "seconds");
     else
         alog(AL_NOTE, "...Reset postponed - it will now occur in %ld %s...\n", newtime, "seconds");
     amul->p1 = tics;
@@ -541,7 +574,7 @@ res()
         alog(AL_NOTE, "== (#) %s: All users disconnected...\n", now());
     else
         alog(AL_NOTE, "== (#) %s: Reset completed!\n", now());
-    Delay(100); /* Always wait atleast a few seconds */
+    Delay(100);  // Always wait atleast a few seconds
 }
 
 // Lock a users IO system
@@ -560,8 +593,8 @@ lock()
 void
 logwiz(int who)
 {
-    sprintf(block, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)!!!\n", amul->from + '0', now(),
-            (usr + amul->from)->name, (usr + amul->from)->rank + 1);
+    alog(AL_NOTE, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)", amul->from + '0', now(),
+         (usr + amul->from)->name, (usr + amul->from)->rank + 1);
 }
 
 void
@@ -574,12 +607,12 @@ logit(const char *s)
 static void
 setup()
 {
-    long rc = 0;
+    long  rc = 0;
     long  i, l, act, j, k;
     long *pt;
     char *p;
 
-    if ((p = (char*)AllocateMem(UINFO)) == NULL)
+    if ((p = (char *)AllocateMem(UINFO)) == NULL)
         memfail("User tables");
     usr = (_PLAYER *)p;
     p += sizeof(*usr) * MAXNODE;
@@ -587,28 +620,29 @@ setup()
     p += sizeof(*linestat) * MAXNODE;
     rctab = (short *)p;
 
-    fopenr(roomDataFile); /* 1: Open room block file */
-    if ((rmtab = (_ROOM_STRUCT*)AllocateMem(g_gameData.numRooms * sizeof(room))) == NULL)
-        memfail("room table"); /* Allocate memory */
+    fopenr(roomDataFile);  // 1: Open room block file
+    if ((rmtab = (_ROOM_STRUCT *)AllocateMem(g_gameData.numRooms * sizeof(room))) == NULL)
+        memfail("room table");  // Allocate memory
     if ((i = fread((char *)rmtab, sizeof(room), g_gameData.numRooms, ifp)) != g_gameData.numRooms)
         readfail("room table", i, g_gameData.numRooms);
 
-    fopenr(rankDataFile); /* 2: Read player g_gameData.numRanks */
-    if ((rktab = (_RANK_STRUCT*)AllocateMem(g_gameData.numRanks * sizeof(rank))) == NULL)
-        memfail("player g_gameData.numRanks"); /* Allocate memory */
+    fopenr(rankDataFile);  // 2: Read player g_gameData.numRanks
+    if ((rktab = (_RANK_STRUCT *)AllocateMem(g_gameData.numRanks * sizeof(rank))) == NULL)
+        memfail("player g_gameData.numRanks");  // Allocate memory
     if ((i = fread((char *)rktab, sizeof(rank), g_gameData.numRanks, ifp)) != g_gameData.numRanks)
         readfail("player g_gameData.numRanks", i, g_gameData.numRanks);
 
-    fopenr(verbDataFile); /* 4: Read the g_gameData.numVerbs in */
-    if ((vbtab = (_VERB_STRUCT*)AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) == NULL)
+    fopenr(verbDataFile);  // 4: Read the g_gameData.numVerbs in
+    if ((vbtab = (_VERB_STRUCT *)AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) == NULL)
         memfail("verb table");
-    if ((i = fread(vbtab->id, sizeof(_VERB_STRUCT), g_gameData.numVerbs, ifp)) != g_gameData.numVerbs)
+    if ((i = fread(vbtab->id, sizeof(_VERB_STRUCT), g_gameData.numVerbs, ifp)) !=
+        g_gameData.numVerbs)
         readfail("verb table", i, g_gameData.numVerbs);
 
-    /* 3, 5, 6 & 7: Read objects */
-	size_t obtlen, ormtablen, statablen;
-	size_t stlen, vtlen, vtplen;
-	size_t synlen, synilen, adtablen;
+    // 3, 5, 6 & 7: Read objects
+    size_t obtlen, ormtablen, statablen;
+    size_t stlen, vtlen, vtplen;
+    size_t synlen, synilen, adtablen;
 
     GetFilesSize(objectDataFile, &obtlen, true);
     GetFilesSize(objectRoomFile, &ormtablen, true);
@@ -620,13 +654,13 @@ setup()
     GetFilesSize(synonymIndexFile, &synilen, true);
     GetFilesSize(adjectiveDataFile, &adtablen, true);
 
-    if ((p = (char*)AllocateMem(obtlen + ormtablen + statablen)) == NULL)
+    if ((p = (char *)AllocateMem(obtlen + ormtablen + statablen)) == NULL)
         memfail("object data");
-    obtab = (_OBJ_STRUCT*)readf(objectDataFile, p);
-    ormtab = (roomid_t*)readf(objectRoomFile, (p = p + obtlen));
-    statab = (_OBJ_STATE*)readf(objectStateFile, p + ormtablen);
+    obtab = (_OBJ_STRUCT *)readf(objectDataFile, p);
+    ormtab = (roomid_t *)readf(objectRoomFile, (p = p + obtlen));
+    statab = (_OBJ_STATE *)readf(objectStateFile, p + ormtablen);
 
-    /* Update the object room list ptrs and the state ptrs */
+    // Update the object room list ptrs and the state ptrs
     statep = statab;
     for (i = 0; i < g_gameData.numObjects; i++) {
         objtab = obtab + i;
@@ -636,20 +670,20 @@ setup()
         statep = statep + (long)objtab->nstates;
     }
 
-    /* 9: Read the travel table */
-	size_t ttlen{0};
-    ttp = (_TT_ENT*)xread(travelTableFile, &ttlen, "travel table");
-	assert(ttlen / sizeof(_TT_ENT) == g_gameData.numTTEnts);
+    // 9: Read the travel table
+    size_t ttlen{0};
+    ttp = (_TT_ENT *)xread(travelTableFile, &ttlen, "travel table");
+    assert(ttlen / sizeof(_TT_ENT) == g_gameData.numTTEnts);
 
-    /* 12: Read parameters */
-	size_t ttplen{0};
+    // 12: Read parameters
+    size_t ttplen{0};
     ttpp = (long *)xread(travelParamFile, &ttplen, "TT parameter table");
     ttabp = ttp;
     pt = ttpp;
     for (i = 0; i < g_gameData.numTTEnts; i++) {
         ttabp = ttp + i;
         k = (long)ttabp->pptr;
-        ttabp->pptr = (int*)pt;
+        ttabp->pptr = (int *)pt;
         if (k == -2)
             continue;
         act = ttabp->condition;
@@ -663,25 +697,25 @@ setup()
         }
     }
 
-    /* 14: Load Slot table */
+    // 14: Load Slot table
     if ((p = (char *)AllocateMem(stlen + vtlen + vtplen)) == NULL)
         memfail("language data");
     slottab = (_SLOTTAB *)readf(verbSlotFile, p);
     vtp = (_VBTAB *)readf(verbTableFile, p + stlen);
     vtpp = (long *)readf(verbParamFile, p + stlen + vtlen);
 
-    /* 17: Get the Synonym data & adjectives */
+    // 17: Get the Synonym data & adjectives
     if ((p = (char *)AllocateMem(synlen + synilen + adtablen)) == NULL)
         memfail("synonym data");
     synp = (char *)readf(synonymDataFile, p);
     synip = (short int *)readf(synonymIndexFile, (p = p + synlen));
     adtab = (char *)readf(adjectiveDataFile, p + synilen);
 
-    /* 18: Get last reset time */
+    // 18: Get last reset time
     strcpy(lastres, now());
     strcpy(lastcrt, now());
 
-    /* Adjust the verb-related pointers */
+    // Adjust the verb-related pointers
     vbptr = vbtab;
     stptr = slottab;
     vtabp = vtp;
@@ -691,7 +725,7 @@ setup()
         for (j = 0; j < vbptr->ents; j++, stptr++) {
             stptr->ptr = vtabp;
             for (k = 0; k < stptr->ents; k++, vtabp++) {
-                vtabp->pptr = (int*)vtpp + l;
+                vtabp->pptr = (int *)vtpp + l;
                 act = vtabp->condition;
                 if (act < 0)
                     act = -1 - act;
@@ -705,7 +739,7 @@ setup()
         }
     }
 
-    /* Fix the object 'inside' flags */
+    // Fix the object 'inside' flags
     objtab = obtab;
     for (i = 0; i < g_gameData.numObjects; i++, objtab++) {
         if (*(objtab->rmlist) <= -INS)
@@ -719,7 +753,7 @@ setup()
 static void
 kernel()
 {
-    int   i;
+    int i;
 
     alog(AL_INFO, "------------------------------------------------------------");
     online = resety = forcereset = 0;
@@ -741,18 +775,18 @@ kernel()
     alog(AL_INFO, "== (=) %s: Loaded '%s'.", now(), g_gameConfig.gameName);
     forcereset = ded = 0;
 
-    /* Activate the daemon processor */
+    // Activate the daemon processor
 
     execute("amul -\03");
 
     while (resety == 0) {
-		std::this_thread::yield();
-    
-		reply->Clear();
+        std::this_thread::yield();
 
-#ifdef NEVER	///TODO:: Restore
+        reply->Clear();
+
+#ifdef NEVER  /// TODO:: Restore
         while (GetMsg((MsgPort *)trport) != NULL) {
-            /* Process counter table */
+            // Process counter table
             for (i = 0; i < daemons; i++) {
                 count[i]--;
                 if (count[i] <= 0) {
@@ -788,9 +822,9 @@ kernel()
         }
 #endif
 
-		MessagePtr amsg { port->Get() };
-		if (amul = static_cast<Aport*>(amsg.get()); !amul)
-			continue;
+        MessagePtr amsg{port->Get()};
+        if (amul = static_cast<Aport *>(amsg.get()); !amul)
+            continue;
 
         switch (amul->type) {
         case MKILL:
@@ -822,7 +856,7 @@ kernel()
             break;
         case MDSTART:
             pstart();
-            break; /* Priv. daemon */
+            break;  // Priv. daemon
         case MDCANCEL:
             dkill(amul->data);
             break;
@@ -833,7 +867,7 @@ kernel()
             logwiz(amul->from);
             break;
         case MLOG:
-            logit(static_cast<const char*>(amul->opaque));
+            logit(static_cast<const char *>(amul->opaque));
             break;
         case MEXTEND:
             extend(amul->data);
@@ -841,7 +875,7 @@ kernel()
             break;
         case MGDSTART:
             gstart();
-            break; /* Global daemon */
+            break;  // Global daemon
         default:
             alog(AL_ERROR, "$$ (X) %s: *INVALID Message Type, %ld!*", now(), amul->type);
             amul->type = -1;
@@ -869,7 +903,7 @@ kernel()
         if (quiet == 0)
             printf("\n[ %s %s ]\n", vername, "RESET");
 #ifdef REPAIR
-		if (GetFilesSize("reset.bat") > 0) {
+        if (GetFilesSize("reset.bat") > 0) {
             Execute("execute reset.bat", 0L, 0L);
         }
 #endif
@@ -878,14 +912,13 @@ kernel()
         resety = -1;
 }
 
-[[noreturn]]
-void
+[[noreturn]] void
 executeCommand(int argc, const char *argv[])
 {
     if (!port) {
         afatal("AMAN is not running");
     }
-    size_t mins {0};
+    size_t mins{0};
     if (argc == 3)
         sscanf(argv[2], "%zu", &mins);
     count[0] = mins;
@@ -906,7 +939,7 @@ executeCommand(int argc, const char *argv[])
 }
 
 void
-parseArguments(int argc, const char* argv[])
+parseArguments(int argc, const char *argv[])
 {
     if (argc > 4) {
         printf("Invalid arguments!\n");
@@ -938,15 +971,15 @@ parseArguments(int argc, const char* argv[])
 error_t
 GameData::Load()
 {
-	char filepath[MAX_PATH_LENGTH];
-	safe_gamedir_joiner(gameDataFile);
-	FILE *fp = fopen(filepath, "rb");
-	if (!fp)
-		afatal("Unable to open game data file: %s", filepath);
-    fread(dynamic_cast<GameConfig*>(&g_gameData), sizeof(GameConfig), 1, fp);
-	fclose(fp);
+    char filepath[MAX_PATH_LENGTH];
+    safe_gamedir_joiner(gameDataFile);
+    FILE *fp = fopen(filepath, "rb");
+    if (!fp)
+        afatal("Unable to open game data file: %s", filepath);
+    fread(dynamic_cast<GameConfig *>(&g_gameData), sizeof(GameConfig), 1, fp);
+    fclose(fp);
 
-	return 0;
+    return 0;
 }
 
 int
@@ -958,16 +991,16 @@ main(int argc, const char *argv[])
     mytask = FindTask(0L);
     mytask->tc_Node.ln_Name = vername;
 #else
-	(void)vername;
+    (void)vername;
 #endif
 
-	parseArguments(argc, argv);
-	chdir(gameDir);
+    parseArguments(argc, argv);
+    chdir(gameDir);
 
-	if (error_t err = g_gameData.Load(); err != 0)
-		afatal("Failed to load game data");
+    if (error_t err = g_gameData.Load(); err != 0)
+        afatal("Failed to load game data");
 
-    port = FindPort(managerPortName); // Check for existing port
+    port = FindPort(managerPortName);  // Check for existing port
     if (port != NULL) {
         printf("AMAN %s running!\n", "already");
         exit(0);
@@ -986,7 +1019,7 @@ main(int argc, const char *argv[])
     }
 
 #if defined(__AMIGA__)
-	///TODO: Replace
+    /// TODO: Replace
     if (OpenDevice(TIMERNAME, UNIT_VBLANK, (IORequest *)&ResReq, 0L) != NULL) {
         printf("Can't open timer.device!\n");
         quit();

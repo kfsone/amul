@@ -56,7 +56,7 @@ IF (AMUL_CPPCHECK)
 ENDIF ()
 
 ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(tests)
+ADD_SUBDIRECTORY(test)
 
 # all:
 #   ninja -j4
