@@ -11,6 +11,8 @@
 #    define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
 #endif
 
+extern void Yield() noexcept;
+
 static inline void *
 AllocateMem(size_t bytes)
 {
