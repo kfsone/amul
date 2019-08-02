@@ -5,6 +5,7 @@ SET(AMUL_LIB_SOURCES
         hashmap.cpp
         logging.cpp
 		modules.cpp
+		spinlock.cpp
 		system.cpp
 )
 
@@ -16,7 +17,9 @@ SET(AMUL_LIB_HEADERS
 		filesystem.inl.h
         hashmap.h
 		modules.h
+		msgports.h
 		sourcefile.h
+		spinlock.h
 		system.h
 
         ../h/amul.alog.h

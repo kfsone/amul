@@ -40,6 +40,8 @@ add_gtest(BufferTest ${AMUL_LIB_NAME} test_buffer.cpp ../src/buffer.h)
 add_gtest(FilesystemTest ${AMUL_LIB_NAME} test_filesystem.cpp ../src/filesystem.h)
 add_gtest(HashmapTest ${AMUL_LIB_NAME} test_hashmap.cpp ../src/hashmap.h)
 add_gtest(ModuleTest ${AMUL_LIB_NAME} test_module.cpp ../src/modules.h)
+add_gtest(MsgPortTest ${AMUL_LIB_NAME} test_msgport.cpp ../src/system.h ../src/msgports.h)
+add_gtest(SpinLockTest ${AMUL_LIB_NAME} test_spinlock.cpp ../src/spinlock.h ../src/spinlock.h)
 
 #SET(TESTS_SOURCES
 #    testmain.cpp

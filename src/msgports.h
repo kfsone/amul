@@ -5,6 +5,7 @@
 #include <atomic>
 #include <deque>
 #include <memory>
+#include "spinlock.h"
 
 struct MsgPort;
 
@@ -22,49 +23,20 @@ struct Message : public Node {
 
 using MessagePtr = std::unique_ptr<Message>;
 
-class SpinLock final {
-	std::atomic_bool m_lock { false };
-
-public:
-	SpinLock() {}
-	~SpinLock() {
-		m_lock = true;
-	}
-
-	SpinLock(const SpinLock&) = delete;
-	SpinLock(SpinLock&&) = delete;
-	SpinLock &operator=(const SpinLock&) = delete;
-	SpinLock &operator=(SpinLock&&) = delete;
-
-	bool TryLock() noexcept;
-	void Lock() noexcept;
-	void Unlock() noexcept;
-};
-
-class SpinGuard {
-	SpinLock& m_spin;
-public:
-	SpinGuard(SpinLock& spin) : m_spin(spin) {
-		m_spin.Lock();
-	}
-	~SpinGuard() {
-		m_spin.Unlock();
-	}
-};
-
-struct MsgPort : public Node {
+struct MsgPort {
 	using MsgList = std::deque<MessagePtr>;
 
+	const char	*m_name;
 	MsgList		m_msgList;
-
 	///TODO: Just using simple spinlocks for now
 	SpinLock	m_spinLock;
 
 public:
-	MsgPort(const char* name, uint8_t priority) : Node(NT_PORT, name, priority) {}
+	MsgPort(const char* name) : m_name(name) {}
 
 	void Put(MessagePtr&& ptr);
 	bool IsReady() noexcept;
+	constexpr bool IsLocked() const noexcept { return m_spinLock.IsLocked(); }
 
 	MessagePtr Get();	// non-blocking
 	MessagePtr Wait();	// blocking
@@ -91,7 +63,7 @@ struct Aport : public Message {
 #    define PA_IGNORE 2            // Ignore arrival
 
 MsgPort *FindPort(const char *portName);
-MsgPort *CreatePort(const char *portName, uint8_t  priority);
+MsgPort *CreatePort(const char *portName);
 void     DeletePort(MsgPort *);
 
 void     ReplyMsg(MessagePtr&& msg);
