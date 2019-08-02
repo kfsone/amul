@@ -9,12 +9,12 @@
 
 #ifdef PORTS
 #    include <h/amigastubs.h>
-long *     ttpp;   /* Pointer to param tab	 */
-long *     vtpp;   /* ditto for VT		 */
-char *     adtab;  /* Adjective table	 */
-char *     synp;   /* Synonyms		 */
-short int *synip;  /* Synonyms index	 */
-short int *rctab;  /* Room count flags	 */
+long *     ttpp;  /* Pointer to param tab	 */
+long *     vtpp;  /* ditto for VT		 */
+char *     adtab; /* Adjective table	 */
+char *     synp;  /* Synonyms		 */
+short int *synip; /* Synonyms index	 */
+short int *rctab; /* Room count flags	 */
 
 struct MsgPort *port, *reply, *FindPort(), *CreatePort();
 struct Task *   mytask, *FindTask();

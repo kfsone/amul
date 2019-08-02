@@ -545,8 +545,8 @@ checkRankLine(const char *p)
 [[noreturn]] void
 stateInvalid(const char *s)
 {
-    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameConfig.numObjects + 1, obj2.id,
-           s, block);
+    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameConfig.numObjects + 1,
+           obj2.id, s, block);
 }
 
 int
@@ -563,7 +563,7 @@ getObjectDescriptionID(const char *text)
 int
 isnoun(const char *s)
 {
-	///TODO: This should check the noun table...
+    /// TODO: This should check the noun table...
     if (stricmp(s, "none") == 0)
         return -2;
     for (int i = 0; i < g_gameConfig.numObjects; i++)
@@ -722,7 +722,7 @@ isnounh(const char *s)
     l = -1;
 
     for (i = 0; i < g_gameConfig.numObjects; i++) {
-		const _OBJ_STRUCT& object = obtab2[i];
+        const _OBJ_STRUCT &object = obtab2[i];
         if (stricmp(s, object.id) != 0)
             continue;
         fseek(fp, (uintptr_t)object.rmlist, 0L);  /// TODO: Dispose
@@ -1555,7 +1555,8 @@ rank_proc()
             p++;
         /* Greater than prompt length? */
         if (p - block > 10) {
-            alog(AL_ERROR, "Rank %" PRIu64 " prompt too long: %s", g_gameConfig.numRanks + 1, block);
+            alog(AL_ERROR, "Rank %" PRIu64 " prompt too long: %s", g_gameConfig.numRanks + 1,
+                 block);
             continue;
         }
         if (block[0] == 0)
@@ -1717,7 +1718,7 @@ state_proc()
     }
     checkedfwrite(&state.weight, sizeof(state), 1, ofp2);
     obj2.nstates++;
-	g_gameConfig.numObjStates++;
+    g_gameConfig.numObjStates++;
 }
 
 void
@@ -1906,7 +1907,7 @@ trav_proc()
             skipblock();
             continue;
         }
-		roomtab = rmtab + rmn;
+        roomtab = rmtab + rmn;
         if (roomtab->tabptr != -1) {
             alog(AL_ERROR, "Multiple tt entries for room: %s", roomtab->id);
             skipblock();
@@ -2893,7 +2894,7 @@ amulcom_main()
     compileGame();
 
     g_gameConfig.numStrings = GetStringCount();
-	g_gameConfig.stringBytes = GetStringBytes();
+    g_gameConfig.stringBytes = GetStringBytes();
 
     alog(AL_NOTE, "Execution finished normally");
     alog(AL_INFO, "Statistics for %s:", g_gameConfig.gameName);
@@ -2901,8 +2902,8 @@ amulcom_main()
          g_gameConfig.numRooms, g_gameConfig.numRanks, g_gameConfig.numObjects);
     alog(AL_INFO, "		Adj's: %6" PRIu64 "	Verbs:   %6" PRIu64 "    Syns: %6" PRIu64 "",
          g_gameConfig.numAdjectives, g_gameConfig.numVerbs, g_gameConfig.numSynonyms);
-    alog(AL_INFO, "		T.T's: %6" PRIu64 "	Strings: %6" PRIu64 "    Text: %6" PRIu64 "", g_gameConfig.numTTEnts,
-         g_gameConfig.numStrings, g_gameConfig.stringBytes);
+    alog(AL_INFO, "		T.T's: %6" PRIu64 "	Strings: %6" PRIu64 "    Text: %6" PRIu64 "",
+         g_gameConfig.numTTEnts, g_gameConfig.numStrings, g_gameConfig.stringBytes);
 
     fopenw(gameDataFile);
     checkedfwrite(&g_gameConfig, sizeof(g_gameConfig), 1, ofp1);

@@ -70,7 +70,7 @@ closeStringModule(Module *module, error_t err)
     for (size_t i = 0; i < stringIDs->capacity; ++i) {
         const HashBucket *bucket = stringIDs->buckets[i];
         if (bucket)
-        	alog(AL_DEBUG, "bucket #%04" PRIu64 ": capacity: %04" PRIu64, i, bucket->capacity);
+            alog(AL_DEBUG, "bucket #%04" PRIu64 ": capacity: %04" PRIu64, i, bucket->capacity);
     }
     CloseFile(&stringFP);
     CloseHashMap(&stringIDs);
@@ -220,7 +220,7 @@ GetStringCount()
 size_t
 GetStringBytes()
 {
-	return ftell(stringFP);
+    return ftell(stringFP);
 }
 
 char *
