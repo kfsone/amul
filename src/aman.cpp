@@ -330,8 +330,8 @@ cnct()
 
     amul->data = (long)linestat;
     amul->opaque = (char *)usr;
-    if (Amul->from >= MAXU) {
-        if (Amul->from == MAXU + 1)
+    if (amul->from >= MAXU) {
+        if (amul->from == MAXU + 1)
             printf("** Mobile processor connected.\n");
         if ((linestat + amul->from)->state != 0)
             amul->from = -1;
@@ -533,7 +533,7 @@ rest()
     if (amul->data > 0) {
         amul->p1 = amul->data;
         count[0] = amul->data + 1;
-        warn("** System reset invoked - %zu seconds remaining...\n", size_t(Ad));
+        warn("** System reset invoked - %zu seconds remaining...\n", size_t(amul->data));
         amul->data = amul->type = -'X';
         return;
     }

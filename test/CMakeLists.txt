@@ -1,41 +1,26 @@
 OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
 
-IF (AMUL_INCLUDE_TESTS)
+include(GoogleTest)
 
-	MESSAGE(STATUS "Testing enabled")
+INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/h")
+INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/src")
 
-	enable_testing()
+SET(gtest_force_shared_crt ON CACHE BOOL "Force gtest to use shared crt" FORCE)
+ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/test/googletest" "test/googletest")
 
-	INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/h")
-	INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/src")
+MARK_AS_ADVANCED(
+	BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
+	gmock_build_tests gtest_build_samples gtest_build_tests
+	gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
+)
 
-	SET(gtest_force_shared_crt ON CACHE BOOL "Force gtest to use shared crt" FORCE)
-	ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/test/googletest" "test/googletest")
-
-	MARK_AS_ADVANCED(
-		BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
-		gmock_build_tests gtest_build_samples gtest_build_tests
-		gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
-	)
-
-	MACRO(add_gtest TESTNAME LINKLIB)
-		add_executable(${TESTNAME} ${ARGN})
-		target_link_libraries(${TESTNAME} gtest gmock gtest_main ${AMUL_LIB_NAME} ${LINKLIB})
-		add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
-		set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-	ENDMACRO()
-
-ELSE ()
-
-	MACRO(add_gtest TESTNAME LINKLIB)
-	ENDMACRO()
-
-	ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/test/googletest" "test/googletest" EXCLUDE_FROM_ALL)
-
-	MESSAGE(WARNING "Tests Disabled")
-
-ENDIF()
-
+MACRO(add_gtest TESTNAME LINKLIB)
+	add_executable(${TESTNAME} ${ARGN})
+	target_link_libraries(${TESTNAME} gtest gmock gtest_main ${AMUL_LIB_NAME} ${LINKLIB})
+	#gtest_discover_tests(${TESTNAME})
+	add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
+	set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+ENDMACRO()
 
 add_gtest(AtomTest ${AMUL_LIB_NAME} test_atom.cpp ../src/atom.h ../src/atomtype.h ../src/buffer.h)
 add_gtest(BufferTest ${AMUL_LIB_NAME} test_buffer.cpp ../src/buffer.h)
