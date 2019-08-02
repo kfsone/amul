@@ -71,11 +71,12 @@ $18
 $19
 	ANSI decoration enabled. If you see lots of "[31m"s etc, your client does not support ANSI.
 
-$20	@me the @mr has joined the game.
+$20
+	@me the @mr has joined the game.
 
 $21
 	AMUL Test Game help
-
+ 
 	Movement commands: N, S, E, W, NE, SE, SW, NW, U, D, IN, O.	
 
 $22  ; Say goodbye to a first time player (I recommend you remind them of their password)

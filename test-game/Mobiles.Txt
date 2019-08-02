@@ -14,7 +14,7 @@ travel=north northeast east southeast south southwest west northwest +
 
 
 ; 'dead=1' means put the object in state 1 if the npc dies.
-!cat	dead=1 dmove=heaven
+!cat	dead=1 dmove=cubby
 ; will it tolerate this?
 	speed=10 travel=50 fight=0 act=40 wait=10 fear=0 attack=99 hitpower=0
 	arrive="A cute little cat slinks into a corner of the room."
