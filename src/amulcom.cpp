@@ -66,7 +66,6 @@ char block[1024];  // scratch pad
 _OBJ_STRUCT *obtab2, *objtab2, obj2, *osrch, *osrch2;
 
 // counters
-GameInfo   g_gameInfo;
 GameConfig g_gameConfig;
 
 FILE *ifp, *ofp1, *ofp2, *ofp3, *ofp4, *ofp5, *afp;
@@ -239,7 +238,7 @@ void
 ttroomupdate()
 {
     fseek(afp, 0, 0L);
-    checkedfwrite(rmtab->id, sizeof(room), g_gameInfo.numRooms, afp);
+    checkedfwrite(rmtab, sizeof(room), g_gameConfig.numRooms, afp);
 }
 
 void
@@ -294,12 +293,12 @@ is_verb(const char *s)
     }
 
     vbptr = vbtab;
-    for (size_t i = 0; i < g_gameInfo.numVerbs; i++, vbptr++) {
+    for (size_t i = 0; i < g_gameConfig.numVerbs; i++, vbptr++) {
         if (stricmp(vbptr->id, s) == 0)
             return i;
     }
     if (stricmp(g_verb.id, s) == 0)
-        return g_gameInfo.numVerbs + 1;
+        return g_gameConfig.numVerbs + 1;
 
     return -1;
 }
@@ -331,7 +330,7 @@ int
 isroom(const char *s)
 {
     _ROOM_STRUCT *rp = rmtab;
-    for (int r = 0; r < g_gameInfo.numRooms; r++, rp++) {
+    for (int r = 0; r < g_gameConfig.numRooms; r++, rp++) {
         if (strcmp(rp->id, s) == 0)
             return r;
     }
@@ -374,11 +373,11 @@ set_adj()
     if (strlen(Word) > IDL || strlen(Word) < 3) {
         afatal("Invalid adjective (length): %s", Word);
     }
-    if (g_gameInfo.numAdjectives == 0) {
+    if (g_gameConfig.numAdjectives == 0) {
         ZeroPad(Word, sizeof(Word));
         checkedfwrite(Word, IDL + 1, 1, afp);
         obj2.adj = 0;
-        g_gameInfo.numAdjectives++;
+        g_gameConfig.numAdjectives++;
         return;
     }
     fseek(afp, 0L, 0); /* Move to beginning */
@@ -397,13 +396,13 @@ set_adj()
     fseek(afp, 0L, 2); /* Move to end! */
     ZeroPad(Word, sizeof(Word));
     checkedfwrite(Word, IDL + 1, 1, afp); /* Add this adjective */
-    obj2.adj = g_gameInfo.numAdjectives++;
+    obj2.adj = g_gameConfig.numAdjectives++;
 }
 
 [[noreturn]] void
 objectInvalid(const char *s)
 {
-    afatal("Object #%d: %s: invalid %s: %s", g_gameInfo.numNouns + 1, obj2.id, s, Word);
+    afatal("Object #%d: %s: invalid %s: %s", g_gameConfig.numNouns + 1, obj2.id, s, Word);
 }
 
 void
@@ -440,7 +439,7 @@ set_put()
 void
 set_mob()
 {
-    for (int i = 0; i < g_gameInfo.numMobPersonas; i++)
+    for (int i = 0; i < g_gameConfig.numMobPersonas; i++)
         if (stricmp(mobp[i].id, Word) == 0) {
             obj2.mobile = i;
             return;
@@ -537,7 +536,7 @@ bool
 checkRankLine(const char *p)
 {
     if (*p == 0) {
-        alog(AL_ERROR, "Rank line %" PRIu64 " incomplete", g_gameInfo.numRanks);
+        alog(AL_ERROR, "Rank line %" PRIu64 " incomplete", g_gameConfig.numRanks);
         return false;
     }
     return true;
@@ -546,7 +545,7 @@ checkRankLine(const char *p)
 [[noreturn]] void
 stateInvalid(const char *s)
 {
-    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameInfo.numNouns + 1, obj2.id,
+    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameConfig.numNouns + 1, obj2.id,
            s, block);
 }
 
@@ -569,7 +568,7 @@ isnoun(const char *s)
     objtab2 = obtab2;
     if (stricmp(s, "none") == 0)
         return -2;
-    for (i = 0; i < g_gameInfo.numNouns; i++, objtab2++)
+    for (i = 0; i < g_gameConfig.numNouns; i++, objtab2++)
         if (stricmp(s, objtab2->id) == 0)
             return i;
     return -1;
@@ -581,7 +580,7 @@ iscont(const char *s)
     int i;
 
     objtab2 = obtab2;
-    for (i = 0; i < g_gameInfo.numNouns; i++, objtab2++)
+    for (i = 0; i < g_gameConfig.numNouns; i++, objtab2++)
         if (stricmp(s, objtab2->id) == 0 && objtab2->contains > 0)
             return i;
     return -1;
@@ -728,7 +727,7 @@ isnounh(const char *s)
     l = -1;
     objtab2 = obtab2;
 
-    for (i = 0; i < g_gameInfo.numNouns; i++, objtab2++) {
+    for (i = 0; i < g_gameConfig.numNouns; i++, objtab2++) {
         if (stricmp(s, objtab2->id) != 0)
             continue;
         fseek(fp, (long)(uintptr_t)objtab2->rmlist, 0L);  /// TODO: Dispose
@@ -736,12 +735,12 @@ isnounh(const char *s)
             fread(&orm, 4, 1, fp);
             if (orm == rmn) {
                 l = i;
-                i = g_gameInfo.numNouns + 1;
+                i = g_gameConfig.numNouns + 1;
                 j = objtab2->nrooms;
                 break;
             }
         }
-        if (i < g_gameInfo.numNouns)
+        if (i < g_gameConfig.numNouns)
             l = i;
     }
     fclose(fp);
@@ -1322,16 +1321,16 @@ load_rooms()
     fopenr(roomDataFile);  // load rooms
     if (reuseRoomData) {
         fseek(ifp, 0, SEEK_END);
-        g_gameInfo.numRooms = ftell(ifp) / sizeof(*rmtab);
+        g_gameConfig.numRooms = ftell(ifp) / sizeof(*rmtab);
         fseek(ifp, 0, SEEK_SET);
         rewind(ifp);
     }
-    rmtab = (_ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameInfo.numRooms);
+    rmtab = (_ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameConfig.numRooms);
     if (rmtab == NULL) {
         afatal("Out of memory for room id table");
     }
-    size_t roomsInFile = fread(rmtab, sizeof(*rmtab), g_gameInfo.numRooms, ifp);
-    if (roomsInFile != g_gameInfo.numRooms) {
+    size_t roomsInFile = fread(rmtab, sizeof(*rmtab), g_gameConfig.numRooms, ifp);
+    if (roomsInFile != g_gameConfig.numRooms) {
         afatal("Room table appears to be corrupted. Recompile.");
     }
 }
@@ -1414,7 +1413,7 @@ room_proc()
         }
         checkedfwrite(room.id, sizeof(room), 1, ofp1);
 
-        ++g_gameInfo.numRooms;
+        ++g_gameConfig.numRooms;
     } while (!feof(ifp));
 }
 
@@ -1447,7 +1446,7 @@ rank_proc()
             continue;
 
         if (strlen(Word) < 3 || p - block > RANKL) {
-            afatal("Rank %" PRIu64 ": Invalid male rank: %s", g_gameInfo.numRanks + 1, Word);
+            afatal("Rank %" PRIu64 ": Invalid male rank: %s", g_gameConfig.numRanks + 1, Word);
         }
         int n = 0;
         do {
@@ -1461,7 +1460,7 @@ rank_proc()
         if (!checkRankLine(p))
             continue;
         if (strcmp(Word, "=") != 0 && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
-            afatal("Rank %d: Invalid female rank: %s", g_gameInfo.numRanks + 1, Word);
+            afatal("Rank %d: Invalid female rank: %s", g_gameConfig.numRanks + 1, Word);
         }
         if (Word[0] != '=') {
             n = 0;
@@ -1561,7 +1560,7 @@ rank_proc()
             p++;
         /* Greater than prompt length? */
         if (p - block > 10) {
-            alog(AL_ERROR, "Rank %" PRIu64 " prompt too long: %s", g_gameInfo.numRanks + 1, block);
+            alog(AL_ERROR, "Rank %" PRIu64 " prompt too long: %s", g_gameConfig.numRanks + 1, block);
             continue;
         }
         if (block[0] == 0)
@@ -1571,7 +1570,7 @@ rank_proc()
 
         wizstr = rank.strength;
         checkedfwrite(rank.male, sizeof(rank), 1, ofp1);
-        g_gameInfo.numRanks++;
+        g_gameConfig.numRanks++;
     }
 }
 
@@ -1723,6 +1722,7 @@ state_proc()
     }
     checkedfwrite(&state.weight, sizeof(state), 1, ofp2);
     obj2.nstates++;
+	g_gameConfig.numObjStates++;
 }
 
 void
@@ -1766,7 +1766,7 @@ objs_proc()
         }
 
         obj2.adj = obj2.mobile = -1;
-        obj2.idno = g_gameInfo.numNouns;
+        obj2.idno = g_gameConfig.numNouns;
         obj2.state = 0;
         obj2.nrooms = 0;
         obj2.contains = 0;
@@ -1805,7 +1805,7 @@ objs_proc()
                     break;
                 case OP_MOB:
                     set_mob();
-                    g_gameInfo.numMobs++;
+                    g_gameConfig.numMobs++;
                     break;
                 default:
                     afatal("Internal Error: Code for object-parameter '%s' missing", obparms[idNo]);
@@ -1855,14 +1855,14 @@ objs_proc()
         if (obj2.nstates > 100)
             alog(AL_ERROR, "object:%s: too many states defined (%d)", obj2.nstates);
 
-        *(obtab2 + (g_gameInfo.numNouns++)) = obj2;
+        *(obtab2 + (g_gameConfig.numNouns++)) = obj2;
     }
 
     /*
     closeOutFiles();
     sort_objs();
     */
-    checkedfwrite(obtab2, sizeof(obj2), g_gameInfo.numNouns, ofp1);
+    checkedfwrite(obtab2, sizeof(obj2), g_gameConfig.numNouns, ofp1);
 }
 
 /*
@@ -1883,7 +1883,7 @@ trav_proc()
     fopenw(travelParamFile);
     fopena(roomDataFile);
 
-    assert(g_gameInfo.numTTEnts == 0);
+    assert(g_gameConfig.numTTEnts == 0);
     int ntt = 0, t = 0, r = 0;
     int ttNumVerbs = 0;
 
@@ -2046,7 +2046,7 @@ trav_proc()
                 tt.verb = verbsUsed[verbNo];
                 checkedfwrite(&tt.verb, sizeof(tt), 1, ofp1);
                 roomtab->ttlines++;
-                g_gameInfo.numTTEnts++;
+                g_gameConfig.numTTEnts++;
             }
         next:
             strip = 0;
@@ -2056,9 +2056,9 @@ trav_proc()
         ntt++;
     }
 
-    if (al_errorCount == 0 && ntt != g_gameInfo.numRooms) {
+    if (al_errorCount == 0 && ntt != g_gameConfig.numRooms) {
         roomtab = rmtab;
-        for (i = 0; i < g_gameInfo.numRooms; i++, roomtab++) {
+        for (i = 0; i < g_gameConfig.numRooms; i++, roomtab++) {
             if (roomtab->tabptr == -1 && (roomtab->flags & DEATH) != DEATH) {
                 alog(AL_WARN, "No TT entry for room: %s", roomtab->id);
             }
@@ -2157,7 +2157,7 @@ registerTravelVerbs(char *p)
         strncpy(g_verb.id, Word, sizeof(g_verb.id));
         checkedfwrite(&g_verb, sizeof(g_verb), 1, ofp1);
         proc = 0;
-        *(vbtab + (g_gameInfo.numVerbs++)) = g_verb;
+        *(vbtab + (g_gameConfig.numVerbs++)) = g_verb;
         alog(AL_DEBUG, "Added TRAVEL verb: %s", Word);
     }
 }
@@ -2217,8 +2217,8 @@ lang_proc()
         memset(&g_verb, 0, sizeof(g_verb));
         strncpy(g_verb.id, Word, sizeof(g_verb.id));
 
-        ++g_gameInfo.numVerbs;
-        alog(AL_DEBUG, "verb#%04d:%s", g_gameInfo.numVerbs, g_verb.id);
+        ++g_gameConfig.numVerbs;
+        alog(AL_DEBUG, "verb#%04d:%s", g_gameConfig.numVerbs, g_verb.id);
 
         getVerbFlags(&g_verb, p);
 
@@ -2527,7 +2527,7 @@ lang_proc()
     write:
         checkedfwrite(&g_verb, sizeof(g_verb), 1, ofp1);
         proc = 0;
-        *(vbtab + (g_gameInfo.numVerbs - 1)) = g_verb;
+        *(vbtab + (g_gameConfig.numVerbs - 1)) = g_verb;
     }
 }
 
@@ -2572,7 +2572,7 @@ syn_proc()
                 break;
             checkedfwrite(&id, 1, sizeof(id), ofp2);
             fprintf(ofp1, "%s%c", Word, 0);
-            g_gameInfo.numSynonyms++;
+            g_gameConfig.numSynonyms++;
         }
     }
 }
@@ -2702,18 +2702,18 @@ mob_proc1()
             continue;
 
         checkedfwrite(&mob, sizeof(mob), 1, ofp1);
-        g_gameInfo.numMobPersonas++;
+        g_gameConfig.numMobPersonas++;
     }
 
-    if (g_gameInfo.numMobPersonas != 0) {
-        mobp = (_MOB_ENT *)AllocateMem(sizeof(mob) * g_gameInfo.numMobPersonas);
+    if (g_gameConfig.numMobPersonas != 0) {
+        mobp = (_MOB_ENT *)AllocateMem(sizeof(mob) * g_gameConfig.numMobPersonas);
         if (mobp == NULL) {
             afatal("Out of memory");
         }
         CloseOutFiles();
 
         fopenr(mobileDataFile);
-        checkedfread(mobp, sizeof(mob), g_gameInfo.numMobPersonas, ifp);
+        checkedfread(mobp, sizeof(mob), g_gameConfig.numMobPersonas, ifp);
     }
 }
 
@@ -2898,20 +2898,20 @@ amulcom_main()
 
     compileGame();
 
-    g_gameInfo.numStrings = GetStringCount();
+    g_gameConfig.numStrings = GetStringCount();
+	g_gameConfig.stringBytes = GetStringBytes();
 
     alog(AL_NOTE, "Execution finished normally");
     alog(AL_INFO, "Statistics for %s:", g_gameConfig.gameName);
     alog(AL_INFO, "		Rooms: %6" PRIu64 "	Ranks:   %6" PRIu64 "	Nouns: %6" PRIu64 "",
-         g_gameInfo.numRooms, g_gameInfo.numRanks, g_gameInfo.numNouns);
-    alog(AL_INFO, "		Adj's: %6" PRIu64 "	Verbs:   %6" PRIu64 "	Syns : %6" PRIu64 "",
-         g_gameInfo.numAdjectives, g_gameInfo.numVerbs, g_gameInfo.numSynonyms);
-    alog(AL_INFO, "		T.T's: %6" PRIu64 "	Strings: %6" PRIu64 "", g_gameInfo.numTTEnts,
-         g_gameInfo.numStrings);
+         g_gameConfig.numRooms, g_gameConfig.numRanks, g_gameConfig.numNouns);
+    alog(AL_INFO, "		Adj's: %6" PRIu64 "	Verbs:   %6" PRIu64 "	 Syns: %6" PRIu64 "",
+         g_gameConfig.numAdjectives, g_gameConfig.numVerbs, g_gameConfig.numSynonyms);
+    alog(AL_INFO, "		T.T's: %6" PRIu64 "	Strings: %6" PRIu64 "    Text: %6" PRIu64 "", g_gameConfig.numTTEnts,
+         g_gameConfig.numStrings, g_gameConfig.stringBytes);
 
     fopenw(gameDataFile);
     checkedfwrite(&g_gameConfig, sizeof(g_gameConfig), 1, ofp1);
-    checkedfwrite(&g_gameInfo, sizeof(g_gameInfo), 1, ofp1);
     CloseOutFiles();
 
     exiting = true;
