@@ -28,7 +28,11 @@ ReleaseMem(void **ptr)
     }
 }
 
-template<typename T>
-void ReleaseMem(T **ptr) { ReleaseMem((void**)ptr); }
+template <typename T>
+void
+ReleaseMem(T **ptr)
+{
+    ReleaseMem((void **)ptr);
+}
 
 #endif

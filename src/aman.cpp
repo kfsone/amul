@@ -22,7 +22,8 @@
 #define TRQ timerequest
 
 #define UINFO                                                                                      \
-    ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) + (sizeof(mob) * g_gameData.numMobs)
+    ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) +       \
+            (sizeof(mob) * g_gameData.numMobs)
 
 #include <cassert>
 #include <cctype>
@@ -31,22 +32,22 @@
 #include <thread>
 
 #if !defined(_MSC_VER)
-#include <unistd.h>
+#    include <unistd.h>
 #else
-#include <direct.h>
+#    include <direct.h>
 #endif
 
 #include <h/aman.h>
-#include <h/amul.type.h>
 #include <h/amul.alog.h>
 #include <h/amul.cons.h>
 #include <h/amul.defs.h>
 #include <h/amul.gcfg.h>
+#include <h/amul.type.h>
 #include <h/amul.vars.h>
 #include <h/amul.vmop.h>
 #if defined(__AMIGA__)
 #    include <devices/timer.h>
-TRQ      ResReq;                /* Reset request & Incoming from timer */
+TRQ ResReq;  // Reset request & Incoming from timer
 #else
 #    include <h/amigastubs.h>
 #endif
@@ -55,40 +56,45 @@ TRQ      ResReq;                /* Reset request & Incoming from timer */
 #include "msgports.h"
 #include "system.h"
 
-#define PRSizeT "zu"
+FILE *   ifp;
+GameData g_gameData;
 
-FILE *ifp;
-GameData   g_gameData;
-
-char            lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE];
-char            vername[128];
-bool            globflg[MAXD];                /* Is daemon global?   */
-long            reslp, TDBase, daemons;   	  /* Daemons to process! */
-int       		count[MAXD], num[MAXD];       /* Daemon counters in minutes! & No.s */
-char            own[MAXD];                    /* And their owners... */
-long            val[MAXD][2], typ[MAXD][2];   /* Values and types... */
-Aport *  am;
-MsgPort *trport;                /* Timer port */
-long            invis, invis2, calls;  /* Invisibility Stuff & # of calls */
-long            nextdaem, ded; /* nextdaem = time to next daemon, ded = deduct */
-roomid_t		*ormtab;
+char      lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE];
+char      vername[128];
+bool      globflg[MAXD];               // Is daemon global?
+long      reslp, TDBase, daemons;      // Daemons to process!
+int       count[MAXD], num[MAXD];      // Daemon counters in minutes! & No.s
+char      own[MAXD];                   // And their owners...
+long      val[MAXD][2], typ[MAXD][2];  // Values and types...
+Aport *   am;
+MsgPort * trport;                // Timer port
+long      invis, invis2, calls;  // Invisibility Stuff & # of calls
+long      nextdaem, ded;         // nextdaem = time to next daemon, ded = deduct
+roomid_t *ormtab;
 
 long online;
 char resety, forcereset, quiet;
 
-int CXBRK() /* Prevent CTRL-C'ing */ { return 0; }
+// Prevent CTRL-C'ing
+int
+CXBRK()
+{
+    return 0;
+}
 
+// Get current time/date as string
 static char *
-now() /* Get current time/date */
+now()
 {
     time_t timenow = time(nullptr);
-    char *ttxt = (char *)ctime(&timenow) + 4;
-    *(ttxt + strlen(ttxt) - 1) = 0; /* Strip cr/lf */
+    char * ttxt = (char *)ctime(&timenow) + 4;
+    *(ttxt + strlen(ttxt) - 1) = 0;  // Strip cr/lf
     return ttxt;
 }
 
+// Release all memory AllocMem'd
 static void
-givebackmemory() /* Release all memory AllocMem'd */
+givebackmemory()
 {
     ReleaseMem(&obtab);
     ReleaseMem(&rktab);
@@ -110,9 +116,8 @@ givebackmemory() /* Release all memory AllocMem'd */
     vtpp = NULL;
 }
 
-[[noreturn]]
-void
-quit() /* Exit program tidily */
+[[noreturn]] void
+quit()
 {
     if (ifp != NULL)
         fclose(ifp);
@@ -132,29 +137,30 @@ quit() /* Exit program tidily */
     exit(0);
 }
 
-[[noreturn]]
-static void
-memfail(const char *s) /* Report memory allocation error */
+// Report memory allocation error
+[[noreturn]] static void
+memfail(const char *s)
 {
     afatal("Out of memory for %s");
 }
 
-[[noreturn]]
-static void
-readfail(const char *s, size_t got, size_t wanted) /* Report a read failure */
+// Report a read failure
+[[noreturn]] static void
+readfail(const char *s, size_t got, size_t wanted)
 {
-    afatal("Expected %" PRSizeT " %s entries, got %" PRSizeT "", wanted, s, got);
+    afatal("Expected %zu %s entries, got %zu", wanted, s, got);
 }
 
-[[noreturn]]
-static void
-oer(const char *s, const char *t) /* report Open ERror */
+// report Open ERror
+[[noreturn]] static void
+oer(const char *filepath, const char *activity)
 {
-    afatal("Unable to open '%s' for %sing", s, t);
+    afatal("Unable to open '%s' for %sing", filepath, activity);
 }
 
+// Open a file for reading
 static void
-fopenr(const char *s) /* Open a file for reading */
+fopenr(const char *s)
 {
     char filepath[MAX_PATH_LENGTH];
     safe_gamedir_joiner(s);
@@ -163,10 +169,11 @@ fopenr(const char *s) /* Open a file for reading */
         oer(filepath, "read");
 }
 
+// Size/Read data files
 char *
-xread(const char *s, size_t *countInto, const char *t) /* Size/Read data files */
+xread(const char *s, size_t *countInto, const char *t)
 {
-    char *p {nullptr};
+    char *p{nullptr};
 
     fopenr(s);
     fseek(ifp, 0, 2L);
@@ -194,22 +201,23 @@ readf(const char *s, char *p)
 void
 execute(const char *)
 {
-    ///TODO: Remove
+    /// TODO: Remove
     // run a command in the background
 }
 
 static void
 setam()
 {
-    ///TODO: On the Amiga, it was the caller's responsibility to free messages
+    /// TODO: On the Amiga, it was the caller's responsibility to free messages
     static Aport s_am;
     am = &s_am;
     am->mn_ReplyPort = reply;
     am->from = -1;
 }
 
+// Remove daemon from list
 static void
-pack(int i) /* Remove daemon from list */
+pack(int i)
 {
     int j;
     if (i != (daemons - 1)) {
@@ -234,12 +242,13 @@ pack(int i) /* Remove daemon from list */
     daemons--;
 }
 
+// Force users to log-out & kill extra lines
 static void
-reset_users() /* Force users to log-out & kill extra lines */
+reset_users()
 {
-    int    i;
+    int i;
 
-    online = 0; /* Allows for daemons & mobiles */
+    online = 0;  // Allows for daemons & mobiles
     for (i = 0; i < MAXNODE; i++) {
         if ((linestat + i)->state <= 0)
             continue;
@@ -247,37 +256,37 @@ reset_users() /* Force users to log-out & kill extra lines */
         setam();
         am->type = MCLOSEING;
         am->mn_ReplyPort = port;
-		(linestat +i)->rep->Put(MessagePtr(am));
+        (linestat + i)->rep->Put(MessagePtr(am));
     }
     while (online > 0) {
-		MessagePtr amsg { port->Wait() };
-		am = static_cast<Aport*>(amsg.get());
-		if (am == nullptr)
-			break;
+        MessagePtr amsg{port->Wait()};
+        am = static_cast<Aport *>(amsg.get());
+        if (am == nullptr)
+            break;
         if (am->from != -'O') {
             printf("\x07 !! Invalid message!\n");
             am->type = am->data = -'R';
             ReplyMsg(std::move(amsg));
-			continue;
+            continue;
         } else {
-        	online--;
-		}
+            online--;
+        }
     }
 
-	for (;;) {
-		MessagePtr amsg { reply->Get() };
-		am = static_cast<Aport*>(amsg.get());
-		if (am == nullptr)
-			break;
+    for (;;) {
+        MessagePtr amsg{reply->Get()};
+        am = static_cast<Aport *>(amsg.get());
+        if (am == nullptr)
+            break;
         am->type = am->data = -'R';
         ReplyMsg(std::move(amsg));
     }
-	port->Clear();
-	reply->Clear();
+    port->Clear();
+    reply->Clear();
     online = 0;
 }
 
-template<typename... Args>
+template <typename... Args>
 void
 warn(const char *fmt, Args... args)
 {
@@ -287,15 +296,16 @@ warn(const char *fmt, Args... args)
     snprintf(message, sizeof(message), fmt, args...);
     for (size_t i = 0; i < MAXU; i++) {
         if ((linestat + i)->state != OFFLINE) {
-			auto amsg = std::make_unique<Aport>(reply, MRWARN);
-			amsg->opaque = strdup(message);
-			(linestat+i)->rep->Put(std::move(amsg));
+            auto amsg = std::make_unique<Aport>(reply, MRWARN);
+            amsg->opaque = strdup(message);
+            (linestat + i)->rep->Put(std::move(amsg));
         }
     }
 }
 
+// Shutdown receiver
 static void
-kill() /* Shutdown receiver */
+kill()
 {
     char source[32];
     if (Af != -1)
@@ -315,8 +325,9 @@ kill() /* Shutdown receiver */
     }
 }
 
+// User connecting
 static void
-cnct() /* User connection! */
+cnct()
 {
     int i;
 
@@ -332,8 +343,8 @@ cnct() /* User connection! */
         return;
     }
     Af = -1;
-    for (i = 0; i < MAXU; i++) /* Allow for daemons & mobiles */
-    {
+    // Allow for daemons & mobiles
+    for (i = 0; i < MAXU; i++) {
         if ((linestat + i)->state != 0)
             continue;
         Af = i;
@@ -344,8 +355,9 @@ cnct() /* User connection! */
     }
 }
 
+// Cancel daemon...
 void
-dkill(short int d) /* Cancel daemon... */
+dkill(short int d)
 {
     int i;
 
@@ -358,39 +370,42 @@ dkill(short int d) /* Cancel daemon... */
     }
 }
 
+// Initiate daemon
 void
-start(char owner) /* Initiate daemon */
+start(char owner)
 {
-    /* Ad=#, p1=inoun1, p2=inoun2, p3=wtype[2], p4=wtype[5], Ap->opaque=count */
-
+    // Ad=#, p1=inoun1, p2=inoun2, p3=wtype[2], p4=wtype[5], Ap->opaque=count
     val[daemons][0] = Ap1;
     val[daemons][1] = Ap2;
     typ[daemons][0] = Ap3;
     typ[daemons][1] = Ap4;
     own[daemons] = owner;
-    count[daemons] = (uintptr_t)amul->opaque;
+    count[daemons] = (int)amul->opaque;
     num[daemons] = Ad;
     daemons++;
     if (count[daemons - 1] < nextdaem)
         nextdaem = count[daemons - 1];
 }
 
+// Initiate global daemon
 void
-gstart() /* Initiate global daemon */
+gstart()
 {
     globflg[daemons] = true;
-    start(MAXU); /* Set global flag & go! */
+    start(MAXU);  // Set global flag & go!
 }
 
+// Initiate private daemon
 void
-pstart() /* Initiate private daemon */
+pstart()
 {
     globflg[daemons] = false;
     start(Af);
 }
 
+// Check if daemon is active
 void
-check(int d) /* Check if daemon is active */
+check(int d)
 {
     int i;
     Ad = -1;
@@ -403,9 +418,9 @@ check(int d) /* Check if daemon is active */
         }
 }
 
-
+// User disconnection
 static void
-discnct() /* User disconnection */
+discnct()
 {
     if (Af < MAXU && (linestat + Af)->state == PLAYING) {
         alog(AL_INFO, "<- (%u) %s: user disconnected", uint32_t(Af), now());
@@ -422,8 +437,9 @@ discnct() /* User disconnection */
     Ad = -1;
 }
 
+// Sends pointers to database
 static void
-data() /* Sends pointers to database */
+data()
 {
     At = MDATAREQ;
     switch (Ad) {
@@ -436,34 +452,36 @@ data() /* Sends pointers to database */
         Ap4 = (uintptr_t)linestat;
         break;
     case 0:
-		amul->opaque = gameDir;
-		amul->p1 = count[0];	///TODO: Fix
+        amul->opaque = gameDir;
+        amul->p1 = count[0];  /// TODO: Fix
         break;
     case 1:
-		amul->opaque = &g_gameData;
+        amul->opaque = &g_gameData;
         break;
     default:
         amul->opaque = nullptr;
     }
 }
 
+// Receive & log a player login
 static void
-login() /* Receive & log a player login */
+login()
 {
     alog(AL_INFO, "-> (%d) %s: \"%s\" logged in.", Af, now(), (usr + Af)->name);
     (linestat + Af)->state = PLAYING;
 }
 
+// Shutdown request
 static void
-asend(int type, int data) /* Shutdown request */
+asend(int type, int data)
 {
     if ((reply = CreatePort("Killer!")) == NULL) {
         printf("Unable to create killer port!\n");
         return;
     }
-	auto aptr = std::make_unique<Aport>(reply, type, -1, data);
+    auto aptr = std::make_unique<Aport>(reply, type, -1, data);
     port->Put(std::move(aptr));
-	port->Wait();
+    port->Wait();
     if (quiet == 0)
         switch (Ad) {
         case 'R':
@@ -497,19 +515,26 @@ asend(int type, int data) /* Shutdown request */
 }
 
 static void
-shutreq(int x) { asend((x == 0) ? MKILL : MRESET, count[0]); }
+shutreq(int x)
+{
+    asend((x == 0) ? MKILL : MRESET, count[0]);
+}
 
 static void
-sendext(int t) { asend(MEXTEND, t); }
+sendext(int t)
+{
+    asend(MEXTEND, t);
+}
 
+// RESeT in progress
 static void
-rest() /* RESeT in progress */
+rest()
 {
     forcereset = 1;
     if (Ad > 0) {
         Ap1 = Ad;
         count[0] = Ad + 1;
-        warn("** System reset invoked - %" PRSizeT " seconds remaining...\n", size_t(Ad));
+        warn("** System reset invoked - %zu seconds remaining...\n", size_t(Ad));
         Ad = At = -'X';
         return;
     }
@@ -517,8 +542,9 @@ rest() /* RESeT in progress */
     count[0] = 1;
 }
 
+// Extend by this many ticks
 static void
-extend(short int tics) /* Extend by this many ticks */
+extend(short int tics)
 {
     short int newtime;
 
@@ -529,7 +555,7 @@ extend(short int tics) /* Extend by this many ticks */
     newtime = count[0] + tics + 1;
     if (count[0] > 120)
         alog(AL_NOTE, "...Game time extended - reset will now occur in %ld %s and %ld %s...\n",
-                newtime / 60, "minutes", newtime - ((newtime / 60) * 60), "seconds");
+             newtime / 60, "minutes", newtime - ((newtime / 60) * 60), "seconds");
     else
         alog(AL_NOTE, "...Reset postponed - it will now occur in %ld %s...\n", newtime, "seconds");
     Ap1 = tics;
@@ -537,23 +563,25 @@ extend(short int tics) /* Extend by this many ticks */
     Ad = 'E';
 }
 
+// Reset <receiver>
 static void
-res() /* Reset <receiver> */
+res()
 {
     int onwas;
     warn("][ (%c) %s: Reset requested! %ld user(s) online...\n",
-            (Af >= 0 && Af < 11) ? '0' + Af : '#', now(), online);
+         (Af >= 0 && Af < 11) ? '0' + Af : '#', now(), online);
     onwas = online;
     reset_users();
     if (onwas != 0)
         alog(AL_NOTE, "== (#) %s: All users disconnected...\n", now());
     else
         alog(AL_NOTE, "== (#) %s: Reset completed!\n", now());
-    Delay(100); /* Always wait atleast a few seconds */
+    Delay(100);  // Always wait atleast a few seconds
 }
 
+// Lock a users IO system
 static void
-lock() /* Lock a users IO system */
+lock()
 {
     bid[Af] = Ad;
     if ((linestat + Ad)->IOlock != -1 || (busy[Ad] != 0 && Ad != Af && bid[Ad] != Af)) {
@@ -568,7 +596,7 @@ void
 logwiz(int who)
 {
     alog(AL_NOTE, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)", Af + '0', now(),
-            (usr + Af)->name, (usr + Af)->rank + 1);
+         (usr + Af)->name, (usr + Af)->rank + 1);
 }
 
 void
@@ -577,15 +605,16 @@ logit(const char *s)
     alog(AL_INFO, "@@ (%c) %s: %s", Af + '0', now(), s);
 }
 
+// Read in & evaluate data files
 static void
-setup() /* Read in & evaluate data files */
+setup()
 {
-    long rc = 0;
+    long  rc = 0;
     long  i, l, act, j, k;
-    long *         pt;
+    long *pt;
     char *p;
 
-    if ((p = (char*)AllocateMem(UINFO)) == NULL)
+    if ((p = (char *)AllocateMem(UINFO)) == NULL)
         memfail("User tables");
     usr = (_PLAYER *)p;
     p += sizeof(*usr) * MAXNODE;
@@ -593,28 +622,29 @@ setup() /* Read in & evaluate data files */
     p += sizeof(*linestat) * MAXNODE;
     rctab = (short *)p;
 
-    fopenr(roomDataFile); /* 1: Open room block file */
-    if ((rmtab = (_ROOM_STRUCT*)AllocateMem(g_gameData.numRooms * sizeof(room))) == NULL)
-        memfail("room table"); /* Allocate memory */
+    fopenr(roomDataFile);  // 1: Open room block file
+    if ((rmtab = (_ROOM_STRUCT *)AllocateMem(g_gameData.numRooms * sizeof(room))) == NULL)
+        memfail("room table");  // Allocate memory
     if ((i = fread((char *)rmtab, sizeof(room), g_gameData.numRooms, ifp)) != g_gameData.numRooms)
         readfail("room table", i, g_gameData.numRooms);
 
-    fopenr(rankDataFile); /* 2: Read player g_gameData.numRanks */
-    if ((rktab = (_RANK_STRUCT*)AllocateMem(g_gameData.numRanks * sizeof(rank))) == NULL)
-        memfail("player g_gameData.numRanks"); /* Allocate memory */
+    fopenr(rankDataFile);  // 2: Read player g_gameData.numRanks
+    if ((rktab = (_RANK_STRUCT *)AllocateMem(g_gameData.numRanks * sizeof(rank))) == NULL)
+        memfail("player g_gameData.numRanks");  // Allocate memory
     if ((i = fread((char *)rktab, sizeof(rank), g_gameData.numRanks, ifp)) != g_gameData.numRanks)
         readfail("player g_gameData.numRanks", i, g_gameData.numRanks);
 
-    fopenr(verbDataFile); /* 4: Read the g_gameData.numVerbs in */
-    if ((vbtab = (_VERB_STRUCT*)AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) == NULL)
+    fopenr(verbDataFile);  // 4: Read the g_gameData.numVerbs in
+    if ((vbtab = (_VERB_STRUCT *)AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) == NULL)
         memfail("verb table");
-    if ((i = fread(vbtab->id, sizeof(_VERB_STRUCT), g_gameData.numVerbs, ifp)) != g_gameData.numVerbs)
+    if ((i = fread(vbtab->id, sizeof(_VERB_STRUCT), g_gameData.numVerbs, ifp)) !=
+        g_gameData.numVerbs)
         readfail("verb table", i, g_gameData.numVerbs);
 
-    /* 3, 5, 6 & 7: Read objects */
-	size_t obtlen, ormtablen, statablen;
-	size_t stlen, vtlen, vtplen;
-	size_t synlen, synilen, adtablen;
+    // 3, 5, 6 & 7: Read objects
+    size_t obtlen, ormtablen, statablen;
+    size_t stlen, vtlen, vtplen;
+    size_t synlen, synilen, adtablen;
 
     GetFilesSize(objectDataFile, &obtlen, true);
     GetFilesSize(objectRoomFile, &ormtablen, true);
@@ -626,13 +656,13 @@ setup() /* Read in & evaluate data files */
     GetFilesSize(synonymIndexFile, &synilen, true);
     GetFilesSize(adjectiveDataFile, &adtablen, true);
 
-    if ((p = (char*)AllocateMem(obtlen + ormtablen + statablen)) == NULL)
+    if ((p = (char *)AllocateMem(obtlen + ormtablen + statablen)) == NULL)
         memfail("object data");
-    obtab = (_OBJ_STRUCT*)readf(objectDataFile, p);
-    ormtab = (roomid_t*)readf(objectRoomFile, (p = p + obtlen));
-    statab = (_OBJ_STATE*)readf(objectStateFile, p + ormtablen);
+    obtab = (_OBJ_STRUCT *)readf(objectDataFile, p);
+    ormtab = (roomid_t *)readf(objectRoomFile, (p = p + obtlen));
+    statab = (_OBJ_STATE *)readf(objectStateFile, p + ormtablen);
 
-    /* Update the object room list ptrs and the state ptrs */
+    // Update the object room list ptrs and the state ptrs
     statep = statab;
     for (i = 0; i < g_gameData.numObjects; i++) {
         objtab = obtab + i;
@@ -642,20 +672,20 @@ setup() /* Read in & evaluate data files */
         statep = statep + (long)objtab->nstates;
     }
 
-    /* 9: Read the travel table */
-	size_t ttlen{0};
-    ttp = (_TT_ENT*)xread(travelTableFile, &ttlen, "travel table");
-	assert(ttlen / sizeof(_TT_ENT) == g_gameData.numTTEnts);
+    // 9: Read the travel table
+    size_t ttlen{0};
+    ttp = (_TT_ENT *)xread(travelTableFile, &ttlen, "travel table");
+    assert(ttlen / sizeof(_TT_ENT) == g_gameData.numTTEnts);
 
-    /* 12: Read parameters */
-	size_t ttplen{0};
+    // 12: Read parameters
+    size_t ttplen{0};
     ttpp = (long *)xread(travelParamFile, &ttplen, "TT parameter table");
     ttabp = ttp;
     pt = ttpp;
     for (i = 0; i < g_gameData.numTTEnts; i++) {
         ttabp = ttp + i;
         k = (long)ttabp->pptr;
-        ttabp->pptr = (int*)pt;
+        ttabp->pptr = (int *)pt;
         if (k == -2)
             continue;
         act = ttabp->condition;
@@ -669,25 +699,25 @@ setup() /* Read in & evaluate data files */
         }
     }
 
-    /* 14: Load Slot table */
+    // 14: Load Slot table
     if ((p = (char *)AllocateMem(stlen + vtlen + vtplen)) == NULL)
         memfail("language data");
     slottab = (_SLOTTAB *)readf(verbSlotFile, p);
     vtp = (_VBTAB *)readf(verbTableFile, p + stlen);
     vtpp = (long *)readf(verbParamFile, p + stlen + vtlen);
 
-    /* 17: Get the Synonym data & adjectives */
+    // 17: Get the Synonym data & adjectives
     if ((p = (char *)AllocateMem(synlen + synilen + adtablen)) == NULL)
         memfail("synonym data");
     synp = (char *)readf(synonymDataFile, p);
     synip = (short int *)readf(synonymIndexFile, (p = p + synlen));
     adtab = (char *)readf(adjectiveDataFile, p + synilen);
 
-    /* 18: Get last reset time */
+    // 18: Get last reset time
     strcpy(lastres, now());
     strcpy(lastcrt, now());
 
-    /* Adjust the verb-related pointers */
+    // Adjust the verb-related pointers
     vbptr = vbtab;
     stptr = slottab;
     vtabp = vtp;
@@ -697,7 +727,7 @@ setup() /* Read in & evaluate data files */
         for (j = 0; j < vbptr->ents; j++, stptr++) {
             stptr->ptr = vtabp;
             for (k = 0; k < stptr->ents; k++, vtabp++) {
-                vtabp->pptr = (int*)vtpp + l;
+                vtabp->pptr = (int *)vtpp + l;
                 act = vtabp->condition;
                 if (act < 0)
                     act = -1 - act;
@@ -711,7 +741,7 @@ setup() /* Read in & evaluate data files */
         }
     }
 
-    /* Fix the object 'inside' flags */
+    // Fix the object 'inside' flags
     objtab = obtab;
     for (i = 0; i < g_gameData.numObjects; i++, objtab++) {
         if (*(objtab->rmlist) <= -INS)
@@ -725,7 +755,7 @@ setup() /* Read in & evaluate data files */
 void
 kernel()
 {
-    int   i;
+    int i;
 
     alog(AL_INFO, "------------------------------------------------------------");
     online = resety = forcereset = 0;
@@ -753,18 +783,18 @@ kernel()
     alog(AL_INFO, "== (=) %s: Loaded '%s'.", now(), g_gameData.gameName);
     forcereset = ded = 0;
 
-    /* Activate the daemon processor */
+    // Activate the daemon processor
 
     execute("amul -\03");
 
     while (resety == 0) {
-		std::this_thread::yield();
-    
-		reply->Clear();
+        std::this_thread::yield();
 
-#ifdef NEVER	///TODO:: Restore
+        reply->Clear();
+
+#ifdef NEVER  /// TODO:: Restore
         while (GetMsg((MsgPort *)trport) != NULL) {
-            /* Process counter table */
+            // Process counter table
             for (i = 0; i < daemons; i++) {
                 count[i]--;
                 if (count[i] <= 0) {
@@ -797,19 +827,19 @@ kernel()
                 if (forcereset == 0)
                     warn("[ Automatic Reset ]\n");
             } else {
-#if defined(__AMIGA__)
+#    if defined(__AMIGA__)
                 ResReq.tr_time.tv_secs = 1;
                 ResReq.tr_time.tv_micro = XR;
                 ResReq.tr_node.io_Command = TR_ADDREQUEST;
                 SendIO(&ResReq.tr_node);
-#endif
+#    endif
             }
         }
 #endif
 
-		MessagePtr amsg { port->Get() };
-		if (amul = static_cast<Aport*>(amsg.get()); !amul)
-			continue;
+        MessagePtr amsg{port->Get()};
+        if (amul = static_cast<Aport *>(amsg.get()); !amul)
+            continue;
 
         switch (At) {
         case MKILL:
@@ -841,7 +871,7 @@ kernel()
             break;
         case MDSTART:
             pstart();
-            break; /* Priv. daemon */
+            break;  // Priv. daemon
         case MDCANCEL:
             dkill(Ad);
             break;
@@ -852,7 +882,7 @@ kernel()
             logwiz(Af);
             break;
         case MLOG:
-            logit(static_cast<const char*>(amul->opaque));
+            logit(static_cast<const char *>(amul->opaque));
             break;
         case MEXTEND:
             extend(Ad);
@@ -860,7 +890,7 @@ kernel()
             break;
         case MGDSTART:
             gstart();
-            break; /* Global daemon */
+            break;  // Global daemon
         default:
             At = -1;
             alog(AL_ERROR, "$$ (X) %s: *INVALID Message Type, %ld!*", now(), At);
@@ -872,11 +902,11 @@ kernel()
         if (resety != 0)
             break;
     }
-	for (;;) {
-		MessagePtr amsg { port->Get() };
-		amul = static_cast<Aport*>(amsg.get());
-		if (!amul)
-			break;
+    for (;;) {
+        MessagePtr amsg{port->Get()};
+        amul = static_cast<Aport *>(amsg.get());
+        if (!amul)
+            break;
         Ad = At = -'R';
         ReplyMsg(std::move(amsg));
     }
@@ -891,7 +921,7 @@ kernel()
         if (quiet == 0)
             printf("\n[ %s %s ]\n", vername, "RESET");
 #ifdef REPAIR
-		if (GetFilesSize("reset.bat") > 0) {
+        if (GetFilesSize("reset.bat") > 0) {
             Execute("execute reset.bat", 0L, 0L);
         }
 #endif
@@ -900,14 +930,13 @@ kernel()
         resety = -1;
 }
 
-[[noreturn]]
-void
+[[noreturn]] void
 executeCommand(int argc, const char *argv[])
 {
     if (!port) {
         afatal("AMAN is not running");
     }
-    size_t mins {0};
+    size_t mins{0};
     if (argc == 3)
         sscanf(argv[2], "%zu", &mins);
     count[0] = mins;
@@ -928,7 +957,7 @@ executeCommand(int argc, const char *argv[])
 }
 
 void
-parseArguments(int argc, const char* argv[])
+parseArguments(int argc, const char *argv[])
 {
     if (argc > 4) {
         printf("Invalid arguments!\n");
@@ -960,15 +989,15 @@ parseArguments(int argc, const char* argv[])
 error_t
 GameData::Load()
 {
-	char filepath[MAX_PATH_LENGTH];
-	safe_gamedir_joiner(gameDataFile);
-	FILE *fp = fopen(filepath, "rb");
-	if (!fp)
-		afatal("Unable to open game data file: %s", filepath);
-    fread(dynamic_cast<GameConfig*>(&g_gameData), sizeof(GameConfig), 1, fp);
-	fclose(fp);
+    char filepath[MAX_PATH_LENGTH];
+    safe_gamedir_joiner(gameDataFile);
+    FILE *fp = fopen(filepath, "rb");
+    if (!fp)
+        afatal("Unable to open game data file: %s", filepath);
+    fread(dynamic_cast<GameConfig *>(&g_gameData), sizeof(GameConfig), 1, fp);
+    fclose(fp);
 
-	return 0;
+    return 0;
 }
 
 int
@@ -980,16 +1009,16 @@ main(int argc, const char *argv[])
     mytask = FindTask(0L);
     mytask->tc_Node.ln_Name = vername;
 #else
-	(void)vername;
+    (void)vername;
 #endif
 
-	parseArguments(argc, argv);
-	chdir(gameDir);
+    parseArguments(argc, argv);
+    chdir(gameDir);
 
-	if (error_t err = g_gameData.Load(); err != 0)
-		afatal("Failed to load game data");
+    if (error_t err = g_gameData.Load(); err != 0)
+        afatal("Failed to load game data");
 
-    port = FindPort(managerPortName); // Check for existing port
+    port = FindPort(managerPortName);  // Check for existing port
     if (port != NULL) {
         printf("AMAN %s running!\n", "already");
         exit(0);
@@ -1008,7 +1037,7 @@ main(int argc, const char *argv[])
     }
 
 #if defined(__AMIGA__)
-	///TODO: Replace
+    /// TODO: Replace
     if (OpenDevice(TIMERNAME, UNIT_VBLANK, (IORequest *)&ResReq, 0L) != NULL) {
         printf("Can't open timer.device!\n");
         quit();
@@ -1029,4 +1058,3 @@ main(int argc, const char *argv[])
         printf("\n[ %s %s ]\n", vername, "KILLED");
     quit();
 }
-

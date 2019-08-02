@@ -28,28 +28,35 @@ typedef int8_t   BYTE;
 typedef void     VOID;
 typedef void *   APTR;
 
-#define NT_MESSAGE 0
-#define NT_TASK    1
-#define NT_PORT    2
+#    define NT_MESSAGE 0
+#    define NT_TASK 1
+#    define NT_PORT 2
 
 struct Node {
-	Node(UBYTE type, const char *name=nullptr, BYTE pri=0)
-		: ln_Type(type), ln_Name(name), ln_Pri(pri) {}
+    constexpr Node(UBYTE type, const char *name = nullptr, BYTE pri = 0)
+        : ln_Type(type)
+        , ln_Name(name)
+        , ln_Pri(pri)
+    {
+    }
 
-    UBYTE        ln_Type;
-    const char * ln_Name{nullptr};  // ID string, null terminated
-    BYTE         ln_Pri{0};   // Priority, for sorting
+    UBYTE       ln_Type;
+    const char *ln_Name{nullptr};  // ID string, null terminated
+    BYTE        ln_Pri{0};         // Priority, for sorting
 };
 
 struct Task : public Node {
-	Task(const char *name=nullptr) : Node(NT_TASK, name) {}
+    Task(const char *name = nullptr)
+        : Node(NT_TASK, name)
+    {
+    }
 
-    ULONG tc_SigAlloc;    // sigs allocated
-    ULONG tc_SigWait;     // sigs we are waiting for
-    ULONG tc_SigRecvd;    // sigs we have received
-    ULONG tc_SigExcept;   // sigs we will take excepts for
+    ULONG tc_SigAlloc;   // sigs allocated
+    ULONG tc_SigWait;    // sigs we are waiting for
+    ULONG tc_SigRecvd;   // sigs we have received
+    ULONG tc_SigExcept;  // sigs we will take excepts for
 
-    void *tc_UserData;    // For use by the task; no restrictions!
+    void *tc_UserData;  // For use by the task; no restrictions!
 };
 
 struct Device {
@@ -59,7 +66,7 @@ struct Unit {
     int i;
 };
 
-#ifdef NEVER
+#    ifdef NEVER
 struct IORequest {
     Message io_Message;
     Device *io_Device;   // device node pointer
@@ -81,7 +88,7 @@ struct IOStdReq {
     void *  io_Data;    // points to data area
     ULONG   io_Offset;  // offset for block structured devices
 };
-#endif
+#    endif
 
 // prevent/reallow scheduling
 void Forbid();
@@ -89,7 +96,7 @@ void Permit();
 
 int32_t Wait(int32_t signalSet);
 
-Task *   FindTask(const char *name);
+Task *FindTask(const char *name);
 
 // Wait this many 20ths of a second
 void Delay(unsigned int ticks);

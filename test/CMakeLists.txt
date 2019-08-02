@@ -4,13 +4,13 @@ IF (AMUL_INCLUDE_TESTS)
 
 	MESSAGE(STATUS "Testing enabled")
 
-	ENABLE_TESTING()
+	enable_testing()
 
 	INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/h")
 	INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/src")
 
 	SET(gtest_force_shared_crt ON CACHE BOOL "Force gtest to use shared crt" FORCE)
-	ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/tests/googletest" "tests/googletest")
+	ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/test/googletest" "test/googletest")
 
 	MARK_AS_ADVANCED(
 		BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
@@ -30,7 +30,9 @@ ELSE ()
 	MACRO(add_gtest TESTNAME LINKLIB)
 	ENDMACRO()
 
-	ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/tests/googletest" "tests/googletest" EXCLUDE_FROM_ALL)
+	ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/test/googletest" "test/googletest" EXCLUDE_FROM_ALL)
+
+	MESSAGE(WARNING "Tests Disabled")
 
 ENDIF()
 
