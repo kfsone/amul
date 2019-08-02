@@ -320,18 +320,18 @@ filesize()
 int
 isrflag(const char *s)
 {
-    for (int i = 0; i < NRFLAGS; i++)
+    for (int i = 0; i < NRFLAGS; i++) {
         if (strcmp(s, rflag[i]) == 0)
             return i;
+	}
     return -1;
 }
 
 int
 isroom(const char *s)
 {
-    _ROOM_STRUCT *rp = rmtab;
-    for (int r = 0; r < g_gameConfig.numRooms; r++, rp++) {
-        if (strcmp(rp->id, s) == 0)
+    for (int r = 0; r < g_gameConfig.numRooms; r++) {
+        if (strcmp(rmtab[r].id, s) == 0)
             return r;
     }
     return -1;
@@ -1367,6 +1367,7 @@ room_proc()
             skipblock();
             continue;
         }
+		alog(AL_DEBUG, "room=%s", Word);
 
         // Because 'room' is a global, we have to clear it out.
         memset(&room, 0, sizeof(room));
@@ -1754,6 +1755,7 @@ objs_proc()
             skipblock();
             continue;
         }
+		alog(AL_DEBUG, "noun=%s", Word);
         if (strlen(Word) < 3 || strlen(Word) > IDL) {
             alog(AL_ERROR, "Invalid object name (length): %s", cur);
             skipblock();
@@ -1839,7 +1841,7 @@ objs_proc()
         for (;;) {
             char *p = getTidyBlock(ifp);
             if (!p)
-                afatal("object:%s: unexpected end of file", obj2.id);
+				break;
             if (!*p || isEol(*p))
                 break;
             state_proc();
@@ -1900,6 +1902,7 @@ trav_proc()
             skipblock();
             continue;
         }
+		alog(AL_DEBUG, "room=%s", Word);
 
         rmn = isroom(Word);
         if (rmn == -1) {
