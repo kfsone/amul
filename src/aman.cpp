@@ -441,7 +441,7 @@ login()
 static void
 asend(int type, int data)
 {
-    if ((reply = CreatePort("Killer!", 1L)) == NULL) {
+    if ((reply = CreatePort("Killer!")) == NULL) {
         printf("Unable to create killer port!\n");
         return;
     }
@@ -972,15 +972,15 @@ main(int argc, const char *argv[])
         printf("AMAN %s running!\n", "already");
         exit(0);
     }
-    if ((port = CreatePort(managerPortName, 0L)) == NULL) {
+    if ((port = CreatePort(managerPortName)) == NULL) {
         printf("Unable to create %s port!\n", "AMUL Manager");
         quit();
     }
-    if ((reply = CreatePort(0L, 0L)) == NULL) {
+    if ((reply = CreatePort(nullptr)) == NULL) {
         printf("Unable to create %s port!\n", "Returns");
         quit();
     }
-    if ((trport = (MsgPort *)CreatePort(0L, 0L)) == NULL) {
+    if ((trport = CreatePort(nullptr)) == NULL) {
         printf("Unable to create %s port!\n", "Timer");
         quit();
     }

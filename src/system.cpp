@@ -6,14 +6,19 @@
 
 // OS/portability functions
 
+#include <chrono>
 #include <map>
 #include <memory>
 #include <string>
+#include <thread>
+
+// Emulate the Amiga's 50hz time
+using Tick = std::chrono::duration<int64_t, std::ratio<1, 50>>;
 
 using PortTable = std::map<std::string, std::unique_ptr<MsgPort>>;
 using PortMap   = std::map<MsgPort*, std::unique_ptr<MsgPort>>;
-static PortTable s_portTable;
-static PortMap s_portMap;
+PortTable s_portTable;
+PortMap s_portMap;
 
 MsgPort *FindPort(const char *portName)
 {
@@ -22,17 +27,20 @@ MsgPort *FindPort(const char *portName)
 }
 
 MsgPort *
-CreatePort(const char *portName, uint8_t  priority)
+CreatePort(const char *portName)
 {
+	if (portName && *portName == 0)
+		portName = nullptr;
 	// Ports don't have to have a name.
-	if (portName != nullptr && *portName != 0) {
+	if (portName != nullptr) {
     	if (auto port = FindPort(portName); port)
         	return port;
 	}
-    auto port = std::make_unique<MsgPort>(portName, priority);
+
+    auto port = std::make_unique<MsgPort>(portName);
     auto portp = port.get();
 
-	if (portName != nullptr && *portName != 0)
+	if (portName != nullptr)
     	s_portTable.emplace(portName, std::move(port));
 	else
 		s_portMap.emplace(portp, std::move(port));
@@ -43,14 +51,14 @@ CreatePort(const char *portName, uint8_t  priority)
 void
 DeletePort(MsgPort *port)
 {
-	if (port->ln_Name == nullptr || *port->ln_Name == 0) {
+	if (port->m_name == nullptr) {
 		auto it = s_portMap.find(port);
 		if (it != s_portMap.end())
 			s_portMap.erase(it);
 		return;
 	}
 
-	auto it = s_portTable.find(port->ln_Name);
+	auto it = s_portTable.find(port->m_name);
 	if (it != s_portTable.end() && it->second.get() == port) {
 		s_portTable.erase(it);
 		return;
@@ -64,16 +72,17 @@ DeletePort(MsgPort *port)
 	}
 }
 
-#include <chrono>
-#include <thread>
-
-using Tick = std::chrono::duration<int64_t, std::ratio<1, 50>>;
-
 void
 Delay(unsigned int ticks)
 {
 	// Amiga 'ticks' were 1/50th of a second.
 	std::this_thread::sleep_for(Tick(ticks));
+}
+
+void
+Yield() noexcept
+{
+	std::this_thread::yield();
 }
 
 bool
@@ -100,7 +109,7 @@ MsgPort::Wait()
 			m_msgList.pop_front();
 			break;
 		}
-		std::this_thread::yield();
+		Yield();
 	}
 	return result;
 }
@@ -126,28 +135,4 @@ void MsgPort::Clear()
 {
 	SpinGuard guard{m_spinLock};
 	m_msgList.clear();
-}
-
-bool
-SpinLock::TryLock() noexcept
-{
-	return !m_lock.exchange(true, std::memory_order_acquire);
-}
-
-void
-SpinLock::Lock() noexcept
-{
-	for (size_t i = 0; i < 30; ++i) {
-		if (TryLock())
-			return;
-	}
-	while (!TryLock()) {
-		std::this_thread::yield();
-	}
-}
-
-void
-SpinLock::Unlock() noexcept
-{
-	m_lock.exchange(false, std::memory_order_release);
 }
