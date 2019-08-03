@@ -10,27 +10,6 @@
 
 #include <h/amul.type.h>
 
-// Types of string, bit-mask
-enum StringType {
-    STRING_LITERAL = 0x01,      // Anonymous
-    STRING_MESSAGE = 0x02,      // system/user message,
-    STRING_OBJECT_DESC = 0x04,  // description used by objects,
-    STRING_ROOM_DESC = 0x08,    // room descriptions,
-    STRING_FORMATTED = 0x10,    // if true: text has @ tokens
-    STRING_FILE = 0x20,         // contents of an entire file
-};
-
-// Fixed string IDs
-enum StringIDs {
-    STRINGID_EMPTY,
-    STRINGID_NEWLINE,
-};
-
-// String identifier is a 64-bit value that identifies the types
-// of the string has and it's offset from the beginning of the
-// string table.
-typedef uint32_t stringid_t;
-
 // Copy strings as-is
 char *StrCopy(char *into, size_t intoSize, const char *start, const char *end);
 #define StrCopier(into, start, end) StrCopy(into, sizeof(into), start, end)
