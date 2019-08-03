@@ -10,11 +10,10 @@
 #include "basicobjs.hpp"
 #include "players.hpp"
 
-struct DATA
-    {
-    int semid;                  // Semaphore ID for locking
-    u_short errors;             // Global error count
-    u_long wflags;              // World flags
+struct DATA {
+    int semid;       // Semaphore ID for locking
+    u_short errors;  // Global error count
+    u_long wflags;   // World flags
 
     // Basic game information (from advfn)
     char name[ADNAMEL + 1];     // The game's name
@@ -32,8 +31,8 @@ struct DATA
     char lastcrt[ADNAMEL + 1];  // Last compile in ascii
 
     // Pointer table
-    void *shmbase;              // Base of shared memory
-    long *msgbase;              // Base of text messages
+    void *shmbase;  // Base of shared memory
+    long *msgbase;  // Base of text messages
     class Room *roombase;
     class Rank *rankbase;
     class Mobile *mobbase;
@@ -43,7 +42,7 @@ struct DATA
     class Alias *aliasbase;
 
     // Item counts
-    counter_t rooms;            // Number of rooms in game
+    counter_t rooms;  // Number of rooms in game
     counter_t ranks;
     counter_t mobiles;
     counter_t objects;
@@ -55,15 +54,15 @@ struct DATA
     struct VOCAB VC;
 
     // Useful information
-    counter_t start_rooms;      // Number of start rooms
-    class Room *anterm;         // If there's an ante-room
+    counter_t start_rooms;  // Number of start rooms
+    class Room *anterm;     // If there's an ante-room
 
     // Multi-user status
-    counter_t connections;      // Connections this game has seen
-    int  connected;             // Number of people connected
-    int  pid[MAXU];             // Process ID's
-    Player user[MAXU];    		// Player details
-    };
+    counter_t connections;  // Connections this game has seen
+    int connected;          // Number of people connected
+    int pid[MAXU];          // Process ID's
+    Player user[MAXU];      // Player details
+};
 
 extern struct DATA *data;
 #endif /* DATA_H */

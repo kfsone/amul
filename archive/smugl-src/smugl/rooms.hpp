@@ -6,9 +6,9 @@
 #define ROOMS_H 1
 
 class Room : public ROOM
-    {
-public:
-	virtual ~Room() {}
+{
+  public:
+    virtual ~Room() {}
     virtual int describe(void) override;
     inline class TTEnt *Tabptr(void);
     void arrive(const char *how = me->arr);
@@ -17,34 +17,38 @@ public:
     int leave(vocid_t id);
     int leave(class Verb *vb);
     void exits(void);
-    };
+};
 
 class RoomIdx
-    {
-private:
+{
+  private:
     // Current room iteration or, for players, present location.
     static int cur_no;
-public:
+
+  public:
     inline RoomIdx(void) { cur_no = 0; }
     static class Room *locate(const char *s);
     static class Room *locate(vocid_t id);
-    static inline class Room *first(void) { cur_no = 0; return data->roombase; };
+    static inline class Room *first(void)
+    {
+        cur_no = 0;
+        return data->roombase;
+    };
     static inline class Room *current(void)
-        {
+    {
         if (cur_no >= data->rooms)
             return NULL;
         return data->roombase + cur_no;
-        };
+    };
     static inline class Room *next(void)
-        {
-        if (++cur_no >= data->rooms)
-            {
+    {
+        if (++cur_no >= data->rooms) {
             cur_no = data->rooms;
             return NULL;
-            }
+        }
         return data->roombase + cur_no;
-        };
     };
+};
 
 extern class Room *cur_loc;
 extern class Room *last_room;

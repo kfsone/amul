@@ -13,7 +13,7 @@ extern long arg_alloc, *argtab, *argptr;
 
 void
 trav_proc(void)
-    {                           /* Process travel table */
+{ /* Process travel table */
     int strip, lines;
     int nvbs, i, ntt;
     char *p, *s;
@@ -29,52 +29,45 @@ trav_proc(void)
     data = cleanget();
     p = skipspc(data);
 
-    do
-        {
-	p = skipline(s = p);
-	s = skipspc(s);
-	if (!*s)
+    do {
+        p = skipline(s = p);
+        s = skipspc(s);
+        if (!*s)
             continue;
-	getword(skiplead("room=", s));
-	if ((cur_room = is_bob(Word, WROOM)) == -1)
-            {
-	    error("Undefined room: %s\n", Word);
-	    p = skipdata(p);
+        getword(skiplead("room=", s));
+        if ((cur_room = is_bob(Word, WROOM)) == -1) {
+            error("Undefined room: %s\n", Word);
+            p = skipdata(p);
             continue;
-            }
-        rmp = dynamic_cast<ROOM*>(bobs[cur_room]);
-		assert(rmp != nullptr);
-	if (rmp->tabptr != -1)
-            {
-	    error("%s: Travel already defined.\n", Word);
-	    p = skipdata(p);
+        }
+        rmp = dynamic_cast<ROOM *>(bobs[cur_room]);
+        assert(rmp != nullptr);
+        if (rmp->tabptr != -1) {
+            error("%s: Travel already defined.\n", Word);
+            p = skipdata(p);
             continue;
-            }
+        }
 
-        do
-            {
+        do {
             p = skipline(s = p);
-            if (!*s)
-                {
+            if (!*s) {
                 /* Only complain if room is not a death room */
                 if ((rmp->std_flags & bob_DEATH) != bob_DEATH)
                     warne("%s: No T.T entries!\n", word(rmp->id));
                 rmp->tabptr = -2;
                 ntt++;
                 break;
-                }
+            }
             s = skipspc(s);
             if (!*s)
                 continue;
-            if (skiplead("verbs=", s) == s)
-                {
+            if (skiplead("verbs=", s) == s) {
                 error("%s: Missing verbs= line.\n", word(rmp->id));
                 continue;
-                }
             }
-        while (!*s);
+        } while (!*s);
         if (!*s)
-            continue;   /* Didn't like the verb list */
+            continue; /* Didn't like the verb list */
 
         /* Prep some values */
         s = skiplead("verbs=", s);
@@ -83,13 +76,12 @@ trav_proc(void)
         rmp->tabptr = tabcnt;
         rmp->ttlines = 0;
 
-vbproc:			/* Process verb list */
+    vbproc: /* Process verb list */
         nvbs = 0;
         tt.pptr = (long *) -1;
         l = (long *) temp;
         /* Break verb list down to verb no.s */
-        do
-            {
+        do {
             s = getword(s);
             if (!*Word)
                 break;
@@ -98,15 +90,12 @@ vbproc:			/* Process verb list */
                 error("%s: Invalid \"%s\"\n", word(rmp->id), Word);
             l++;
             nvbs++;
-            }
-        while (*Word);
-        if (!nvbs)
-            {
+        } while (*Word);
+        if (!nvbs) {
             error("%s: No verbs specified after verbs=!\n", word(rmp->id));
-            }
+        }
         /* Now process each instruction line */
-        do
-            {
+        do {
             tt.not_condition = 0;
             tt.condition = -1;
             tt.action_type = ACT_GO;
@@ -114,91 +103,73 @@ vbproc:			/* Process verb list */
             strip = 0;
 
             p = skipline(s = p);
-            if (!*s)
-                {
+            if (!*s) {
                 strip = -1;
                 continue;
-                }
+            }
             s = skipspc(s);
             if (!*s)
                 continue;
-            if (!strncmp("verbs=", s, 6))
-                {
+            if (!strncmp("verbs=", s, 6)) {
                 strip = 1;
                 s += 6;
                 break;
-                }
-            s = precon(s);	/* Strip pre-condition opts */
+            }
+            s = precon(s); /* Strip pre-condition opts */
 
             /* Negations */
-            if (*s == '!')
-                {
+            if (*s == '!') {
                 tt.not_condition = 1;
                 s++;
-                }
-            if (strncmp(s, "not ", 4) == 0)
-                {
+            }
+            if (strncmp(s, "not ", 4) == 0) {
                 tt.not_condition = 1;
-                s += 4;         /* Skip the phrase 'not ' */
-                }
+                s += 4; /* Skip the phrase 'not ' */
+            }
             s = getword(s);
-            if ((tt.condition = iscond(Word)) == -1)
-                {
+            if ((tt.condition = iscond(Word)) == -1) {
                 tt.condition = CALWAYS;
                 if ((tt.action = is_bob(Word, WROOM)) != -1)
                     goto write;
-                if ((tt.action = isact(Word)) == -1)
-                    {
-                    error("%s: Invalid condition \"%s\"\n",
-                          word(rmp->id), Word);
+                if ((tt.action = isact(Word)) == -1) {
+                    error("%s: Invalid condition \"%s\"\n", word(rmp->id), Word);
                     continue;
-                    }
-                tt.action_type = ACT_DO;
                 }
-            else
-                {
+                tt.action_type = ACT_DO;
+            } else {
                 s = skipspc(s);
-                if (!(s = chkcparms(s, tt.condition)))
-                    {
+                if (!(s = chkcparms(s, tt.condition))) {
                     strip = 0;
                     continue;
-                    }
-                if (!*s)
-                    {
+                }
+                if (!*s) {
                     error("%s: C&A line has missing action.\n", word(rmp->id));
                     continue;
-                    }
+                }
                 s = preact(s);
                 s = getword(s);
-                if ((tt.action = is_bob(Word, WROOM)) == -1)
-                    {
-                    if ((tt.action = isact(Word)) == -1)
-                        {
-                        error("%s: Invalid %s \"%s\"\n",
-                              word(rmp->id), "action", Word);
+                if ((tt.action = is_bob(Word, WROOM)) == -1) {
+                    if ((tt.action = isact(Word)) == -1) {
+                        error("%s: Invalid %s \"%s\"\n", word(rmp->id), "action", Word);
                         continue;
-                        }
-                    tt.action_type = ACT_DO;
                     }
+                    tt.action_type = ACT_DO;
                 }
+            }
             s = skipspc(s);
-            if (tt.action_type == ACT_DO)
-                {
-                if (tt.action == ATRAVEL)
-                    {
+            if (tt.action_type == ACT_DO) {
+                if (tt.action == ATRAVEL) {
                     error("%s: Action 'TRAVEL' not allowed!\n");
                     continue;
-                    }
-                if (!(s = chkaparms(s, tt.action)))
-                    {
+                }
+                if (!(s = chkaparms(s, tt.action))) {
                     strip = 0;
                     continue;
-                    }
                 }
-    write:
+            }
+        write:
             l = (long *) temp;
-            for (i = 0; i < nvbs; i++)
-                {
+            for (i = 0; i < nvbs; i++) {
                 if (i < nvbs - 1)
                     tt.pptr = (long *) -2;
                 else
@@ -208,34 +179,26 @@ vbproc:			/* Process verb list */
                 rmp->ttlines++;
                 tabcnt++;
                 ttents++;
-                }
+            }
             lines++;
             strip = 0;
-            }
-        while (!strip && *p);
+        } while (!strip && *p);
         if (strip == 1 && *p)
             goto vbproc;
         ntt++;
-        }
-    while (*p);
+    } while (*p);
 
-    if (!err && ntt != rooms && warn == 1)
-        {
-	for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = rmp->getNext(rmp)) {
-	    if (rmp->tabptr == -1
-                && (rmp->std_flags & bob_DEATH) != bob_DEATH)
-		warne("No exits for %s\n", word(rmp->id));
-}
+    if (!err && ntt != rooms && warn == 1) {
+        for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = rmp->getNext(rmp)) {
+            if (rmp->tabptr == -1 && (rmp->std_flags & bob_DEATH) != bob_DEATH)
+                warne("No exits for %s\n", word(rmp->id));
         }
+    }
 
-    fwrite(argtab, sizeof(*argtab), (size_t)arg_alloc, ofp2);
+    fwrite(argtab, sizeof(*argtab), (size_t) arg_alloc, ofp2);
     free(argtab);
     arg_alloc = 0;
     argtab = argptr = NULL;
 
     errabort();
-    }
-
-
-
-
+}

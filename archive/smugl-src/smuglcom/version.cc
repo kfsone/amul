@@ -57,17 +57,16 @@ static const char rcsid[] = "$Id: version.cc,v 1.4 1997/05/22 02:21:44 oliver Ex
 #include "smuglcom.hpp"
 
 #if defined(_WIN32) || defined(_MSC_VER)
-# include "..\h\SMUGLCOM.h"        /* Win32 doesn't see the difference */
+#include "..\h\SMUGLCOM.h" /* Win32 doesn't see the difference */
 #else
-# include "SMUGLCOM.h"
+#include "SMUGLCOM.h"
 #endif
 #include "stdio.h"
 
-char vername[81];                  // Version name string
+char vername[81];  // Version name string
 
 void
 set_version_string(void)
-    {
-    sprintf(vername, "SMUGLCom v%s (%s)",
-	    SMUGLCOM_RELEASE, SMUGLCOM_BUILT);
-    }
+{
+    sprintf(vername, "SMUGLCom v%s (%s)", SMUGLCOM_RELEASE, SMUGLCOM_BUILT);
+}

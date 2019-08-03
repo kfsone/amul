@@ -9,25 +9,22 @@ static const char rcsid[] = "$Id: misc.cc,v 1.2 1997/05/22 02:21:37 oliver Exp $
 ** purpose (described by msg). A wrapper for malloc/realloc */
 void *
 grow(void *ptr, size_t size, const char *msg)
-    {
+{
     void *p;
 
-    if (ptr == NULL)
-        {
+    if (ptr == NULL) {
         p = malloc(size);
-        if (p == NULL)
-            {
+        if (p == NULL) {
             error("Out of memory: %s\n", msg);
             errabort();
-            }
-        return p;
         }
+        return p;
+    }
 
     p = realloc(ptr, size);
-    if (p == NULL)
-        {
-	error("Can't extend memory: %s\n", msg);
-	errabort();
-        }
-    return p;
+    if (p == NULL) {
+        error("Can't extend memory: %s\n", msg);
+        errabort();
     }
+    return p;
+}

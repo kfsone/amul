@@ -9,9 +9,9 @@
 #include "cl_basicobj.hpp"
 
 class OBJ : public BASIC_OBJ
-    {				// Object (temporary) definition
-public:
-	virtual ~OBJ() {}
+{  // Object (temporary) definition
+  public:
+    virtual ~OBJ() {}
 
     //// Object::FUNCTIONS
     virtual int describe(void) override { return 0; };
@@ -20,11 +20,11 @@ public:
     virtual int Read(FILE *) override;
 
     //// Object::DATA
-    char putto;                 // Where things go
-    char article;               // 'a'? 'an'?
-    short nstates;              // No. of states
-    short mobile;               // Mobile character
-    class State *states;        // Ptr to states!
-    };
+    char putto;           // Where things go
+    char article;         // 'a'? 'an'?
+    short nstates;        // No. of states
+    short mobile;         // Mobile character
+    class State *states;  // Ptr to states!
+};
 
 #endif /* OBJ_H */
