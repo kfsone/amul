@@ -20,40 +20,40 @@ static const char rcsid[] = "$Id: smugl.cc,v 1.14 1999/09/10 15:57:31 oliver Exp
 #include <cstring>
 
 #define DEF
-#include "smugl.hpp"
+#include "client.hpp"
 #include "consts.hpp"
 #include "fileio.hpp"
 #include "loaders.hpp"
-#include "client.hpp"
+#include "smugl.hpp"
 
 // Proto files
-#include "libprotos.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
 #include "lang.hpp"
-#include "rooms.hpp"
-#include "ranks.hpp"
+#include "libprotos.hpp"
+#include "login.hpp"
+#include "manager.hpp"
+#include "misc.hpp"
 #include "mobiles.hpp"
 #include "objects.hpp"
-#include "manager.hpp"
-#include "travel.hpp"
-#include "ipc.hpp"
-#include "io.hpp"
-#include "misc.hpp"
-#include "login.hpp"
 #include "parser.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
+#include "travel.hpp"
 
 #ifdef HAVE_SYS_STAT_H
 #include "sys/stat.h"
 #endif
 #include "sys/param.h"
 
-char fork_on_load;              // Do we detach on startup?
-char debug;                     // What debug level?
+char fork_on_load;  // Do we detach on startup?
+char debug;         // What debug level?
 
-int exiting = ecFalse;          // If we're exiting
-int heavyDebug = 0;		// Enable heavy debugging
+int exiting = ecFalse;  // If we're exiting
+int heavyDebug = 0;     // Enable heavy debugging
 
-char *program;                  // Program name (argv[0])
-extern char vername[];          // Version name from version.C
+char *program;          // Program name (argv[0])
+extern char vername[];  // Version name from version.C
 
 // Local forward-protos
 static void argue(int argc, char *argv[]);
@@ -61,14 +61,14 @@ extern void set_version_string(void);
 
 int
 main(int argc, char *argv[])
-    {
+{
     set_version_string();
     program = argv[0];
 
     // For safeties sake, we kick the random seed around some
     srand(time(NULL) % getpid());
 
-    argue(argc - 1, argv+1);    // Process the command line arguments
+    argue(argc - 1, argv + 1);  // Process the command line arguments
 
     // Print the banner
     printf("===============================================================\n");
@@ -79,9 +79,9 @@ main(int argc, char *argv[])
 
     openlog("smugl", LOG_PID, LOG_LOCAL0);
 
-    init_ipc(memory_required()); // Initialise the IPC and shared memory
-    load_database(data->shmbase); // Load initial database into shared memory
-    init_sockets();             // Prepare the listening socket
+    init_ipc(memory_required());   // Initialise the IPC and shared memory
+    load_database(data->shmbase);  // Load initial database into shared memory
+    init_sockets();                // Prepare the listening socket
 
     // Now we invoke the manager's main loop.
     // This perpetuates, and only ever returns when it has fork()ed a
@@ -91,104 +91,95 @@ main(int argc, char *argv[])
     // From here on, we are a client
     client_initialise();
 
-    ShowFile("title.text");     // Display title screen
-    login();                    // Log the player in
+    ShowFile("title.text");  // Display title screen
+    login();                 // Log the player in
     syslog(LOG_NOTICE, "player logged in: %s", me->name());
 
-    while (exiting == ecFalse)
-        {
+    while (exiting == ecFalse) {
         prompt(myRank->prompt);
         fetch_input(input, MAX_PHRASE_SIZE);
-        sanitise_input();       // Tidy up what we read
+        sanitise_input();  // Tidy up what we read
         if (input[0] == 0)
             continue;
-	if (strncmp(input, "*debug", 6) == 0)
-	    {
-	    txprintf("- Heavy Debugging is %s\n",
-			(heavyDebug = !heavyDebug) ? "on" : "off");
-	    continue;
-	    }
+        if (strncmp(input, "*debug", 6) == 0) {
+            txprintf("- Heavy Debugging is %s\n", (heavyDebug = !heavyDebug) ? "on" : "off");
+            continue;
+        }
         if (debug)
             txprintf("You typed: [%s]\n", input);
         parse(input);
-        }
-
-    exit(0);
     }
 
+    exit(0);
+}
+
 // Describe how to run the program
-[[noreturn]]
-static void
+[[noreturn]] static void
 usage(int code)
-    {
-    printf("Usage: %s [-d] [-f] [path]\n" \
-           "Loads and runs a pre-compiled SMUGL game (see smuglcom)\n" \
-           "Options:\n" \
-           "  -d       Enable debugging output\n" \
-           "  -f       Fork after initialising the game\n" \
+{
+    printf("Usage: %s [-d] [-f] [path]\n"
+           "Loads and runs a pre-compiled SMUGL game (see smuglcom)\n"
+           "Options:\n"
+           "  -d       Enable debugging output\n"
+           "  -f       Fork after initialising the game\n"
            "  path     Specify the game path (default is pwd)\n",
            program);
     exit(code);
-    }
+}
 
 // Process the arguments
 static void
 argue(int argc, char *argv[])
-    {
+{
     struct stat sbuf;
     int arg = 0;
     dir[0] = 0;
     // NOTE: This isn't real argv - argv[0] is the first ARGUMENT
     // the program was called with. Don't get confused ;-)
-    if (argc >= 1)              // We have some arguments
-        {
+    if (argc >= 1)  // We have some arguments
+    {
         if (strcmp(argv[0], "?") == 0)
-            usage(0);       // Allow "smugl ?" for usage
-        for ( ; arg < argc; arg++ )
-            {
-            if (argv[arg][0] == '-' || argv[arg][0] == '/')
-                {
-                switch (argv[arg][1])
-                    {
-                  case '?':     // Things that look like usage requests
-                  case 'h':
-                  case 'u':
+            usage(0);  // Allow "smugl ?" for usage
+        for (; arg < argc; arg++) {
+            if (argv[arg][0] == '-' || argv[arg][0] == '/') {
+                switch (argv[arg][1]) {
+                    case '?':  // Things that look like usage requests
+                    case 'h':
+                    case 'u':
                         usage(0);
                         /* NOTREACHED */
 
-                  case 'f':     // fork after loading everything
+                    case 'f':  // fork after loading everything
                         fork_on_load = 1;
                         break;
 
-                  case 'd':     // debug mode (incremental)
+                    case 'd':  // debug mode (incremental)
                         debug++;
                         break;
 
-                  default:
+                    default:
                         usage(0);
                         /* NOTREACHED */
-                    }
                 }
-            else
-                {
-                if (arg + 1 < argc)
-                    {
-                    error(LOG_ERR, "Don't understand arguments at: %s %s ...",
-                          argv[arg], argv[arg + 1]);
+            } else {
+                if (arg + 1 < argc) {
+                    error(LOG_ERR,
+                          "Don't understand arguments at: %s %s ...",
+                          argv[arg],
+                          argv[arg + 1]);
                     usage(1);
                     /* NOTREACHED */
-                    }
-                strcpy(dir, argv[arg]);
                 }
+                strcpy(dir, argv[arg]);
             }
         }
+    }
     if (dir[0] == 0)
-	getcwd(dir, MAXPATHLEN);
+        getcwd(dir, MAXPATHLEN);
     if (dir[strlen(dir) - 1] != '/')
         strcat(dir, "/");
-    if (stat(dir, &sbuf) == -1 || !S_ISDIR(sbuf.st_mode))
-        {
+    if (stat(dir, &sbuf) == -1 || !S_ISDIR(sbuf.st_mode)) {
         error(LOG_ERR, "Can't access directory %s", dir);
         usage(1);
-        }
     }
+}

@@ -2,8 +2,8 @@
 // $Id: misc.hpp,v 1.4 1999/06/08 15:36:50 oliver Exp $
 
 struct fileInfo {
- const char *name;
- long size;
+    const char *name;
+    long size;
 };
 
 extern long filesize(const char *filename);

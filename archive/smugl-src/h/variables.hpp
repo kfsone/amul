@@ -3,18 +3,17 @@
  */
 
 #ifndef VARS_H
-#define	VARS_H	1
+#define VARS_H 1
 
-#ifndef	DEF
-#define	DEF extern
+#ifndef DEF
+#define DEF extern
 #endif
 
 /* Text */
-extern char dir[];		/* spc for work dir path */
-extern char block[];		/* 1k block of spare txt */
+extern char dir[];   /* spc for work dir path */
+extern char block[]; /* 1k block of spare txt */
 
 /*DEF struct MsgPort *port, *reply;*/
 /*DEF struct Aport *amul;*/
 
 #endif /* VARS_H */
-

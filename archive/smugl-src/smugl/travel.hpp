@@ -6,16 +6,16 @@
 #define TRAVEL_H 1
 
 class TTEnt : public TT_ENT
-    {
-public:
+{
+  public:
     int describe(void);
-    };
+};
 
 class TTIdx
-    {
-public:
+{
+  public:
     static class TTEnt *locate(char *s);
     static class TTEnt *locate(long id);
-    };
+};
 
 #endif /* Travel_H */

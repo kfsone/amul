@@ -10,9 +10,9 @@
 #include "cl_basicobj.hpp"
 
 class ROOM : public BASIC_OBJ
-    {				// Room def struct
-public:
-	virtual ~ROOM() {}
+{  // Room def struct
+  public:
+    virtual ~ROOM() {}
     //// Room::FUNCTIONS
     virtual int describe(void) override { return 0; };
     virtual int describe_verbose(void) override { return 0; };
@@ -20,9 +20,9 @@ public:
     virtual int Read(FILE *) override;
 
     //// Room::DATA
-    u_long visitor_bf;          // Bit field - which users have visited?
-    long tabptr;                // Travel Table data Offset (yeuch)
-    short ttlines;              // No. of TT lines
-    };
+    u_long visitor_bf;  // Bit field - which users have visited?
+    long tabptr;        // Travel Table data Offset (yeuch)
+    short ttlines;      // No. of TT lines
+};
 
 #endif /* ROOM_H */

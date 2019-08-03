@@ -3,7 +3,7 @@
 // $Id: protos.hpp,v 1.8 1997/05/22 02:21:39 oliver Exp $
 
 #ifndef SMUGLCOM_PROTOS
-#define	SMUGLCOM_PROTOS	1
+#define SMUGLCOM_PROTOS 1
 
 #include "typedefs.hpp"
 
@@ -16,8 +16,8 @@ void checksys(void);
 int iscond(const char *s);
 int isact(const char *s);
 void section(int i);
-void error(const char *s,...);
-void warne(const char *s,...);
+void error(const char *s, ...);
+void warne(const char *s, ...);
 void errabort(void);
 /*
 int higerhalph(char *s1, char *s2);
@@ -25,12 +25,12 @@ void sort_objs(void);
 */
 void close_ofps(void);
 int nextc(int);
-void quit(const char *s,...);
+void quit(const char *s, ...);
 void fopenw(const char *s);
 void fopena(const char *s);
 void fopenr(const char *s);
 void Err(const char *s, const char *t);
-FILE *rfopen(const char *s);
+struct FILE *rfopen(const char *s);
 void ttroomupdate(void);
 void skipblock(void);
 char *skipdata(char *p);
@@ -38,7 +38,7 @@ void tidy(char *s);
 void clean_trim(char *s);
 int is_verb(const char *s);
 char *blkget(void);
-char *cleanget(off_t off=0);
+char *cleanget(off_t off = 0);
 char *text_proc(char *p, FILE *destfp);
 void lang_proc(void);
 int actualval(const char *, arg_t);
@@ -79,15 +79,16 @@ container_t add_container(basic_obj self, basic_obj container);
 int is_inside(basic_obj item, basic_obj container);
 basic_obj add_basic_obj(struct BASIC_OBJ *ptr, char type, flag_t flags);
 void save_basic_objs(void);
-basic_obj is_bob(char *s, char type=-1);
+basic_obj is_bob(char *s, char type = -1);
 basic_obj is_container(char *s);
 signed int handle_std_flag(const char *s, flag_t &flags, flag_t filter);
 
-static inline char *skipspc(char *s)
-    {
+static inline char *
+skipspc(char *s)
+{
     while (*s && *s == 32)
-	s++;
+        s++;
     return s;
-    }
+}
 
-#endif				/* SMUGLCOM_PROTOS */
+#endif /* SMUGLCOM_PROTOS */

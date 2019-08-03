@@ -8,17 +8,17 @@
 #include "rooms.hpp"
 
 class Mobile : public MOB_ENT
-    {
-public:
-    int describe(void);          // Not really apropriate
-    inline class Room *dmoveRm(void); // What room should we dmove to?
-    };
+{
+  public:
+    int describe(void);                // Not really apropriate
+    inline class Room *dmoveRm(void);  // What room should we dmove to?
+};
 
 class MobileIdx
-    {
-public:
+{
+  public:
     static class Mobile *locate(char *s);
     static class Mobile *locate(long id);
-    };
+};
 
 #endif /* MOBILES_H */
