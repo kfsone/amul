@@ -25,7 +25,6 @@ amulcom.cpp :: AMUL Compiler. Copyright (C) KingFisher Software 1990-2019.
 #include <h/amul.cons.h>
 #include <h/amul.defs.h>
 #include <h/amul.gcfg.h>
-#include <h/amul.hash.h>
 #include <h/amul.msgs.h>
 #include <h/amul.stct.h>
 #include <h/amul.strs.h>
@@ -556,7 +555,7 @@ getObjectDescriptionID(const char *text)
         return -2;
 
     stringid_t id = -1;
-    LookupTextString(text, STRING_OBJECT_DESC, &id);
+    LookupTextString(text, &id);
     return id;
 }
 
@@ -828,7 +827,7 @@ getTextString(char *s, bool prefixed)
             afatal("Unable to add string literal: %d", err);
     } else {
         getword(s);
-        error_t err = LookupTextString(Word, STRING_MESSAGE, &id);
+        error_t err = LookupTextString(Word, &id);
         if (err != 0 && err != ENOENT)
             afatal("Error looking up string (%d): %s", err, s);
     }
@@ -1177,7 +1176,7 @@ getmobmsg(const char *s)
 }
 
 error_t
-consumeMessageFile(FILE *fp, const char *prefix, StringType stype, bool (*checkerFn)(const char *))
+consumeMessageFile(FILE *fp, const char *prefix, bool (*checkerFn)(const char *))
 {
     if (!nextc(false))
         return ENOENT;
@@ -1201,7 +1200,7 @@ consumeMessageFile(FILE *fp, const char *prefix, StringType stype, bool (*checke
             skipblock();
         }
 
-        TextStringFromFile(Word, fp, stype, NULL);
+        TextStringFromFile(Word, fp, nullptr);
     }
 
     return 0;
@@ -1238,10 +1237,19 @@ title_proc()
     getBlockNo("rankscale=", &g_gameConfig.rankScale);
     getBlockNo("timescale=", &g_gameConfig.timeScale);
 
-    // Make message 0 be the splash screen
-    if (TextStringFromFile("$title", ifp, STRING_FILE, NULL) != 0) {
-        afatal("Could not write splash text to message file");
+    while (nextc(false)) {
+        char *p = getTidyBlock(ifp);
+        if (!p || strncmp(p, "[title]", 7) != 0)
+            continue;
+        if (TextStringFromFile("$title", ifp, nullptr, true) != 0) {
+            afatal("Could not write splash text to message file");
+        }
+        return;
     }
+
+    alog(AL_WARN, "Missing [title] in Title.Txt");
+    snprintf(block, sizeof(block), "%s\n\n", compilerVersion);
+    RegisterTextString("$title", block, block+strlen(block), true, nullptr);
 }
 
 /*
@@ -1279,7 +1287,7 @@ check_smsg(const char *token)
 void
 smsg_proc()
 {
-    (void)consumeMessageFile(ifp, "msgid=", STRING_MESSAGE, check_smsg);
+    (void)consumeMessageFile(ifp, "msgid=", check_smsg);
     if (currentSysMessage != NSMSGS)
         alog(AL_ERROR, "sysmsg.txt is incomplete.");
 }
@@ -1287,7 +1295,7 @@ smsg_proc()
 void
 umsg_proc()
 {
-    error_t err = consumeMessageFile(ifp, "msgid=", STRING_MESSAGE, NULL);
+    error_t err = consumeMessageFile(ifp, "msgid=", nullptr);
     if (err == ENOENT) {
         /// TODO: Tell the user
         return;
@@ -1297,7 +1305,7 @@ umsg_proc()
 void
 obds_proc()
 {
-    error_t err = consumeMessageFile(ifp, "desc=", STRING_OBJECT_DESC, NULL);
+    error_t err = consumeMessageFile(ifp, "desc=", nullptr);
     if (err == ENOENT) {
         alog(AL_INFO, "No long object descriptions");
         return;
@@ -1401,7 +1409,7 @@ room_proc()
         }
 
         // Everything else in the current block is the room description.
-        error_t err = TextStringFromFile(NULL, ifp, STRING_ROOM_DESC, &room.descid);
+        error_t err = TextStringFromFile(NULL, ifp, &room.descid);
         if (err != 0) {
             alog(AL_ERROR, "room:%s: Unable to write description", room.id);
             skipblock();

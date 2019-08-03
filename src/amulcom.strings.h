@@ -15,11 +15,10 @@ size_t GetStringBytes();
 error_t AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp);
 
 error_t RegisterTextString(
-        const char *label, const char *start, const char *end, bool isLine, enum StringType stype,
-        stringid_t *idp);
+        const char *label, const char *start, const char *end, bool isLine, stringid_t *idp);
 
-error_t TextStringFromFile(const char *label, FILE *fp, enum StringType stype, stringid_t *idp);
+error_t TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEol=false);
 
-error_t LookupTextString(const char *label, enum StringType stype, stringid_t *idp);
+error_t LookupTextString(const char *label, stringid_t *idp);
 
 #endif

@@ -2,7 +2,6 @@ SET(AMUL_LIB_SOURCES
 		atom.cpp
         filesystem.cpp
 		constants.cpp
-        hashmap.cpp
         logging.cpp
 		modules.cpp
 		spinlock.cpp
@@ -15,7 +14,6 @@ SET(AMUL_LIB_HEADERS
 		buffer.h
 		filesystem.h
 		filesystem.inl.h
-        hashmap.h
 		modules.h
 		msgports.h
 		sourcefile.h
@@ -24,7 +22,6 @@ SET(AMUL_LIB_HEADERS
 
         ../h/amul.alog.h
 		../h/amul.cons.h
-        ../h/amul.hash.h
 		../h/amul.list.h
 )
 
