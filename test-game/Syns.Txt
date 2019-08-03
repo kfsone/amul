@@ -22,6 +22,5 @@ roomcount	room_count rmcount rm_count rc_mode rmc_mode
 exits		ex
 get		g take grab pick_up pick
 drop		dr put_down put
-give		gi
 inventory	i inv invent
 
