@@ -1,7 +1,4 @@
-- memory allocation
-- use skip functions instead of replace
-- bools
-- eliminate warnings
+Game Code Features:
 - allow users to name states and then test for them:
 	template=torch flammable
 		; note: no rooms
@@ -9,6 +6,18 @@
 		.lit	  default torch_lit flags=light
 		.unlit    default torch_unlit
 		.doused   weight=300 value=0 hitpoints=1 damage=1 torch_doused
+- Use verb/syntax specific ignore word globbing, e.g.
+    light {the} N1 {w|with|from|using|by} N2
+- Make sure there is a term/expression for "this room"
+- Allow omission of "syntax=verb none"
+- Simplify emotes
+
+Implementation:
+- replace 'sex' with gender
+- memory allocation
+- use skip functions instead of replace
+- bools
+- eliminate warnings
 - implement "isa" object flag:
 	object=torch523 isa=torch
 		firstroom
@@ -26,10 +35,6 @@ be better and more consistent for those that are builtins.
 "boot -> .boot
 "pre-magic -> .pre-magic
 "start -> .start
-"get -> .get
-"burnme -> .burnme
-"needtwo -> .needtwo
-"drop -> .drop
 
 - Check EXPECT_ERROR(EINVALs and make sure we're testing individual
   invalid values rather than possible occlusions.
@@ -46,6 +51,5 @@ be better and more consistent for those that are builtins.
 	readEntry();
 	size = sizeOfData();
 	frewriteAt(countPosn, &size, sizeof(size), ofp);
-- replace 'sex' with gender
 - replace _TT_ENT with { verb, vtab }
 - rename "task" -> "goal" or "achievement"
