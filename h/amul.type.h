@@ -11,14 +11,14 @@
 #include <h/amul.errs.h>
 
 // The string id is actually its offset in the strings file
-typedef uint32_t stringid_t;
+using stringid_t = uint32_t;
 
-typedef int32_t roomid_t;
+using roomid_t = int32_t;
 
-typedef int16_t adjid_t;
+using adjid_t = int32_t;
 
-typedef int16_t verbid_t;
+using verbid_t = int32_t;
 
-typedef int32_t opparam_t;  // parameter to an operation
+using opparam_t = int32_t;
 
 #endif
