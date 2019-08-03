@@ -4,11 +4,14 @@
 
 static const char rcsid[] = "$Id: misc.cc,v 1.7 1999/06/08 15:36:50 oliver Exp $";
 
+#include <cerrno>
+#include <cstring>
+
 #include "smugl.hpp"
-#include <sys/stat.h>
-#include "libprotos.hpp"
+#include "fileio.hpp"
 #include "io.hpp"
-#include <misc.hpp>
+#include "libprotos.hpp"
+#include "misc.hpp"
 
 long
 filesize(const char *filename)  // Return size of an (unopened) file

@@ -5,7 +5,9 @@
 static const char rcsid[] = "$Id: travproc.cc,v 1.9 1999/06/11 14:27:02 oliver Exp $";
 
 #include "smuglcom.hpp"
+
 #include <cassert>
+#include <cstring>
 
 extern long arg_alloc, *argtab, *argptr;
 

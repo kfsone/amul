@@ -2,19 +2,20 @@
 
 static const char rcsid[] = "$Id: rooms.cc,v 1.15 1999/09/10 15:57:31 oliver Exp $";
 
+#include <cassert>
+
 #define	ROOMS_C	1
 
 #include "smugl.hpp"
-#include "structs.hpp"
 #include "consts.hpp"
-
-#include "misc.hpp"
 #include "data.hpp"
+#include "ipc.hpp"
 #include "lang.hpp"
-#include "travel.hpp"
+#include "misc.hpp"
 #include "objects.hpp"
 #include "rooms.hpp"
-#include "ipc.hpp"
+#include "structs.hpp"
+#include "travel.hpp"
 
 class Room *cur_loc;
 //class RoomIdx RoomIdx;

@@ -6,9 +6,9 @@
 /******************************************/
 /*  WINDOWS Defines / Includes, etc       */
 
+#define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 # include <io.h>
-# include <fcntl.h>
 
 # define  bzero(ptr, size)  memset(ptr, 0, size)
 # define PATH_SEP "\\"

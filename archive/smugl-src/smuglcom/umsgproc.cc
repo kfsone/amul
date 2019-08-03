@@ -6,6 +6,8 @@ static const char rcsid[] = "$Id: umsgproc.cc,v 1.5 1997/05/22 02:21:43 oliver E
 
 #include "smuglcom.hpp"
 
+#include <cstring>
+
 void
 umsg_proc(void)
     {                           /* Process the umsg file */

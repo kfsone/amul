@@ -3,7 +3,10 @@
 static const char rcsid[] = "$Id: basicobjs.cc,v 1.5 1999/06/08 15:36:54 oliver Exp $";
 
 #include "smuglcom.hpp"
+#include "fileio.hpp"
 #include "libprotos.hpp"
+
+#include <cstring>
 
 // Container variables
 #define CONTAINER_GROW_RATE 1024// Containers to allocate at-a-time

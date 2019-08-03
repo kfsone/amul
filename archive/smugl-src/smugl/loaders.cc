@@ -8,14 +8,17 @@ static const char rcsid[] = "$Id: loaders.cc,v 1.16 1999/06/11 14:26:45 oliver E
 
 #define LOADERS_C 1
 
+#include <cassert>
+#include <cerrno>
+#include <cstring>
 #include <new>
 
 #include "smugl.hpp"
-#include "loaders.hpp"
-#include "structs.hpp"
 #include "consts.hpp"
-#include "misc.hpp"
 #include "io.hpp"
+#include "loaders.hpp"
+#include "misc.hpp"
+#include "structs.hpp"
 
 // Proto types and class definitions
 #include "libprotos.hpp"
@@ -363,7 +366,7 @@ load_database(void *membase)    // Load all the files in the database
 
     for (i = 0; i < MAXU; i++)
         {
-        Player *cur = data->user[i];
+        Player *cur = &data->user[i];
         new (cur) Player;
         bobs[bobno] = cur;
         cur->conLocation = conPlayer;

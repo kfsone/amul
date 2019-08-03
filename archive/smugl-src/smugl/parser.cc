@@ -1,15 +1,16 @@
 // SMUGL Parser
 static const char cvsid[] = "$Id: parser.cc,v 1.9 1999/06/11 14:26:45 oliver Exp $";
 
+#include <cctype>
+
 #include "smugl.hpp"
-#include "parser.hpp"
-#include "ipc.hpp"
-#include "ranks.hpp"
 #include "aliases.hpp"
-#include "rooms.hpp"
-#include "lang.hpp"
-#include "langtable.hpp"
 #include "consts.hpp"
+#include "ipc.hpp"
+#include "lang.hpp"
+#include "parser.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
 
 vocid_t verb = -1;              // Current verb
 char input[MAX_PHRASE_SIZE + 1]; // Current input

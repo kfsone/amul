@@ -7,6 +7,9 @@ static const char rcsid[] = "$Id: langproc.cc,v 1.10 1999/06/11 14:27:02 oliver 
 #include "smuglcom.hpp"
 #include "actuals.hpp"
 
+#include <cctype>
+#include <cstring>
+
 #define	GROW_SIZE	512
 #define	INVALID	"Invalid syntax= line!"
 

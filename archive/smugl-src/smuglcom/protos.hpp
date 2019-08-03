@@ -5,6 +5,8 @@
 #ifndef SMUGLCOM_PROTOS
 #define	SMUGLCOM_PROTOS	1
 
+#include "typedefs.hpp"
+
 int is_room_flag(const char *s);
 int is_room_param(char *&s);
 int isoflag1(const char *s);
@@ -75,7 +77,7 @@ void hash_stats(void);
 void set_version_string(void);
 container_t add_container(basic_obj self, basic_obj container);
 int is_inside(basic_obj item, basic_obj container);
-basic_obj add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags);
+basic_obj add_basic_obj(struct BASIC_OBJ *ptr, char type, flag_t flags);
 void save_basic_objs(void);
 basic_obj is_bob(char *s, char type=-1);
 basic_obj is_container(char *s);

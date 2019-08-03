@@ -7,9 +7,13 @@ static const char rcsid[] = "$Id: vocab.cc,v 1.7 1999/05/25 13:07:47 oliver Exp 
 
 #include "includes.hpp"
 #include "defines.hpp"
+#include "fileio.hpp"
+#include "structs.hpp"
 #include "typedefs.hpp"
 #include "vocab.hpp"
-#include "structs.hpp"
+
+#include <cctype>
+#include <cstring>
 
 struct VOCAB *vc;               /* Vocabulary index data */
 u_long hash;                    /* Last hash number we used */
