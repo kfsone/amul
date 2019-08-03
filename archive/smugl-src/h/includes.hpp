@@ -14,28 +14,9 @@
 
 /* Standard, system includes */
 
-#include <sys/types.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#include <stdio.h>
-#include <ctype.h>
-#ifdef STDC_HEADERS
-# include <string.h>
-# include <stdlib.h>
-# include <stdarg.h>
-#endif
-#ifdef HAVE_MEMORY_H
-# include <memory.h>
-#endif
-#ifdef HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
-#include <errno.h>
+#include <cstdint>
 
 #include "portable.hpp"
-
-#include "assert.h"
 
 
 #endif				/* INCS_H */

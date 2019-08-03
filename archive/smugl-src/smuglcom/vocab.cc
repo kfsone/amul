@@ -11,12 +11,13 @@
 static const char rcsid[] = "$Id: vocab.cc,v 1.7 1997/05/22 02:21:44 oliver Exp $";
 
 #include "includes.hpp"
+#include "fileio.hpp"
+#include "libprotos.hpp"
+#include "protos.hpp"
 #include "structs.hpp"
 #include "vocab.hpp"
-#include "vocab.hpp"
-#include "protos.hpp"
-#include "libprotos.hpp"
 
+#include <cstring>
 #include <iostream>
 
 /* Statistical information */

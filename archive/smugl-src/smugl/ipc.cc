@@ -12,19 +12,25 @@
 
 static const char rcsid[] = "$Id: ipc.cc,v 1.13 1999/05/25 13:08:12 oliver Exp $";
 
+#include <cerrno>
+#include <cstring>
+
 #include "smugl.hpp"
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <sys/sem.h>
-#include <sys/socket.h>
+#include "fileio.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "manager.hpp"
+#include "rooms.hpp"
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <signal.h>
 #include <poll.h>
-#include "manager.hpp"
-#include "ipc.hpp"
-#include "io.hpp"
-#include "rooms.hpp"
+#include <signal.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <sys/shm.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 // Private stuff
 static int shmid = -1;          // Shared memory handle
@@ -84,9 +90,7 @@ tidy_ipc(void)
         {
         if (manager && fork_on_load != -1)
             {
-            semun rmid;         // To satisfy -wall under GNU
-            rmid.val = 0;
-            semctl(data->semid, IPC_RMID, 0, rmid);
+            semctl(data->semid, IPC_RMID, 0, nullptr);
             data->semid = -1;
             }
 

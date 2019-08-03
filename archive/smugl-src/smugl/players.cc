@@ -6,10 +6,10 @@ static const char rcsid[] = "$Id: players.cc,v 1.14 1999/06/08 15:36:50 oliver E
 
 #include "smugl.hpp"
 #include "consts.hpp"
-
-#include "rooms.hpp"
+#include "fileio.hpp"
 #include "ipc.hpp"
 #include "ranks.hpp"
+#include "rooms.hpp"
 
 class Player *me;               // Pointer to our entry in data
 class Player *userbase;         // Same as data->user :-(

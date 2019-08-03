@@ -4,6 +4,9 @@ static const char rcsid[] = "$Id: objproc.cc,v 1.10 1999/06/08 15:36:54 oliver E
 
 #include "smuglcom.hpp"
 
+#include <cctype>
+#include <cstring>
+
 // Default the default object flags
 #define DEFAULT_STD \
     (bob_INPLAY)

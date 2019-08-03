@@ -4,13 +4,14 @@
 // language table entry processor. This houses all the condition and
 // action code, and the tables used to invoke them
 
+#include <cctype>
+
 #include "smugl.hpp"
 #include "structs.hpp"
 #include "aliases.hpp"
 #include "lang.hpp"
 #include "parser.hpp"
 #include "io.hpp"
-#include "langtable.hpp"
 
 bool
 quit()
@@ -132,7 +133,7 @@ do_condition(VBTAB *vt, bool lastCond)
     }
 
 slotResult
-do_action(VBTAB *vt, bool lastCond)
+do_action(VBTAB *vt, bool /*lastCond*/)
     {
     assert(vt->action_type == ACT_DO);
 

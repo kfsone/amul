@@ -12,8 +12,10 @@ static const char rcsid[] = "$Id: smuglcom.cc,v 1.10 1999/06/09 10:25:14 oliver 
 
 #include "smuglcom.hpp"
 #include "actuals.hpp"
-#include <sys/stat.h>
+#include "fileio.hpp"
 #include "virtuals.hpp"
+
+#include <cstring>
 
 static void usage(void);
 static void argue(int argc, char *argv[]);

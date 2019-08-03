@@ -2,11 +2,17 @@
 
 static const char rcsid[] = "$Id: io.cc,v 1.12 1999/05/26 11:42:07 oliver Exp $";
 
+#include <cctype>
+#include <cerrno>
+#include <cstdarg>
+#include <cstring>
+
 #include "smugl.hpp"
 #include "client.hpp"
-#include "misc.hpp"
-#include "ipc.hpp"
+#include "fileio.hpp"
 #include "io.hpp"
+#include "ipc.hpp"
+#include "misc.hpp"
 
 char lastc = 0;                 // Remember last character sent us
 char in_input = FALSE;          // Initially we're not inputting

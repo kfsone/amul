@@ -7,6 +7,9 @@ static const char rcsid[] = "$Id: msgmgt.cc,v 1.5 1997/05/22 02:21:38 oliver Exp
 #include "smuglcom.hpp"
 #include "libprotos.hpp"
 
+#include <cctype>
+#include <cstring>
+
 #define	GROW_SIZE 256		/* Size to grow index by */
 
 long *msgitab;			/* The message index table */

@@ -3,6 +3,10 @@ static const char rcsid[] = "$Id: roomproc.cc,v 1.11 1999/06/08 15:36:54 oliver 
 
 #include "smuglcom.hpp"
 
+#include <cassert>
+#include <cctype>
+#include <cstring>
+
 #define ROOMDSC_GROW_RATE 4096  // Rate to grow description buffer
 size_t rdalloc = 0;             // Text buffer memory allocated
 

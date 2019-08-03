@@ -17,11 +17,12 @@
 
 static const char rcsid[] = "$Id: smugl.cc,v 1.14 1999/09/10 15:57:31 oliver Exp $";
 
+#include <cstring>
+
 #define DEF
 #include "smugl.hpp"
-#include "sys/stat.h"
-#include "sys/param.h"
 #include "consts.hpp"
+#include "fileio.hpp"
 #include "loaders.hpp"
 #include "client.hpp"
 
@@ -39,6 +40,11 @@ static const char rcsid[] = "$Id: smugl.cc,v 1.14 1999/09/10 15:57:31 oliver Exp
 #include "misc.hpp"
 #include "login.hpp"
 #include "parser.hpp"
+
+#ifdef HAVE_SYS_STAT_H
+#include "sys/stat.h"
+#endif
+#include "sys/param.h"
 
 char fork_on_load;              // Do we detach on startup?
 char debug;                     // What debug level?
@@ -111,6 +117,7 @@ main(int argc, char *argv[])
     }
 
 // Describe how to run the program
+[[noreturn]]
 static void
 usage(int code)
     {

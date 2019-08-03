@@ -9,6 +9,9 @@ static const char rcsid[] = "$Id: travfunc.cc,v 1.8 1999/09/10 15:57:32 oliver E
 #include "smuglcom.hpp"
 #include "actuals.hpp"
 
+#include <cctype>
+#include <cstring>
+
 #define	GROW_SIZE	1024
 
 arg_t *argptr;			/* Where to place next c/a argument */

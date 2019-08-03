@@ -6,6 +6,9 @@ static const char rcsid[] = "$Id: titleproc.cc,v 1.9 1999/06/08 15:36:54 oliver 
 
 #include "smuglcom.hpp"
 
+#include <cctype>
+#include <cstring>
+
 #define BAD_STRING "Invalid %s specified (%s).\n"
 
 enum SecType { stOptions, stRanks };

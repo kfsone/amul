@@ -11,6 +11,9 @@
 enum tokType { tokUNK = -1, tokWORD, tokSTRING };
 enum slotResult { slotFailed = -1, slotIgnore, slotProcessed };
 
+extern bool do_condition(struct VBTAB *vt, bool lastCond);
+extern slotResult do_action(struct VBTAB *vt, bool lastCond);
+
 struct TOKEN
     {
     tokType type;

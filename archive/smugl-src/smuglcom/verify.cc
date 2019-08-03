@@ -14,6 +14,8 @@ static const char rcsid[] = "$Id: verify.cc,v 1.11 1999/06/08 15:36:54 oliver Ex
 #include "smuglcom.hpp"
 #include "virtuals.hpp"
 
+#include <cstring>
+
 FILE *fp;
 char *mem;
 long size;

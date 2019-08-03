@@ -7,6 +7,9 @@ static const char rcsid[] = "$Id: filebits.cc,v 1.8 1997/05/22 02:21:36 oliver E
 #include "smuglcom.hpp"
 #include "libprotos.hpp"
 
+#include <cctype>
+#include <cstring>
+
 static char *func_get(off_t off);
 static size_t filesize(void);
 

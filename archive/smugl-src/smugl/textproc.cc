@@ -4,11 +4,14 @@
 
 static const char rcsid[] = "$Id: textproc.cc,v 1.10 1999/06/09 13:01:41 oliver Exp $";
 
+#include <cctype>
+#include <cstring>
+
 #include "smugl.hpp"
 #include "actuals.hpp"
-#include "rooms.hpp"
-#include "ranks.hpp"
 #include "parser.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
 
 extern char vername[];
 
