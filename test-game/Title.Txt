@@ -23,4 +23,7 @@ timeScale=55
 
 -- Title.Txt title screen --
 
+[title]
+
 AMUL Test Adventure. Last compile: @lc. Last reset: @lr. Reset duration: 80 mins
+
