@@ -8,16 +8,16 @@
 #include "rooms.hpp"
 
 class Verb : public VERB
-    {
-public:
-    int describe(void);             // Not really apropriate
-    };
+{
+  public:
+    int describe(void);  // Not really apropriate
+};
 
 class VerbIdx
-    {
-public:
+{
+  public:
     static class Verb *locate(char *s);
     static class Verb *locate(long id);
-    };
+};
 
 #endif /* LANG_H */

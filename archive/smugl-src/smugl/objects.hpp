@@ -6,23 +6,23 @@
 #define OBJECTS_H 1
 
 class Object : public OBJ
-    {
-public:
+{
+  public:
     int describe(void);
-    };
+};
 
 class State : public OBJ_STATE
-    {
-public:
+{
+  public:
     int describe(void);
-    };
+};
 
 class ObjectIdx
-    {
-public:
+{
+  public:
     static class Object *locate(char *s);
     static class Object *locate(long id);
-    static class Object *locate_in(basic_obj in, class Object *first=NULL, long id=-1);
-    };
+    static class Object *locate_in(basic_obj in, class Object *first = NULL, long id = -1);
+};
 
 #endif

@@ -1,0 +1,30 @@
+﻿---
+BasedOnStyle: Mozilla
+AlignEscapedNewlines: Right
+AlignTrailingComments: 'true'
+AlwaysBreakAfterReturnType: TopLevelDefinitions
+AlwaysBreakTemplateDeclarations: 'Yes'
+BreakBeforeBraces: Linux
+BreakConstructorInitializers: BeforeColon
+ColumnLimit: '100'
+CompactNamespaces: 'true'
+ConstructorInitializerIndentWidth: '4'
+ContinuationIndentWidth: '8'
+DerivePointerAlignment: 'true'
+DisableFormat: 'false'
+FixNamespaceComments: 'true'
+IndentWidth: '4'
+PenaltyBreakBeforeFirstCallParameter: '8'
+PenaltyReturnTypeOnItsOwnLine: '0'
+PointerAlignment: Right
+ReflowComments: 'true'
+SpaceAfterCStyleCast: 'true'
+SpaceBeforeAssignmentOperators: 'true'
+SpaceBeforeCtorInitializerColon: 'true'
+SpaceBeforeRangeBasedForLoopColon: 'true'
+SpacesBeforeTrailingComments: '2'
+Standard: Auto
+TabWidth: '4'
+UseTab: Never
+
+...

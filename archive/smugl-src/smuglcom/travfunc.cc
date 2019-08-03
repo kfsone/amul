@@ -6,17 +6,17 @@
 
 static const char rcsid[] = "$Id: travfunc.cc,v 1.8 1999/09/10 15:57:32 oliver Exp $";
 
-#include "smuglcom.hpp"
 #include "actuals.hpp"
+#include "smuglcom.hpp"
 
 #include <cctype>
 #include <cstring>
 
-#define	GROW_SIZE	1024
+#define GROW_SIZE 1024
 
-arg_t *argptr;			/* Where to place next c/a argument */
-arg_t *argtab;			/* Table of arguments */
-counter_t arg_alloc;            /* How many entries allocated */
+arg_t *argptr;       /* Where to place next c/a argument */
+arg_t *argtab;       /* Table of arguments */
+counter_t arg_alloc; /* How many entries allocated */
 
 static long chknum(const char *);
 static int isgen(char);
@@ -38,236 +38,225 @@ static char *optis(char *);
  */
 static char *
 chkp(char *p, arg_t type, int c, int z)
-    {
+{
     char p2char;
     char qc, *p2;
-    long value = -2;		/* To satisfy -Wall ;) */
+    long value = -2; /* To satisfy -Wall ;) */
 
     /*=* Strip crap out *=*/
     p = optis(p);
     p2 = p = skipspc(p);
-    if (!*p)
-        {
-	error("%s: Missing paramters (%s '%s')\n",
-	      word((proc == 1) ? verb.id : bobs[cur_room]->id),
+    if (!*p) {
+        error("%s: Missing paramters (%s '%s')\n",
+              word((proc == 1) ? verb.id : bobs[cur_room]->id),
               (z == 1) ? "condition" : "action",
               (z == 1) ? cond[c].name : action[c].name);
-	return NULL;
-        }
+        return NULL;
+    }
 
     /* Extract this value and null-terminate it for easy manipulation */
     if (*p != '\"' && *p != '\'')
-	while (*p && *p != 32)	/* Non-quoted expression */
-	    p++;
-    else
-        {                       /* Quoted expression */
-	qc = *(p++);		/* Search for same CLOSE quote */
-	while (*p && *p != qc)
-	    p++;
-        }
+        while (*p && *p != 32) /* Non-quoted expression */
+            p++;
+    else {           /* Quoted expression */
+        qc = *(p++); /* Search for same CLOSE quote */
+        while (*p && *p != qc)
+            p++;
+    }
     if (*p)
-	*(p++) = 0;
+        *(p++) = 0;
 
     /* In some instances we allow variables (e.g. "myroom"); if this is
      * such an instance, determine the real ("actual") value */
-    if ((type >= 0 && type <= 10) || type == -70)
-        {				/* Processing lang tab? */
-	if (*p2 == '>' || *p2 == '<')
-	    value = actualval(p2 + 1, type);
-	else
-	    value = actualval(p2, type);
-	if (value == -1)
-            {			/* If it was an actual, but wrong type */
-	    error("%s: Invalid variable, '%s', after %s '%s'\n",
-		  verb.id, p2, (z == 1) ? "condition" : "action",
+    if ((type >= 0 && type <= 10) || type == -70) { /* Processing lang tab? */
+        if (*p2 == '>' || *p2 == '<')
+            value = actualval(p2 + 1, type);
+        else
+            value = actualval(p2, type);
+        if (value == -1) { /* If it was an actual, but wrong type */
+            error("%s: Invalid variable, '%s', after %s '%s'\n",
+                  verb.id,
+                  p2,
+                  (z == 1) ? "condition" : "action",
                   (z == 1) ? cond[c].name : action[c].name);
-	    return NULL;
-            }
+            return NULL;
         }
+    }
 
-    if (value != -2)
-        { /* must have been an 'actual' value */
+    if (value != -2) { /* must have been an 'actual' value */
         if (*p2 == '>')
             value = value | MORE;
         else if (*p2 == '<')
             value = value | LESS;
-        }
-    else
-        { /* This is already an "actual" value */
+    } else { /* This is already an "actual" value */
         /* Now match the value and argument type, and validate */
-        switch (type)
-            {
-          case -7:  /* A random-go value */
+        switch (type) {
+            case -7: /* A random-go value */
                 value = randgo(p2);
                 break;
-          case -6:  /* On/Off/yes/no toggle */
+            case -6: /* On/Off/yes/no toggle */
                 value = onoff(p2);
                 break;
-          case -5:  /* Brief/Verbose toggle */
-		p2char = toupper(*p2);
+            case -5: /* Brief/Verbose toggle */
+                p2char = toupper(*p2);
                 value = bvmode(p2char);
                 break;
-          case -4:  /* Player-statistic type */
+            case -4: /* Player-statistic type */
                 value = isstat(p2);
                 break;
-          case -3:  /* Spell type */
+            case -3: /* Spell type */
                 value = spell(p2);
                 break;
-          case -2:  /* Room Description mode */
-		p2char = toupper(*p2);
+            case -2: /* Room Description mode */
+                p2char = toupper(*p2);
                 value = rdmode(p2char);
                 break;
-          case -1:  /* Announce type */
+            case -1: /* Announce type */
                 value = antype(p2);
                 break;
-          case PROOM:
+            case PROOM:
                 value = is_bob(p2, WROOM);
                 break;
-          case PVERB:
+            case PVERB:
                 value = is_verb(p2);
                 break;
-          case PADJ:
+            case PADJ:
                 break;
-          case -70:
-          case PNOUN:
+            case -70:
+            case PNOUN:
                 value = isnounh(p2);
                 break;
-          case PUMSG:
+            case PUMSG:
                 value = ttumsgchk(p2);
                 break;
-          case PNUM:
+            case PNUM:
                 value = chknum(p2);
                 break;
-          case PRFLAG:
+            case PRFLAG:
                 value = is_room_flag(p2);
                 break;
-          case POFLAG:
+            case POFLAG:
                 value = isoflag1(p2);
                 break;
-          case PSFLAG:
+            case PSFLAG:
                 value = isoflag2(p2);
                 break;
-          case PSEX:
-		p2char = toupper(*p2);
+            case PSEX:
+                p2char = toupper(*p2);
                 value = isgen(p2char);
                 break;
-          case PDAEMON:
+            case PDAEMON:
                 /* Daemon's all have names that start with '.' */
                 if ((value = is_verb(p2)) == -1 || *p2 != '.')
                     value = -1;
                 break;
-          case PMOBILE:
+            case PMOBILE:
                 /* Make sure it's a noun AND it has the mobile flag */
                 if ((value = is_bob(p2, WNOUN)) == -1)
                     break;
-                if (static_cast<OBJ*>(bobs[value])->mobile == -1)
+                if (static_cast<OBJ *>(bobs[value])->mobile == -1)
                     value = -1;
                 break;
-          default:
+            default:
                 /* Should never reach here. Wanna bet we do? */
-                if (!(proc == 1 && type >= 0 && type <= 10))
-                    {
-                    warne("%s = %s.\n", (z == 1) ? "condition" : "action",
+                if (!(proc == 1 && type >= 0 && type <= 10)) {
+                    warne("%s = %s.\n",
+                          (z == 1) ? "condition" : "action",
                           (z == 1) ? cond[c].name : action[c].name);
                     error("> Internal error, bad PTYPE (val: %d, item: %s)!\n",
                           word((proc == 1) ? verb.id : bobs[cur_room]->id),
-                          type, p2);
+                          type,
+                          p2);
                     return NULL;
-                    }
-            }
+                }
+        }
 
         /* We use -2 as a place hoder to say "NONE", but it should be -1 */
-        if (value == -2 && (type == PREAL || type == PUMSG))
-            {
+        if (value == -2 && (type == PREAL || type == PUMSG)) {
             if (type == PREAL)
                 value = -1;
-            }
-        else if (((value == -1 || value == -2) && type != PNUM)
-                 || value == -1000001)
-            {
+        } else if (((value == -1 || value == -2) && type != PNUM) || value == -1000001) {
             error("%s: Invalid parameter '%s' after %s '%s'.\n",
-                  word((proc == 1) ? (verb.id) : bobs[cur_room]->id), p2,
+                  word((proc == 1) ? (verb.id) : bobs[cur_room]->id),
+                  p2,
                   (z == 1) ? "condition" : "action",
                   (z == 1) ? cond[c].name : action[c].name);
             return NULL;
-            }
         }
+    }
 
     /* Couple of last checks */
-    if (!z && c == ATREATAS && value == (IWORD + IVERB))
-        {
-	error("%s: Action 'treatas verb' is illegal.\n",
+    if (!z && c == ATREATAS && value == (IWORD + IVERB)) {
+        error("%s: Action 'treatas verb' is illegal.\n",
               word((proc == 1) ? (verb.id) : bobs[cur_room]->id));
-	return NULL;
-        }
+        return NULL;
+    }
 
     /* Grow the argument-list memory area as neccesary */
-    if (arg_alloc % GROW_SIZE == 0)
-        {
-	long new_alloc = arg_alloc + GROW_SIZE;
-	argtab = static_cast<arg_t *>(grow(argtab, new_alloc * sizeof(long), "Sizing Argument Table"));
-	argptr = argtab + arg_alloc;
-        }
+    if (arg_alloc % GROW_SIZE == 0) {
+        long new_alloc = arg_alloc + GROW_SIZE;
+        argtab = static_cast<arg_t *>(
+                grow(argtab, new_alloc * sizeof(long), "Sizing Argument Table"));
+        argptr = argtab + arg_alloc;
+    }
     /* Now store the argument into memory */
     *(argptr++) = value;
     arg_alloc++;
     return p;
-    }
+}
 
 /* Check the paramters to an action */
 char *
 chkaparms(char *p, int c)
-    {
+{
     int i;
-    for (i = 0; i < action[c].argc; i++)
-        {
-	if (!(p = chkp(p, action[c].argv[i], c, 0)))
-	    return NULL;
-        }
-    return p;
+    for (i = 0; i < action[c].argc; i++) {
+        if (!(p = chkp(p, action[c].argv[i], c, 0)))
+            return NULL;
     }
+    return p;
+}
 
 /* Check the paramters to a condition */
 char *
 chkcparms(char *p, int c)
-    {
+{
     int i;
     for (i = 0; i < cond[c].argc; i++)
-	if (!(p = chkp(p, cond[c].argv[i], c, 1)))
-	    return NULL;
+        if (!(p = chkp(p, cond[c].argv[i], c, 1)))
+            return NULL;
     return p;
-    }
+}
 
-static long
-chknum(const char *s)                 /* Check a numeric arguments */
-    {
+static long chknum(const char *s) /* Check a numeric arguments */
+{
     long n;
 
     /* Is this a variable? (less than, greater than, etc) */
     if (*s == '>' || *s == '<' || *s == '-' || *s == '=')
-	n = atoi(s + 1);
+        n = atoi(s + 1);
     else if (!isdigit(*s) && !isdigit(*(s + 1)))
-	return -1000001;
+        return -1000001;
     else
-	n = atoi(s);
-    if (n >= 1000000)
-        {
-	error("%s: Number \"%s\" exceeds limit!\n",
-	      word((proc == 1) ? verb.id : bobs[cur_room]->id), s);
-	return -1000001;
-        }
-    if (*s == '-')
-	return -n;
-    if (*s == '>')
-	return (n | LESS);
-    if (*s == '<')
-	return (n | MORE);
-    return n;
+        n = atoi(s);
+    if (n >= 1000000) {
+        error("%s: Number \"%s\" exceeds limit!\n",
+              word((proc == 1) ? verb.id : bobs[cur_room]->id),
+              s);
+        return -1000001;
     }
+    if (*s == '-')
+        return -n;
+    if (*s == '>')
+        return (n | LESS);
+    if (*s == '<')
+        return (n | MORE);
+    return n;
+}
 
 char *
 optis(char *s)
-    {                           /* Remove optional strings before condition */
+{ /* Remove optional strings before condition */
     char *old_s = s;
     s = precon(s);
     s = skiplead("of ", s);
@@ -284,12 +273,12 @@ optis(char *s)
     if (s != old_s)
         s = optis(s);
     return skipspc(s);
-    }
+}
 
 /* Remove 'whitewords' that can be ignored within an condition */
 char *
 precon(char *s)
-    {
+{
     char *old_s = s;
     s = skiplead("the ", skiplead("if ", s));
     s = skiplead("i ", s);
@@ -298,169 +287,168 @@ precon(char *s)
     if (s != old_s)
         s = precon(s);
     return s;
-    }
+}
 
 /* Remove 'whitewords' that can be ignored within an action */
 char *
 preact(char *s)
-    {
+{
     char *old_s = s;
     s = skiplead("as", skiplead("to ", skiplead("go ", skiplead("goto ", skiplead("then ", s)))));
     if (s != old_s)
         s = preact(s);
     return s;
-    }
+}
 
 /* Return gender (0==male 1==female) or -1 */
 static int
 isgen(char c)
-    {
+{
     if (c == 'M')
-	return 0;
+        return 0;
     if (c == 'F')
-	return 1;
+        return 1;
     return -1;
-    }
+}
 
 /* Return announce type (see A... enums) or -1 */
 static int
 antype(char *s)
-    {
+{
     if (!strcmp(s, "global"))
-	return AGLOBAL;
+        return AGLOBAL;
     if (!strcmp(s, "everyone"))
-	return AEVERY1;
+        return AEVERY1;
     if (!strcmp(s, "outside"))
-	return AOUTSIDE;
+        return AOUTSIDE;
     if (!strcmp(s, "here"))
-	return AHERE;
+        return AHERE;
     if (!strcmp(s, "others"))
-	return AOTHERS;
+        return AOTHERS;
     if (!strcmp(s, "all"))
-	return AALL;
+        return AALL;
     if (!strcmp(s, "notsee"))
-	return ANOTSEE;
+        return ANOTSEE;
     if (!strcmp(s, "cansee"))
-	return ACANSEE;
+        return ACANSEE;
     if (!strcmp(s, "cantsee"))
-	return ANOTSEE;
+        return ANOTSEE;
     return -1;
-    }
+}
 
 /* Look for a noun, prefering one that should be in this room */
 /* (applies to travel table only) */
 static int
 isnounh(char *s)
-    {
+{
     vocid_t id;
 
     if (!strcmp(s, "none"))
-	return -2;
+        return -2;
 
-    if ( (id = is_word(s)) == -1)
+    if ((id = is_word(s)) == -1)
         return -1;
 
-    int last = -1;              // Closest match
+    int last = -1;  // Closest match
     int i = 0;
-    for (OBJ *ptr = obtab ; i < nouns && ptr; i++, ptr = static_cast<OBJ*>(ptr->next))
-        {
-	if (ptr->id != id)
-	    continue;
+    for (OBJ *ptr = obtab; i < nouns && ptr; i++, ptr = static_cast<OBJ *>(ptr->next)) {
+        if (ptr->id != id)
+            continue;
         if (is_inside(ptr->bob, cur_room))
             return i;
-	last = i;               // This is a close match (id matches)
-        }
-    return last;                // Return closest match
+        last = i;  // This is a close match (id matches)
     }
+    return last;  // Return closest match
+}
 
 /* Room Description modes */
 static int
 rdmode(char c)
-    {
+{
     if (c == 'R')
-	return RDRC;
+        return RDRC;
     if (c == 'V')
-	return RDVB;
+        return RDVB;
     if (c == 'B')
-	return RDBF;
+        return RDBF;
     return -1;
-    }
+}
 
 /* Spell types */
 static int
 spell(char *s)
-    {
+{
     if (!strncmp(s, "gl", 2))
-	return SGLOW;
+        return SGLOW;
     if (!strncmp(s, "in", 2))
-	return SINVIS;
+        return SINVIS;
     if (!strncmp(s, "de", 2))
-	return SDEAF;
+        return SDEAF;
     if (!strncmp(s, "du", 2))
-	return SDUMB;
+        return SDUMB;
     if (!strncmp(s, "bl", 2))
-	return SBLIND;
+        return SBLIND;
     if (!strncmp(s, "cr", 2))
-	return SCRIPPLE;
+        return SCRIPPLE;
     if (!strncmp(s, "sl", 2))
-	return SSLEEP;
+        return SSLEEP;
     if (!strncmp(s, "si", 2))
-	return SSINVIS;
+        return SSINVIS;
     return -1;
-    }
+}
 
 /* Player statistics */
 static int
 isstat(char *s)
-    {
+{
     if (strcmp(s, "sctg") == 0L)
-	return STSCTG;
+        return STSCTG;
     if (strncmp(s, "sc", 2) == 0L)
-	return STSCORE;
+        return STSCORE;
     if (strncmp(s, "poi", 3) == 0L)
-	return STSCORE;
+        return STSCORE;
     if (strncmp(s, "str", 3) == 0L)
-	return STSTR;
+        return STSTR;
     if (strncmp(s, "sta", 3) == 0L)
-	return STSTAM;
+        return STSTAM;
     if (strncmp(s, "de", 2) == 0L)
-	return STDEX;
+        return STDEX;
     if (strncmp(s, "wi", 2) == 0L)
-	return STWIS;
+        return STWIS;
     if (strncmp(s, "ex", 2) == 0L)
-	return STEXP;
+        return STEXP;
     if (strcmp(s, "magic") == 0L)
-	return STMAGIC;
+        return STMAGIC;
     return -1;
-    }
+}
 
 /* Brief/Verbose modes */
 static long
 bvmode(char c)
-    {
+{
     if (c == 'V')
-	return TYPEV;
+        return TYPEV;
     if (c == 'B')
-	return TYPEB;
+        return TYPEB;
     return -1;
-    }
+}
 
 /* On or off values */
 static int
 onoff(char *p)
-    {
+{
     if (!strcmp(p, "on") || !strcmp(p, "yes"))
-	return 1;
+        return 1;
     return 0;
-    }
+}
 
 /* Randomgo options */
 static int
 randgo(char *p)
-    {
+{
     if (tolower(*p) == 's')
-	return 0;
+        return 0;
     if (tolower(*p) == 'a')
-	return 1;
+        return 1;
     return -1;
-    }
+}

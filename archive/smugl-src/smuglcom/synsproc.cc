@@ -19,52 +19,45 @@ static const char rcsid[] = "$Id: synsproc.cc,v 1.5 1997/05/22 02:21:42 oliver E
 /* Process the synonyms table */
 void
 syn_proc(void)
-    {
+{
     char *p, *s;
     vocid_t real_word;
     vocid_t alias_word;
 
-    if (nextc(0) == -1)
-        {
-	tx("<No Entries>");
-	errabort();
-	return;
-        }
+    if (nextc(0) == -1) {
+        tx("<No Entries>");
+        errabort();
+        return;
+    }
     fopena(synsifn);
     fseek(afp, 0, SEEK_END);
 
     data = cleanget();
     p = skipspc(data);
 
-    do
-        {
+    do {
         p = skipline(s = p);
         s = getword(s);
         if (!*Word)
             continue;
 
-        if ( (real_word = is_word(Word)) == -1)
-            {
+        if ((real_word = is_word(Word)) == -1) {
             error("Invalid verb/noun: \"%s\".\n", Word);
             continue;
-            }
+        }
 
-        do
-            {
+        do {
             s = getword(s);
             if (!*Word)
                 break;
-            if ( (alias_word = new_word(Word, FALSE)) == -1)
-                {
+            if ((alias_word = new_word(Word, FALSE)) == -1) {
                 error("Invalid synonym, '%s'\n", Word);
                 continue;
-                }
-            fwrite(&alias_word, sizeof(vocid_t), 1, afp);
-            fwrite(&real_word,  sizeof(vocid_t), 1, afp);
-            syns++;
             }
-        while (*s);
-        }
-    while (*p);
+            fwrite(&alias_word, sizeof(vocid_t), 1, afp);
+            fwrite(&real_word, sizeof(vocid_t), 1, afp);
+            syns++;
+        } while (*s);
+    } while (*p);
     errabort();
-    }
+}

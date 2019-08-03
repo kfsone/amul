@@ -12,12 +12,13 @@ extern void ioproc(const char *str);
 
 // Copy a string, returning a pointer to the null byte in the copy
 // Avoids strcpy(into, from); into += strlen(into); situations
-static inline char *strcopy(char *to, char const *from)
-    {
+static inline char *
+strcopy(char *to, char const *from)
+{
     while ((*to = (*(from++))))
         to++;
     return to;
-    }
+}
 
 extern char *out_buf;
 extern long out_bufsz;
