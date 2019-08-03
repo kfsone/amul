@@ -1,10 +1,10 @@
 room=startroom
 verbs=south out
-	hallway
+	hall
 verbs=north
 	respond "That's the opposite of the direction I said the hallyway was in."
 
-room=hallway
+room=hall
 verbs=west in
 	quietplace
 verbs=south out
@@ -12,11 +12,11 @@ verbs=south out
 
 room=quietplace
 verbs=east out
-	hallway
+	hall
 
 room=endroom
 verbs=north in
-	hallway
+	hall
 verbs=east in
 	cubby
 
@@ -25,21 +25,21 @@ verbs=east in
 room=limbo
 verbs=north east southeast southwest 
 	reply "Ok, lets see where that takes us"
-	goto limbo
+	limbo
 verbs=northwest
-	if active .lnw then cancel .lnw
-	else start .lnw
-	goto limbo
+	if active .limbo_nw then cancel .limbo_nw
+	else start .limbo_nw 30
+	limbo
 verbs=south
-	if active .ls then cancel .ls
+	if active .limbo_s then cancel .limbo_s
 	&> limbo
-	if ! active .lnw then cancel .ls
+	if ! active .limbo_nw then cancel .limbo_s
 	&> limbo
-	start .ls
-	goto limbo
+	start .limbo_s 30
+	limbo
 verbs=northeast
-	active .ls cancel .ls
+	active .limbo_s cancel .limbo_s
 	&> startroom
-	active .lnw reply "Well, lets see where that takes us"
-	& cancel .lnw
-	goto limbo
+	active .limbo_nw reply "Well, lets see where that takes us"
+	& cancel .limbo_nw
+	limbo
