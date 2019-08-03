@@ -507,7 +507,7 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
             continue;
 
         if (!canSkipLead(linetype, &p)) {
-            afatal("Invalid title.txt:Expected '%s' got: %s", linetype, p);
+            afatal("Invalid title.txt: Expected '%s' got: %s", linetype, p);
         }
 
         callback(linetype, p);
@@ -2424,9 +2424,7 @@ lang_proc()
         proc = 0;
 
         p = getTidyBlock(ifp);
-        if (!p)
-            afatal("verb:%s: unexpected end of file", g_verb.id);
-        if (!*p || isEol(*p)) {
+        if (!p || !*p || isEol(*p)) {
             lastc = 1;
             goto writeslot;
         }
