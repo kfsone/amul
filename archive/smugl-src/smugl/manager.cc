@@ -2,21 +2,26 @@
 
 static const char rcsid[] = "$Id: manager.cc,v 1.18 1999/09/10 15:57:31 oliver Exp $";
 
+#include <cerrno>
+#include <cstring>
+
 #include "smugl.hpp"
+#include "consts.hpp"
+#include "fileio.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "libprotos.hpp"
+#include "manager.hpp"
+#include "misc.hpp"
+#include "objects.hpp"
+#include "rooms.hpp"
+#include "variables.hpp"
+
 #ifdef HAVE_SYS_WAIT_H
 # include <sys/wait.h>
 #endif
 #include <signal.h>
 #include <sys/resource.h>
-#include "manager.hpp"
-#include "variables.hpp"
-#include "consts.hpp"
-#include "libprotos.hpp"
-#include "misc.hpp"
-#include "ipc.hpp"
-#include "io.hpp"
-#include "rooms.hpp"
-#include "objects.hpp"
 
 // Manager/child indicator. manager == 0 if this is a child process
 char manager = 1;

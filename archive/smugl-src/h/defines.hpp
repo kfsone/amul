@@ -6,6 +6,7 @@
 #define	DEFINES_H	1
 
 #include <cstdint>
+#include <cstdlib>
 
 template<typename T>
 constexpr T ptr_align(T value) noexcept

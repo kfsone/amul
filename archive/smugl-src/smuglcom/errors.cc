@@ -6,7 +6,10 @@
 static const char rcsid[] = "$Id: errors.cc,v 1.5 1997/05/22 02:21:36 oliver Exp $";
 
 #include "smuglcom.hpp"
+#include "fileio.hpp"
 #include "libprotos.hpp"
+
+#include <cstdarg>
 
 void
 error(const char *msg,...)

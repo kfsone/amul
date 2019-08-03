@@ -11,6 +11,8 @@
 #ifndef BASIC_OBJ_H
 #define BASIC_OBJ_H 1
 
+#include <cstdio>   // For FILE*
+
 class BASIC_OBJ
     {
 public:

@@ -7,15 +7,22 @@
 
 static const char rcsid[] = "$Id: login.cc,v 1.11 1999/06/08 15:36:50 oliver Exp $";
 
+#include <cctype>
+#include <cstring>
+
 #include "smugl.hpp"
-#include "login.hpp"
 #include "consts.hpp"
-#include "libprotos.hpp"
-#include "ranks.hpp"
-#include "rooms.hpp"
 #include "io.hpp"
 #include "ipc.hpp"
+#include "libprotos.hpp"
+#include "login.hpp"
 #include "misc.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 char new_name[NAMEL + 1];
 

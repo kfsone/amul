@@ -7,6 +7,8 @@ static const char rcsid[] = "$Id: mobproc.cc,v 1.7 1997/05/22 02:21:37 oliver Ex
 
 #include "smuglcom.hpp"
 
+#include <cstring>
+
 static char *mobpget(const char *s, char *p, long *n);
 static char *getmobmsg(char *p, const char *s, msgno_t *n);
 
