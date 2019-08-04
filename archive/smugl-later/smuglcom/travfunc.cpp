@@ -9,9 +9,9 @@
 
 #define GROW_SIZE 1024
 
-arg_t *argptr;       /* Where to place next c/a argument */
-arg_t *argtab;       /* Table of arguments */
-counter_t arg_alloc; /* How many entries allocated */
+arg_t *argptr;        // Where to place next c/a argument
+arg_t *argtab;        // Table of arguments
+counter_t arg_alloc;  // How many entries allocated
 
 static long chknum(const char *);
 static int isgen(char);
@@ -36,7 +36,7 @@ chkp(char *p, arg_t type, int c, int z)
 {
     char p2char;
     char qc, *p2;
-    long value = -2; /* To satisfy -Wall ;) */
+    long value = -2;  // To satisfy -Wall ;)
 
     /*=* Strip crap out *=*/
     p = optis(p);
@@ -49,12 +49,12 @@ chkp(char *p, arg_t type, int c, int z)
         return NULL;
     }
 
-    /* Extract this value and null-terminate it for easy manipulation */
+    // Extract this value and null-terminate it for easy manipulation
     if (*p != '\"' && *p != '\'')
-        while (*p && *p != 32) /* Non-quoted expression */
+        while (*p && *p != 32)  // Non-quoted expression
             p++;
-    else {           /* Quoted expression */
-        qc = *(p++); /* Search for same CLOSE quote */
+    else {            // Quoted expression
+        qc = *(p++);  // Search for same CLOSE quote
         while (*p && *p != qc)
             p++;
     }
@@ -63,12 +63,12 @@ chkp(char *p, arg_t type, int c, int z)
 
     /* In some instances we allow variables (e.g. "myroom"); if this is
      * such an instance, determine the real ("actual") value */
-    if ((type >= 0 && type <= 10) || type == -70) { /* Processing lang tab? */
+    if ((type >= 0 && type <= 10) || type == -70) {  // Processing lang tab?
         if (*p2 == '>' || *p2 == '<')
             value = actualval(p2 + 1, type);
         else
             value = actualval(p2, type);
-        if (value == -1) { /* If it was an actual, but wrong type */
+        if (value == -1) {  // If it was an actual, but wrong type
             error("%s: Invalid variable, '%s', after %s '%s'\n",
                   verb.id,
                   p2,
@@ -78,35 +78,35 @@ chkp(char *p, arg_t type, int c, int z)
         }
     }
 
-    if (value != -2) { /* must have been an 'actual' value */
+    if (value != -2) {  // must have been an 'actual' value
         if (*p2 == '>')
             value = value | MORE;
         else if (*p2 == '<')
             value = value | LESS;
-    } else { /* This is already an "actual" value */
-        /* Now match the value and argument type, and validate */
+    } else {  // This is already an "actual" value
+        // Now match the value and argument type, and validate
         switch (type) {
-            case -7: /* A random-go value */
+            case -7:  // A random-go value
                 value = randgo(p2);
                 break;
-            case -6: /* On/Off/yes/no toggle */
+            case -6:  // On/Off/yes/no toggle
                 value = onoff(p2);
                 break;
-            case -5: /* Brief/Verbose toggle */
+            case -5:  // Brief/Verbose toggle
                 p2char = toupper(*p2);
                 value = bvmode(p2char);
                 break;
-            case -4: /* Player-statistic type */
+            case -4:  // Player-statistic type
                 value = stat(p2);
                 break;
-            case -3: /* Spell type */
+            case -3:  // Spell type
                 value = spell(p2);
                 break;
-            case -2: /* Room Description mode */
+            case -2:  // Room Description mode
                 p2char = toupper(*p2);
                 value = rdmode(p2char);
                 break;
-            case -1: /* Announce type */
+            case -1:  // Announce type
                 value = antype(p2);
                 break;
             case PROOM:
@@ -141,19 +141,19 @@ chkp(char *p, arg_t type, int c, int z)
                 value = isgen(p2char);
                 break;
             case PDAEMON:
-                /* Daemon's all have names that start with '.' */
+                // Daemon's all have names that start with '.'
                 if ((value = is_verb(p2)) == -1 || *p2 != '.')
                     value = -1;
                 break;
             case PMOBILE:
-                /* Make sure it's a noun AND it has the mobile flag */
+                // Make sure it's a noun AND it has the mobile flag
                 if ((value = is_bob(p2, WNOUN)) == -1)
                     break;
                 if (((OBJ *) bobs[value])->mobile == -1)
                     value = -1;
                 break;
             default:
-                /* Should never reach here. Wanna bet we do? */
+                // Should never reach here. Wanna bet we do?
                 if (!(proc == 1 && type >= 0 && type <= 10)) {
                     warne("%s = %s.\n",
                           (z == 1) ? "condition" : "action",
@@ -166,7 +166,7 @@ chkp(char *p, arg_t type, int c, int z)
                 }
         }
 
-        /* We use -2 as a place hoder to say "NONE", but it should be -1 */
+        // We use -2 as a place hoder to say "NONE", but it should be -1
         if (value == -2 && (type == PREAL || type == PUMSG)) {
             if (type == PREAL)
                 value = -1;
@@ -180,26 +180,26 @@ chkp(char *p, arg_t type, int c, int z)
         }
     }
 
-    /* Couple of last checks */
+    // Couple of last checks
     if (!z && c == ATREATAS && value == (IWORD + IVERB)) {
         error("%s: Action 'treatas verb' is illegal.\n",
               word((proc == 1) ? (verb.id) : bobs[cur_room]->id));
         return NULL;
     }
 
-    /* Grow the argument-list memory area as neccesary */
+    // Grow the argument-list memory area as neccesary
     if (arg_alloc % GROW_SIZE == 0) {
         long new_alloc = arg_alloc + GROW_SIZE;
         argtab = (arg_t *) grow(argtab, new_alloc * sizeof(long), "Sizing Argument Table");
         argptr = argtab + arg_alloc;
     }
-    /* Now store the argument into memory */
+    // Now store the argument into memory
     *(argptr++) = static_cast<arg_t>(value);
     arg_alloc++;
     return p;
 }
 
-/* Check the paramters to an action */
+// Check the paramters to an action
 char *
 chkaparms(char *p, int c)
 {
@@ -212,7 +212,7 @@ chkaparms(char *p, int c)
     return p;
 }
 
-/* Check the paramters to a condition */
+// Check the paramters to a condition
 char *
 chkcparms(char *p, int c)
 {
@@ -224,11 +224,11 @@ chkcparms(char *p, int c)
     return p;
 }
 
-static long chknum(const char *s) /* Check a numeric arguments */
+static long chknum(const char *s)  // Check a numeric arguments
 {
     long n;
 
-    /* Is this a variable? (less than, greater than, etc) */
+    // Is this a variable? (less than, greater than, etc)
     if (*s == '>' || *s == '<' || *s == '-' || *s == '=')
         n = atoi(s + 1);
     else if (!isdigit(*s) && !isdigit(*(s + 1)))
@@ -252,7 +252,7 @@ static long chknum(const char *s) /* Check a numeric arguments */
 
 char *
 optis(char *s)
-{ /* Remove optional strings before condition */
+{  // Remove optional strings before condition
     char *old_s = s;
 
     s = precon(s);
@@ -272,7 +272,7 @@ optis(char *s)
     return skipspc(s);
 }
 
-/* Remove 'whitewords' that can be ignored within an condition */
+// Remove 'whitewords' that can be ignored within an condition
 char *
 precon(char *s)
 {
@@ -287,7 +287,7 @@ precon(char *s)
     return s;
 }
 
-/* Remove 'whitewords' that can be ignored within an action */
+// Remove 'whitewords' that can be ignored within an action
 char *
 preact(char *s)
 {
@@ -299,7 +299,7 @@ preact(char *s)
     return s;
 }
 
-/* Return gender (0==male 1==female) or -1 */
+// Return gender (0==male 1==female) or -1
 static int
 isgen(char c)
 {
@@ -310,7 +310,7 @@ isgen(char c)
     return -1;
 }
 
-/* Return announce type (see A... enums) or -1 */
+// Return announce type (see A... enums) or -1
 static int
 antype(char *s)
 {
@@ -335,9 +335,9 @@ antype(char *s)
     return -1;
 }
 
-/* Look for a noun, prefering one that should be in this room */
+// Look for a noun, prefering one that should be in this room
 
-/* (applies to travel table only) */
+// (applies to travel table only)
 static int
 isnounh(char *s)
 {
@@ -363,7 +363,7 @@ isnounh(char *s)
     return last;  // Return closest match
 }
 
-/* Room Description modes */
+// Room Description modes
 static int
 rdmode(char c)
 {
@@ -376,7 +376,7 @@ rdmode(char c)
     return -1;
 }
 
-/* Spell types */
+// Spell types
 static int
 spell(char *s)
 {
@@ -399,7 +399,7 @@ spell(char *s)
     return -1;
 }
 
-/* Player statistics */
+// Player statistics
 static int
 stat(char *s)
 {
@@ -424,7 +424,7 @@ stat(char *s)
     return -1;
 }
 
-/* Brief/Verbose modes */
+// Brief/Verbose modes
 static long
 bvmode(char c)
 {
@@ -435,7 +435,7 @@ bvmode(char c)
     return -1;
 }
 
-/* On or off values */
+// On or off values
 static int
 onoff(char *p)
 {
@@ -444,7 +444,7 @@ onoff(char *p)
     return 0;
 }
 
-/* Randomgo options */
+// Randomgo options
 static int
 randgo(char *p)
 {

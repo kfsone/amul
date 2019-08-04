@@ -12,7 +12,9 @@
 #include "smugl/io.hpp"
 #include "smugl/misc.hpp"
 
-size_t filesize(const char* const filename)  // Return size of an (unopened) file
+size_t
+filesize(const char* const filename)
+// Return size of an (unopened) file
 {
     struct stat sbuf;
 
@@ -71,7 +73,9 @@ read_file(const char* file, void*& base, bool it_matters)
     return fi->size;
 }
 
-void pressret(void)  // Prompt the user to press return
+void
+pressret(void)
+// Prompt the user to press return
 {
     char c;
 
@@ -80,7 +84,9 @@ void pressret(void)  // Prompt the user to press return
     fflush(stdout);
 }
 
-void ShowFile(const char* file)  // Display a file
+void
+ShowFile(const char* file)
+// Display a file
 {
     void* text = NULL;
     size_t size = read_file(file, text, false);

@@ -21,4 +21,4 @@ class MobileIdx
     static class Mobile *locate(long id);
 };
 
-#endif /* MOBILES_H */
+#endif  // MOBILES_H

@@ -8,7 +8,7 @@ extern void errabort();
 
 template<typename... Args>
 void
-report(const char *pfx, const char *msg, Args&&... args)
+report(const char *pfx, const char *msg, Args &&... args)
 {
     if (needcr)
         printf("\n");
@@ -27,7 +27,7 @@ error(const char *msg)
 
 template<typename... Args>
 void
-error(const char *msg, Args&&... args)
+error(const char *msg, Args &&... args)
 {
     report("#E#", msg, std::forward<Args>(args)...);
     if (++err > 20)
@@ -35,7 +35,7 @@ error(const char *msg, Args&&... args)
 }
 
 static inline void
-warne(const char* msg)
+warne(const char *msg)
 {
     if (warn)
         report(" W ", "%s", msg);
@@ -43,7 +43,7 @@ warne(const char* msg)
 
 template<typename... Args>
 void
-warne(const char *msg, Args&&... args)
+warne(const char *msg, Args &&... args)
 {
     if (!warn)
         return;
@@ -61,7 +61,7 @@ quit(const char *msg)
 
 template<typename... Args>
 void
-quit(const char *msg, Args&&... args)
+quit(const char *msg, Args &&... args)
 {
     report("===", msg, std::forward<Args>(args)...);
     quit();

@@ -10,7 +10,7 @@
 
 static inline void
 object(const char *s)
-{ /* Report invalid object phrase */
+{  // Report invalid object phrase
     error("%s: Invalid %s, \"%s\"!\n", word(obj->id), s, Word);
 }
 
@@ -19,7 +19,7 @@ object(const char *s)
 
 static inline void
 set_art(void)
-{ /* Set the article of an object */
+{  // Set the article of an object
     int i;
 
     for (i = 0; i < NART; i++) {
@@ -33,7 +33,7 @@ set_art(void)
 
 static inline void
 set_start(void)
-{ /* Set start state of an object */
+{  // Set start state of an object
     if (!isdigit(Word[0]))
         object("start state");
     obj->state = atoi(Word);
@@ -43,7 +43,7 @@ set_start(void)
 
 static inline void
 set_holds(void)
-{ /* Set container capacity for an object */
+{  // Set container capacity for an object
     if (!isdigit(Word[0]))
         object("holds= value");
     obj->max_weight = atoi(Word);
@@ -53,7 +53,7 @@ set_holds(void)
 
 static inline void
 set_put(void)
-{ /* Set container type for an object */
+{  // Set container type for an object
     int i;
 
     for (i = 0; i < NPUTS; i++)
@@ -64,7 +64,7 @@ set_put(void)
     object("put= flag");
 }
 
-static inline void set_mob(void) /* Set mobile character for an object */
+static inline void set_mob(void)  // Set mobile character for an object
 {
     int i;
     vocid_t wordno;
@@ -93,13 +93,13 @@ static inline void set_mob(void) /* Set mobile character for an object */
 
 static inline void
 statinv(const char *s)
-{ /* Report invalid state line */
+{  // Report invalid state line
     error("%s state %ld: %s!\n", word(obj->id), obj->nstates + 1, s);
 }
 
 static inline void
 state_proc(const char *s)
-{ /* Process a state-line of an object */
+{  // Process a state-line of an object
     int flag;
     char *p;
 
@@ -111,7 +111,7 @@ state_proc(const char *s)
 
     strcpy(g_block, s);
 
-    /* Get the weight of the object */
+    // Get the weight of the object
     p = skiplead("weight=", skipspc(g_block));
     p = getword(p);
     if (!*p) {
@@ -124,7 +124,7 @@ state_proc(const char *s)
     }
     state.weight = atoi(Word);
 
-    /* Get the value of it */
+    // Get the value of it
     p = skipspc(p);
     p = skiplead("value=", p);
     p = getword(p);
@@ -138,7 +138,7 @@ state_proc(const char *s)
     }
     state.value = atoi(Word);
 
-    /* Get the strength of it (hit points) */
+    // Get the strength of it (hit points)
     p = skipspc(p);
     p = skiplead("str=", p);
     p = getword(p);
@@ -152,7 +152,7 @@ state_proc(const char *s)
     }
     state.strength = atoi(Word);
 
-    /* Get the damage it does as a weapon */
+    // Get the damage it does as a weapon
     p = getword(skiplead("dam=", skipspc(p)));
     if (!*p) {
         statinv(INCOMPLETE);
@@ -164,7 +164,7 @@ state_proc(const char *s)
     }
     state.damage = atoi(Word);
 
-    /* Description */
+    // Description
     p = skiplead("desc=", skipspc(p));
     if (!*p) {
         statinv(INCOMPLETE);
@@ -174,19 +174,19 @@ state_proc(const char *s)
         char *quote = p++;
 
         while (*p && *p != *quote)
-            p++; /* Find end of quote/string */
-        quote++; /* Now forget that character */
+            p++;  // Find end of quote/string
+        quote++;  // Now forget that character
         if (*(p - 1) == '{' || *(p - 1) == '\\')
-            p--; /* Allow for continuation characters */
+            p--;  // Allow for continuation characters
         else
-            *(p++) = ' '; /* Otherwise remove this character */
+            *(p++) = ' ';  // Otherwise remove this character
         while (*(p - 1) == SPC)
-            p--; /* Remove trailing spaces */
+            p--;  // Remove trailing spaces
         state.descrip = add_msg(NULL);
         fwrite(quote, (size_t)(p - quote), 1, msgfp);
-        fputc(0, msgfp); /* Add end of string */
+        fputc(0, msgfp);  // Add end of string
         strcpy(g_block, skipspc(p));
-    } else { /* It's a message ID, we hope */
+    } else {  // It's a message ID, we hope
         p = getword(p);
         state.descrip = ismsgid(Word);
     }
@@ -221,7 +221,7 @@ write:
 
 void
 objs_proc(void)
-{ /* Process the objects file */
+{  // Process the objects file
     char *p, *s;
 
     nouns = 0;
@@ -233,7 +233,7 @@ objs_proc(void)
         tx("<No Entries>");
         errabort();
         return;
-    } /* Nothing to process */
+    }  // Nothing to process
     p = cleanget();
     p = skipspc(p);
 
@@ -258,7 +258,7 @@ objs_proc(void)
         obj->mobile = -1;
         obj->putto = obj->article = 0;
 
-        /* Get the object flags */
+        // Get the object flags
         do {
             long flag;
 
@@ -312,11 +312,13 @@ objs_proc(void)
         // It should contain the room list
         do {
             s = getword(s);
-            if (!*Word)  // Dummy word
+            if (!*Word)
+                // Dummy word
                 break;
             basic_obj loc = is_container(Word);
 
-            if (loc == -1)  // Invalid word or basic obj
+            if (loc == -1)
+            // Invalid word or basic obj
             {
                 if (is_word(Word) != -1)
                     error("%s: Invalid location: '%s'\n", word(obj->id), Word);
@@ -356,10 +358,10 @@ objs_proc(void)
             temp.Write(ofp1);
         }
     }
-    errabort(); /* Abort if an error */
+    errabort();  // Abort if an error
 }
 
-int isoflag1(const char *s) /* Is it a FIXED object flag? */
+int isoflag1(const char *s)  // Is it a FIXED object flag?
 {
     int i;
 
@@ -369,7 +371,7 @@ int isoflag1(const char *s) /* Is it a FIXED object flag? */
     return -1;
 }
 
-int isoparm(void) /* Is it an object parameter? */
+int isoparm(void)  // Is it an object parameter?
 {
     int i;
     char *p;
@@ -383,7 +385,7 @@ int isoparm(void) /* Is it an object parameter? */
     return -1;
 }
 
-int isoflag2(const char *s) /* Is it a state flag? */
+int isoflag2(const char *s)  // Is it a state flag?
 {
     int i;
 

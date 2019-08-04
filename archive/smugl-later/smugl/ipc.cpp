@@ -62,7 +62,8 @@ static void *shmalloc(long memory);
 static void
 tidy_ipc(void)
 {
-    if (!g_manager)  // Client - close the handles down
+    if (!g_manager)
+        // Client - close the handles down
         tx("\n\nNO CARRIER\n\n");
     if (!g_manager)
         sysLog.Write(_FLD, "disconnected #%d", g_slot);
@@ -167,9 +168,11 @@ shmalloc(long memory)
 void
 sem_lock(int semnum)
 {
-    if (data && semnum >= 0)  // No point if data isn't assigned
+    if (data && semnum >= 0)
+    // No point if data isn't assigned
     {
-        if (!sems[semnum])  // Don't actually perform multiple locks
+        if (!sems[semnum])
+        // Don't actually perform multiple locks
         {
             sop.sem_num = semnum;
             sop.sem_op = -1;  // Decrement waits until semaphore is free
@@ -187,7 +190,8 @@ void
 sem_unlock(int semnum)
 {
     if (data && semnum >= 0 && sems[semnum] > 0) {
-        if (--sems[semnum])  // Do we have multiple locks here?
+        if (--sems[semnum])
+            // Do we have multiple locks here?
             return;
         sop.sem_num = semnum;
         sop.sem_op = 1;  // Return the semaphore
@@ -342,7 +346,8 @@ ipcMsg::ipcMsg(char Type /*=0*/, long Data /*=0*/, short Pri /*=0*/)
 // Destructor
 ipcMsg::~ipcMsg(void)
 {
-    if (ptr)  // Undo any mallocs
+    if (ptr)
+        // Undo any mallocs
         free(ptr);
     ptr = NULL;
 }
@@ -356,7 +361,8 @@ ipcMsg::~ipcMsg(void)
 void
 ipcMsg::send(int fd, void *extra)
 {
-    if (!g_manager)  // Client's must lock/unlock server-pipe
+    if (!g_manager)
+        // Client's must lock/unlock server-pipe
         sem_lock(sem_PIPE);
     int wv = _write(fd, this, sizeof(*this));
     if (wv < ssize_t(sizeof(*this)))
@@ -365,7 +371,8 @@ ipcMsg::send(int fd, void *extra)
         if (_write(fd, extra, len) < len)
             wv = -1;
     }
-    if (!g_manager)  // Client's must lock/unlock server-pipe
+    if (!g_manager)
+        // Client's must lock/unlock server-pipe
         sem_unlock(sem_PIPE);
 
     if (wv < 0)
@@ -386,7 +393,8 @@ ipcMsg::send(unsigned long To, short Len /*=0*/, void *extra /*=NULL*/)
     if (!extra)
         Len = 0;
     len = Len;
-    if (!g_manager)  // Client's only send to server
+    if (!g_manager)
+        // Client's only send to server
         send(servfd[WRITEfd], extra);
     else  // Manager -- send to each client
     {
@@ -436,15 +444,18 @@ ipcMsg::receive(void)
             ;
     } else
         ptr = NULL;
-    if (g_manager)  // We're the server
+    if (g_manager)
+    // We're the server
     {
-        if (!to)  // It's intended for us
+        if (!to)
+            // It's intended for us
             return true;
-        send(to, len, ptr);         // It's to be forwarded
-        return false;               // But don't do anything else
-    } else if (to & (1 << g_slot))  // I'm in the recipient list
-        return true;                // so it's worth looking at
-    else                            // I'm NOT in the recipient list
+        send(to, len, ptr);  // It's to be forwarded
+        return false;        // But don't do anything else
+    } else if (to & (1 << g_slot))
+        // I'm in the recipient list
+        return true;  // so it's worth looking at
+    else              // I'm NOT in the recipient list
     {
         sysLog.Write(_FLD, "slot#%d msg type %d from #%d", g_slot, type, from);
         return false;
@@ -486,11 +497,13 @@ ipc_proc(void)
 {
     ipcMsg inc;  // Incoming message
 
-    if (ipc_nest)  // Prevent nesting of ipc calls
+    if (ipc_nest)
+        // Prevent nesting of ipc calls
         return;
     ipc_nest++;
 
-    if (!inc.receive())  // Message wasn't worth hearing
+    if (!inc.receive())
+    // Message wasn't worth hearing
     {
         ipc_nest--;
         return;
@@ -511,7 +524,9 @@ ipc_proc(void)
     ipc_nest--;  // We're leaving
 }
 
-void announce(long to, const char *msg)  // Accepts message pointer as 2nd argument
+void
+announce(long to, const char *msg)
+// Accepts message pointer as 2nd argument
 {
     // XXX: What about if 'to' is 0 - shouldn't we 'not bother'?
     ioproc(msg);
@@ -525,7 +540,9 @@ void announce(long to, const char *msg)  // Accepts message pointer as 2nd argum
 }
 
 // Send a message to one or more players
-void announce(long to, long msg)  // Accepts umsg number as 2nd argument
+void
+announce(long to, long msg)
+// Accepts umsg number as 2nd argument
 {
     announce(to, message(msg));
 }
@@ -538,7 +555,8 @@ announce_into(basic_obj to, const char *msg)
         return;
     long send_to = PlayerIdx::mask_in_room(to);
 
-    if (send_to)  // Anyone to send to?
+    if (send_to)
+    // Anyone to send to?
     {
         ioproc(msg);
         ipcMsg out(MMESSAGE);

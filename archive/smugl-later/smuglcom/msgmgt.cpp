@@ -5,19 +5,19 @@
 #include "include/libprotos.hpp"
 #include "smuglcom/smuglcom.hpp"
 
-#define GROW_SIZE 256 /* Size to grow index by */
+#define GROW_SIZE 256  // Size to grow index by
 
-long *msgitab; /* The message index table */
-long i_alloc;  /* Indexes allocated for */
-long *msgip;   /* Current position in the msg index */
+long *msgitab;  // The message index table
+long i_alloc;   // Indexes allocated for
+long *msgip;    // Current position in the msg index
 
 struct MSGID {
-    long msg; /* Msg number */
-    char *id; /* The ID */
+    long msg;  // Msg number
+    char *id;  // The ID
 };
-struct MSGID *msgidtab; /* The message ID table */
-long id_alloc;          /* ID entries allocated */
-struct MSGID *msgidp;   /* Current position in the index */
+struct MSGID *msgidtab;  // The message ID table
+long id_alloc;           // ID entries allocated
+struct MSGID *msgidp;    // Current position in the index
 
 /* add the message to the index. if 'id' is set, this will be
  * considered a 'umsg'
@@ -30,20 +30,20 @@ add_msg(const char *id)
 {
     size_t new_alloc;
 
-    if (!msgfp) { /* Haven't opened message file yet */
+    if (!msgfp) {  // Haven't opened message file yet
         msgfp = fopen(datafile(umsgfn), "wb");
         if (msgfp == NULL)
             Err("writ", datafile(umsgfn));
     }
 
-    if (i_alloc % GROW_SIZE == 0) { /* No indexes availble, need to grow */
+    if (i_alloc % GROW_SIZE == 0) {  // No indexes availble, need to grow
         new_alloc = (i_alloc + GROW_SIZE) * sizeof(*msgitab);
         msgitab = (long *) grow(msgitab, new_alloc, "Reorganising Msg Index Table");
         msgip = msgitab + i_alloc;
     }
     *msgip = ftell(msgfp);
 
-    if (id && *id) { /* Does it have a label? */
+    if (id && *id) {  // Does it have a label?
         if (id_alloc % GROW_SIZE == 0) {
             new_alloc = (id_alloc + GROW_SIZE) * sizeof(*msgidtab);
             msgidtab = (MSGID *) grow(msgidtab, new_alloc, "Reorganising MsgID Table");
@@ -57,10 +57,10 @@ add_msg(const char *id)
     }
 
     msgip++;
-    return i_alloc++; /* IE i_alloc++; return (i_alloc-1) */
+    return i_alloc++;  // IE i_alloc++; return (i_alloc-1)
 }
 
-/* Save the current message index table */
+// Save the current message index table
 void
 save_messages(void)
 {
@@ -86,11 +86,11 @@ ismsgid(const char *s)
 {
     struct MSGID *tmpidp;
 
-    /* Is it a "no message" id? */
+    // Is it a "no message" id?
     if (!strncmp("none", s, 4) && (!*(s + 4) || !isalnum(*(s + 4))))
         return -2;
 
-    /* Is it a system message? */
+    // Is it a system message?
     if (*s == '$') {
         int i;
 
@@ -102,7 +102,7 @@ ismsgid(const char *s)
         return i - 1;
     }
 
-    /* Now search the message ID table */
+    // Now search the message ID table
     for (tmpidp = msgidtab; tmpidp < msgidp; tmpidp++) {
         if (!strcmp(tmpidp->id, s))
             return tmpidp->msg;

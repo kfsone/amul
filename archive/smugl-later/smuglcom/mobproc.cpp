@@ -11,7 +11,7 @@ static char *getmobmsg(char *p, const char *s, msgno_t *n);
 
 static inline void
 mobmis(const char *s)
-{ /* Report missing mobile fields */
+{  // Report missing mobile fields
     error("%s: Missing %s field.\n", mob.id, s);
 }
 
@@ -20,11 +20,11 @@ mobmis(const char *s)
 ** and a pointer to it's accompanying position with the 'mob' variable.
 ** This isn't very nice */
 struct MOBMSGS {
-    const char *msg; /* The label text */
-    msgno_t *into;   /* The pointer within 'mob' for the value */
+    const char *msg;  // The label text
+    msgno_t *into;    // The pointer within 'mob' for the value
 } * mmsgd;
 
-/* The mobile-message index table */
+// The mobile-message index table
 struct MOBMSGS mmsgdata[] = { { "arrive=", &mob.arr }, { "depart=", &mob.dep },
                               { "flee=", &mob.flee },  { "strike=", &mob.hit },
                               { "miss=", &mob.miss },  { "dies=", &mob.death },
@@ -120,7 +120,7 @@ mob_proc1(void)
             p = skipdata(p);
     } while (*p);
 
-    errabort(); /* Abort if an error */
+    errabort();  // Abort if an error
     if (mobchars) {
         mobp = (struct MOB_ENT *) grow(NULL, sizeof(*mobp) * mobchars, "Reading Mobile Table");
         fopena(mobfn);
@@ -133,7 +133,7 @@ mob_proc1(void)
 
 static char *
 mobpget(const char *s, char *p, msgno_t *n)
-{ /* Get a mobile's percentage value */
+{  // Get a mobile's percentage value
     p = getword(skiplead(s, p));
     if (!*Word) {
         mobmis(s);
@@ -145,13 +145,13 @@ mobpget(const char *s, char *p, msgno_t *n)
 
 static char *
 getmobmsg(char *p, const char *s, msgno_t *n)
-{ /* Fetch a mobile message line */
+{  // Fetch a mobile message line
     char *q = NULL;
 
     *n = -1;
 
-    /* We have to allow that there might be some 'empty' lines */
-    /* XXX: Do we really, I thought clean up, etc, sorted all that? */
+    // We have to allow that there might be some 'empty' lines
+    // XXX: Do we really, I thought clean up, etc, sorted all that?
     do {
         p = skipline(q = p);
         if (!*q) {

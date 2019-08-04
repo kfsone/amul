@@ -20,4 +20,4 @@ class VerbIdx
     static class Verb *locate(long id);
 };
 
-#endif /* LANG_H */
+#endif  // LANG_H

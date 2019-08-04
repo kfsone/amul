@@ -20,7 +20,9 @@ char new_name[NAMEL + 1];
 static inline int getname(void);
 static inline int newid(void);
 
-void login(void)  // Log a player in
+void
+login(void)
+// Log a player in
 {
     // Initialise player variables
     // iverb = iadj1 = inoun1 = iadj2 = inoun2 = actor = -1;
@@ -34,12 +36,14 @@ void login(void)  // Log a player in
     srand((unsigned int) time(NULL));
 
     for (int tries = 3; fails == -1 && tries; tries--) {
-        me->reset();          // Reset all player features
-        fails = -1;           // Set default flags, etc
-        if (getname() == -1)  // Get player's name
+        me->reset();  // Reset all player features
+        fails = -1;   // Set default flags, etc
+        if (getname() == -1)
+            // Get player's name
             continue;
 
-        // if (!findpers())         // Existing persona?
+        // if (!findpers())
+        // Existing persona?
         //    fails = newid();    // No - can we/should we create this?
         // else fails = getpasswd(); // otherwise check the password
 
@@ -47,7 +51,8 @@ void login(void)  // Log a player in
         break;
     }
 
-    if (fails == -1)  // Not a success
+    if (fails == -1)
+    // Not a success
     {
         tx(message(FAILEDLOGIN), '\n');
         sysLog.Write(_FLD, "didn't bother logging in");
@@ -88,8 +93,9 @@ void login(void)  // Log a player in
     me->flags = 0;        // XXX: really?
     me->add_name();       // Add my name into the userbase
 
-    me->plays++;        // I'm playing again
-    if (me->plays > 1)  // Hey - I've seen you before!
+    me->plays++;  // I'm playing again
+    if (me->plays > 1)
+        // Hey - I've seen you before!
         tx(message(WELCOMEBAK));
 
     // Try and find a start location
@@ -161,7 +167,9 @@ void login(void)  // Log a player in
     start_room->enter();
 }
 
-static inline int getname(void)  // Get the player's name
+static inline int
+getname(void)
+// Get the player's name
 {
     char* p = new_name;
 
@@ -170,8 +178,9 @@ static inline int getname(void)  // Get the player's name
     txc('\n');
     if (!new_name[0])
         return -1;
-    while (*p) {          // Validate the input string
-        if (isspace(*p))  // Replace spaces with hyphens
+    while (*p) {  // Validate the input string
+        if (isspace(*p))
+        // Replace spaces with hyphens
         {
             *(p++) = '-';
             continue;
@@ -209,7 +218,9 @@ static inline int getname(void)  // Get the player's name
     return 0;
 }
 
-static inline int newid(void)  // Create a new user
+static inline int
+newid(void)
+// Create a new user
 {
     me->reset();
     strcpy(me->_name, new_name);
@@ -263,7 +274,9 @@ static inline int newid(void)  // Create a new user
 }
 
 #ifdef NEVER
-int getpasswd(void)  // Existing user - verify password
+int
+getpasswd(void)
+// Existing user - verify password
 {
     // Give the user three attempts at entering the right password.
     for (i = 0; i < 3; i++) {
@@ -276,7 +289,8 @@ int getpasswd(void)  // Existing user - verify password
             break;
     }
 
-    if (i == 3)  // We used up all 3 attempts
+    if (i == 3)
+    // We used up all 3 attempts
     {
         tx(message(TRIESOUT));  // Update bad try count
         me->tries++;
@@ -296,4 +310,4 @@ int getpasswd(void)  // Existing user - verify password
     me->tries = 0;
     return 0;
 }
-#endif /* NEVER */
+#endif  // NEVER

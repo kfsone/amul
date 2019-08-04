@@ -33,16 +33,21 @@ State::describe(void)
 
 ///////////////////////////////// Object Index Functions
 
-Object *ObjectIdx::locate(char *s)  // Locate an object by it's name
+Object *
+ObjectIdx::locate(char *s)
+// Locate an object by it's name
 {
     long w = is_word(s);
 
-    if (w == -1)  // We don't know that word
+    if (w == -1)
+        // We don't know that word
         return NULL;
     return locate(w);
 }
 
-Object *ObjectIdx::locate(long id)  // Locate an object by it's vocab id
+Object *
+ObjectIdx::locate(long id)
+// Locate an object by it's vocab id
 {
     Object *ptr;
     long i;

@@ -16,7 +16,7 @@ smsg_proc(void)
     smsgs = 0;
     if (nextc(0) == -1) {
         error("No System Messages Present - Can't Continue\n");
-        errabort(); /* Nothing to process! */
+        errabort();  // Nothing to process!
     }
 
     data = blkget();

@@ -6,8 +6,8 @@
 #include "include/cl_basicobj.hpp"
 
 class OBJ : public BASIC_OBJ
-    {				// Object (temporary) definition
-public:
+{  // Object (temporary) definition
+  public:
     //// Object::FUNCTIONS
     virtual bool describe(void) { return 0; };
     virtual bool describe_verbose(void) { return 0; };
@@ -15,10 +15,9 @@ public:
     virtual int Read(FILE *);
 
     //// Object::DATA
-    char putto;                 // Where things go
-    char article;               // 'a'? 'an'?
-    short nstates;              // No. of states
-    short mobile;               // Mobile character
-    class State *states;        // Ptr to states!
-    };
-
+    char putto;           // Where things go
+    char article;         // 'a'? 'an'?
+    short nstates;        // No. of states
+    short mobile;         // Mobile character
+    class State *states;  // Ptr to states!
+};

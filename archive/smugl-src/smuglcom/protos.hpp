@@ -85,4 +85,4 @@ skipspc(char *s)
     return s;
 }
 
-#endif /* SMUGLCOM_PROTOS */
+#endif  // SMUGLCOM_PROTOS

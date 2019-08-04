@@ -10,7 +10,7 @@ extern arg_t *argptr;
 
 void
 trav_proc(void)
-{ /* Process travel table */
+{  // Process travel table
     int strip, lines;
     int nvbs, i, ntt;
     char *p, *s;
@@ -47,7 +47,7 @@ trav_proc(void)
         do {
             p = skipline(s = p);
             if (!*s) {
-                /* Only complain if room is not a death room */
+                // Only complain if room is not a death room
                 if ((rmp->std_flags & bob_DEATH) != bob_DEATH)
                     warne("%s: No T.T entries!\n", word(rmp->id));
                 rmp->tabptr = -2;
@@ -63,20 +63,20 @@ trav_proc(void)
             }
         } while (!*s);
         if (!*s)
-            continue; /* Didn't like the verb list */
+            continue;  // Didn't like the verb list
 
-        /* Prep some values */
+        // Prep some values
         s = skiplead("verbs=", s);
         lines = 0;
         verb.id = -1;
         rmp->tabptr = tabcnt;
         rmp->ttlines = 0;
 
-    vbproc: /* Process verb list */
+    vbproc:  // Process verb list
         nvbs = 0;
         tt.pptr = (long *) -1;
         l = (long *) temp;
-        /* Break verb list down to verb no.s */
+        // Break verb list down to verb no.s
         do {
             s = getword(s);
             if (!*Word)
@@ -90,7 +90,7 @@ trav_proc(void)
         if (!nvbs) {
             error("%s: No verbs specified after verbs=!\n", word(rmp->id));
         }
-        /* Now process each instruction line */
+        // Now process each instruction line
         do {
             tt.not_condition = 0;
             tt.condition = -1;
@@ -111,16 +111,16 @@ trav_proc(void)
                 s += 6;
                 break;
             }
-            s = precon(s); /* Strip pre-condition opts */
+            s = precon(s);  // Strip pre-condition opts
 
-            /* Negations */
+            // Negations
             if (*s == '!') {
                 tt.not_condition = 1;
                 s++;
             }
             if (strncmp(s, "not ", 4) == 0) {
                 tt.not_condition = 1;
-                s += 4; /* Skip the phrase 'not ' */
+                s += 4;  // Skip the phrase 'not '
             }
             s = getword(s);
             if ((tt.condition = iscond(Word)) == -1) {

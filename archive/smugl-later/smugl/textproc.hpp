@@ -12,12 +12,11 @@ extern void ioproc(const char *str);
 static inline char *
 strcopy(char *to, const char *from)
 {
-	while ((*to = (*(from++))))
-		++to;
-	return to;
+    while ((*to = (*(from++))))
+        ++to;
+    return to;
 }
 
 extern char *out_buf;
 extern long out_bufsz;
 extern long out_buf_len;
-

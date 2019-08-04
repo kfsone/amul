@@ -6,8 +6,9 @@
 
 void
 umsg_proc(void)
-{                        // Process the umsg file
-    if (nextc(0) == -1)  // None to process.
+{  // Process the umsg file
+    if (nextc(0) == -1)
+    // None to process.
     {
         tx("<No Entries>");
         errabort();
@@ -43,7 +44,7 @@ umsg_proc(void)
 
 static msgno_t
 msgline(char* s)
-{ /* Record a message and assign it an id */
+{  // Record a message and assign it an id
     const msgno_t msgno = add_msg(NULL);
     fwrite(s, strlen(s), 1, msgfp);
     fputc(0, msgfp);
@@ -52,7 +53,7 @@ msgline(char* s)
 
 msgno_t
 ttumsgchk(char* s)
-{ /* Process a quote or 'id'd message */
+{  // Process a quote or 'id'd message
     s = skiplead("msgid=", s);
     s = skipspc(s);
     if (*s == '\"' || *s == '\'')

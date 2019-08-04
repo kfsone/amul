@@ -285,7 +285,9 @@ read_in_advfn(void)
     fclose(fp);
 }
 
-void load_database(void* const membase)  // Load all the files in the database
+void
+load_database(void* const membase)
+// Load all the files in the database
 {
     container_t conPlayer;
     Player* ppCur;

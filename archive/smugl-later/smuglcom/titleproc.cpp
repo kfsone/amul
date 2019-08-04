@@ -137,7 +137,8 @@ option_line(char *s)
         } else  // Numeric/single word value
             while (!isspace(*s) && *s)
                 s++;
-        if (*s)  // Insert our own "end of string"
+        if (*s)
+            // Insert our own "end of string"
             *(s++) = 0;
 
         // Now relate the value to it's option type & validate it
@@ -237,7 +238,7 @@ option_line(char *s)
     }
 }
 
-static inline int chkline(char *p) /* Test for incomplete rank line */
+static inline int chkline(char *p)  // Test for incomplete rank line
 {
     if (*p)
         return 0;
@@ -245,7 +246,7 @@ static inline int chkline(char *p) /* Test for incomplete rank line */
     return 1;
 }
 
-static inline void badrank(const char *s) /* Complain about a bad rank line */
+static inline void badrank(const char *s)  // Complain about a bad rank line
 {
     error("%3ld/%s: Invalid number for %s - \"%s\".\n", ranks, rank.male, s, Word);
 }
@@ -389,7 +390,7 @@ sys_proc(void)
         }
     } while (*next_line);
 
-    /* Finally; check for default values, etc */
+    // Finally; check for default values, etc
     if (!*g_adname)
         error("Missing adventure name.\n");
     if (mins == -2) {
@@ -424,7 +425,7 @@ sys_proc(void)
               "timed",
               "-scaling of values");
 
-    errabort(); /* Abort if an error */
+    errabort();  // Abort if an error
 }
 
 /* Check for the presence of the SYSTEM.txt file; if it doesn't exist,

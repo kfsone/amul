@@ -13,7 +13,7 @@ obds_proc(void)
         tx("<No Entries>");
         errabort();
         return;
-    } /* None to process */
+    }  // None to process
     data = blkget();
     p = data;
 
