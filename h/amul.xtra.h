@@ -2,7 +2,7 @@
 #define AMUL_H_AMUL_XTRA_H 1
 
 #include "h/amul.type.h"
-#include <ctype.h>
+#include <cctype>
 
 const char *extractLine(const char *from, char *to);
 char *      getword(char *from);

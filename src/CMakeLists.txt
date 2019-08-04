@@ -31,6 +31,10 @@ SET(AMULCOM_SOURCES
         amulcom.main.cpp
 		amulcom.extras.cpp
 		amulcom.strings.cpp
+
+		amulcom.msgfile.cpp
+		amulcom.titlefile.cpp
+
 		tokenstream.cpp
 )
 
