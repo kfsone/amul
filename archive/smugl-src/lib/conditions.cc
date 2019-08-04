@@ -2,8 +2,6 @@
  * conditions.cpp -- The condition table
  */
 
-static const char rcsid[] = "$Id: conditions.cc,v 1.4 1997/05/22 02:21:14 oliver Exp $";
-
 #include "includes.hpp"
 #include "structs.hpp"
 
@@ -84,7 +82,7 @@ static const char rcsid[] = "$Id: conditions.cc,v 1.4 1997/05/22 02:21:14 oliver
  * canput o1 o2 -       Can I put <o1> into <o1>
  *
  */
-struct ARGS cond[CONDITIONS] = {
+ARGS cond[CONDITIONS] = {
     { "&", 0, { NONE } },
     { "-", 0, { NONE } },
     { "else", 0, { NONE } },

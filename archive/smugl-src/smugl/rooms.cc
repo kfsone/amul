@@ -1,7 +1,5 @@
 // Definition of room classes and functions
 
-static const char rcsid[] = "$Id: rooms.cc,v 1.15 1999/09/10 15:57:31 oliver Exp $";
-
 #include <cassert>
 
 #define ROOMS_C 1

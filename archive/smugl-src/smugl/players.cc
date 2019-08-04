@@ -1,7 +1,5 @@
 // Definition of player classes and functions
 
-static const char rcsid[] = "$Id: players.cc,v 1.14 1999/06/08 15:36:50 oliver Exp $";
-
 #define PLAYERS_C 1
 
 #include "consts.hpp"
@@ -156,7 +154,7 @@ Player::reset()
 int
 Player::go_to(basic_obj dest_rm, const char *dep_msg, const char *arr_msg)
 {
-    class Room *dest = (Room *) bobs[dest_rm];
+    Room *dest = (Room *) bobs[dest_rm];
     if ((dest->flags & SMALL) && PlayerIdx::locate_in(dest_rm)) {
         tx(message(NOROOM), '\n');
         return FALSE;

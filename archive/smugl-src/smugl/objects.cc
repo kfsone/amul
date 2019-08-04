@@ -1,7 +1,5 @@
 // Object and Object-State class/functions
 
-static const char rcsid[] = "$Id: objects.cc,v 1.6 1997/05/22 02:21:26 oliver Exp $";
-
 #define OBJECTS_C 1
 
 #include "consts.hpp"

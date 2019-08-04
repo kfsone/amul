@@ -95,7 +95,7 @@ trav_proc()
         }
         /* Now process each instruction line */
         do {
-            tt.not_condition = 0;
+            tt.not_condition = false;
             tt.condition = -1;
             tt.action_type = ACT_GO;
             tt.action = -1;
@@ -118,11 +118,11 @@ trav_proc()
 
             /* Negations */
             if (*s == '!') {
-                tt.not_condition = 1;
+                tt.not_condition = true;
                 s++;
             }
             if (strncmp(s, "not ", 4) == 0) {
-                tt.not_condition = 1;
+                tt.not_condition = true;
                 s += 4; /* Skip the phrase 'not ' */
             }
             s = getword(s);

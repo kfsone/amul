@@ -59,7 +59,7 @@
 #else
 #include "SMUGLCOM.h"
 #endif
-#include "stdio.h"
+#include <cstdio>
 
 char vername[81];  // Version name string
 

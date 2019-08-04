@@ -1,7 +1,5 @@
 // Definition of room classes and functions
 
-static const char rcsid[] = "$Id: travel.cc,v 1.4 1997/05/22 02:21:32 oliver Exp $";
-
 #define TRAVEL_C 1
 
 #include "smugl.hpp"

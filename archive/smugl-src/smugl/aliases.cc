@@ -1,7 +1,5 @@
 // Definition of alias (synonym) class and functions
 
-static const char rcsid[] = "$Id: aliases.cc,v 1.4 1997/05/22 02:21:17 oliver Exp $";
-
 #define ALIASESS_C 1
 
 #include "aliases.hpp"
