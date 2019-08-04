@@ -3,58 +3,58 @@
  * definitions for the SMUGL system.
  */
 
-#include "include/actuals.hpp"
-#include "include/defines.hpp"
-#include "include/includes.hpp"
-#include "include/typedefs.hpp"
+#include "actuals.hpp"
+#include "defines.hpp"
+#include "includes.hpp"
+#include "typedefs.hpp"
 
 char g_dir[130];      // spc for work dir path
 char g_block[1024];   // 1k block of spare txt
 char g_adname[65];    // Adventure name
 char g_logname[130];  // Name of log file
 
-const char* std_flag[] = {  // basic object std_flags
+const char *std_flag[] = {  // basic object std_flags
     "inplay", "scenery", "counter", "death",     "light",  "shines",   "flamable", "lit",
-    "silent", "hidecre", "hideobj", "sanctuary", "nolook", "peaceful", "scaled",   NULL
+    "silent", "hidecre", "hideobj", "sanctuary", "nolook", "peaceful", "scaled",   nullptr
 };
 
-const char* rflag[] = {  // Room FLAGS
-    "startloc", "randobjs", "small", "noexits", "anteroom", "nogo", NULL
+const char *rflag[] = {  // Room FLAGS
+    "startloc", "randobjs", "small", "noexits", "anteroom", "nogo", nullptr
 };
 
-const char* rparam[] = {  // Room PARAMETERS
+const char *rparam[] = {  // Room PARAMETERS
     "dark",
     "dmove=",
-    NULL
+    nullptr
 };
 
-const char* obflags1[] = {  // Object flags
+const char *obflags1[] = {  // Object flags
     "opens",
     "fire",
     "invis",
     "smell",
-    NULL
+    nullptr
 };
 
-const char* obparms[] = {  // Object parameters
-    "adj=", "start=", "holds=", "put=", "mobile=", "art=", NULL
+const char *obparms[] = {  // Object parameters
+    "adj=", "start=", "holds=", "put=", "mobile=", "art=", nullptr
 };
 
-const char* obflags2[] = {  // Object state flags
-    "open", "closed", "weapon", "opaque", "alive", NULL
+const char *obflags2[] = {  // Object state flags
+    "open", "closed", "weapon", "opaque", "alive", nullptr
 };
 
-const char* syntax[NSYNTS] = {  // Syntax "types"
+const char *syntax[NSYNTS] = {  // Syntax "types"
     "none", "any", "noun", "adj", "player", "room", "syn", "text", "verb", "class", "number"
 };
 // For speeds sake, we remember the size of each of the above
 unsigned char syntl[NSYNTS] = { 4, 3, 4, 3, 6, 4, 3, 4, 4, 5, 6 };
 
-const char* obputs[NPUTS] = { "in", "on", "behind", "under" };
+const char *obputs[NPUTS] = { "in", "on", "behind", "under" };
 
-const char* prep[NPREP] = { "in", "on", "behind", "under", "from", "with" };
+const char *prep[NPREP] = { "in", "on", "behind", "under", "from", "with" };
 
-const char* article[NART] = { "a", "an", "the", "some" };
+const char *article[NART] = { "a", "an", "the", "some" };
 
 char advfn[] = "Main.CMP";        // Game profile
 char plyrfn[] = "PlayerData";     // User Details

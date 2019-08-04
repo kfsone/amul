@@ -1,8 +1,5 @@
-// smuglcom.hpp -- Main smuglcom include file (used by most other files)
-// $Id: smuglcom.hpp,v 1.10 1997/05/22 02:21:41 oliver Exp $
-
-#ifndef COMPILER
-#define COMPILER 1
+#ifndef SMUGL_SMUGLCOM_H
+#define SMUGL_SMUGLCOM_H
 
 #include "consts.hpp"
 #include "includes.hpp"
@@ -36,7 +33,8 @@ DEC char *mobdat;          // Mobile data
 DEC char inc_hash_stats;   // Command line switch
 DEC counter_t cur_room;    // "Current room" (for travel table)
 
-DEC char warn, needcr, exi;
+DEC char warn, exi;
+DEC bool needcr;
 
 extern char *sgetl(char *, char *);
 extern char *skipline(char *);
@@ -56,8 +54,8 @@ DEC counter_t msgs;      // # text messages
 DEC counter_t mobchars;  // # mobile chars
 DEC counter_t obdes;     // # obj descrips
 
-extern char adname[];   // Adventure name
-extern char logname[];  // Name of log file
+extern char g_adname[];   // Adventure name
+extern char g_logname[];  // Name of log file
 
 DEC char invis;            // rnk 4 invis 2C invis
 DEC char invis2;           // rnk 4 !invis 2C invis
@@ -109,11 +107,6 @@ enum {  // Text file numbers
     TXTFILES
 };
 
-#ifdef SMUGLCOM
-const char *txtfile[TXTFILES] = { "sysmsg",  "system",  "umsg", "rooms",  "mobiles",
-                                  "obdescs", "objects", "lang", "travel", "syns" };
-#else
 extern const char *txtfile[];
-#endif
 
 #endif  // COMPILER

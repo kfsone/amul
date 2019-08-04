@@ -16,13 +16,13 @@ static char filename[202];
 char *
 datafile(const char *s)
 {
-    snprintf(filename, sizeof(filename), "%sData/%s", dir, s);
+    snprintf(filename, sizeof(filename), "%sData/%s", g_dir, s);
     return filename;
 }
 
 char *
 textfile(const char *s)
 {
-    snprintf(filename, sizeof(filename), "%s%s", dir, s);
+    snprintf(filename, sizeof(filename), "%s%s", g_dir, s);
     return filename;
 }

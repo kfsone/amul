@@ -1,32 +1,36 @@
 // Definition of room classes and functions
 
-#include "include/consts.hpp"
-#include "include/structs.hpp"
-#include "include/syslog.hpp"
-#include "smugl/smugl.hpp"
+#include <cassert>
 
-#include "smugl/data.hpp"
-#include "smugl/ipc.hpp"
-#include "smugl/lang.hpp"
-#include "smugl/misc.hpp"
-#include "smugl/objects.hpp"
-#include "smugl/rooms.hpp"
-#include "smugl/travel.hpp"
+#include "consts.hpp"
+#include "data.hpp"
+#include "ipc.hpp"
+#include "lang.hpp"
+#include "misc.hpp"
+#include "objects.hpp"
+#include "rooms.hpp"
+#include "smugl.hpp"
+#include "structs.hpp"
+#include "syslog.hpp"
+#include "travel.hpp"
 
-class Room *cur_loc;
-
+Room *cur_loc;
 // class RoomIdx RoomIdx;
-class Room *last_room;
+Room *last_room;
 
-int RoomIdx::cur_no;
+Room *
+RoomIdx::first()
+{
+    cur_no = 0;
+    return data->roombase;
+}
 
 bool
-Room::describe(void)
+Room::describe()
 {
     HEAVYDEBUG("Room::describe");
     bool described = false;
     char finish = 0;  // Character to add when we've finished
-
     //    class Object *child;
     //    class Player *guest;
 
@@ -51,7 +55,6 @@ Room::describe(void)
     // Tell the player what objects they can see here.
     if (contents) {  // Can't see objects in hide-aways
         container_t conChild = conTent;
-
         for (int entry = 0; entry < contents && conChild >= 0; entry++) {
             assert(conChild >= 0 && conChild <= ncontainers);
             assert(containers[conChild].boSelf >= 0 && containers[conChild].boSelf <= nbobs);
@@ -81,22 +84,21 @@ Room::describe(void)
 }
 
 inline class TTEnt *
-Room::Tabptr(void)
+Room::Tabptr()
 {  // Return tabptr as a TTEnt pointer
     return data->ttbase + tabptr;
 }
 
 // Room::leave()
 // Try and leave a room.
-// Returns NULL if there are no rules for the given exit,
+// Returns nullptr if there are no rules for the given exit,
 // otherwise returns a true value
 bool
 Room::leave(vocid_t wordno)
 {  // Called with a word ID
     HEAVYDEBUG("Room::leave");
     class Verb *vb = VerbIdx::locate(wordno);
-
-    if (vb == NULL)
+    if (vb == nullptr)
         // word must be a verb
         return false;
     return leave(vb);
@@ -104,7 +106,7 @@ Room::leave(vocid_t wordno)
 
 // Room::leave()
 // Try and leave a room.
-// Returns NULL if there are no rules for the given exit,
+// Returns nullptr if there are no rules for the given exit,
 // otherwise returns a true value
 bool
 Room::leave(class Verb *vb)
@@ -113,7 +115,6 @@ Room::leave(class Verb *vb)
     int i = 0;
     bool did_anything = false;
     class TTEnt *ttp;  // TT Entry pointer
-
     if (tabptr == -1)
     // Anything to see?
     {
@@ -132,8 +133,8 @@ Room::leave(class Verb *vb)
                 return true;
             }
 
-            class Room *dest = (Room *) bobs[ttp->action];
-            if (dest == NULL || ((dest->flags & SMALL) && PlayerIdx::locate_in(ttp->action))) {
+            Room *dest = (Room *) bobs[ttp->action];
+            if (dest == nullptr || ((dest->flags & SMALL) && PlayerIdx::locate_in(ttp->action))) {
                 tx("Not enough.\n");
                 return false;
             }
@@ -162,7 +163,7 @@ Room::depart(const char *how /*=me->dep*/)
     HEAVYDEBUG("Room::depart");
     sem_lock(sem_MOTION);
     from_container(me->conLocation);  // Move to nowhere
-    cur_loc = NULL;
+    cur_loc = nullptr;
     if (bob != me->bob)
         // If it's not inside itself
         announce_into(bob, how);  // Tell players back there
@@ -195,11 +196,10 @@ Room::enter(const char *how /*=me->arr*/)
 
 // Describe the exits in a room
 void
-Room::exits(void)
+Room::exits()
 {
     HEAVYDEBUG("Room::exits");
     class TTEnt *ttp = cur_loc->Tabptr();
-
     for (int i = 0; i < cur_loc->ttlines; i++, ttp++) {
         txprintf("  %d:[%s %c%s %s %p]\n",
                  i,
@@ -214,23 +214,40 @@ Room::exits(void)
 
 //////////////////////// RoomIdx functions
 
+Room *
+RoomIdx::current()
+{
+    if (cur_no >= data->rooms)
+        return nullptr;
+    return data->roombase + cur_no;
+}
+
+Room *
+RoomIdx::next()
+{
+    if (++cur_no >= data->rooms) {
+        cur_no = data->rooms;
+        return nullptr;
+    }
+    return data->roombase + cur_no;
+}
+
 // Locate a room by it's name
-class Room *
+Room *
 RoomIdx::locate(const char *s)
 {
     vocid_t id = is_word(s);
-
     // Is this a valid word?
     if (id == -1)
-        return NULL;
+        return nullptr;
     return locate(id);
 }
 
 // Locate a room by it's vocab id
-class Room *
+Room *
 RoomIdx::locate(vocid_t id)
 {
-    class Room *rm;
+    Room *rm;
     long i;
 
     // Look for a room with this name
@@ -239,6 +256,6 @@ RoomIdx::locate(vocid_t id)
             return rm;
     }
 
-    // We didn't find a match, return a NULL pointer
-    return NULL;
+    // We didn't find a match, return a nullptr pointer
+    return nullptr;
 }

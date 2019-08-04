@@ -12,11 +12,12 @@
  * languages. It's purely a way of linking a group of nouns together ;-)
  */
 
-#include "smuglcom/smuglcom.hpp"
+#include "errors.hpp"
+#include "smuglcom.hpp"
 
 // Process the synonyms table
 void
-syn_proc(void)
+syn_proc()
 {
     char *p, *s;
     vocid_t real_word;

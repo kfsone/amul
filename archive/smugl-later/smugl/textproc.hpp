@@ -1,5 +1,7 @@
-#pragma once
-// protos/externs for textprocessing functions
+#ifndef SMUGL_SMUGL_TEXTPROC_H
+#define SMUGL_SMUGL_TEXTPROC_H
+
+#include "typedefs.hpp"
 
 extern const char *message(msgno_t id);
 extern const char *rightstr(const char *s, int len);
@@ -13,10 +15,12 @@ static inline char *
 strcopy(char *to, const char *from)
 {
     while ((*to = (*(from++))))
-        ++to;
+        to++;
     return to;
 }
 
 extern char *out_buf;
 extern long out_bufsz;
 extern long out_buf_len;
+
+#endif  // TEXTPROC_H

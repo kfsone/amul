@@ -1,7 +1,7 @@
-#pragma once
-/*
- * String and other constants
- */
+#ifndef SMUGL_H_CONSTS_H
+#define SMUGL_H_CONSTS_H 1
+
+// String and other constants
 
 extern const char *std_flag[];
 extern const char *rflag[];
@@ -26,3 +26,5 @@ extern char ttpfn[], langfn[], synsifn[];
 extern char objsfn[], statfn[], umsgifn[], umsgfn[];
 extern char mobfn[], vocifn[], vocfn[], bobfn[];
 extern char statsfn[];
+
+#endif  // SMUGL_H_CONSTS_H

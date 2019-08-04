@@ -4,13 +4,16 @@
 // language table entry processor. This houses all the condition and
 // action code, and the tables used to invoke them
 
-#include "smugl/langtable.hpp"
-#include "include/structs.hpp"
-#include "smugl/aliases.hpp"
-#include "smugl/io.hpp"
-#include "smugl/lang.hpp"
-#include "smugl/parser.hpp"
-#include "smugl/smugl.hpp"
+#include <cassert>
+#include <cctype>
+
+#include "aliases.hpp"
+#include "io.hpp"
+#include "lang.hpp"
+#include "langtable.hpp"
+#include "parser.hpp"
+#include "smugl.hpp"
+#include "structs.hpp"
 
 bool
 quit()
@@ -33,7 +36,7 @@ look()
 }
 
 bool
-do_condition(VBTAB* vt, bool lastCond)
+do_condition(VBTAB *vt, bool lastCond)
 {
     bool result;
 
@@ -131,7 +134,7 @@ do_condition(VBTAB* vt, bool lastCond)
 }
 
 slotResult
-do_action(VBTAB* vt, bool /*lastCond*/)
+do_action(VBTAB *vt, bool /*lastCond*/)
 {
     assert(vt->action_type == ACT_DO);
 

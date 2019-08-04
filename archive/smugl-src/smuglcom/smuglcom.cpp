@@ -25,6 +25,9 @@ static void checkf(const char *s);
 extern char vername[];
 extern long i_alloc;
 
+const char *txtfile[TXTFILES] = { "sysmsg",  "system",  "umsg", "rooms",  "mobiles",
+                                  "obdescs", "objects", "lang", "travel", "syns" };
+
 using voidfunc = void (*)();
 voidfunc tf_func[TXTFILES] = {
     smsg_proc, sys_proc,  umsg_proc, room_proc, mob_proc1,
@@ -36,12 +39,10 @@ VOCAB VC;
 int
 main(int argc, const char *argv[])
 {  // Main program - entry point
-    int i;
-
     set_version_string();
 
     ofp1 = ofp2 = ofp3 = nullptr;
-    dir[0] = 0;
+    g_dir[0] = 0;
     warn = 1;
     vc = &VC;
     vc->extras = 0;  // No extra entries in voacb table
@@ -64,10 +65,10 @@ main(int argc, const char *argv[])
     errabort();
 
     // Create the Data subdirectory
-    sprintf(temp, "%sData", dir);
+    sprintf(temp, "%sData", g_dir);
     mkdir(temp, 0777);
 
-    for (i = 0; i < TXTFILES; i++) {
+    for (int i = 0; i < TXTFILES; i++) {
         section(i);
         if (i == TF_LANG)
             proc = 1;
@@ -102,8 +103,8 @@ main(int argc, const char *argv[])
         hash_stats();
 
     // Game name and Logfile name
-    fwrite(adname, ADNAMEL + 1, 1, ofp1);
-    fwrite(logname, ADNAMEL + 1, 1, ofp1);
+    fwrite(g_adname, ADNAMEL + 1, 1, ofp1);
+    fwrite(g_logname, ADNAMEL + 1, 1, ofp1);
     // Various parameters
     fprintf(ofp1,
             "%ld %ld %d %d %d %d %d %d\n",
@@ -158,9 +159,10 @@ argue(int argc, const char *argv[])
             inc_hash_stats = 1;
             continue;
         }
-        strcpy(dir, argv[n - 1]);
-        if ((c = dir[strlen(dir) - 1]) != PATH_SEP_CHAR && c != ':')
-            strcat(dir, PATH_SEP);
+        strcpy(g_dir, argv[n - 1]);
+        c = g_dir[strlen(g_dir) - 1];
+        if (c != PATH_SEP_CHAR && c != ':')
+            strcat(g_dir, PATH_SEP);
     }
 }
 
@@ -168,11 +170,11 @@ argue(int argc, const char *argv[])
 static void
 checkf(const char *s)
 {
-    sprintf(block, "%s%s.txt", dir, s);
-    if ((ifp = fopen(block, "rb")))
+    sprintf(g_block, "%s%s.txt", g_dir, s);
+    if ((ifp = fopen(g_block, "rb")))
         fclose(ifp);
     else
-        error("Missing: file %s!\n", block);
+        error("Missing: file %s!\n", g_block);
     ifp = nullptr;
 }
 
@@ -180,8 +182,7 @@ checkf(const char *s)
 int
 iscond(const char *s)
 {
-    int i;
-    for (i = 0; i < CONDITIONS; i++)
+    for (int i = 0; i < CONDITIONS; i++)
         if (!strcmp(cond[i].name, s))
             return i;
     return -1;
@@ -191,8 +192,7 @@ iscond(const char *s)
 int
 isact(const char *s)
 {
-    int i;
-    for (i = 0; i < ACTIONS; i++)
+    for (int i = 0; i < ACTIONS; i++)
         if (!strcmp(action[i].name, s))
             return i;
     return -1;
@@ -204,7 +204,7 @@ section(int i)
 {
     printf("%s:", txtfile[i]);
     opentxt(txtfile[i]);
-    needcr = TRUE;
+    needcr = true;
     fflush(stdout);
 }
 

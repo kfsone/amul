@@ -5,10 +5,12 @@
  * be supplied with the package, so the user has a set of defaults.
  */
 
-#include "smuglcom/smuglcom.hpp"
+#include "errors.hpp"
+#include "fileio.hpp"
+#include "smuglcom.hpp"
 
 void
-smsg_proc(void)
+smsg_proc()
 {
     char *p, *s;
     long smsgs;
@@ -42,7 +44,7 @@ smsg_proc(void)
             p = skipdata(p);
             continue;
         }
-        add_msg(NULL);
+        add_msg(nullptr);
         p = text_proc(p, msgfp);
         smsgs++;
     } while (*p && smsgs < NSMSGS);

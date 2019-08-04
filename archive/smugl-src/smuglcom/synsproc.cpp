@@ -49,7 +49,7 @@ syn_proc()
             s = getword(s);
             if (!*Word)
                 break;
-            if ((alias_word = new_word(Word, FALSE)) == -1) {
+            if ((alias_word = new_word(Word, false)) == -1) {
                 error("Invalid synonym, '%s'\n", Word);
                 continue;
             }

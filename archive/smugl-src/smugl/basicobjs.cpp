@@ -1,5 +1,4 @@
 // Basic Object manipulation code
-static const char cvsid[] = "$Id: basicobjs.cc,v 1.4 1999/06/08 15:36:50 oliver Exp $";
 
 #include <cassert>
 
@@ -12,8 +11,10 @@ CONTAINER *containers;
 
 class BobIdx BobIdx;
 
+//////////////////////////////////////////////////////////////////////
 // Remove a container from it's environment
-int
+
+bool
 from_container(container_t con)
 {
     // We must:
@@ -28,7 +29,7 @@ from_container(container_t con)
 
     // Start of by confirming we are inside another object
     if (affected->boContainer == -1)
-        return FALSE;
+        return false;
 
     parent->contents--;
     parent->contents_weight -= victim->contents_weight;
@@ -47,11 +48,13 @@ from_container(container_t con)
     affected->conNext = -1;
     affected->boContainer = -1;
 
-    return TRUE;
+    return true;
 }
 
+//////////////////////////////////////////////////////////////////////
 // Add a container into a new environment
-int
+
+bool
 into_container(container_t con, basic_obj boNewloc)
 {
     // We must:
@@ -67,7 +70,7 @@ into_container(container_t con, basic_obj boNewloc)
 
     // Start of by confirming we are inside another object
     if (affected->boContainer != -1 && !from_container(con))
-        return FALSE;
+        return false;
 
     parent = bobs[boNewloc];
     affected->boContainer = boNewloc;
@@ -82,6 +85,7 @@ into_container(container_t con, basic_obj boNewloc)
     } else {
         container_t conTail = -1;
         CONTAINER *tail = containers + parent->conTent;
+
         // Iterate through the chain until we find the tail
         for (; tail->conNext != -1; tail = containers + conTail)
             conTail = tail->conNext;
@@ -89,45 +93,56 @@ into_container(container_t con, basic_obj boNewloc)
         affected->conPrev = conTail;
     }
 
-    return TRUE;
+    return true;
 }
 
+//////////////////////////////////////////////////////////////////////
 // BASIC_OBJ functions
-int
+
+bool
 BASIC_OBJ::is_in(basic_obj boContainer)
 {
     if (locations >= 1) {
         CONTAINER *cur = (containers + conLocation);
         for (int i = 0; i < locations; i++, cur++) {
             if (cur->boContainer == boContainer)
-                return TRUE;
+                return true;
         }
     }
-    return FALSE;
+
+    return false;
 }
 
-int
+//////////////////////////////////////////////////////////////////////
+// Base-class attempt to describe an object.
+
+bool
 BASIC_OBJ::describe()
 {
     if (s_descrip == -1 && id == -1) {
         tx("<NULL OBJECT>");  // No description or short name
-        return FALSE;
+        return false;
     }
     if (s_descrip == -1)
         tx(word(id));  // Name only
     else
         tx(message(s_descrip));
-    return TRUE;
+
+    return true;
 }
 
+//////////////////////////////////////////////////////////////////////
 // BobIdx functions
+//////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////
 // find(...)
 // Look for a basic object by name, optionally type, and optionally
 // starting from a given basic_obj
 // Returns -1 on fail
+
 basic_obj
-BobIdx::find(vocid_t name, char type, basic_obj from)
+BobIdx::find(vocid_t name, char type /*=WANY*/, basic_obj from /*=-1*/)
 {
     BASIC_OBJ *cur;
     if (from >= nbobs - 1 || from < -1)

@@ -1,18 +1,18 @@
-#pragma once
-// This may look like C, but it's really -*- C++ -*-
-//
+#ifndef OBJ_H
+#define OBJ_H 1
+#include "cl_basicobj.hpp"
 ////////////////////////////// OBJECT STRUCTURE
-
-#include "include/cl_basicobj.hpp"
 
 class OBJ : public BASIC_OBJ
 {  // Object (temporary) definition
   public:
+    ~OBJ() override = default;
+
     //// Object::FUNCTIONS
-    virtual bool describe(void) { return 0; };
-    virtual bool describe_verbose(void) { return 0; };
-    virtual int Write(FILE *);
-    virtual int Read(FILE *);
+    bool describe() override { return false; };
+    bool describe_verbose() override { return false; };
+    int Write(FILE *) override;
+    int Read(FILE *) override;
 
     //// Object::DATA
     char putto;           // Where things go
@@ -21,3 +21,5 @@ class OBJ : public BASIC_OBJ
     short mobile;         // Mobile character
     class State *states;  // Ptr to states!
 };
+
+#endif  // OBJ_H

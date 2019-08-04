@@ -55,8 +55,8 @@ chkp(char *p, arg_t type, int c, int z)
 
     // Extract this value and null-terminate it for easy manipulation
     if (*p != '\"' && *p != '\'')
-        while (*p && *p != 32)
-            // Non-quoted expression
+        // Non-quoted expression
+        while (*p && *p != ' ')
             p++;
     else {            // Quoted expression
         qc = *(p++);  // Search for same CLOSE quote

@@ -2,13 +2,16 @@
 // This file is for 'stand alone' functions that don't otherwise fit into
 // the object hierachy.
 
-#include "include/actuals.hpp"
-#include "smugl/parser.hpp"
-#include "smugl/ranks.hpp"
-#include "smugl/rooms.hpp"
-#include "smugl/smugl.hpp"
+#include <cctype>
+#include <cstring>
 
-extern const char vername[];
+#include "actuals.hpp"
+#include "parser.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
+#include "smugl.hpp"
+
+extern char vername[];
 
 char *out_buf;         // Generic output buffer
 long out_buf_len = 0;  // Length of data in output buffer
@@ -116,7 +119,8 @@ esc(const char *code, char *to)
         case 'f':  // @f codes are for <friend> - person you are helping
             //            if(c=='r' && me->helping!=-1) { strcpy(s,(usr+me->helping)->name); return
             //            1; } if(c=='m' && me->followed!=-1) { strcpy(s,(usr+me->followed)->name);
-            //            return 1; }
+            //            return 1;
+            //            }
             return strcopy(to, "no-one");
 
         case 'g':  // Gender words
@@ -142,7 +146,7 @@ esc(const char *code, char *to)
                     else
                         return strcopy(to, "him");
                 case 'p':  // @gp = games player
-                    return (to + sprintf(to, "%ld", me->plays));
+                    return (to + sprintf(to, "%d", me->plays));
             }
             break;
 
@@ -212,7 +216,6 @@ esc(const char *code, char *to)
             {
                 // Capture the 'online' count so it doesn't change
                 int online = data->connected;
-
                 // Believe it or not, but 'data->connected' could change
                 // during the sprintf below; and it seems pointless to
                 // lock sem_DATA for *this*
@@ -257,7 +260,6 @@ esc(const char *code, char *to)
         case 't':
             if (second >= '0' && second <= '9') {
                 int tok = second - '0';
-
                 switch (token[tok].type) {
                     case tokSTRING:
                         return strcopy(to, token[tok].ptr);
@@ -293,7 +295,8 @@ esc(const char *code, char *to)
             // sprintf(s,"%ldg",((obtab+inoun1)->states+(long)(obtab+inoun1)->state)->weight);
             // return 1; } if(c=='2' && inoun2>=0 && wtype[3]==WNOUN) {
             // sprintf(s,"%ldg",((obtab+inoun2)->states+(long)(obtab+inoun2)->state)->weight);
-            // return 1; }
+            // return 1;
+            // }
             if (second == 'i')
                 // @wi = my wisdom
                 return (to + sprintf(to, "%ld", me->wisdom));
@@ -307,7 +310,7 @@ esc(const char *code, char *to)
             // return 1;
             break;
     }
-    return 0;
+    return nullptr;
 }
 
 // The smugl equivalent of 'printf'. Takes an input string and prepares
@@ -321,7 +324,6 @@ ioproc(const char *str)
         // No output buffer currently
         out_buf = (char *) malloc((out_bufsz = OBLIM));
     char *p = out_buf;  // Local pointer
-
     // Figure out where we need to start looking at more memory.
     char *high_water = out_buf + (out_bufsz * 4 / 3);
 
@@ -332,8 +334,7 @@ ioproc(const char *str)
         if (p > high_water)
         // Do we need more memory?
         {
-            long off = p - out_buf;  // Offset of 'p' relative to out_buf
-
+            long off = p - out_buf;                          // Offset of 'p' relative to out_buf
             out_bufsz *= 2;                                  // Twice as much memory
             out_buf = (char *) realloc(out_buf, out_bufsz);  // New memory chunk
             p = out_buf + off;  // Make p a pointer within new block again
@@ -345,15 +346,13 @@ ioproc(const char *str)
         }
         char thisc = *(str++);
         char *advance;
-
         // Escape code: Process it, and find the end of the output
-        if (thisc == '@' && (advance = esc(str, p)) != NULL) {
+        if (thisc == '@' && (advance = esc(str, p)) != nullptr) {
             p = advance;  // Move to end of string
             str += 2;     // Skip the escape code (2 characters)
             continue;
         } else if (thisc == '^') {  // Control-character escapes
             char ctrl = 0;
-
             switch (tolower(*(str++))) {
                 case 'g':  // CTRL-g
                     ctrl = '\007';

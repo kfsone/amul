@@ -10,21 +10,26 @@
 //  sem_unlock(table)
 //   Unlock a table by semaphore
 
-#include "smugl/ipc.hpp"
-#include "include/syslog.hpp"
-#include "smugl/io.hpp"
-#include "smugl/manager.hpp"
-#include "smugl/rooms.hpp"
-#include "smugl/smugl.hpp"
 #include <arpa/inet.h>
+#include <cerrno>
+#include <csignal>
+#include <cstring>
 #include <netinet/in.h>
-#include <signal.h>
+#include <poll.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 
-#include "include/fderror.hpp"
+#include "fderror.hpp"
+#include "fileio.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "manager.hpp"
+#include "rooms.hpp"
+#include "smugl.hpp"
+#include "syslog.hpp"
 
 // Private stuff
 static int shmid = -1;          // Shared memory handle
@@ -51,16 +56,16 @@ bool forced = false;  // True when we get 'forced'
 char sems[num_SEMS];  // Which semaphores we're holding
 
 // Protos
-static void tidy_ipc(void);
-void ipc_init(void);
+static void tidy_ipc();
+void ipc_init();
 void sem_lock(int n), sem_unlock(int n);
-static void *shmalloc(long memory);
+static void *shmalloc(size_t memory);
 
 // Clean up the IPC and shared memory (presumably for reset or exit)
 // We need the arguments because we're also a signal handler, and
 // in many compiler environments, signal handlers need these arguments
 static void
-tidy_ipc(void)
+tidy_ipc()
 {
     if (!g_manager)
         // Client - close the handles down
@@ -75,27 +80,24 @@ tidy_ipc(void)
         close(conn_sock_fd);
     if (g_manager && g_fork_on_load != -1) {
         if (command_sock_fd != -1)
-            _close(command_sock_fd);
+            close(command_sock_fd);
         if (listen_sock_fd != -1)
-            _close(listen_sock_fd);
+            close(listen_sock_fd);
     }
 
     if (data) {
         if (g_manager && g_fork_on_load != -1) {
-            semun rmid;  // To satisfy -wall under GNU
-
-            rmid.val = 0;
-            semctl(data->semid, IPC_RMID, 0, rmid);
+            semctl(data->semid, IPC_RMID, 0, nullptr);
             data->semid = -1;
         }
 
         shmdt((char *) data);  // Detatch from the data segment
-        data = NULL;
+        data = nullptr;
     }
 
     // Delete the shared memory segment if it exists and we're the parent
     if (g_manager && g_fork_on_load != -1 && shmid != -1)
-        shmctl(shmid, IPC_RMID, NULL);
+        shmctl(shmid, IPC_RMID, nullptr);
 
     shmid = -1;
 }
@@ -116,7 +118,7 @@ init_ipc(long memory)
     data->errors = 0;
     data->semid = -1;
     // Increment and round-up shmbase
-    data->shmbase = (void *) NORMALISE(data + 1);
+    data->shmbase = ptr_align(data + 1);
 
     // Now setup the sempahores used for locking control
     data->semid = semget(IPC_PRIVATE, num_SEMS, (IPC_CREAT | IPC_EXCL | 0666));
@@ -149,13 +151,14 @@ init_ipc(long memory)
  * returns the pointer to it.
  */
 void *
-shmalloc(long memory)
+shmalloc(size_t memory)
 {
     void *new_shm = (char *) -1;
-
+    // Convert to a multiple of page size with a uintptr guard either side.
+    memory = (memory + sizeof(uintptr_t) * 2 + 4095) & ~4095;
     shmid = shmget(IPC_PRIVATE, memory, (IPC_CREAT | IPC_EXCL | 0666));
     if (shmid != -1)
-        new_shm = shmat(shmid, NULL, 0);
+        new_shm = shmat(shmid, nullptr, 0);
     if (shmid == -1 || new_shm == (char *) -1) {
         sysLog.Perror(_FLT, "can't initialise shared memory");
     }
@@ -201,14 +204,14 @@ sem_unlock(int semnum)
 }
 
 // Setup and initialise a listening socket
-int
+static int
 setup_socket(short port, long addr, SOCK *sock, int listen_to)
 {
     int sock_fd;
     int ret;
     int tmp = 1;
 
-    bzero(sock, sizeof(SOCK));
+    memset(sock, 0, sizeof(SOCK));
     sock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock_fd == -1) {
         sysLog.Perror(_FLT, "socket");
@@ -261,9 +264,9 @@ setup_socket(short port, long addr, SOCK *sock, int listen_to)
 
 // Setup the listen sockets - wrapper for setup_socket
 void
-init_sockets(void)
+init_sockets()
 {
-    bzero(&conn_sock, sizeof(SOCK));
+    memset(&conn_sock, 0, sizeof(SOCK));
 
     // Create the inbound half of our socket
     listen_sock_fd = setup_socket(data->port, INADDR_ANY, &listen_sock, 4);
@@ -272,11 +275,11 @@ init_sockets(void)
 
 // receive an incoming socket connection
 bool
-accept_connection(void)
+accept_connection()
 {
     static unsigned int addrlen = sizeof(listen_sock);
 
-    bzero(&conn_sock, addrlen);
+    memset(&conn_sock, 0, addrlen);
     while ((conn_sock_fd = accept(listen_sock_fd, (struct sockaddr *) &conn_sock, &addrlen)) ==
                    -1 &&
            errno == EAGAIN)
@@ -297,13 +300,13 @@ accept_connection(void)
 // XXX: will be data there immediately - instead it should
 // XXX: add it to the fd's it select()s on
 bool
-accept_command(void)
+accept_command()
 {
     char cmd_buf[201];
     int bytes;
     unsigned int addrlen = sizeof(command_sock);
 
-    bzero(&conn_sock, addrlen);
+    memset(&conn_sock, 0, addrlen);
     conn_sock_fd = accept(command_sock_fd, (struct sockaddr *) &conn_sock, &addrlen);
     if (conn_sock_fd == -1) {
         sysLog.Perror(_FLE, "accept(command)");
@@ -311,9 +314,9 @@ accept_command(void)
     }
 
     // XXX: Really ought to check that 'bytes' != -1
-    bytes = _read(conn_sock_fd, cmd_buf, 200);
+    bytes = read(conn_sock_fd, cmd_buf, 200);
     if (bytes >= 0) {
-        if (_write(conn_sock_fd, "Bye!\n", 5) == 5) {
+        if (write(conn_sock_fd, "Bye!\n", 5) == 5) {
             cmd_buf[bytes] = 0;
             while (bytes-- > 0 && (cmd_buf[bytes] == '\r' || cmd_buf[bytes] == '\n'))
                 cmd_buf[bytes] = 0;
@@ -324,7 +327,7 @@ accept_command(void)
     } else {
         cmd_buf[0] = 0;
     }
-    _close(conn_sock_fd);
+    close(conn_sock_fd);
     conn_sock_fd = -1;
     sleep(1);
     return true;
@@ -339,17 +342,17 @@ accept_command(void)
 // The initialiasor; set up an ipcMsg
 
 ipcMsg::ipcMsg(char Type /*=0*/, long Data /*=0*/, short Pri /*=0*/)
-    : to(0), pri(Pri), type(Type), len(0), data(Data), from(g_slot), pad(0), ptr(NULL)
+    : to(0), pri(Pri), type(Type), len(0), data(Data), from(g_slot), pad(0), ptr(nullptr)
 {
 }
 
 // Destructor
-ipcMsg::~ipcMsg(void)
+ipcMsg::~ipcMsg()
 {
     if (ptr)
         // Undo any mallocs
         free(ptr);
-    ptr = NULL;
+    ptr = nullptr;
 }
 
 // Manager's copy of 'send', which writes the data to a specific
@@ -364,11 +367,11 @@ ipcMsg::send(int fd, void *extra)
     if (!g_manager)
         // Client's must lock/unlock server-pipe
         sem_lock(sem_PIPE);
-    int wv = _write(fd, this, sizeof(*this));
+    int wv = write(fd, this, sizeof(*this));
     if (wv < ssize_t(sizeof(*this)))
         wv = -1;
     else if (len) {
-        if (_write(fd, extra, len) < len)
+        if (write(fd, extra, len) < len)
             wv = -1;
     }
     if (!g_manager)
@@ -384,7 +387,7 @@ ipcMsg::send(int fd, void *extra)
 // This version does some of the populating for you
 void
 
-ipcMsg::send(unsigned long To, short Len /*=0*/, void *extra /*=NULL*/)
+ipcMsg::send(flag_t To, short Len /*=0*/, void *extra /*=nullptr*/)
 {
     if (g_manager && !To)
         return;  // Manager can't self-message
@@ -408,7 +411,7 @@ ipcMsg::send(unsigned long To, short Len /*=0*/, void *extra /*=NULL*/)
 // Send an IPC message -- specifying extra default values. Basically a wrapper
 void
 
-ipcMsg::send(u_long To, char Type, long Data, char Pri, short Len /*=0*/, void *Extra /*=NULL*/)
+ipcMsg::send(flag_t To, char Type, long Data, char Pri, short Len /*=0*/, void *Extra /*=nullptr*/)
 {
     type = Type;
     data = Data;
@@ -423,14 +426,14 @@ ipcMsg::send(u_long To, char Type, long Data, char Pri, short Len /*=0*/, void *
 // NOTE: BLOCKING; don't call this to test for data. Test first,
 // and if you think there is something to receive, call receive.
 bool
-ipcMsg::receive(void)
+ipcMsg::receive()
 {
     int bytes_read;
 
     if (ptr)
         free(ptr);
-    bzero(this, sizeof(class ipcMsg));  // Nuke any current values, avoid confusion
-    while ((bytes_read = _read(ipc_fd, this, sizeof(class ipcMsg))) == -1 &&
+    *this = ipcMsg{};  // Nuke any current values, avoid confusion
+    while ((bytes_read = read(ipc_fd, this, sizeof(class ipcMsg))) == -1 &&
            (errno == EAGAIN || errno == EINTR))
         ;
     if (bytes_read == 0) {  // We read EOF - not healthy
@@ -440,23 +443,22 @@ ipcMsg::receive(void)
     if (len) {  // Extra data to be dealt with
         ptr = malloc(len + 1);
         *((char *) ptr + len) = 0;
-        while (_read(ipc_fd, ptr, len) == -1 && (errno == EAGAIN || errno == EINTR))
+        while (read(ipc_fd, ptr, len) == -1 && (errno == EAGAIN || errno == EINTR))
             ;
     } else
-        ptr = NULL;
-    if (g_manager)
+        ptr = nullptr;
     // We're the server
-    {
+    if (g_manager) {
+        // It's intended for us
         if (!to)
-            // It's intended for us
             return true;
         send(to, len, ptr);  // It's to be forwarded
         return false;        // But don't do anything else
-    } else if (to & (1 << g_slot))
+    } else if (to & (1 << g_slot)) {
         // I'm in the recipient list
         return true;  // so it's worth looking at
-    else              // I'm NOT in the recipient list
-    {
+    } else {
+        // I'm NOT in the recipient list
         sysLog.Write(_FLD, "slot#%d msg type %d from #%d", g_slot, type, from);
         return false;
     }
@@ -464,28 +466,24 @@ ipcMsg::receive(void)
 
 // Check for any incoming ipc
 void
-check_for_ipc(void)
+check_for_ipc()
 {
-    timeval zero;
-    fd_set test;
-
-    FD_ZERO(&test);
-    FD_SET(ipc_fd, &test);
-    zero.tv_sec = 0;
-    zero.tv_usec = 0;
-    int sel;
-
-    do {
-        sel = select(ipc_fd + 1, &test, NULL, &test, &zero);
-        if (sel == -1 && (errno == EINTR || errno == EAGAIN))
-            continue;
-        else if (sel == -1) {
-            tx(INTERNAL_ERROR);
-            sysLog.Write(_FLT, "check_for_ipc::select failed - exiting\n");
-            /*ABORT*/
-        } else if (sel != 0)
-            ipc_proc();
-    } while (sel != 0);
+    for (;;) {
+        pollfd fds{ ipc_fd, POLLIN | POLLRDHUP | POLLPRI, 0 };
+        switch (poll(&fds, 1, 0)) {
+            case 0:  // no events
+                return;
+            case 1:  // events on ipc_fd
+                ipc_proc();
+                continue;
+            case -1:  // error
+                if (errno == EINTR || errno == EAGAIN)
+                    continue;
+                tx(INTERNAL_ERROR);
+                sysLog.Write(_FLT, "check_for_ipc::select failed - exiting\n");
+                /*ABORT*/
+        }
+    }
 }
 
 // Handle an incoming ipc interruption
@@ -493,7 +491,7 @@ check_for_ipc(void)
 // dealt with; this routine assumes there is something interesting
 // on the ipc fd. If there isn't, it'll block.
 void
-ipc_proc(void)
+ipc_proc()
 {
     ipcMsg inc;  // Incoming message
 
@@ -525,7 +523,7 @@ ipc_proc(void)
 }
 
 void
-announce(long to, const char *msg)
+announce(basic_obj to, const char *msg)
 // Accepts message pointer as 2nd argument
 {
     // XXX: What about if 'to' is 0 - shouldn't we 'not bother'?
@@ -541,7 +539,7 @@ announce(long to, const char *msg)
 
 // Send a message to one or more players
 void
-announce(long to, long msg)
+announce(basic_obj to, msgno_t msg)
 // Accepts umsg number as 2nd argument
 {
     announce(to, message(msg));

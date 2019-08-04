@@ -2,14 +2,18 @@
  * Lang.TXT processor
  */
 
-#include "include/actuals.hpp"
-#include "smuglcom/smuglcom.hpp"
+#include "actuals.hpp"
+#include "errors.hpp"
+#include "smuglcom.hpp"
+
+#include <cctype>
+#include <cstring>
 
 #define GROW_SIZE 512
 #define INVALID "Invalid syntax= line!"
 
 static int chae_proc(char *from, char *to);
-static void chae_err(void);
+static void chae_err();
 static void setslots(int);
 static int iswtype(char *s);
 static void vbprob(const char *s, char *p);
@@ -18,21 +22,22 @@ extern counter_t arg_alloc;
 extern arg_t *argtab;
 extern arg_t *argptr;
 
-static struct VBTAB *vttab;    // Table of 'vt's
-counter_t vt_alloc;            // Number of 'vt's in use
-static struct VBTAB *vtp;      // Current 'vt'
-static struct SLOTTAB *sttab;  // Table of slottab's
-counter_t st_alloc;            // Allocation of slottabs
-static struct SLOTTAB *stp;    // Current slottab
+static VBTAB *vttab;    // Table of 'vt's
+counter_t vt_alloc;     // Number of 'vt's in use
+static VBTAB *vtp;      // Current 'vt'
+static SLOTTAB *sttab;  // Table of slottab's
+counter_t st_alloc;     // Allocation of slottabs
+static SLOTTAB *stp;    // Current slottab
 
 // The default 'CHAE' pattern is -1/C/H/E for both sets
 static const char default_chae[] = { -1, 'C', 'H', 'E', -1, 'C', 'H', 'E' };
 
-void lang_proc(void)  // Process language table
+void
+lang_proc()
+// Process language table
 {
     char *p, *s;
     char *ls;
-
     // n=general, cs=Current Slot, x=slot
     int n, cs;
     signed long x;
@@ -43,17 +48,18 @@ void lang_proc(void)  // Process language table
     proc = 1;
     fopenw(langfn);
 
-    p = (char *) cleanget(256 * sizeof(*vbtab));
+    p = cleanget(256 * sizeof(*vbtab));
 
-    vbtab = (struct VERB *) p;
+    vbtab = (VERB *) p;
     vbptr = vbtab;
 
     p = skipspc(p + (256 * sizeof(*vbtab)));
 
     do {
         p = skipline(ls = s = p);
-        if (!*s)  // Blank line?
-            continue;
+        if (!*s)
+            continue;  // Blank line?
+
         s = skipspc(s);
         if (!*s)  // Empty line
             continue;
@@ -93,7 +99,7 @@ void lang_proc(void)  // Process language table
                 warne("verb %s conflicts with a room id (bad idea)\n", Word);
         }
         verb.id = new_word(Word, false);
-        strcpy(verb.sort, default_chae);
+        memcpy(verb.precedences, default_chae, sizeof(verb.precedence));
         verbs++;
 
         // Check the verb flags and/or 'chae' options
@@ -108,15 +114,15 @@ void lang_proc(void)  // Process language table
                 verb.flags |= VB_DREAM;
                 s = getword(s);
             }
-            if (*Word && chae_proc(Word, verb.sort) == -1) {
-                getword(s);
+            if (*Word && chae_proc(Word, verb.precedence[0]) == -1) {
+                s = getword(s);
                 if (*Word)
-                    chae_proc(Word, verb.sort2);
+                    chae_proc(Word, verb.precedence[1]);
             }
         }
 
         verb.ents = 0;
-        verb.ptr = (struct SLOTTAB *) (st_alloc * sizeof(vbslot));
+        verb.ptr = (SLOTTAB *) (st_alloc * sizeof(vbslot));
 
         // Skip Empty lines
         do {
@@ -132,7 +138,7 @@ void lang_proc(void)  // Process language table
             continue;
 
         setslots(WANY);
-        if (strncmp(s, "syntax=", 7)) {
+        if (strncmp(s, "syntax=", 7) != 0) {
             verb.ents++;
             *(p - 1) = 10;
             p = s;
@@ -167,14 +173,13 @@ void lang_proc(void)  // Process language table
         if (!*Word)
             x = WANY;
         else {
-
             // Eliminate illegal combinations
             if (n == WNONE || n == WANY) {
                 sprintf(g_block, "Tried to use %s= on syntax line", syntax[n]);
                 vbprob(g_block, ls);
                 goto endsynt;
             }
-            if (n == WPLAYER && strcmp(Word, "me")) {
+            if (n == WPLAYER && strcmp(Word, "me") != 0) {
                 vbprob("Tried to specify player other than self", ls);
                 goto endsynt;
             }
@@ -211,6 +216,7 @@ void lang_proc(void)  // Process language table
                         x = -atoi(Word + 1);
                     else
                         x = atoi(Word);
+                    break;
                 default:
                     printf("** Internal: Invalid W-type!\n");
             }
@@ -281,14 +287,14 @@ void lang_proc(void)  // Process language table
 
     endsynt:
         vbslot.ents = 0;
-        vbslot.ptr = (struct VBTAB *) (vt_alloc * sizeof(vt));
+        vbslot.ptr = (VBTAB *) (vt_alloc * sizeof(vt));
 
     commands:
         lastc = 'x';
 
     cmdloop:
         // Reset the basic details
-        vt.not_condition = 0;
+        vt.not_condition = false;
         vt.condition = -1;
         vt.action_type = ACT_DO;
         vt.action = -1;
@@ -313,10 +319,10 @@ void lang_proc(void)  // Process language table
         s = precon(s);
         // Negations
         if (*s == '!') {
-            vt.not_condition = 1;
+            vt.not_condition = true;
             s++;
         } else if (strncmp(s, "not ", 4) == 0) {
-            vt.not_condition = 1;
+            vt.not_condition = true;
             s += 4;  // skip the phrase  'not '
         }
 
@@ -365,9 +371,7 @@ void lang_proc(void)  // Process language table
     writecna:
         if (vt_alloc % GROW_SIZE == 0) {
             counter_t new_alloc = vt_alloc + GROW_SIZE;
-
-            vttab = (struct VBTAB *) grow(
-                    vttab, (size_t)(new_alloc * sizeof(vt)), "Resizing 'vt' table");
+            vttab = (VBTAB *) grow(vttab, new_alloc * sizeof(vt), "Resizing 'vt' table");
             vtp = vttab + vt_alloc;
         }
         *(vtp++) = vt;
@@ -377,9 +381,7 @@ void lang_proc(void)  // Process language table
     writeslot:
         if (st_alloc % GROW_SIZE == 0) {
             counter_t new_alloc = st_alloc + GROW_SIZE;
-
-            sttab = (struct SLOTTAB *) grow(
-                    sttab, new_alloc * sizeof(vbslot), "Resizing 'vbslot' table");
+            sttab = (SLOTTAB *) grow(sttab, new_alloc * sizeof(vbslot), "Resizing 'vbslot' table");
             stp = sttab + st_alloc;
         }
         *(stp++) = vbslot;
@@ -396,7 +398,6 @@ void lang_proc(void)  // Process language table
         if ((long) (vbtab + (verbs - 1)) > (long) p)
             printf("@! table overtaking p\n");
     } while (*p);
-
     /*** Write out the verb data ***/
     // First: number of verbs, syntax slots and command entries
     fwrite(&verbs, sizeof(counter_t), 1, ofp1);
@@ -415,7 +416,7 @@ void lang_proc(void)  // Process language table
     free(vttab);
     free(argtab);
     arg_alloc = 0;
-    argtab = argptr = NULL;
+    argtab = argptr = nullptr;
     errabort();
 }
 
@@ -424,7 +425,6 @@ int
 is_verb(const char *s)
 {
     int i, w;
-
     if (!verbs)
         return -1;
     if ((w = is_word(s)) == -1)
@@ -439,8 +439,10 @@ is_verb(const char *s)
     return -1;
 }
 
-static int chae_proc(char *f, char *t)  // From and To
-{                                       // Process a 'CHAE' string
+static int
+chae_proc(char *f, char *t)
+// From and To
+{  // Process a 'CHAE' string
     int n;
 
     if ((*f < '0' || *f > '9') && *f != '?') {
@@ -476,7 +478,7 @@ static int chae_proc(char *f, char *t)  // From and To
 }
 
 static void
-chae_err(void)
+chae_err()
 {  // Report a 'CHAE' error
     error("%s: Invalid sort-order flags \"%s\"\n", word(verb.id), Word);
 }
@@ -491,19 +493,19 @@ setslots(int i)
 
 static int
 iswtype(char *s)
-{           // Determine if 's' is a 'word type'
-    int i;  // e.g. 'noun', etc
-
-    for (i = 0; i < NSYNTS; i++) {
-        if (!strcmp(s, syntax[i])) {
+{  // Determine if 's' is a 'word type', e.g. 'noun', etc
+    for (int i = 0; i < NSYNTS; i++) {
+        char *p = skiplead(syntax[i], s);
+        if (p == s)
+            continue;
+        if (*p == 0) {
+            // Exact match
             *s = 0;
             return i - 1;
         }
-        if (strncmp(s, syntax[i], syntl[i]))
+        if (*p != '=' || *(p + 1) == 0)
             continue;
-        if (*(s + syntl[i]) != '=')
-            continue;
-        strcpy(s, s + syntl[i] + 1);
+        memmove(s, p + 1, strlen(p));
         return i - 1;
     }
     return -3;
@@ -558,7 +560,7 @@ actualval(const char *s, arg_t n)
     if (!isalpha(*s))
         return -2;
     for (i = 0; i < NACTUALS; i++) {
-        if (strcmp(s, actual[i].name))
+        if (strcmp(s, actual[i].name) != 0)
             continue;
         // If not a slot label, and wtypes match, is okay!
         if (!(actual[i].value & IWORD))

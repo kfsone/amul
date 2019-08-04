@@ -79,13 +79,13 @@ room_proc()
         // First line of the room table is the room ID and flags
 
         // allow for line-extension
-        get_line(ifp, block, 1000);
-        p = skiplead("room=", block);
+        get_line(ifp, g_block, 1000);
+        p = skiplead("room=", g_block);
         p = getword(p);  // Extract the room id
 
         // Add the room name to vocab; mustn't already be in use
         rmp->clear();
-        rmp->id = new_word(Word, TRUE);
+        rmp->id = new_word(Word, true);
         if ((rid = rmp->id) == -1)
             error("Duplicate Room name: %s\n", Word);
 

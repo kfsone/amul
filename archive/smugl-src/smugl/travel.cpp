@@ -11,11 +11,11 @@
 
 class TTIdx TTIdx;
 
-int
+bool
 TTEnt::describe()
 {
     tx("Why are you calling TTEnt::describe? Duffer.\n");
-    return FALSE;
+    return false;
 }
 
 //////////////////////// TTIdx functions

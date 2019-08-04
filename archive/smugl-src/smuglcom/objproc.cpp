@@ -1,10 +1,10 @@
 // objproc.cpp -- process OBJECTS.txt
 
-#include "errors.hpp"
-#include "smuglcom.hpp"
-
 #include <cctype>
 #include <cstring>
+
+#include "errors.hpp"
+#include "smuglcom.hpp"
 
 // Default the default object flags
 #define DEFAULT_STD (bob_INPLAY)
@@ -64,12 +64,13 @@ set_put()
     object("put= flag");
 }
 
-static inline void
+static void
 set_mob()
 // Set mobile character for an object
 {
     int i;
     vocid_t wordno;
+
     /* Mobile ID's are prefixed with a bang ('!'); but you don't specify
      * them like that - so we may need to insert the bang */
     if (Word[0] == '!')
@@ -107,11 +108,11 @@ state_proc(const char *s)
     if (!strncmp(s, "none", 4))
         goto write;
 
-    strcpy(block, s);
+    strcpy(g_block, s);
 
     // Get the weight of the object
-    p = skiplead("weight=", skipspc(block));
-    p = getword(block);
+    p = skiplead("weight=", skipspc(g_block));
+    p = getword(p);
     if (!*p) {
         statinv(INCOMPLETE);
         return;
@@ -170,6 +171,7 @@ state_proc(const char *s)
     }
     if (*p == '\"' || *p == '\'') {
         char *quote = p++;
+
         while (*p && *p != *quote)
             p++;  // Find end of quote/string
         quote++;  // Now forget that character
@@ -182,7 +184,7 @@ state_proc(const char *s)
         state.descrip = add_msg(nullptr);
         fwrite(quote, (size_t)(p - quote), 1, msgfp);
         fputc(0, msgfp);  // Add end of string
-        strcpy(block, skipspc(p));
+        strcpy(g_block, skipspc(p));
     } else {  // It's a message ID, we hope
         p = getword(p);
         state.descrip = ismsgid(Word);
@@ -199,12 +201,12 @@ state_proc(const char *s)
         if ((flag = isoflag2(Word)) == -1) {
             flag = handle_std_flag(Word, state.std_flags, (flag_t) STATE_STD_FILTER);
             if (flag < 0) {
-                sprintf(block, "bad state flag '%s'", Word);
-                statinv(block);
+                sprintf(g_block, "bad state flag '%s'", Word);
+                statinv(g_block);
                 return;
             } else if (flag > 0) {
-                sprintf(block, "inapropriate state flag '%s'", Word);
-                statinv(block);
+                sprintf(g_block, "inapropriate state flag '%s'", Word);
+                statinv(g_block);
                 return;
             }
         } else
@@ -249,7 +251,7 @@ objs_proc()
             obtab = obj;
 
         obj->clear();
-        obj->id = new_word(Word, FALSE);
+        obj->id = new_word(Word, false);
         add_basic_obj(obj, WNOUN, DEFAULT_STD);
 
         obj->mobile = -1;
@@ -258,6 +260,7 @@ objs_proc()
         // Get the object flags
         do {
             long flag;
+
             s = getword(s);
             if (!*Word)
                 continue;
@@ -276,7 +279,7 @@ objs_proc()
                         set_art();
                         break;
                     case OP_ADJ:
-                        obj->adj = new_word(Word, FALSE);
+                        obj->adj = new_word(Word, false);
                         break;
                     case OP_START:
                         set_start();
@@ -312,6 +315,7 @@ objs_proc()
                 // Dummy word
                 break;
             basic_obj loc = is_container(Word);
+
             if (loc == -1)
             // Invalid word or basic obj
             {
@@ -358,8 +362,7 @@ int
 isoflag1(const char *s)
 // Is it a FIXED object flag?
 {
-    int i;
-    for (i = 0; obflags1[i]; i++)
+    for (int i = 0; obflags1[i]; i++)
         if (!strcmp(obflags1[i], s))
             return i;
     return -1;

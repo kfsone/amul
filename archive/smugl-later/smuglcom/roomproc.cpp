@@ -1,7 +1,13 @@
 // Rooms Table processor
 
-#include "include/fperror.hpp"
-#include "smuglcom/smuglcom.hpp"
+#include <cassert>
+#include <cctype>
+#include <cstring>
+
+#include "errors.hpp"
+#include "fileio.hpp"
+#include "fperror.hpp"
+#include "smuglcom.hpp"
 
 #define ROOMDSC_GROW_RATE 4096  // Rate to grow description buffer
 size_t rdalloc = 0;             // Text buffer memory allocated
@@ -13,7 +19,7 @@ struct Dmove {
     basic_obj room;      // The room the dmove is FROM
     char *to;            // Name of room to dmove to
 };
-struct Dmove *first = NULL, *dmv;
+struct Dmove *first = nullptr, *dmv;
 
 // Define the default, initial std_flags for a room
 #define DEFAULT_STD (bob_INPLAY | bob_SCENERY | bob_LIGHT | bob_SHINES | bob_LIT)
@@ -35,7 +41,6 @@ int
 is_room_param(char *&s)
 {  // Check if 's' is a room paramter
     char *p;
-
     for (int param = 0; rparam[param]; param++) {
         // Skiplead only works if we wholly match argument 1
         // within argument 2. It's roughly equivalent to doing
@@ -50,24 +55,23 @@ is_room_param(char *&s)
 }
 
 void
-room_proc(void)
+room_proc()
 {  // Process the rooms file
-    ROOM *rmp;
     char *bufmem;
     char *p;
     vocid_t rid;
 
     rdalloc = ROOMDSC_GROW_RATE;
-    bufmem = (char *) grow(NULL, rdalloc + 2, "Room description buffer");
-    if (bufmem == NULL)
+    bufmem = (char *) grow(nullptr, rdalloc + 2, "Room description buffer");
+    if (bufmem == nullptr)
         exit(-1);
 
     rooms = 0;
     nextc(1);  // Skip to first character
 
-    for (rmp = NULL; rmp == NULL || nextc(0) == 0; rooms++) {
+    for (; nextc(0); rooms++) {
         // Create a new object
-        rmp = (ROOM *) grow(NULL, sizeof(ROOM), "New Room");
+        ROOM *rmp = new ROOM;
         if (!roomtab)
             roomtab = rmp;
 
@@ -96,10 +100,8 @@ room_proc(void)
 
         while (*p) {
             int flag;
-
             p = getword(p);
             char *ptr = Word;  // For is_room_param
-
             if ((flag = is_room_flag(ptr)) != -1)
                 rmp->flags = (rmp->flags | (1 << flag));
             else
@@ -116,9 +118,9 @@ room_proc(void)
                         if (dmove == -1)
                         // Don't know this room yet
                         {
-                            dmv = (Dmove *) grow(NULL, sizeof(struct Dmove), "Tracking DMOVEs");
+                            dmv = (Dmove *) grow(nullptr, sizeof(struct Dmove), "Tracking DMOVEs");
                             dmv->room = rmp->bob;
-                            dmv->to = _strdup(ptr);
+                            dmv->to = strdup(ptr);
                             dmv->next = first;  // forward-only Linked list
                             first = dmv;
                         } else
@@ -143,18 +145,16 @@ room_proc(void)
         }
 
         if (bufmem[0] != '\n' && bufmem[0] != '\r') {
-            char *q = NULL;
-            off_t mem_off = 0;
+            char *q = nullptr;
+            size_t mem_off = 0;
 
             int len = strlen(bufmem);
-
-            rmp->s_descrip = add_msg(NULL);
+            rmp->s_descrip = add_msg(nullptr);
             bufmem[len - 1] = 0;
             fwrite(bufmem, len, 1, msgfp);
 
-            while (fgets(bufmem + mem_off, (size_t)(rdalloc - mem_off), ifp)) {
+            while (fgets(bufmem + mem_off, rdalloc - mem_off, ifp)) {
                 char *base = bufmem + mem_off;
-
                 // Was it a blank line?
                 if (*base == '\n' || *base == 0) {
                     *base = 0;
@@ -164,19 +164,19 @@ room_proc(void)
                 if (*base == '\t')
                     memmove(base, base + 1, strlen(base));
                 // Fetch more lines as neccesary
-                while ((q = strrchr(base, '\n')) == NULL) {
+                while ((q = strrchr(base, '\n')) == nullptr) {
                     // Grow some more memory
                     mem_off += strlen(base);
-                    if ((size_t)(mem_off + ROOMDSC_GROW_RATE) >= rdalloc) {
+                    if (mem_off + ROOMDSC_GROW_RATE >= rdalloc) {
                         rdalloc += ROOMDSC_GROW_RATE;
                         bufmem = (char *) grow(bufmem, rdalloc + 2, "Extending RDesc Line");
                     }
                     base = bufmem + mem_off;
                     // Read some more text
-                    if (fgets(base, rdalloc - mem_off, ifp) == NULL)
+                    if (fgets(base, rdalloc - mem_off, ifp) == nullptr)
                         break;
                 }
-                if (q == NULL)
+                if (q == nullptr)
                     q = base + strlen(base);
                 // Remove the carriage return
                 *q = ' ';
@@ -186,15 +186,15 @@ room_proc(void)
                     *(q + 1) = 0;
                 // Grow the memory buffer
                 mem_off += strlen(base);
-                if ((size_t)(mem_off + ROOMDSC_GROW_RATE) >= rdalloc) {
+                if (mem_off + ROOMDSC_GROW_RATE >= rdalloc) {
                     rdalloc += ROOMDSC_GROW_RATE;
                     bufmem = (char *) grow(bufmem, rdalloc + 2, "Extra Memory for Room Descrip");
                 }
             }
 
             if (bufmem && *bufmem != 0 && *bufmem != '\n') {
-                rmp->l_descrip = add_msg(NULL);
-                fwrite(bufmem, (size_t)(mem_off + 1), 1, msgfp);
+                rmp->l_descrip = add_msg(nullptr);
+                fwrite(bufmem, mem_off + 1, 1, msgfp);
             }
         }
     }
@@ -213,10 +213,8 @@ room_proc(void)
 // Example: room which contains a swamp, if you die in the room,
 // all your objects end up in the swamp.
 void
-finish_rooms(void)
+finish_rooms()
 {
-    ROOM *rmp;
-
     // Process the dmove tables
     /* The DMOVE flag specifies that when a player dies in a given room,
      * their inventory should be relocated to a different room (e.g. if
@@ -226,11 +224,10 @@ finish_rooms(void)
      */
     while ((dmv = first)) {
         first = dmv->next;
-        rmp = (ROOM *) bobs[dmv->room];
-        if (rmp == NULL)
+        ROOM *rmp = dynamic_cast<ROOM *>(bobs[dmv->room]);
+        if (rmp == nullptr)
             error("%s: invalid dmove location, %d\n", dmv->room);
         basic_obj dest = is_container(dmv->to);
-
         if (dest == -1 || bobs[dest]->max_weight == 0)
             error("%s: Invalid dmove location, '%s'\n", word(rmp->id), dmv->to);
         else
@@ -243,11 +240,8 @@ finish_rooms(void)
 
     // Write copy of stuff to disk
     fopenw(roomsfn);
-    for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = (ROOM *) rmp->next) {
-        ROOM temp;
-
-        temp = *rmp;
-        temp.Write(ofp1);
+    for (ROOM *rmp = roomtab; rmp && rmp->type == WROOM; rmp = rmp->getNext(rmp)) {
+        rmp->Write(ofp1);
     }
     close_ofps();
 }

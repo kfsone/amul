@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-#define ROOMS_C 1
-
 #include "consts.hpp"
 #include "data.hpp"
 #include "ipc.hpp"
@@ -26,11 +24,11 @@ RoomIdx::first()
     return data->roombase;
 }
 
-int
+bool
 Room::describe()
 {
     HEAVYDEBUG("Room::describe");
-    int described = FALSE;
+    bool described = false;
     char finish = 0;  // Character to add when we've finished
                       //    class Object *child;
                       //    class Player *guest;
@@ -38,27 +36,25 @@ Room::describe()
     if (id == -1L) {
         tx("* Undefined room.\n", 0);
         syslog(LOG_NOTICE, "called Room::describe for undefined room");
-        return FALSE;
+        return false;
     }
     // Describe a room
     if (s_descrip != -1) {
         txprintf("%.60s (%s)\n", message(s_descrip), word(id));
-        described = TRUE;
+        described = true;
     }
     if (l_descrip != -1 && me->rdmode != RDBF &&
         !(me->rdmode == RDRC && (visitor_bf & me->bitmask))) {
         tx(message(l_descrip), ' ');
         finish = '\n';
-        described = TRUE;
+        described = true;
         visitor_bf |= me->bitmask;
     }
 
     // Tell the player what objects they can see here.
     if (contents) {  // Can't see objects in hide-aways
-        int entry;
-
         container_t conChild = conTent;
-        for (entry = 0; entry < contents && conChild >= 0; entry++) {
+        for (int entry = 0; entry < contents && conChild >= 0; entry++) {
             assert(conChild >= 0 && conChild <= ncontainers);
             assert(containers[conChild].boSelf >= 0 && containers[conChild].boSelf <= nbobs);
             BASIC_OBJ *child = bobs[containers[conChild].boSelf];
@@ -79,7 +75,7 @@ Room::describe()
     }
 
     if (finish) {
-        described = TRUE;
+        described = true;
         txc(finish);
     }
 
@@ -94,24 +90,24 @@ Room::Tabptr()
 
 // Room::leave()
 // Try and leave a room.
-// Returns NULL if there are no rules for the given exit,
-// otherwise returns a TRUE value
-int
+// Returns nullptr if there are no rules for the given exit,
+// otherwise returns a true value
+bool
 Room::leave(vocid_t wordno)
 {  // Called with a word ID
     HEAVYDEBUG("Room::leave");
     class Verb *vb = VerbIdx::locate(wordno);
     if (vb == nullptr)
         // word must be a verb
-        return FALSE;
+        return false;
     return leave(vb);
 }
 
 // Room::leave()
 // Try and leave a room.
-// Returns NULL if there are no rules for the given exit,
-// otherwise returns a TRUE value
-int
+// Returns nullptr if there are no rules for the given exit,
+// otherwise returns a true value
+bool
 Room::leave(class Verb *vb)
 {  // Called with a verb pointer
     HEAVYDEBUG("Room::leave");
@@ -122,23 +118,24 @@ Room::leave(class Verb *vb)
     // Anything to see?
     {
         tx(message(CANTGO), '\n');
-        return TRUE;
+        return true;
     }
 
     // Iterate over the TTEntries...
     for (ttp = Tabptr(), i = 0; i < ttlines; i++, ttp++) {
         if (ttp->verb == vb->id) {
-            did_anything = true;
+            bool did_anything = true;  // We've seen something to do
             // XXX ** TEMPORARY **
             if (ttp->not_condition || ttp->condition != CALWAYS || ttp->action_type == ACT_DO) {
                 tx("> There are instructions to exit this room, "
                    "but I can't handle them yet.\n");
-                return TRUE;
+                return true;
             }
+
             Room *dest = (Room *) bobs[ttp->action];
-            if ((dest->flags & SMALL) && PlayerIdx::locate_in(ttp->action)) {
+            if (dest == nullptr || ((dest->flags & SMALL) && PlayerIdx::locate_in(ttp->action))) {
                 tx("Not enough.\n");
-                return FALSE;
+                return false;
             }
 
             sem_lock(sem_MOTION);
@@ -151,16 +148,16 @@ Room::leave(class Verb *vb)
             sem_unlock(sem_MOTION);
             dest->describe();
             //            ipc_check();
-            return TRUE;
+            return did_anything;
         }
     }
 
-    return (did_anything) ? TRUE : FALSE;
+    return false;
 }
 
 // Leave a room
 void
-Room::depart(const char *how)
+Room::depart(const char *how /*=me->dep*/)
 {  // Someone/thing is leaving this room
     HEAVYDEBUG("Room::depart");
     sem_lock(sem_MOTION);
@@ -175,7 +172,7 @@ Room::depart(const char *how)
 // Arrive in another room. The player isn't notified that they've moved.
 // We don't tell players in the previous room that they've left either
 void
-Room::arrive(const char *how)
+Room::arrive(const char *how /*=me->arr*/)
 {  // Player is arriving in this room
     HEAVYDEBUG("Room::arrive");
     sem_lock(sem_MOTION);
@@ -188,7 +185,7 @@ Room::arrive(const char *how)
 
 // Arrive in a new room, and describe it.
 void
-Room::enter(const char *how)
+Room::enter(const char *how /*=me->arr*/)
 {  // Enter a location properly
     HEAVYDEBUG("Room::enter");
     arrive(how);
@@ -258,6 +255,6 @@ RoomIdx::locate(vocid_t id)
             return rm;
     }
 
-    // We didn't find a match, return a NULL pointer
+    // We didn't find a match, return a nullptr pointer
     return nullptr;
 }

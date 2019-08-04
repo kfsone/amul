@@ -1,11 +1,9 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: data.hpp,v 1.8 1999/06/08 15:36:50 oliver Exp $
+#ifndef SMUGL_SMUGL_DATA_H
+#define SMUGL_SMUGL_DATA_H
+
 // Most important; the data structure is the heart of the shared memory
 // blocks. All of the base information will go in here. It should be
 // read only, but it isn't [for laziness sake ;-)].
-
-#ifndef DATA_H
-#define DATA_H 1
 
 #include "basicobjs.hpp"
 #include "cl_vocab.hpp"
@@ -19,8 +17,8 @@ struct DATA {
     // Basic game information (from advfn)
     char name[ADNAMEL + 1];     // The game's name
     char logfile[ADNAMEL + 1];  // Name of the output logfile
-    long compiled;              // Time stamp of last compile
-    long game_start;            // Time stamp of last game start
+    time_t compiled;            // Time stamp of last compile
+    time_t game_start;          // Time stamp of last game start
     long time;                  // Time left in game
     int see_invis;              // Rank where invis can see each other
     int all_see_invis;          // Rank where anyone can see invis's
@@ -66,4 +64,4 @@ struct DATA {
 };
 
 extern struct DATA *data;
-#endif  // DATA_H
+#endif  // SMUGL_SMUGL_DATA_H

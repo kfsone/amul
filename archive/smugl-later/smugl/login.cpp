@@ -5,23 +5,32 @@
 // player has been shown all introductory text, and moved into their
 // start location
 
-#include "include/consts.hpp"
-#include "include/libprotos.hpp"
-#include "include/syslog.hpp"
-#include "smugl/io.hpp"
-#include "smugl/ipc.hpp"
-#include "smugl/misc.hpp"
-#include "smugl/ranks.hpp"
-#include "smugl/rooms.hpp"
-#include "smugl/smugl.hpp"
+#include <cassert>
+#include <cctype>
+#include <cstring>
+
+#include "consts.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "libprotos.hpp"
+#include "login.hpp"
+#include "misc.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
+#include "smugl.hpp"
+#include "syslog.hpp"
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 char new_name[NAMEL + 1];
 
-static inline int getname(void);
-static inline int newid(void);
+static inline int getname();
+static inline int newid();
 
 void
-login(void)
+login()
 // Log a player in
 {
     // Initialise player variables
@@ -33,7 +42,7 @@ login(void)
     // The parent already kicked it way back for us,
     // so we make use of that (rand) and the other random
     // factor, *our* process id
-    srand((unsigned int) time(NULL));
+    srand(rand() + getpid());
 
     for (int tries = 3; fails == -1 && tries; tries--) {
         me->reset();  // Reset all player features
@@ -100,13 +109,12 @@ login(void)
 
     // Try and find a start location
     // XXX: Surely this should be a 'RoomIdx::' function?
-    class Room* start_room = data->anterm;
-
-    if (start_room == NULL) {
+    Room *start_room = data->anterm;
+    if (start_room == nullptr) {
         long which_start = rand() % data->start_rooms;
-        class RoomIdx Iteration;
-        class Room* first = NULL;
-        class Room* cur = Iteration.current();
+        RoomIdx Iteration;
+        Room *first = nullptr;
+        Room *cur = Iteration.current();
 
         while (!start_room && cur) {
             if (cur->flags & STARTL && which_start-- == 0) {
@@ -121,6 +129,7 @@ login(void)
         else if (!start_room && !(start_room = RoomIdx::locate("start"))) {  // Last ditch effort
             tx(">> No start room. Can't enter the game.\n");
             sysLog.Write(_FLT, "no start rooms in game");
+            exit(-1);
             /*ABORT*/
         }
     }
@@ -164,14 +173,15 @@ login(void)
         tx(message(YOUBEGIN), '\n');
     announce(ALLBUT(g_slot), COMMENCED);
     me->locations = 1;
+    assert(start_room);
     start_room->enter();
 }
 
 static inline int
-getname(void)
+getname()
 // Get the player's name
 {
-    char* p = new_name;
+    char *p = new_name;
 
     prompt(WHATNAME);
     fetch_input(new_name, NAMEL);
@@ -203,7 +213,7 @@ getname(void)
     if (name_id != -1) {
         // If it's another player, tell the other player someone
         // just tried to use their name, and reject this login.
-        if (class Player* other = PlayerIdx::locate(name_id)) {
+        if (class Player *other = PlayerIdx::locate(name_id)) {
             announce(to_MASK(other->number()), LOGINASME);
             strcpy(me->_name, new_name);
             tx(message(ALREADYIN), '\n');
@@ -219,7 +229,7 @@ getname(void)
 }
 
 static inline int
-newid(void)
+newid()
 // Create a new user
 {
     me->reset();
@@ -248,7 +258,7 @@ newid(void)
 
     // Capitalise the name properly
     me->_name[0] = toupper(me->_name[0]);
-    for (u_int i = 1; i < strlen(me->_name); i++) {
+    for (size_t i = 1; i < strlen(me->_name); i++) {
         me->_name[i] = (me->_name[i - 1] == ' ') ? toupper(me->_name[i]) : tolower(me->_name[i]);
     }
 
@@ -275,7 +285,7 @@ newid(void)
 
 #ifdef NEVER
 int
-getpasswd(void)
+getpasswd()
 // Existing user - verify password
 {
     // Give the user three attempts at entering the right password.

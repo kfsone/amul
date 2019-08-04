@@ -1,7 +1,7 @@
 #ifndef ACTUALS_H
 #define ACTUALS_H 1
 
-/* $Id: actuals.hpp,v 1.3 1997/04/26 21:43:12 oliver Exp $
+/*
 ** "Actuals"
 ** Why didn't I call these variables or indirections. An "actual" is a
 ** value outside the normal legal range (by setting the high bit) which

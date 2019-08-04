@@ -1,39 +1,40 @@
 #pragma once
-#include "include/fileerror.hpp"
-#include "include/portable.hpp"
+#include "fileerror.hpp"
+#include "fileio.hpp"
+#include "portable.hpp"
 
 namespace Smugl
 {
 
 struct FDError : public FileError {
-    FDError(const char* const filename_, const int errno_, const int fd_)
+    FDError(const char *const filename_, const int errno_, const int fd_)
         : FileError(filename_, errno_), fd(fd_)
     {
     }
-    virtual ~FDError()
+    ~FDError() override
     {
         if (fd >= 0)
-            _close(fd);
+            close(fd);
         fd = -1;
     }
-    virtual const char* type() const { return "general FD"; }
+    const char *type() const override { return "general FD"; }
     int fd;
 };
 
-struct FDReadError : public FDError {
-    FDReadError(const char* filename_, const int errno_, const int fd_)
+struct FDReadError final : public FDError {
+    FDReadError(const char *filename_, const int errno_, const int fd_)
         : FDError(filename_, errno_, fd_)
     {
     }
-    virtual const char* type() const { return "FD read"; }
+    const char *type() const override { return "FD read"; }
 };
 
-struct FDWriteError : public FDError {
-    FDWriteError(const char* filename_, const int errno_, const int fd_)
+struct FDWriteError final : public FDError {
+    FDWriteError(const char *filename_, const int errno_, const int fd_)
         : FDError(filename_, errno_, fd_)
     {
     }
-    virtual const char* type() const { return "FD write"; }
+    const char *type() const override { return "FD write"; }
 };
 
 }  // namespace Smugl

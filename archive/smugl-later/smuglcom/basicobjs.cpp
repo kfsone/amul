@@ -1,29 +1,32 @@
 // Basic Object routines
 // Mostly to do with table management (AGAIN)
 
-#include "include/libprotos.hpp"
-#include "smuglcom/smuglcom.hpp"
+#include "fileio.hpp"
+#include "libprotos.hpp"
+#include "smuglcom.hpp"
+
+#include <cstring>
 
 // Container variables
-#define CONTAINER_GROW_RATE 1024  // Containers to allocate at-a-time
-CONTAINER *containers;            // The container table
-counter_t ncontainers;            // Number of containers
-counter_t ncontainers_allocd;     // Number allocated for
+constexpr size_t CONTAINER_GROW_RATE = 1024;  // Containers to allocate at-a-time
+CONTAINER *containers;                        // The container table
+counter_t ncontainers;                        // Number of containers
+counter_t ncontainers_allocd;                 // Number allocated for
 
-#define BOB_GROW_RATE 256  // Bob indexes to allocate at-a-time
-BASIC_OBJ **bobs;          // The bob index table
-counter_t nbobs;           // Number of containers
-counter_t nbobs_allocd;    // Number allocated for
+constexpr size_t BOB_GROW_RATE = 256;  // Bob indexes to allocate at-a-time
+BASIC_OBJ **bobs;                      // The bob index table
+counter_t nbobs;                       // Number of containers
+counter_t nbobs_allocd;                // Number allocated for
 
-// BASIC_OBJ::clear(void)
+// BASIC_OBJ::clear()
 // Nuke the fields in a bob
 void
-BASIC_OBJ::clear(void)
+BASIC_OBJ::clear()
 {
     id = -1;
     adj = -1;
     bob = -1;
-    next = 0;
+    next = nullptr;
     type = 0;
     state = 0;
     std_flags = 0;
@@ -54,9 +57,9 @@ add_container(basic_obj boSelf, basic_obj boContainer)
     // Make sure we've got enough memory allocated
     if (ncontainers >= ncontainers_allocd) {
         ncontainers_allocd += CONTAINER_GROW_RATE;
-        size_t new_size = ncontainers_allocd * sizeof(CONTAINER);
-
-        containers = (CONTAINER *) grow(containers, new_size, "Allocating container memory");
+        const size_t new_size = ncontainers_allocd * sizeof(CONTAINER);
+        containers =
+                static_cast<CONTAINER *>(grow(containers, new_size, "Allocating container memory"));
     }
 
     cont = containers + ncontainers;
@@ -80,7 +83,6 @@ add_container(basic_obj boSelf, basic_obj boContainer)
         else {
             // Always insert at the tail of the list; find the tail
             container_t conLast = cont_bob->conTent;
-
             while (containers[conLast].conNext != -1)
                 conLast = containers[conLast].conNext;
             containers[conLast].conNext = ncontainers;
@@ -98,7 +100,6 @@ bool
 is_inside(basic_obj boItem, basic_obj boContainer)
 {
     container_t con;
-
     for (con = bobs[boContainer]->conTent; con != -1; con = containers[con].conNext) {
         if (containers[con].boSelf == boItem)
             return true;
@@ -116,9 +117,9 @@ add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags)
     // Make sure we've got enough memory allocated
     if (nbobs >= nbobs_allocd) {
         nbobs_allocd += BOB_GROW_RATE;
-        size_t new_size = nbobs_allocd * sizeof(ptr);
-
-        bobs = (BASIC_OBJ **) grow(bobs, new_size, "Allocating basic object index memory");
+        const size_t new_size = nbobs_allocd * sizeof(ptr);
+        bobs = static_cast<BASIC_OBJ **>(
+                grow(bobs, new_size, "Allocating basic object index memory"));
     }
 
     // Add us to the chain if neccesary
@@ -129,60 +130,62 @@ add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags)
     bobs[nbobs] = ptr;
     ptr->bob = nbobs;
     ptr->type = type;
-    ptr->next = NULL;
+    ptr->next = nullptr;
     ptr->std_flags = flags;
 
-    return nbobs++;
+    nbobs++;
+    printf("Added %s basic obj#%d:", word(ptr->id), nbobs);
+    printf("\n");
+
+    return nbobs;
 }
 
 // Write the basic object set to disk
 void
-save_basic_objs(void)
+save_basic_objs()
 {
     int fd;
 
     // Add space for the player objects to the 'bob' list
     PLAYER temp_player;
-
     temp_player.id = -1;
     for (int i = 0; i < MAXU; i++) {
         basic_obj newBob = add_basic_obj(&temp_player, WPLAYER, 0);
         add_container(newBob, newBob);
     }
 
-    fd = _open(datafile(bobfn), O_WRONLY | O_CREAT | O_TRUNC, 0664);
+    const int permissions = 0664;
+    fd = open(datafile(bobfn), O_WRONLY | O_CREAT | O_TRUNC, permissions);
     if (fd == -1)
         Err("write", datafile(bobfn));
     // Write the indexes first
-    int wv = _write(fd, &nbobs, sizeof(counter_t));
+    int wv = write(fd, &nbobs, sizeof(counter_t));
     if (wv < 0)
         Err("write", datafile(bobfn));
-    wv = _write(fd, &ncontainers, sizeof(counter_t));
+    wv = write(fd, &ncontainers, sizeof(counter_t));
     if (wv < 0)
         Err("write", datafile(bobfn));
     // Now we write out both the bobs and the containers. We write the
     // bob index out (which contains pointers, and so is non-transferable)
     // purely to make it easy to tell how big the bob index needs to be.
     // Otherwise it requires calculation.
-    wv = _write(fd, bobs, nbobs * sizeof(*bobs));
+    wv = write(fd, bobs, nbobs * sizeof(*bobs));
     if (wv < 0)
         Err("write", datafile(bobfn));
-    wv = _write(fd, containers, ncontainers * sizeof(*containers));
+    wv = write(fd, containers, ncontainers * sizeof(*containers));
     if (wv < 0)
         Err("write", datafile(bobfn));
-    _close(fd);
+    close(fd);
 }
 
 // Locate a basic obj by name
 basic_obj
-is_bob(char *name, char type /*=-1*/)
+is_bob(const char *name, char type /*=-1*/)
 {
     vocid_t id = is_word(name);
-
     if (id == -1)
         return -1;
     BASIC_OBJ **bob = bobs;
-
     for (basic_obj i = 0; i < nbobs; i++, bob++)
         if ((*bob)->id == id && (type == -1 || (*bob)->type == type))
             return i;
@@ -192,14 +195,12 @@ is_bob(char *name, char type /*=-1*/)
 
 // Locate a basic object that can be a container, by name
 basic_obj
-is_container(char *name)
+is_container(const char *name)
 {
     vocid_t id = is_word(name);
-
     if (id == -1)
         return -1;
     BASIC_OBJ **bob = bobs;
-
     for (basic_obj i = 0; i < nbobs; i++, bob++)
         if ((*bob)->id == id && (*bob)->max_weight != 0)
             return (*bob)->bob;
@@ -223,7 +224,6 @@ handle_std_flag(const char *phrase, flag_t &flags, flag_t filter)
         return 0;
     filter |= bob_INPLAY;  // You can't specify this
     int i, bit;
-
     for (i = 0, bit = 1; std_flag[i]; i++, bit = bit << 1) {
         if (strcmp(phrase, std_flag[i]) != 0)
             continue;  // Doesn't match

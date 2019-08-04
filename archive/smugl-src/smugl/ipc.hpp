@@ -30,11 +30,11 @@ class ipcMsg
 
   public:
     ipcMsg(char type = 0, long data = 0, short pri = 0);
-    ~ipcMsg(void);
+    ~ipcMsg();
     void send(flag_t to, short len = 0, void *extra = NULL);
-    void send(flag_t to, char type, long data, char pri, short len = 0, void *extra = NULL);
-    char receive(void);
-    inline const void *getPtr(void) { return ptr; };
+    void send(flag_t to, char type, long data, char pri, short len = 0, void *extra = nullptr);
+    bool receive();
+    inline const void *getPtr() { return ptr; };
 };
 
 #define to_SERVER 0          // 'To' address for server
@@ -46,12 +46,12 @@ extern struct DATA *data;  // public data area
 extern void tidy_ipc(int, void *);
 extern void init_ipc(long memory);
 extern void sem_lock(int n), sem_unlock(int n);
-extern void init_sockets(void);
-extern int accept_connection(void);
-extern int accept_command(void);
-extern void client_file_handles(void);
-extern void check_for_ipc(void);
-extern void ipc_proc(void);
+extern void init_sockets();
+extern bool accept_connection();
+extern bool accept_command();
+extern void client_file_handles();
+extern void check_for_ipc();
+extern void ipc_proc();
 extern void announce(basic_obj to, const char *msg);
 extern void announce(basic_obj to, msgno_t msg);
 extern void announce_into(basic_obj to, const char *msg);
@@ -62,6 +62,6 @@ extern int command_sock_fd;
 extern int servfd[2];
 extern int clifd[MAXU][2];
 extern int ipc_fd;
-extern int forced;
+extern bool forced;
 
 #endif  // SMUGL_SMUGL_IPC_H

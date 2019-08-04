@@ -1,10 +1,15 @@
-#pragma once
-// alias class definitions and function protos
+#ifndef SMUGL_SMUGL_ALIASES_H
+#define SMUGL_SMUGL_ALIASES_H
+
+#include "structs.hpp"
+#include "typedefs.hpp"
 
 class Alias : public ALIAS
 {
   public:
-    static long locate(const char *s);
-    static long locate(vocid_t id);
-    static inline vocid_t meaning(long num) { return data->aliasbase[num].means; };
+    static vocid_t locate(string *s);
+    static vocid_t locate(vocid_t id);
+    static vocid_t meaning(vocid_t num);
 };
+
+#endif

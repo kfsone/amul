@@ -1,19 +1,38 @@
-#pragma once
-// This may look like C, but it's really -*- C++ -*-
+#ifndef SMUGL_H_DEFINES_H
+#define SMUGL_H_DEFINES_H 1
+
 // #defines, enums and macros
 
-#define NORMALISE(x) ((((unsigned long) (x)) + (sizeof(long) * 2)) & 0xfffffffc)
-#define VOIDADD(p, o) (void *) ((char *) p + (unsigned long) o)
+#include <cstdint>
+#include <cstdlib>
 
-#define EOL 10   // End of line character
-#define SPC ' '  // Space character
-#define TAB 9    // Tab character
-#define CMT ';'  // Comment character
+template<typename T>
+constexpr T
+ptr_align(T value) noexcept
+{
+    constexpr size_t mask = sizeof(uint64_t) - 1;
+    return reinterpret_cast<T>(
+            reinterpret_cast<uintptr_t>(reinterpret_cast<const char *>(value) + mask) & ~mask);
+}
 
-#define MAXU 31       // Max USERS at 1 time
+static inline void *
+void_add(void *ptr, size_t increment) noexcept
+{
+    return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) + increment);
+}
+
+#define EOL '\n'  // End of line character
+#define SPC ' '   // Space character
+#define TAB '\t'  // Tab character
+#define CMT ';'   // Comment character
+
+enum {
+    MAXU = 31,       // Maximum players at a time
+    MAXNODE = 32,    // Maximum 'nodes' (+1 for mobiles/daemons),
+    USER_VOCAB = 8,  // Extra vocab entries to assign for users
+};
+
 #define USER_VOCAB 8  // Extra vocab entries to add
-#define MAXNODE 32    // +1 (mobiles/daemons)
-#define VOCROWS 1499  // Nice prime number ;-)
 
 // Size of the string indexes in lib/data.c -- YEUCH
 #define NSYNTS 11  // Number of 'syntax' types
@@ -30,16 +49,15 @@
 // Player connection status enums
 enum player_state { OFFLINE, LOGGING, PLAYING, CHATTING };
 
-#define ACTION 0  // Event types
-#define NOISE 1
-#define EVENT 2
-#define TEXTS 3
+// Event types
+enum { ACTION, NOISE, EVENT, TEXTS };
 
-#define PV "0.999b"  // Parser version
-#define RANKL 32     // Length of rank descs
-#define NAMEL 20     // Length of names
-#define ADNAMEL 64   // Length of the game's name
-#define OBLIM 2048   // Output Buffer Size
+#define PV "0.999b"   // Parser version
+enum { IDLEN = 64 };  // Maximum length for an ID
+#define RANKL 32      // Length of rank descs
+#define NAMEL 20      // Length of names
+#define ADNAMEL 64    // Length of the game's name
+#define OBLIM 2048    // Output Buffer Size
 
 // For 'actions': whether an action is a destination or an action
 #define ACT_DO 0  // This is an action
@@ -72,8 +90,8 @@ enum player_state { OFFLINE, LOGGING, PLAYING, CHATTING };
 
 // Enum's for room parameters
 enum {
-    rp_dark,  // Specify a room is dark
-    rp_dmove  // Dmove flag
+    rp_dark,   // Specify a room is dark
+    rp_dmove,  // Dmove flag
 };
 
 // Object flag bits
@@ -291,7 +309,7 @@ enum {
 };
 
 // Paramter types
-#define PREAL -70  // Noun or slot label
+constexpr int PREAL = -70;  // Noun or slot label
 enum {
     PNOUN = 1,  // Must be a noun
     PADJ,       // Must be an adjective
@@ -495,3 +513,5 @@ enum DMode { TYPEV, TYPEB };
 // Shared memory and IPC stuff
 #define MSG_SZ 1024     // Size of text in DATA struct
 #define MAX_SHM_SEGS 2  // Maximum shared memory segments
+
+#endif  // DEFINES_H

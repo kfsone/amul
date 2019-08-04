@@ -1,12 +1,17 @@
 // Definition of rank classes and functions
+#include "data.hpp"
+#include "smugl.hpp"
 
-#include "smugl/data.hpp"
-#include "smugl/smugl.hpp"
-
-#include "smugl/ranks.hpp"
+#include "ranks.hpp"
 
 // class RankIdx RankIdx;
-class Rank* myRank;
+class Rank *myRank;
+
+long
+Rank::number()
+{
+    return (this - data->rankbase);
+}
 
 bool
 Rank::describe(Gender sex)
@@ -19,7 +24,7 @@ Rank::describe(Gender sex)
 }
 
 void
-Rank::detail(void)
+Rank::detail()
 {
     txprintf("Rank#%d\n male=%s\n female=%s\n strength=%d\n stamina=%d",
              number(),
@@ -38,8 +43,8 @@ Rank::detail(void)
     //    long minpksl;     // Min. pts for killin
 }
 
-char*
-Rank::copy(char* dest, Gender sex /*=me->sex*/, bool verbose /*=true*/)
+char *
+Rank::copy(char *dest, Gender sex /*=me->sex*/, bool verbose /*=true*/)
 {
     if (verbose && me->pre[0]) {
         dest = strcopy(dest, me->pre);
@@ -51,4 +56,16 @@ Rank::copy(char* dest, Gender sex /*=me->sex*/, bool verbose /*=true*/)
         strcopy(dest, me->post);
     }
     return dest;
+}
+
+Rank *
+RankIdx::ptr(long id)
+{
+    return &data->rankbase[id];
+}
+
+Rank *
+RankIdx::top_rank()
+{
+    return ptr(data->ranks - 1);
 }

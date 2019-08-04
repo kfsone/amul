@@ -18,7 +18,7 @@ BASIC_OBJ **bobs;                      // The bob index table
 counter_t nbobs;                       // Number of containers
 counter_t nbobs_allocd;                // Number allocated for
 
-// BASIC_OBJ::clear(void)
+// BASIC_OBJ::clear()
 // Nuke the fields in a bob
 void
 BASIC_OBJ::clear()
@@ -96,15 +96,15 @@ add_container(basic_obj boSelf, basic_obj boContainer)
 }
 
 // Determine if 'item' is inside 'container'
-int
+bool
 is_inside(basic_obj boItem, basic_obj boContainer)
 {
     container_t con;
     for (con = bobs[boContainer]->conTent; con != -1; con = containers[con].conNext) {
         if (containers[con].boSelf == boItem)
-            return TRUE;
+            return true;
     }
-    return FALSE;
+    return false;
 }
 
 // add_basic_obj(id)
@@ -150,8 +150,8 @@ save_basic_objs()
     PLAYER temp_player;
     temp_player.id = -1;
     for (int i = 0; i < MAXU; i++) {
-        add_basic_obj(&temp_player, WPLAYER, 0);
-        add_container(temp_player.bob, temp_player.bob);
+        basic_obj newBob = add_basic_obj(&temp_player, WPLAYER, 0);
+        add_container(newBob, newBob);
     }
 
     const int permissions = 0664;

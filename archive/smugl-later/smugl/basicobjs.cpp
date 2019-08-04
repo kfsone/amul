@@ -1,6 +1,9 @@
 // Basic Object manipulation code
 
-#include "smugl/smugl.hpp"
+#include <cassert>
+
+#include "bobidx.hpp"
+#include "smugl.hpp"
 
 counter_t nbobs, ncontainers;
 BASIC_OBJ **bobs;
@@ -101,7 +104,6 @@ BASIC_OBJ::is_in(basic_obj boContainer)
 {
     if (locations >= 1) {
         CONTAINER *cur = (containers + conLocation);
-
         for (int i = 0; i < locations; i++, cur++) {
             if (cur->boContainer == boContainer)
                 return true;
@@ -115,7 +117,7 @@ BASIC_OBJ::is_in(basic_obj boContainer)
 // Base-class attempt to describe an object.
 
 bool
-BASIC_OBJ::describe(void)
+BASIC_OBJ::describe()
 {
     if (s_descrip == -1 && id == -1) {
         tx("<NULL OBJECT>");  // No description or short name
@@ -143,13 +145,11 @@ basic_obj
 BobIdx::find(vocid_t name, char type /*=WANY*/, basic_obj from /*=-1*/)
 {
     BASIC_OBJ *cur;
-
     if (from >= nbobs - 1 || from < -1)
         return -1;
     for (cur = bobs[from + 1]; cur; cur = cur->next) {
         if (cur->id == name && (type == WANY || type == cur->type))
             return cur->bob;
     }
-
     return -1;
 }

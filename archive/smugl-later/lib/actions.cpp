@@ -2,8 +2,8 @@
  * actions.cpp -- Defines the action table
  */
 
-#include "include/includes.hpp"
-#include "include/structs.hpp"
+#include "includes.hpp"
+#include "structs.hpp"
 
 /*
  * Current language/travel actions:
@@ -122,7 +122,7 @@
  *
  * Note: <umsg> can be replaced by a text string in quotes.
  */
-struct ARGS action[ACTIONS] = {
+ARGS action[ACTIONS] = {
     { "quit", 0, { NONE } },
     { "save", 0, { NONE } },
     { "score", 1, { -5, 0, 0 } },
