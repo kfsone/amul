@@ -15,6 +15,8 @@ static const char rcsid[] = "$Id: smuglcom.cc,v 1.10 1999/06/09 10:25:14 oliver 
 #include "fileio.hpp"
 #include "virtuals.hpp"
 
+#include "cl_vocab.hpp"
+
 #include <cstring>
 
 static void usage(void);
@@ -83,14 +85,14 @@ main(int argc, char *argv[])
     save_vocab_index();
     save_basic_objs();
 
-    printf("\nSuccessful: Rooms=%ld: Verbs=%ld Objects=%ld. Total Items=%ld\n",
+    printf("\nSuccessful: Rooms=%d: Verbs=%d Objects=%d. Total Items=%ld\n",
            rooms,
            verbs,
            nouns,
            rooms + ranks + verbs + nouns + syns + ttents + i_alloc + mobs + mobchars + vc->items);
 
     fopenw(statsfn);
-    fprintf(ofp1, "%ld %ld", rooms, nouns);
+    fprintf(ofp1, "%d %d", rooms, nouns);
     close_ofps();
 
     fopenw(advfn);

@@ -1,9 +1,8 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: rooms.hpp,v 1.9 1999/06/08 15:36:50 oliver Exp $
-// rooms class definitions and function protos
-
 #ifndef ROOMS_H
 #define ROOMS_H 1
+
+#include "players.hpp"  ///TODO: Eliminate by fixing arrive/depart/enter etc
+#include "structs.hpp"
 
 class Room : public ROOM
 {
@@ -23,34 +22,18 @@ class RoomIdx
 {
   private:
     // Current room iteration or, for players, present location.
-    static int cur_no;
+    int cur_no;
 
   public:
-    inline RoomIdx(void) { cur_no = 0; }
-    static class Room *locate(const char *s);
-    static class Room *locate(vocid_t id);
-    static inline class Room *first(void)
-    {
-        cur_no = 0;
-        return data->roombase;
-    };
-    static inline class Room *current(void)
-    {
-        if (cur_no >= data->rooms)
-            return NULL;
-        return data->roombase + cur_no;
-    };
-    static inline class Room *next(void)
-    {
-        if (++cur_no >= data->rooms) {
-            cur_no = data->rooms;
-            return NULL;
-        }
-        return data->roombase + cur_no;
-    };
+    RoomIdx(void) { cur_no = 0; }
+    static Room *locate(const char *s);
+    static Room *locate(vocid_t id);
+    Room *first();
+    Room *current();
+    Room *next();
 };
 
-extern class Room *cur_loc;
-extern class Room *last_room;
+extern Room *cur_loc;
+extern Room *last_room;
 
 #endif /* ROOMS_H */

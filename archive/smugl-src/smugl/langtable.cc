@@ -4,6 +4,7 @@
 // language table entry processor. This houses all the condition and
 // action code, and the tables used to invoke them
 
+#include <cassert>
 #include <cctype>
 
 #include "aliases.hpp"

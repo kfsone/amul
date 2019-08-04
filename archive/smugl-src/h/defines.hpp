@@ -30,15 +30,18 @@ void_add(void *ptr, size_t increment) noexcept
 #define TRUE !FALSE
 #endif
 
-#define EOL 10   // End of line character
-#define SPC ' '  // Space character
-#define TAB 9    // Tab character
-#define CMT ';'  // Comment character
+#define EOL '\n'  // End of line character
+#define SPC ' '   // Space character
+#define TAB '\t'  // Tab character
+#define CMT ';'   // Comment character
 
-#define MAXU 31       // Max USERS at 1 time
+enum {
+    MAXU = 31,       // Maximum players at a time
+    MAXNODE = 32,    // Maximum 'nodes' (+1 for mobiles/daemons),
+    USER_VOCAB = 8,  // Extra vocab entries to assign for users
+};
+
 #define USER_VOCAB 8  // Extra vocab entries to add
-#define MAXNODE 32    // +1 (mobiles/daemons)
-#define VOCROWS 1499  // Nice prime number ;-)
 
 // Size of the string indexes in lib/data.c -- YEUCH
 #define NSYNTS 11  // Number of 'syntax' types
@@ -55,10 +58,8 @@ void_add(void *ptr, size_t increment) noexcept
 // Player connection status enums
 enum player_state { OFFLINE, LOGGING, PLAYING, CHATTING };
 
-#define ACTION 0  // Event types
-#define NOISE 1
-#define EVENT 2
-#define TEXTS 3
+// Event types
+enum { ACTION, NOISE, EVENT, TEXTS };
 
 #define PV "0.999b"   // Parser version
 enum { IDLEN = 64 };  // Maximum length for an ID

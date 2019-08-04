@@ -4,9 +4,10 @@
 
 static const char rcsid[] = "$Id: umsgproc.cc,v 1.5 1997/05/22 02:21:43 oliver Exp $";
 
-#include "smuglcom.hpp"
-
 #include <cstring>
+
+#include "fileio.hpp"
+#include "smuglcom.hpp"
 
 void
 umsg_proc(void)

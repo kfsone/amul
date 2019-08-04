@@ -12,6 +12,12 @@ static const char rcsid[] = "$Id: ranks.cc,v 1.7 1999/06/08 15:36:50 oliver Exp 
 // class RankIdx RankIdx;
 class Rank *myRank;
 
+long
+Rank::number()
+{
+    return (this - data->rankbase);
+}
+
 int
 Rank::describe(Gender sex)
 {
@@ -55,4 +61,16 @@ Rank::copy(char *dest, Gender sex, int verbose)
         strcopy(dest, me->post);
     }
     return dest;
+}
+
+Rank *
+RankIdx::ptr(long id)
+{
+    return &data->rankbase[id];
+}
+
+Rank *
+RankIdx::top_rank()
+{
+    return ptr(data->ranks - 1);
 }

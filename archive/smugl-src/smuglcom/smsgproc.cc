@@ -7,6 +7,7 @@
 
 static const char rcsid[] = "$Id: smsgproc.cc,v 1.5 1997/05/22 02:21:41 oliver Exp $";
 
+#include "fileio.hpp"
 #include "smuglcom.hpp"
 
 void

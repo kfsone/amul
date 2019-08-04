@@ -20,9 +20,9 @@ class ROOM : public BASIC_OBJ
     virtual int Read(FILE *) override;
 
     //// Room::DATA
-    u_long visitor_bf;  // Bit field - which users have visited?
-    long tabptr;        // Travel Table data Offset (yeuch)
-    short ttlines;      // No. of TT lines
+    flag_t visitor_bf;  // Bit field - which users have visited?
+    long tabptr;        // Travel Table data Offset
+    uint16_t ttlines;   // No. of TT lines
 };
 
 #endif /* ROOM_H */

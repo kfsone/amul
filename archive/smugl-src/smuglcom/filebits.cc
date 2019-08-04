@@ -4,13 +4,14 @@
 
 static const char rcsid[] = "$Id: filebits.cc,v 1.8 1997/05/22 02:21:36 oliver Exp $";
 
-#include "libprotos.hpp"
-#include "smuglcom.hpp"
-
 #include <cctype>
 #include <cstring>
 
-static char *func_get(off_t off);
+#include "fileio.hpp"
+#include "libprotos.hpp"
+#include "smuglcom.hpp"
+
+static char *func_get(offset_t off);
 static size_t filesize(void);
 
 void
@@ -90,7 +91,9 @@ fopenr(const char *s)
         Err("open", file);
 }
 
-FILE *rfopen(const char *s) /* Open file for reading */
+/* Open file for reading */
+FILE *
+rfopen(const char *s)
 {
     FILE *fp;
     char *file = datafile(s);
@@ -179,7 +182,7 @@ clean_trim(char *s)
 ** 'off' allows you to specify an additional quantity of surplus,
 ** useful if you intend to re-use the memory for output */
 inline static char *
-func_get(off_t off)
+func_get(offset_t off)
 {
     char *p;
     size_t size;
@@ -215,7 +218,7 @@ blkget()
 ** Used for reading any files which don't have text-blocks
 */
 char *
-cleanget(off_t off)
+cleanget(offset_t off)
 {
     char *p;
     p = func_get(off);
@@ -225,13 +228,13 @@ cleanget(off_t off)
 
 static size_t filesize() /* Return size of current file (ifp) */
 {
-    off_t now;
+    offset_t pos;
     size_t s;
 
-    now = ftell(ifp);
+    pos = ftell(ifp);
     fseek(ifp, 0, 2L);
-    s = ftell(ifp) - now;
-    fseek(ifp, now, 0L);
+    s = ftell(ifp) - pos;
+    fseek(ifp, pos, 0L);
     return (s + 4); /* Just for luck! */
 }
 

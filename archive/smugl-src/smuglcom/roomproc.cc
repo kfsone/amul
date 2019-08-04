@@ -1,11 +1,12 @@
 // Rooms Table processor
 static const char rcsid[] = "$Id: roomproc.cc,v 1.11 1999/06/08 15:36:54 oliver Exp $";
 
-#include "smuglcom.hpp"
-
 #include <cassert>
 #include <cctype>
 #include <cstring>
+
+#include "fileio.hpp"
+#include "smuglcom.hpp"
 
 #define ROOMDSC_GROW_RATE 4096  // Rate to grow description buffer
 size_t rdalloc = 0;             // Text buffer memory allocated
@@ -138,7 +139,7 @@ room_proc(void)
         fgets(bufmem, rdalloc, ifp); /* Get short desc */
         if (bufmem[0] != '\n' && bufmem[0] != '\r') {
             char *q = NULL;
-            off_t mem_off = 0;
+            offset_t mem_off = 0;
 
             int len = strlen(bufmem);
             rmp->s_descrip = add_msg(NULL);

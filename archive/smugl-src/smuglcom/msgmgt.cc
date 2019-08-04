@@ -30,7 +30,7 @@ struct MSGID *msgidp;   /* Current position in the index */
  *  pos  = message offset within the umsg file.
  * returns id of the message added
  */
-long
+msgno_t
 add_msg(const char *id)
 {
     size_t new_alloc;
@@ -85,10 +85,10 @@ save_messages(void)
 **  -1 for no
 **  0+ for message id
 */
-long
+msgno_t
 ismsgid(const char *s)
 {
-    struct MSGID *tmpidp;
+    MSGID *tmpidp;
 
     /* Is it a "no message" id? */
     if (!strncmp("none", s, 4) && (!*(s + 4) || !isalnum(*(s + 4))))

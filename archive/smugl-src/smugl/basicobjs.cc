@@ -3,6 +3,7 @@ static const char cvsid[] = "$Id: basicobjs.cc,v 1.4 1999/06/08 15:36:50 oliver 
 
 #include <cassert>
 
+#include "bobidx.hpp"
 #include "smugl.hpp"
 
 counter_t nbobs, ncontainers;
