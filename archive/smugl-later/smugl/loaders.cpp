@@ -1,34 +1,42 @@
 // Loader functions for the various object types
 // The purpose of this file is to provide a single loader for
 // a game database.
+// I've broken this down into functions, but then I've made them
+// static inline, so that the end result is one big function.
 
-#include "include/consts.hpp"
-#include "include/fperror.hpp"
-#include "include/structs.hpp"
-#include "include/syslog.hpp"
-#include "smugl/io.hpp"
-#include "smugl/misc.hpp"
-#include "smugl/smugl.hpp"
+#include <cassert>
+#include <cerrno>
+#include <cstring>
+#include <new>
+
+#include "consts.hpp"
+#include "fperror.hpp"
+#include "io.hpp"
+#include "loaders.hpp"
+#include "misc.hpp"
+#include "smugl.hpp"
+#include "structs.hpp"
+#include "syslog.hpp"
 
 // Proto types and class definitions
-#include "include/libprotos.hpp"
-#include "smugl/aliases.hpp"
-#include "smugl/lang.hpp"
-#include "smugl/manager.hpp"
-#include "smugl/mobiles.hpp"
-#include "smugl/objects.hpp"
-#include "smugl/ranks.hpp"
-#include "smugl/rooms.hpp"
-#include "smugl/travel.hpp"
+#include "aliases.hpp"
+#include "lang.hpp"
+#include "libprotos.hpp"
+#include "manager.hpp"
+#include "mobiles.hpp"
+#include "objects.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
+#include "travel.hpp"
 
 // Read in the text messages and their indexes
-static void*
-read_in_umsgs(void* base)
+static void *
+read_in_umsgs(void *base)
 {
     // First load in the index
     size_t size = read_file(umsgifn, base, true);
-    data->msgbase = (long*) base;
-    base = VOIDADD(base, size);
+    data->msgbase = (long *) base;
+    base = void_add(base, size);
     size_t msgs = size / sizeof(long);  // Number of messages
 
     // Adjust the index pointers to point at the real text
@@ -38,43 +46,43 @@ read_in_umsgs(void* base)
     // Second load in the actual text
     size = read_file(umsgfn, base, true);
 
-    return (void*) NORMALISE(VOIDADD(base, size));
+    return ptr_align(void_add(base, size));
 }
 
 // Read in the rank table
-static void*
-read_in_ranks(void* base)
+static void *
+read_in_ranks(void *base)
 {
     size_t size = read_file(ranksfn, base, true);
-    data->rankbase = (class Rank*) base;
+    data->rankbase = (Rank *) base;
     data->ranks = size / sizeof(Rank);
-    return (void*) NORMALISE(VOIDADD(base, size));
+    return ptr_align(void_add(base, size));
 }
 
 // Room objects
 // We have to read the rooms in seperately so that we can
 // process them into place
-static void*
-read_in_rooms(void* base)
+static void *
+read_in_rooms(void *base)
 {
-    fileInfo* fi = locate_file(roomsfn, true);
-    FILE* fp = fopen(fi->name, "rb");
-    if (fp == NULL) {
+    fileInfo *fi = locate_file(roomsfn, true);
+    FILE *fp = fopen(fi->name, "rb");
+    if (fp == nullptr) {
         sysLog.Write(_FLT, "unable to read %s", roomsfn);
         /*ABORT*/
     }
 
-    data->roombase = (class Room*) base;
+    data->roombase = (Room *) base;
     data->rooms = roomCount;
 
     // Work out how many start rooms there are...
     data->start_rooms = 0;
 
-    Room* dest = data->roombase;
-    data->anterm = NULL;
+    Room *roomcur = data->roombase;
+    data->anterm = nullptr;
 
-    for (counter_t i = 0; i < data->rooms; dest++, i++) {
-        *dest = Room{};
+    for (counter_t i = 0; i < data->rooms; roomcur++, i++) {
+        Room *dest = new (roomcur) Room;
         dest->Read(fp);
 
         if ((dest->flags & ANTERM) && data->anterm)
@@ -86,41 +94,41 @@ read_in_rooms(void* base)
     }
 
     fclose(fp);
-    return (void*) NORMALISE(dest);
+    return ptr_align(roomcur);
 }
 
 // Mobile entities
-static void*
-read_in_mobiles(void* base)
+static void *
+read_in_mobiles(void *base)
 {
     size_t size = read_file(mobfn, base, true);
-    data->mobbase = (class Mobile*) base;
+    data->mobbase = (Mobile *) base;
     data->mobiles = size / sizeof(Mobile);
-    return (void*) NORMALISE((char*) base + size);
+    return ptr_align(void_add(base, size));
 }
 
 // Nouns (objects)
-static void*
-read_in_objects(void* base)
+static void *
+read_in_objects(void *base)
 {
     // Read in the state descriptions
     size_t size = read_file(statfn, base, true);
-    State* statep = static_cast<class State*>(base);
-    base = VOIDADD(base, size);
+    auto *statep = static_cast<class State *>(base);
+    base = void_add(base, size);
 
     // Read in the main object sections
-    fileInfo* fi = locate_file(objsfn, true);
-    FILE* fp = fopen(fi->name, "rb");
-    if (fp == NULL) {
+    fileInfo *fi = locate_file(objsfn, true);
+    FILE *fp = fopen(fi->name, "rb");
+    if (fp == nullptr) {
         sysLog.Write(_FLT, "unable to read %s", objsfn);
         /*ABORT*/
     }
-    data->objbase = (class Object*) base;
+    data->objbase = (Object *) base;
     data->objects = nounCount;
 
-    Object* cur = static_cast<Object*>(base);
+    auto *cur = static_cast<Object *>(base);
     for (counter_t i = 0; i < data->objects; i++, cur++) {
-        *cur = Object{};
+        new (cur) Object;
         cur->Read(fp);
 
         if (cur->nstates > 0) {
@@ -129,93 +137,93 @@ read_in_objects(void* base)
         }
     }
 
-    return (void*) NORMALISE(cur);
+    return ptr_align(cur);
 }
 
 // Read in the basic object index and containers
-static void*
-read_in_basic_objs(void* base)
+static void *
+read_in_basic_objs(void *base)
 {
     read_file(bobfn, base, true);
     // The first two longs of the file are the counters
-    nbobs = ((container_t*) base)[0];
-    ncontainers = ((container_t*) base)[1];
+    nbobs = ((container_t *) base)[0];
+    ncontainers = ((container_t *) base)[1];
     // Next comes space for the basic object indexes
     // These will need initialising
-    bobs = (BASIC_OBJ**) &(((container_t*) base)[2]);
+    bobs = (BASIC_OBJ **) &(((container_t *) base)[2]);
     // Finally, the containers
-    containers = (CONTAINER*) (bobs + nbobs);
-    return (void*) NORMALISE(containers + ncontainers);
+    containers = (CONTAINER *) (bobs + nbobs);
+    return ptr_align(containers + ncontainers);
 }
 
 // This one gets a bit messy because the compiler leaves us some work to do
 // in terms of updating pointers, etc.
-void*
-read_in_verbs(void* base)
+static void *
+read_in_verbs(void *base)
 {
     // Read in the base verb objects
     counter_t size = read_file(langfn, base, true);
 
     // The first 3 values are counters:
-    counter_t* counters = static_cast<counter_t*>(base);
+    auto *counters = static_cast<counter_t *>(base);
     data->verbs = *(counters++);
     counter_t slots = *(counters++);
     counter_t cmds = *(counters++);
 
     // Now we're at the base of the verb table
-    class Verb* vbp = (data->verbbase = (class Verb*) (counters));
-    struct SLOTTAB* slotp = (struct SLOTTAB*) (data->verbbase + data->verbs);
-    struct VBTAB* cmdp = (struct VBTAB*) (slotp + slots);
-    long* argp = (long*) (cmdp + cmds);
+    Verb *vbp = (data->verbbase = (Verb *) (counters));
+    auto *slotp = (SLOTTAB *) (data->verbbase + data->verbs);
+    auto *cmdp = (VBTAB *) (slotp + slots);
+    long *argp = (long *) (cmdp + cmds);
 
     // Change the offsets in the various objects to pointers
     for (counter_t i = 0; i < data->verbs; i++, vbp++) {
         if (vbp->ents <= 0) {
-            vbp->ptr = NULL;
+            vbp->ptr = nullptr;
             continue;
         }
         vbp->ptr = slotp;
         // Now adjust the slot entries
         for (counter_t j = 0; j < vbp->ents; j++, slotp++) {
             if (slotp->ents <= 0) {
-                slotp->ptr = NULL;
+                slotp->ptr = nullptr;
                 continue;
             }
             slotp->ptr = cmdp;
-            for (size_t k = 0; k < slotp->ents; k++, cmdp++) {
+            for (int k = 0; k < slotp->ents; k++, cmdp++) {
                 int ncp = cond[cmdp->condition].argc;
                 int nap = 0;
 
                 if (cmdp->action_type == ACT_DO)
                     nap = action[cmdp->action].argc;
                 if (ncp + nap == 0)
-                    cmdp->pptr = NULL;
+                    cmdp->pptr = nullptr;
                 else
                     cmdp->pptr = argp;
                 argp += (ncp + nap);
             }
         }
     }
-    return (void*) NORMALISE(VOIDADD(base, size));
+    return ptr_align(void_add(base, size));
 }
 
 // Read in the travel table
-static void*
-read_in_travel(void* base)
+static void *
+read_in_travel(void *base)
 {
     int i;
-    class TTEnt* ttp;
-    long* argp;
+    class TTEnt *ttp;
+    long *argp;
 
     // First read in the TT_ENT data
     size_t size = read_file(ttfn, base, true);
-    data->ttbase = (class TTEnt*) base;
-    data->ttents = size / sizeof(struct TT_ENT);
-    base = VOIDADD(base, size);
+    data->ttbase = (class TTEnt *) base;
+    data->ttents = size / sizeof(TT_ENT);
+    base = void_add(base, size);
 
     // Now read in the condition/action parameters
     size = read_file(ttpfn, base, true);
-    argp = (long*) base;
+    argp = (long *) base;
 
     // Now fix pointers
     for (i = 0, ttp = data->ttbase; i < data->ttents; i++, ttp++) {
@@ -232,22 +240,22 @@ read_in_travel(void* base)
             argp += action[ttp->action].argc;
     }
 
-    return (void*) NORMALISE(VOIDADD(base, size));
+    return ptr_align(void_add(base, size));
 }
 
 // Read in the aliases (synonyms) file
-void*
-read_in_aliases(void* base)
+static void *
+read_in_aliases(void *base)
 {
     const size_t size = read_file(synsifn, base, true);
-    data->aliasbase = (class Alias*) base;
+    data->aliasbase = (class Alias *) base;
     data->aliases = size / sizeof(struct ALIAS);
-    return VOIDADD(base, size);
+    return void_add(base, size);
 }
 
 // Tell the user what stage we're at
 static void
-mention(const char* s)
+mention(const char *s)
 {
     // Print everything on one line - no carriage return. As a result,
     // we need to fflush to cause it to be written right away
@@ -257,10 +265,10 @@ mention(const char* s)
 
 // Read the primary game file
 static void
-read_in_advfn(void)
+read_in_advfn()
 {
-    FILE* fp = fopen(datafile(advfn), "r");
-    if (fp == NULL) {
+    FILE *fp = fopen(datafile(advfn), "r");
+    if (fp == nullptr) {
         sysLog.Write(_FLT, "can't open file %s: %s", advfn, strerror(errno));
         /*ABORT*/
     }
@@ -286,11 +294,10 @@ read_in_advfn(void)
 }
 
 void
-load_database(void* const membase)
+load_database(void *const membase)
 // Load all the files in the database
 {
     container_t conPlayer;
-    Player* ppCur;
     int i;
 
     vc = &data->VC;  // Set the vocab table base
@@ -298,7 +305,7 @@ load_database(void* const membase)
     mention("Info");
     read_in_advfn();
     mention("Text");
-    void* ptr = read_in_umsgs(membase);
+    void *ptr = read_in_umsgs(membase);
     mention("Vocab");
     ptr = read_in_vocab(ptr);
     mention("Ranks");
@@ -317,7 +324,7 @@ load_database(void* const membase)
     mention("Syns");
     ptr = read_in_aliases(ptr);
     printf("LOADED. [%zu bytes]\n",
-           static_cast<const char*>(ptr) - static_cast<const char*>(membase));
+           static_cast<const char *>(ptr) - static_cast<const char *>(membase));
 
     // Clear some of the fields in data
 
@@ -326,46 +333,40 @@ load_database(void* const membase)
 
     // Index rooms
     for (i = 0; i < data->rooms; i++, bobno++)
-        bobs[bobno] = (BASIC_OBJ*) (data->roombase + i);
+        bobs[bobno] = (BASIC_OBJ *) (data->roombase + i);
 
     // Index objects
     for (i = 0; i < data->objects; i++, bobno++)
-        bobs[bobno] = (BASIC_OBJ*) (data->objbase + i);
+        bobs[bobno] = (BASIC_OBJ *) (data->objbase + i);
 
     // Index players
     // conPlayer is which container will describe the location
     // of this player
     conPlayer = ncontainers - MAXU;
 
-    for (i = 0, ppCur = data->user; i < MAXU; i++, ppCur++) {
-        *ppCur = Player{};
-        ppCur->state = OFFLINE;
-        ppCur->id = -1;
-        ppCur->_name[0] = 0;
-        ppCur->std_flags = 0;  // Especially not 'bob_INPLAY'
-        ppCur->flags = 0;
-
-        bobs[bobno] = (BASIC_OBJ*) (data->user + i);
-        data->user[i].conLocation = conPlayer;
-        data->user[i].init_bob(bobno);
-
+    for (i = 0; i < MAXU; i++) {
+        Player *cur = &data->user[i];
+        new (cur) Player;
+        bobs[bobno] = cur;
+        cur->conLocation = conPlayer;
+        cur->init_bob(bobno);
         bobno++;
         conPlayer++;
     }
 
     // Now we need to set all the 'next' values to make the
     // basic object chain work properly
-    bobs[--bobno]->next = NULL;
+    bobs[--bobno]->next = nullptr;
     for (; bobno-- > 0;)
         bobs[bobno]->next = bobs[bobno + 1];
 
     if (g_debug > 1) {
         printf("\nScanning Contents Tree\n");
         for (i = 0; i < data->rooms; i++) {
-            Room* room = data->roombase + i;
+            Room *room = data->roombase + i;
             container_t conChild;
 
-            printf("+ Room: RoomNo=%4d, ID=%4ld, Name=%s, Contains %ld\n",
+            printf("+ Room: RoomNo=%4d, ID=%4d, Name=%s, Contains %d\n",
                    i,
                    room->id,
                    word(room->id),
@@ -379,7 +380,7 @@ load_database(void* const membase)
                 boSelf = containers[conChild].boSelf;
                 boParent = containers[conChild].boContainer;
 
-                printf("| + Item=%s Bob=%ld, bob->bob=%ld, container=%ld\n",
+                printf("| + Item=%s Bob=%d, bob->bob=%d, container=%d\n",
                        word(bobs[boSelf]->id),
                        boSelf,
                        bobs[boSelf]->bob,
@@ -389,9 +390,9 @@ load_database(void* const membase)
 
         printf("\nScanning Object Tree\n");
         for (i = 0; i < data->objects; i++) {
-            Object* obj = data->objbase + i;
+            Object *obj = data->objbase + i;
 
-            printf("+ Object: ObjNo=%4d, ID=%4ld, Name=%s, Contains %ld, Locations=%ld\n",
+            printf("+ Object: ObjNo=%4d, ID=%4d, Name=%s, Contains %d, Locations=%d\n",
                    i,
                    obj->id,
                    word(obj->id),

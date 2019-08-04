@@ -2,11 +2,9 @@
  * Platform agnostic logging facility.
  */
 
-#include "include/syslog.hpp"
+#include "syslog.hpp"
 
-namespace APIs
-{
-namespace Logging
+namespace APIs::Logging
 {
 
 //////////////////////////////////////////////////////////////////////
@@ -17,7 +15,7 @@ extern Log sysLog;
 //////////////////////////////////////////////////////////////////////
 // Constructor.
 
-Log::Log(const wchar_t* const name_, const APIs::Logging::Level minLevel_)
+Log::Log(const wchar_t *const name_, const APIs::Logging::Level minLevel_)
     : m_name(name_), m_currentLevel(minLevel_)
 {
 }
@@ -25,8 +23,6 @@ Log::Log(const wchar_t* const name_, const APIs::Logging::Level minLevel_)
 //////////////////////////////////////////////////////////////////////
 // Destructor.
 
-Log::~Log() {}
+Log::~Log() = default;
 
-}  // namespace Logging
-
-}  // namespace APIs
+}  // namespace APIs::Logging

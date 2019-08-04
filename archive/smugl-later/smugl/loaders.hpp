@@ -1,6 +1,7 @@
-#pragma once
-// This may look like C but it's really -*- C++ -*-
-// proto-definitions for the various data loaders
+#ifndef SMUGL_SMUGL_LOADERS_H
+#define SMUGL_SMUGL_LOADERS_H
 // Only one function is publicly visible; load_database()
 
-extern void load_database(void *);
+void load_database(void *);
+
+#endif  // SMUGL_SMUGL_LOADERS_H

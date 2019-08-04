@@ -1,6 +1,10 @@
 // objproc.cpp -- process OBJECTS.txt
 
-#include "smuglcom/smuglcom.hpp"
+#include <cctype>
+#include <cstring>
+
+#include "errors.hpp"
+#include "smuglcom.hpp"
 
 // Default the default object flags
 #define DEFAULT_STD (bob_INPLAY)
@@ -18,11 +22,9 @@ object(const char *s)
 **** is currently in 'Word' */
 
 static inline void
-set_art(void)
+set_art()
 {  // Set the article of an object
-    int i;
-
-    for (i = 0; i < NART; i++) {
+    for (int i = 0; i < NART; i++) {
         if (!strcmp(article[i], Word)) {
             obj->article = i;
             return;
@@ -32,7 +34,7 @@ set_art(void)
 }
 
 static inline void
-set_start(void)
+set_start()
 {  // Set start state of an object
     if (!isdigit(Word[0]))
         object("start state");
@@ -42,7 +44,7 @@ set_start(void)
 }
 
 static inline void
-set_holds(void)
+set_holds()
 {  // Set container capacity for an object
     if (!isdigit(Word[0]))
         object("holds= value");
@@ -52,11 +54,9 @@ set_holds(void)
 }
 
 static inline void
-set_put(void)
+set_put()
 {  // Set container type for an object
-    int i;
-
-    for (i = 0; i < NPUTS; i++)
+    for (int i = 0; i < NPUTS; i++)
         if (!strcmp(obputs[i], Word)) {
             obj->putto = i;
             return;
@@ -64,7 +64,9 @@ set_put(void)
     object("put= flag");
 }
 
-static inline void set_mob(void)  // Set mobile character for an object
+static void
+set_mob()
+// Set mobile character for an object
 {
     int i;
     vocid_t wordno;
@@ -74,12 +76,9 @@ static inline void set_mob(void)  // Set mobile character for an object
     if (Word[0] == '!')
         wordno = is_word(Word);
     else {
-        char *p = (char *) malloc(strlen(Word) + 1);
-
-        *p = '!';
-        strcpy(p + 1, Word);
-        wordno = is_word(p);
-        free(p);
+        char mobname[IDLEN + 2];
+        snprintf(mobname, sizeof(mobname), "!%s", Word);
+        wordno = is_word(mobname);
     }
     if (wordno != -1) {
         for (i = 0; i < mobchars; i++)
@@ -182,7 +181,7 @@ state_proc(const char *s)
             *(p++) = ' ';  // Otherwise remove this character
         while (*(p - 1) == SPC)
             p--;  // Remove trailing spaces
-        state.descrip = add_msg(NULL);
+        state.descrip = add_msg(nullptr);
         fwrite(quote, (size_t)(p - quote), 1, msgfp);
         fputc(0, msgfp);  // Add end of string
         strcpy(g_block, skipspc(p));
@@ -220,9 +219,9 @@ write:
 }
 
 void
-objs_proc(void)
+objs_proc()
 {  // Process the objects file
-    char *p, *s;
+    char *s;
 
     nouns = 0;
 
@@ -234,8 +233,8 @@ objs_proc(void)
         errabort();
         return;
     }  // Nothing to process
-    p = cleanget();
-    p = skipspc(p);
+    char *src = cleanget();
+    char *p = skipspc(src);
 
     do {
         p = skipline(s = p);
@@ -247,7 +246,7 @@ objs_proc(void)
         if (!Word[0])
             continue;
 
-        obj = (OBJ *) grow(NULL, sizeof(OBJ), "New Object");
+        obj = new OBJ;
         if (!obtab)
             obtab = obj;
 
@@ -350,32 +349,31 @@ objs_proc(void)
             object("number of states");
         nouns++;
     } while (*p);
+    free(src);
     if (!err) {
-        OBJ temp;
-
-        for (obj = obtab; obj; obj = (OBJ *) obj->next) {
-            temp = *obj;
-            temp.Write(ofp1);
+        for (obj = obtab; obj; obj = obj->getNext(obj)) {
+            obj->Write(ofp1);
         }
     }
     errabort();  // Abort if an error
 }
 
-int isoflag1(const char *s)  // Is it a FIXED object flag?
+int
+isoflag1(const char *s)
+// Is it a FIXED object flag?
 {
-    int i;
-
-    for (i = 0; obflags1[i]; i++)
+    for (int i = 0; obflags1[i]; i++)
         if (!strcmp(obflags1[i], s))
             return i;
     return -1;
 }
 
-int isoparm(void)  // Is it an object parameter?
+int
+isoparm()
+// Is it an object parameter?
 {
     int i;
     char *p;
-
     for (i = 0; obparms[i]; i++) {
         if ((p = skiplead(obparms[i], Word)) != Word) {
             memmove(Word, p, strlen(p) + 1);
@@ -385,10 +383,11 @@ int isoparm(void)  // Is it an object parameter?
     return -1;
 }
 
-int isoflag2(const char *s)  // Is it a state flag?
+int
+isoflag2(const char *s)
+// Is it a state flag?
 {
     int i;
-
     for (i = 0; obflags2[i]; i++)
         if (!strcmp(obflags2[i], s))
             return i;

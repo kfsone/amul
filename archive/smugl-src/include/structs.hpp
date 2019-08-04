@@ -1,9 +1,5 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: structs.hpp,v 1.17 1999/06/11 14:26:08 oliver Exp $
-// Structure definitions
-
-#ifndef STRUCTS_H
-#define STRUCTS_H 1
+#ifndef SMUGL_H_STRUCTS_H
+#define SMUGL_H_STRUCTS_H 1
 
 #include "defines.hpp"
 #include "typedefs.hpp"
@@ -72,7 +68,7 @@ struct SLOTTAB {        // Slot table def
 struct VBTAB {           // Verb Table struct
     bool not_condition;  // Condition negator
     long condition;      // Condition
-    bool action_type;    // TRUE = action, FALSE = room
+    bool action_type;    // true = action, false = room
     long action;         // action or room
     long *pptr;          // Param ptr; -1=none
 };
@@ -127,4 +123,4 @@ struct DAEMON {  // AMan Daemon Timer
 };
 #endif
 
-#endif  // STRUCTS_H
+#endif  // SMUGL_H_STRUCTS_H

@@ -31,10 +31,10 @@ extern struct VOCAB VC;
 
 /* new_word
  *  p       : Location of the new word (must be null terminated)
- *  need_new: Fail if "TRUE" and word is already in index
+ *  need_new: Fail if "true" and word is already in index
  */
 vocid_t
-new_word(const char *p, int need_new)
+new_word(const char *p, bool need_new)
 {
     vocid_t i;
 

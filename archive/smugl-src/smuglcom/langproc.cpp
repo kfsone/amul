@@ -19,7 +19,8 @@ static int iswtype(char *s);
 static void vbprob(const char *s, char *p);
 
 extern counter_t arg_alloc;
-extern long *argtab, *argptr;
+extern arg_t *argtab;
+extern arg_t *argptr;
 
 static VBTAB *vttab;    // Table of 'vt's
 counter_t vt_alloc;     // Number of 'vt's in use
@@ -57,11 +58,10 @@ lang_proc()
     do {
         p = skipline(ls = s = p);
         if (!*s)
-            // Blank line?
-            continue;
+            continue;  // Blank line?
+
         s = skipspc(s);
-        if (!*s)
-            // Empty line
+        if (!*s)  // Empty line
             continue;
         verb.id = -1;
         if (!strncmp(s, "travel=", 7)) {
@@ -76,7 +76,7 @@ lang_proc()
                 if (is_verb(Word) != -1) {
                     error("%s: Verb already defined\n", Word);
                 } else {
-                    verb.id = new_word(Word, FALSE);
+                    verb.id = new_word(Word, false);
                     *(vbtab + (verbs - 1)) = verb;
                 }
             } while (*s);
@@ -98,7 +98,7 @@ lang_proc()
             } else if (is_bob(Word, WROOM) != -1)
                 warne("verb %s conflicts with a room id (bad idea)\n", Word);
         }
-        verb.id = new_word(Word, FALSE);
+        verb.id = new_word(Word, false);
         memcpy(verb.precedences, default_chae, sizeof(verb.precedence));
         verbs++;
 
@@ -134,8 +134,7 @@ lang_proc()
             }
             s = skipspc(s);
         } while (!*s);
-        if (!*s)
-            // Incase we hit end-of-paragraph
+        if (!*s)  // Incase we hit end-of-paragraph
             continue;
 
         setslots(WANY);
@@ -167,8 +166,8 @@ lang_proc()
         if (!*Word)
             goto endsynt;
         if ((n = iswtype(Word)) == -3) {
-            sprintf(block, "Invalid phrase, '%s', on syntax line!", Word);
-            vbprob(block, ls);
+            sprintf(g_block, "Invalid phrase, '%s', on syntax line!", Word);
+            vbprob(g_block, ls);
             goto endsynt;
         }
         if (!*Word)
@@ -176,8 +175,8 @@ lang_proc()
         else {
             // Eliminate illegal combinations
             if (n == WNONE || n == WANY) {
-                sprintf(block, "Tried to use %s= on syntax line", syntax[n]);
-                vbprob(block, ls);
+                sprintf(g_block, "Tried to use %s= on syntax line", syntax[n]);
+                vbprob(g_block, ls);
                 goto endsynt;
             }
             if (n == WPLAYER && strcmp(Word, "me") != 0) {
@@ -335,8 +334,8 @@ lang_proc()
                     vt.condition = CALWAYS;
                     goto writecna;
                 }
-                sprintf(block, "Invalid condition, '%s'", Word);
-                vbprob(block, ls);
+                sprintf(g_block, "Invalid condition, '%s'", Word);
+                vbprob(g_block, ls);
                 goto commands;
             }
             vt.condition = CALWAYS;
@@ -345,8 +344,10 @@ lang_proc()
                 goto commands;
             if (!*s) {
                 if ((vt.action = isact(cond[vt.condition].name)) == -1) {
-                    sprintf(block, "Missing action after condition '%s'", cond[vt.condition].name);
-                    vbprob(block, ls);
+                    sprintf(g_block,
+                            "Missing action after condition '%s'",
+                            cond[vt.condition].name);
+                    vbprob(g_block, ls);
                     goto commands;
                 }
                 vt.condition = CALWAYS;
@@ -359,8 +360,8 @@ lang_proc()
                     vt.action_type = ACT_GO;
                     goto writecna;
                 }
-                sprintf(block, "Invalid action, '%s'", Word);
-                vbprob(block, ls);
+                sprintf(g_block, "Invalid action, '%s'", Word);
+                vbprob(g_block, ls);
                 goto commands;
             }
         }

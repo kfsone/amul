@@ -1,9 +1,7 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: defines.hpp,v 1.9 1999/06/08 15:36:45 oliver Exp $
-// #defines, enums and macros
+#ifndef SMUGL_H_DEFINES_H
+#define SMUGL_H_DEFINES_H 1
 
-#ifndef DEFINES_H
-#define DEFINES_H 1
+// #defines, enums and macros
 
 #include <cstdint>
 #include <cstdlib>
@@ -22,13 +20,6 @@ void_add(void *ptr, size_t increment) noexcept
 {
     return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(ptr) + increment);
 }
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE !FALSE
-#endif
 
 #define EOL '\n'  // End of line character
 #define SPC ' '   // Space character
@@ -318,7 +309,7 @@ enum {
 };
 
 // Paramter types
-#define PREAL -70  // Noun or slot label
+constexpr int PREAL = -70;  // Noun or slot label
 enum {
     PNOUN = 1,  // Must be a noun
     PADJ,       // Must be an adjective

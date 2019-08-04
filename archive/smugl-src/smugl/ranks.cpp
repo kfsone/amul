@@ -1,7 +1,4 @@
 // Definition of rank classes and functions
-
-#define RANKS_C 1
-
 #include "data.hpp"
 #include "smugl.hpp"
 
@@ -16,14 +13,14 @@ Rank::number()
     return (this - data->rankbase);
 }
 
-int
+bool
 Rank::describe(Gender sex)
 {
     if (sex == FEMALE)
         tx(female);
     else
         tx(male);
-    return TRUE;
+    return true;
 }
 
 void
@@ -47,7 +44,7 @@ Rank::detail()
 }
 
 char *
-Rank::copy(char *dest, Gender sex, int verbose)
+Rank::copy(char *dest, Gender sex /*=me->sex*/, bool verbose /*=true*/)
 {
     if (verbose && me->pre[0]) {
         dest = strcopy(dest, me->pre);

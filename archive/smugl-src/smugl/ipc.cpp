@@ -10,18 +10,10 @@
 //  sem_unlock(table)
 //   Unlock a table by semaphore
 
-#include <cerrno>
-#include <cstring>
-
-#include "fileio.hpp"
-#include "io.hpp"
-#include "ipc.hpp"
-#include "manager.hpp"
-#include "rooms.hpp"
-#include "smugl.hpp"
-
 #include <arpa/inet.h>
+#include <cerrno>
 #include <csignal>
+#include <cstring>
 #include <netinet/in.h>
 #include <poll.h>
 #include <sys/ipc.h>
@@ -29,6 +21,13 @@
 #include <sys/shm.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+
+#include "fileio.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "manager.hpp"
+#include "rooms.hpp"
+#include "smugl.hpp"
 
 // Private stuff
 static int shmid = -1;          // Shared memory handle
@@ -50,7 +49,7 @@ int clifd[MAXU][2];              // Server->Client pipes
 int ipc_fd;                      // Which fd should I listen to for IPC?
 
 // Other public stuff
-int forced = FALSE;  // True when we get 'forced'
+bool forced = false;  // True when we get 'forced'
 
 char sems[num_SEMS];  // Which semaphores we're holding
 
@@ -66,18 +65,18 @@ static void *shmalloc(size_t memory);
 static void
 tidy_ipc()
 {
-    if (!manager)
+    if (!g_manager)
         // Client - close the handles down
         tx("\n\nNO CARRIER\n\n");
-    if (debug && !manager)
-        syslog(LOG_INFO, "disconnected #%d", slot);
+    if (debug && !g_manager)
+        syslog(LOG_INFO, "disconnected #%d", g_slot);
     else if (debug && !fork_on_load)
         syslog(LOG_INFO, "game shut down");
 
     // Close the sockets down
     if (conn_sock_fd != -1)
         close(conn_sock_fd);
-    if (manager && fork_on_load != -1) {
+    if (g_manager && fork_on_load != -1) {
         if (command_sock_fd != -1)
             close(command_sock_fd);
         if (listen_sock_fd != -1)
@@ -85,7 +84,7 @@ tidy_ipc()
     }
 
     if (data) {
-        if (manager && fork_on_load != -1) {
+        if (g_manager && fork_on_load != -1) {
             semctl(data->semid, IPC_RMID, 0, nullptr);
             data->semid = -1;
         }
@@ -95,7 +94,7 @@ tidy_ipc()
     }
 
     // Delete the shared memory segment if it exists and we're the parent
-    if (manager && fork_on_load != -1 && shmid != -1)
+    if (g_manager && fork_on_load != -1 && shmid != -1)
         shmctl(shmid, IPC_RMID, nullptr);
 
     shmid = -1;
@@ -275,10 +274,11 @@ init_sockets()
 }
 
 // receive an incoming socket connection
-int
+bool
 accept_connection()
 {
     static unsigned int addrlen = sizeof(listen_sock);
+
     bzero(&conn_sock, addrlen);
     while ((conn_sock_fd = accept(listen_sock_fd, (struct sockaddr *) &conn_sock, &addrlen)) ==
                    -1 &&
@@ -286,10 +286,10 @@ accept_connection()
         ;
     if (conn_sock_fd == -1) {
         syslog_perror("accept(listen)");
-        return FALSE;
+        return false;
     }
     syslog(LOG_INFO, "connect from %s", inet_ntoa(conn_sock.sin_addr));
-    return TRUE;
+    return true;
 }
 
 // receive an incoming command socket connection
@@ -299,7 +299,7 @@ accept_connection()
 // XXX: Also, having 'accept'ed, it shouldn't assume that there
 // XXX: will be data there immediately - instead it should
 // XXX: add it to the fd's it select()s on
-int
+bool
 accept_command()
 {
     char cmd_buf[201];
@@ -310,7 +310,7 @@ accept_command()
     conn_sock_fd = accept(command_sock_fd, (struct sockaddr *) &conn_sock, &addrlen);
     if (conn_sock_fd == -1) {
         syslog_perror("accept(command)");
-        return FALSE;
+        return false;
     }
 
     // XXX: Really ought to check that 'bytes' != -1
@@ -324,7 +324,7 @@ accept_command()
     close(conn_sock_fd);
     conn_sock_fd = -1;
     sleep(1);
-    return TRUE;
+    return true;
 }
 
 // Functions for class ipcMsg
@@ -334,15 +334,10 @@ accept_command()
 // general interprocess communications.
 
 // The initialiasor; set up an ipcMsg
-ipcMsg::ipcMsg(char Type, long Data, short Pri)
+
+ipcMsg::ipcMsg(char Type /*=0*/, long Data /*=0*/, short Pri /*=0*/)
+    : to(0), pri(Pri), type(Type), len(0), data(Data), from(g_slot), pad(0), ptr(nullptr)
 {
-    type = Type;
-    pri = Pri;
-    data = Data;
-    from = slot;
-    len = 0;
-    to = 0;
-    ptr = nullptr;
 }
 
 // Destructor
@@ -363,13 +358,13 @@ ipcMsg::~ipcMsg()
 void
 ipcMsg::send(int fd, void *extra)
 {
-    if (!manager)
+    if (!g_manager)
         // Client's must lock/unlock server-pipe
         sem_lock(sem_PIPE);
-    write(fd, this, sizeof(class ipcMsg));
+    write(fd, this, sizeof(*this));
     if (len)
         write(fd, extra, len);
-    if (!manager)
+    if (!g_manager)
         // Client's must lock/unlock server-pipe
         sem_unlock(sem_PIPE);
 }
@@ -378,16 +373,17 @@ ipcMsg::send(int fd, void *extra)
 // server, and it's left to the server to forward to other users
 // This version does some of the populating for you
 void
-ipcMsg::send(flag_t To, short Len, void *extra)
+
+ipcMsg::send(flag_t To, short Len /*=0*/, void *extra /*=nullptr*/)
 {
-    if (manager && !To)
+    if (g_manager && !To)
         return;  // Manager can't self-message
     // Write to the server pipe
     to = To;
     if (!extra)
         Len = 0;
     len = Len;
-    if (!manager)
+    if (!g_manager)
         // Client's only send to server
         send(servfd[WRITEfd], extra);
     else  // Manager -- send to each client
@@ -401,7 +397,8 @@ ipcMsg::send(flag_t To, short Len, void *extra)
 
 // Send an IPC message -- specifying extra default values. Basically a wrapper
 void
-ipcMsg::send(flag_t To, char Type, long Data, char Pri, short Len, void *Extra)
+
+ipcMsg::send(flag_t To, char Type, long Data, char Pri, short Len /*=0*/, void *Extra /*=nullptr*/)
 {
     type = Type;
     data = Data;
@@ -415,7 +412,7 @@ ipcMsg::send(flag_t To, char Type, long Data, char Pri, short Len, void *Extra)
 // server receives some messages which it simply forwards.
 // NOTE: BLOCKING; don't call this to test for data. Test first,
 // and if you think there is something to receive, call receive.
-char
+bool
 ipcMsg::receive()
 {
     int bytes_read;
@@ -427,7 +424,7 @@ ipcMsg::receive()
            (errno == EAGAIN || errno == EINTR))
         ;
     if (bytes_read == 0) {  // We read EOF - not healthy
-        error(LOG_ERR, "#%d: Someone closed my ipcfd; this is bad", slot);
+        error(LOG_ERR, "#%d: Someone closed my ipcfd; this is bad", g_slot);
         exit(1);
     }
     if (len) {  // Extra data to be dealt with
@@ -437,23 +434,23 @@ ipcMsg::receive()
             ;
     } else
         ptr = nullptr;
-    if (manager)
     // We're the server
-    {
+    if (g_manager) {
+        // It's intended for us
         if (!to)
-            // It's intended for us
-            return TRUE;
+            return true;
         send(to, len, ptr);  // It's to be forwarded
-        return FALSE;        // But don't do anything else
-    } else if (to & (1 << slot))
+        return false;        // But don't do anything else
+    } else if (to & (1 << g_slot)) {
         // I'm in the recipient list
-        return TRUE;  // so it's worth looking at
-    else              // I'm NOT in the recipient list
-    {
+        return true;  // so it's worth looking at
+    } else {
+        // I'm NOT in the recipient list
+
         if (debug)
-            error(LOG_INFO, "slot#%d msg type %d from #%d", slot, type, from);
-        return FALSE;
+            error(LOG_INFO, "slot#%d msg type %d from #%d", g_slot, type, from);
     }
+    return false;
 }
 
 // Check for any incoming ipc
@@ -521,6 +518,7 @@ announce(basic_obj to, const char *msg)
     // XXX: What about if 'to' is 0 - shouldn't we 'not bother'?
     ioproc(msg);
     ipcMsg out(MMESSAGE);
+
     for (int i = 0; i < MAXU; i++) {
         if (data->user[i].state < PLAYING)
             to &= ALLBUT(i);
@@ -543,11 +541,13 @@ announce_into(basic_obj to, const char *msg)
     if (bobs[to]->type != WROOM)
         return;
     long send_to = PlayerIdx::mask_in_room(to);
+
     if (send_to)
     // Anyone to send to?
     {
         ioproc(msg);
         ipcMsg out(MMESSAGE);
+
         out.send(send_to, out_buf_len, out_buf);
     }
 }

@@ -4,6 +4,8 @@ PROJECT( SMUGL )
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+SET(CMAKE_CXX_CLANG_TIDY clang-tidy --checks= --format-style=file -p=${CMAKE_BINARY_DIR})
+
 INCLUDE(include/PlatformChecks.cmake)
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/include/config.h.in ${SMUGL_BINARY_DIR}/config.h)
@@ -14,7 +16,7 @@ IF ( UNIX )
 	ADD_CUSTOM_TARGET(ctags COMMAND ${CTAGS} -R ${CMAKE_SOURCE_DIR}/*/*.cpp ${CMAKE_SOURCE_DIR}/*/*.hpp)
 ENDIF ( UNIX )
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR} ${SMUGL_BINARY_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include ${SMUGL_BINARY_DIR})
 
 ######################################################################
 # Definition of what build this is.

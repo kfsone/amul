@@ -1,6 +1,7 @@
-#pragma once
-// This may look like C, but it's really -*- C++ -*-
-// Protos and definitions for the parser code
+#ifndef SMUGL_SMUGL_PARSER_H
+#define SMUGL_SMUGL_PARSER_H
+
+#include "typedefs.hpp"
 
 // Defines
 #define MAX_PHRASE_SIZE 255  // Maximum input size
@@ -28,7 +29,9 @@ extern TOKEN token[MAX_TOK];  // Details on the tokens
 extern int tokens;            // Number of tokens in current phrase
 
 // Functions
-extern void sanitise_input(void);
+extern void sanitise_input();
 extern void parse(char *s);
 extern int tokenise_phrase(char *s);
 extern slotResult parse_phrase();
+
+#endif  // SMUGL_SMUGL_PARSER_H

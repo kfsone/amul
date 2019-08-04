@@ -58,10 +58,10 @@ union Indecision {
 enum ExitCause { ecFalse, ecQuit, ecDied };
 
 // Important globals
-extern char dir[];         // from libsmugl
+extern char g_dir[];       // from libsmugl
 extern char input[];       // from smugl.C
-extern char manager;       // boolean: are we the server?
-extern char slot;          // if (!manager) - our slot number
+extern bool g_manager;     // boolean: are we the server?
+extern int g_slot;         // if (!manager) - our slot number
 extern char debug;         // Debugging level
 extern char fork_on_load;  // if (fork_on_load), fork after initialising
 extern int exiting;

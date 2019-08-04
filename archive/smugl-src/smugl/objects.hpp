@@ -1,5 +1,5 @@
-#ifndef OBJECTS_H
-#define OBJECTS_H 1
+#ifndef SMUGL_SMUGL_OBJECTS_H
+#define SMUGL_SMUGL_OBJECTS_H
 
 #include "cl_object.hpp"
 #include "structs.hpp"
@@ -7,21 +7,21 @@
 class Object : public OBJ
 {
   public:
-    int describe(void);
+    bool describe() override;
 };
 
 class State : public OBJ_STATE
 {
   public:
-    int describe(void);
+    bool describe();
 };
 
 class ObjectIdx
 {
   public:
-    static class Object *locate(char *s);
-    static class Object *locate(long id);
-    static class Object *locate_in(basic_obj in, class Object *first = NULL, long id = -1);
+    static Object *locate(char *s);
+    static Object *locate(long id);
+    static Object *locate_in(basic_obj in, class Object *first = NULL, long id = -1);
 };
 
-#endif
+#endif  // SMUGL_SMUGL_OBJECTS_H

@@ -3,11 +3,11 @@
 // $Id: smugl.hpp,v 1.8 1999/09/10 15:57:31 oliver Exp $
 // smugl defines
 
-#include "include/includes.hpp"
-#include "include/structs.hpp"
-#include "include/vocab.hpp"
-#include "smugl/data.hpp"
-#include "smugl/textproc.hpp"
+#include "data.hpp"
+#include "includes.hpp"
+#include "structs.hpp"
+#include "textproc.hpp"
+#include "vocab.hpp"
 
 //// Configuration Options. Don't edit configuration values in other
 //// files unless you really know what you're doing!
@@ -68,9 +68,9 @@ announce_into(long to, long msg)
 }
 
 // Macros
-#define ALLBUT(i) ~(1 << i)               // Bit mask for that excludes 'i'
-#define ONLY(i) (1 << i)                  // Bit mask for *only* 'i'
-#define BOTH(i, j) ((1 << i) | (1 << j))  // Bit mask for two people
+#define ALLBUT(i) ~(1 << (i))                 // Bit mask for that excludes 'i'
+#define ONLY(i) (1 << (i))                    // Bit mask for *only* 'i'
+#define BOTH(i, j) ((1 << (i)) | (1 << (j)))  // Bit mask for two people
 
 // Misc enum's
 enum { READfd, WRITEfd };  // For reading/writing pipe fd's

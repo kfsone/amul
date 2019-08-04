@@ -15,15 +15,15 @@
 class BASIC_OBJ
 {
   public:
-    virtual ~BASIC_OBJ() {}
+    virtual ~BASIC_OBJ() = default;
 
     //// Basic_Obj::FUNCTIONS
-    virtual int describe(void) = 0;
-    virtual int describe_verbose(void) = 0;
-    int is_in(basic_obj item);  // Tests if one object is here
-    virtual int Write(FILE *);  // Write out this object
-    virtual int Read(FILE *);   // Load this object from disk
-    void clear(void);           // Used by SMUGLCOM
+    virtual bool describe() = 0;
+    virtual bool describe_verbose() = 0;
+    bool is_in(basic_obj item);  // Tests if one object is here
+    virtual int Write(FILE *);   // Write out this object
+    virtual int Read(FILE *);    // Load this object from disk
+    void clear();                // Used by SMUGLCOM
 
     //// Basic_Obj::DATA
     vocid_t id{ -1 };              // Vocab table entry

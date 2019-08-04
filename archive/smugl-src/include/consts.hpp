@@ -1,11 +1,8 @@
-/* $Id: consts.hpp,v 1.6 1999/06/11 14:26:08 oliver Exp $
- * String and other constants
- */
+#ifndef SMUGL_H_CONSTS_H
+#define SMUGL_H_CONSTS_H 1
 
-#ifndef CONS_H
-#define CONS_H 1
+// String and other constants
 
-#ifdef COMPILER
 extern const char *std_flag[];
 extern const char *rflag[];
 extern const char *rparam[];
@@ -13,7 +10,6 @@ extern const char *obflags1[];
 extern const char *obparms[];
 extern const char *obflags2[];
 extern unsigned char syntl[];
-#endif
 extern const char *syntax[];
 
 // Text (not really constant, but...)
@@ -31,4 +27,4 @@ extern char objsfn[], statfn[], umsgifn[], umsgfn[];
 extern char mobfn[], vocifn[], vocfn[], bobfn[];
 extern char statsfn[];
 
-#endif  // CONS_H
+#endif  // SMUGL_H_CONSTS_H

@@ -1,13 +1,18 @@
 // base IO routines
 
-#include "smugl/io.hpp"
-#include "include/syslog.hpp"
-#include "smugl/client.hpp"
-#include "smugl/ipc.hpp"
-#include "smugl/misc.hpp"
-#include "smugl/smugl.hpp"
+#include <cctype>
+#include <cerrno>
+#include <cstdarg>
+#include <cstring>
 
-#include "include/fderror.hpp"
+#include "client.hpp"
+#include "fderror.hpp"
+#include "fileio.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "misc.hpp"
+#include "smugl.hpp"
+#include "syslog.hpp"
 
 APIs::Logging::Log sysLog(L"smugl", APIs::Logging::Debug);
 
@@ -25,17 +30,17 @@ bool trailing_ws = false;  // Trailing white space flag
 char temp[10240];  // Space for output strings
 
 void
-APIs::Logging::Log::vWrite(const char* const srcFilename_,
+APIs::Logging::Log::vWrite(const char *const srcFilename_,
                            const unsigned int srcLineNo_,
                            const APIs::Logging::Level level_,
-                           const char* const format_,
-                           va_list& args)
+                           const char *const format_,
+                           va_list &args)
 {
     if (WillLog(level_) == false)
         return;
 
     char levels[APIs::Logging::MaxLevel] = { '-', 'D', 'I', 'M', 'W', 'E', 'T', 'F' };
-    static const char* const timeStr = "YYYY/MM/DD HH:MM:SS.MSS";
+    static const char *const timeStr = "YYYY/MM/DD HH:MM:SS.MSS";
     fprintf(stderr,
             "%c|%s|%s:%u|",
             levels[level_],
@@ -52,7 +57,7 @@ APIs::Logging::Log::vWrite(const char* const srcFilename_,
 
 // ans(string) - sends an ansi string if the user has ansi capability
 void
-ans(const char* s)
+ans(const char *s)
 {
     if (!(me->flags & ufANSI))
         return;
@@ -74,18 +79,17 @@ ans(const char* s)
  * to this function
  */
 void
-
-tx(const char* s, char c /*=0*/)
+tx(const char *s, char c /*=0*/)
 {
     if (!*s)
         // Anything to print?
         return;
 
     char tstr[OBLIM * 2];  // YEUCH! on the stack!?!
-    char* old_out_buf = NULL;
+    char *old_out_buf = nullptr;
     long old_out_bufsz = 0;
-    const char* working_ptr;
-    char* out;
+    const char *working_ptr;
+    char *out;
     int cur_x, cur_y;
     int i;
 
@@ -125,18 +129,17 @@ tx(const char* s, char c /*=0*/)
     while (*out)
     // While there's anything to print
     {
-        char* p = tstr;
+        char *p = tstr;
         *p = 0;
         // Now copy from 'out' to 'p', looking for end-of-lines;
-        char* last_break = NULL;
-
+        char *last_break = nullptr;
         do {
             while (*out && *out != 12 && (!llen || cur_x < llen)) {
                 trailing_ws = false;
                 if (*out == '\n') {
                     out++;
                     cur_x = llen;
-                    last_break = NULL;
+                    last_break = nullptr;
                     break;
                 }
                 if (*out == 8) {
@@ -164,7 +167,6 @@ tx(const char* s, char c /*=0*/)
 
                             case TAB:
                                 int bytes = cur_x % 8;
-
                                 for (i = 0; i < bytes; i++) {
                                     *(p++) = SPC;
                                     cur_x++;
@@ -186,22 +188,20 @@ tx(const char* s, char c /*=0*/)
 
                 // Now we have an acceptable character; roll until we
                 // find a 'boundary' character
-                char* end = strpbrk(out, " \t,.\n;!?:-");
-
+                char *end = strpbrk(out, " \t,.\n;!?:-");
                 // If we didn't find one, take the rest of the string
                 if (!end)
                     end = out + strlen(out);
                 else if (!isspace(*end))
                     end++;
                 int bytes = (int) (end - out);
-
                 // The favourite case; we don't wrap because of this
                 if (!llen || cur_x + bytes < llen) {
                     strncpy(p, out, bytes);
                     p += bytes;
                     cur_x += bytes;
                     out = end;
-                    last_break = NULL;
+                    last_break = nullptr;
                     continue;
                 }
                 // Does this word, of it's own accord, wrap?
@@ -218,7 +218,7 @@ tx(const char* s, char c /*=0*/)
                     p += bytes;
                     out += bytes;
                     cur_x = llen;
-                    last_break = NULL;
+                    last_break = nullptr;
                     break;
                 }
                 // Otherwise, wrap...
@@ -234,7 +234,7 @@ tx(const char* s, char c /*=0*/)
                 }
                 cur_x = 0;
                 cur_y++;
-                last_break = NULL;
+                last_break = nullptr;
             }
         } while (*out && *out != 12 && (slen && cur_y < (slen - 1)));
 
@@ -242,9 +242,9 @@ tx(const char* s, char c /*=0*/)
             cur_x = 0;  // Assuming terminal has automargins
         xpos = cur_x;   // Update cursor position
 
-        static const ssize_t bytes = (ssize_t)(p - tstr);
+        static const auto bytes = (ssize_t)(p - tstr);
         // Print the text
-        if (_write(conn_sock_fd, tstr, bytes) < bytes)
+        if (write(conn_sock_fd, tstr, bytes) < bytes)
             throw Smugl::FDWriteError("player", errno, conn_sock_fd);
 
         // If we have exceeded the screen length, or if we've reached
@@ -282,10 +282,9 @@ tx(const char* s, char c /*=0*/)
 
 // call TX with printf style arguments
 void
-txprintf(const char* s, ...)
+txprintf(const char *s, ...)
 {
     va_list va;
-
     va_start(va, s);
     vsprintf(temp, s, va);
     va_end(va);
@@ -309,7 +308,7 @@ txc(char c)
         addcr = false;
     }
     if (c == 12) {  // form feed
-        if (_write(conn_sock_fd, &c, 1) < 1)
+        if (write(conn_sock_fd, &c, 1) < 1)
             throw Smugl::FDWriteError("player", errno, conn_sock_fd);
         xpos = 0;
         ypos = 0;
@@ -319,7 +318,7 @@ txc(char c)
         // Really ought to deal with the situation where we get
         // called as: txc('\r'); txc('\n'); as this will generate
         // two CRLFs
-        if (_write(conn_sock_fd, "\r\n", 2) < 2)
+        if (write(conn_sock_fd, "\r\n", 2) < 2)
             throw Smugl::FDWriteError("player", errno, conn_sock_fd);
         xpos = 0;
         ypos++;
@@ -327,12 +326,12 @@ txc(char c)
     } else if (c == 8 || c == 127) {  // Backspace / delete
         if (xpos == 0)
             return;
-        if (_write(conn_sock_fd, "\x08 \x08", 3) < 3)
+        if (write(conn_sock_fd, "\x08 \x08", 3) < 3)
             throw Smugl::FDWriteError("player", errno, conn_sock_fd);
         xpos--;
         trailing_ws = false;
     } else if (!(trailing_ws && (c == SPC || c == TAB))) {  // Any other character
-        if (_write(conn_sock_fd, &c, 1) < 1)
+        if (write(conn_sock_fd, &c, 1) < 1)
             throw Smugl::FDWriteError("player", errno, conn_sock_fd);
         xpos++;
         if (me && me->llen && xpos >= me->llen)
@@ -343,13 +342,13 @@ txc(char c)
 
 // wrapper for 'read' system call, which copes with interrupted
 // system calls, etc
-int
-do_read(char* p)
+static int
+do_read(char *p)
 {
     int ret = 0;
 
     do {
-        ret = _read(conn_sock_fd, p, 1);
+        ret = read(conn_sock_fd, p, 1);
     } while (ret == -1 && (errno == EINTR || errno == EAGAIN));
     if (ret == -1)
         txprintf(">> read() call interrupted: %s\n", strerror(errno));
@@ -373,9 +372,9 @@ prompt(long msg)
 //  . ^D = end-of-file [quit]
 //  . like amul: when interrupted, redisplay current input
 void
-fetch_input(char* to, int length)
+fetch_input(char *to, int length)
 {
-    char* p = to;
+    char *p = to;
     char c = 0;
     bool noecho;
     int max = conn_sock_fd;
@@ -404,7 +403,7 @@ fetch_input(char* to, int length)
         // Because we have to listen to the 'ipc_fd' as well as the
         // users input, so we use a select wrapper
         rd_fds = fds;
-        while ((ret = select(max + 1, &rd_fds, NULL, NULL, NULL)) == -1 &&
+        while ((ret = select(max + 1, &rd_fds, nullptr, nullptr, nullptr)) == -1 &&
                (errno == EINTR || errno == EAGAIN))
             ;
         if (ret == -1) {
@@ -446,7 +445,6 @@ fetch_input(char* to, int length)
         // Telnet option?
         {
             u_char byte;
-
             // Telnet commands are at least two bytes long
             ret = do_read(p);
             byte = (u_char) *p;
@@ -523,6 +521,6 @@ telnet_opt(u_char neg_type, u_char opt)
     options[0] = 255;
     options[1] = neg_type;
     options[2] = opt;
-    if (_write(conn_sock_fd, options, 3) < 3)
+    if (write(conn_sock_fd, options, 3) < 3)
         throw Smugl::FDWriteError("player", errno, conn_sock_fd);
 }

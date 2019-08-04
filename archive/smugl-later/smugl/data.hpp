@@ -1,16 +1,18 @@
-#pragma once
-// This may look like C, but it's really -*- C++ -*-
+#ifndef SMUGL_SMUGL_DATA_H
+#define SMUGL_SMUGL_DATA_H
+
 // Most important; the data structure is the heart of the shared memory
 // blocks. All of the base information will go in here. It should be
 // read only, but it isn't [for laziness sake ;-)].
 
-#include "smugl/basicobjs.hpp"
-#include "smugl/players.hpp"
+#include "basicobjs.hpp"
+#include "cl_vocab.hpp"
+#include "players.hpp"
 
 struct DATA {
-    int semid;       // Semaphore ID for locking
-    u_short errors;  // Global error count
-    u_long wflags;   // World flags
+    int semid;        // Semaphore ID for locking
+    uint16_t errors;  // Global error count
+    uint16_t wflags;  // World flags
 
     // Basic game information (from advfn)
     char name[ADNAMEL + 1];     // The game's name
@@ -55,10 +57,11 @@ struct DATA {
     class Room *anterm;     // If there's an ante-room
 
     // Multi-user status
-    counter_t connections;    // Connections this game has seen
-    int connected;            // Number of people connected
-    int pid[MAXU];            // Process ID's
-    class Player user[MAXU];  // Player details
+    counter_t connections;  // Connections this game has seen
+    int connected;          // Number of people connected
+    int pid[MAXU];          // Process ID's
+    Player user[MAXU];      // Player details
 };
 
 extern struct DATA *data;
+#endif  // SMUGL_SMUGL_DATA_H

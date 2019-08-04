@@ -9,30 +9,30 @@ struct FPError : public FileError {
         : FileError(filename_, errno_), fp(fp_)
     {
     }
-    virtual ~FPError()
+    ~FPError() override
     {
         if (fp)
             fclose(fp);
-        fp = NULL;
+        fp = nullptr;
     }
-    virtual const char* type() const { return "general FILE"; }
+    const char* type() const override { return "general FILE"; }
     FILE* fp;
 };
 
-struct FPReadError : public FPError {
+struct FPReadError final : public FPError {
     FPReadError(const char* filename_, const int errno_, FILE* const fp_)
         : FPError(filename_, errno_, fp_)
     {
     }
-    virtual const char* type() const { return "FILE read"; }
+    const char* type() const override { return "FILE read"; }
 };
 
-struct FPWriteError : public FPError {
+struct FPWriteError final : public FPError {
     FPWriteError(const char* filename_, const int errno_, FILE* const fp_)
         : FPError(filename_, errno_, fp_)
     {
     }
-    virtual const char* type() const { return "FILE write"; }
+    const char* type() const override { return "FILE write"; }
 };
 
 }  // namespace Smugl

@@ -1,8 +1,5 @@
 #ifndef SMUGL_PLAYERS_H
 #define SMUGL_PLAYERS_H 1
-
-// This may look like C, but it's really -*- C++ -*-
-// $Id: players.hpp,v 1.12 1999/06/08 15:36:50 oliver Exp $
 // player class definitions and function protos
 
 #include "cl_player.hpp"
@@ -16,19 +13,19 @@ class Player : public PLAYER
     Player() {}
     virtual ~Player() {}
 
-    virtual int describe(void) override;
+    virtual bool describe() override;
 
-    const char *name(void);  // Return the player's name
-    inline int number(void) { return (int) (this - userbase); };
-    void disconnected(void);  // Post-mortem
-    void reset(void);         // Reset player values
+    const char *name();  // Return the player's name
+    inline int number() { return (int) (this - userbase); };
+    void disconnected();  // Post-mortem
+    void reset();         // Reset player values
     unsigned long bitmask;
-    void add_name(void);     // Add name to the vocab database
-    void remove_name(void);  // Remove name from the vocab database
+    void add_name();     // Add name to the vocab database
+    void remove_name();  // Remove name from the vocab database
     void init_bob(basic_obj bobno = -1);
     void set_rank(int to);
-    basic_obj Location(void) const;
-    int go_to(basic_obj dest_rm, const char *dep_msg = NULL, const char *arr_msg = NULL);
+    basic_obj Location() const;
+    bool go_to(basic_obj dest_rm, const char *dep_msg = nullptr, const char *arr_msg = nullptr);
 };
 
 class PlayerIdx
@@ -36,8 +33,9 @@ class PlayerIdx
   public:
     static class Player *locate(char *s);
     static class Player *locate(basic_obj id);
-    static class Player *locate_in(basic_obj room, class Player *first = NULL, long id = -1);
-    static class Player *locate_others_in(basic_obj room, class Player *first = NULL, long id = -1);
+    static class Player *locate_in(basic_obj room, class Player *first = nullptr, long id = -1);
+    static class Player *
+    locate_others_in(basic_obj room, class Player *first = nullptr, long id = -1);
     static long mask_in_room(basic_obj room);
 };
 

@@ -6,7 +6,7 @@
 #include "misc.hpp"
 #include "smugl.hpp"
 
-char slot = -1;  // Game slot assigned to us
+int g_slot = -1;  // Game slot assigned to us
 
 // Initialise the client's environment
 void

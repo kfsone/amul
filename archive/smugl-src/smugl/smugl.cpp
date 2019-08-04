@@ -1,5 +1,4 @@
 /////////////////////////////////////////////////////////////////////////////
-// $Id: smugl.cc,v 1.14 1999/09/10 15:57:31 oliver Exp $
 // SMUGL - Simple Multi-User Gaming Language
 // Copyright (C) Oliver Smith, 1990-1997. Copyright (C) KingFisher Software
 //---------------------------------------------------------------------------
@@ -44,11 +43,11 @@
 #endif
 #include "sys/param.h"
 
-char fork_on_load;  // Do we detach on startup?
-char debug;         // What debug level?
+char g_fork_on_load;  // Do we detach on startup?
+int g_debug;          // What debug level?
 
-int exiting = ecFalse;  // If we're exiting
-int heavyDebug = 0;     // Enable heavy debugging
+int g_exiting = ecFalse;    // If we're exiting
+bool g_heavyDebug = false;  // Enable heavy debugging
 
 char *program;          // Program name (argv[0])
 extern char vername[];  // Version name from version.C
@@ -93,19 +92,19 @@ main(int argc, char *argv[])
     login();                 // Log the player in
     syslog(LOG_NOTICE, "player logged in: %s", me->name());
 
-    while (exiting == ecFalse) {
+    while (g_exiting == ecFalse) {
         prompt(myRank->prompt);
-        fetch_input(input, MAX_PHRASE_SIZE);
+        fetch_input(g_input, MAX_PHRASE_SIZE);
         sanitise_input();  // Tidy up what we read
-        if (input[0] == 0)
+        if (g_input[0] == 0)
             continue;
-        if (strncmp(input, "*debug", 6) == 0) {
-            txprintf("- Heavy Debugging is %s\n", (heavyDebug = !heavyDebug) ? "on" : "off");
+        if (strncmp(g_input, "*debug", 6) == 0) {
+            txprintf("- Heavy Debugging is %s\n", (g_heavyDebug = !g_heavyDebug) ? "on" : "off");
             continue;
         }
-        if (debug)
-            txprintf("You typed: [%s]\n", input);
-        parse(input);
+        if (g_debug)
+            txprintf("You typed: [%s]\n", g_input);
+        parse(g_input);
     }
 
     exit(0);
@@ -131,7 +130,7 @@ argue(int argc, char *argv[])
 {
     struct stat sbuf;
     int arg = 0;
-    dir[0] = 0;
+    g_dir[0] = 0;
     // NOTE: This isn't real argv - argv[0] is the first ARGUMENT
     // the program was called with. Don't get confused ;-)
     if (argc >= 1)
@@ -149,11 +148,11 @@ argue(int argc, char *argv[])
                         // NOTREACHED
 
                     case 'f':  // fork after loading everything
-                        fork_on_load = 1;
+                        g_fork_on_load = 1;
                         break;
 
                     case 'd':  // debug mode (incremental)
-                        debug++;
+                        g_debug++;
                         break;
 
                     default:
@@ -169,16 +168,16 @@ argue(int argc, char *argv[])
                     usage(1);
                     // NOTREACHED
                 }
-                strcpy(dir, argv[arg]);
+                strcpy(g_dir, argv[arg]);
             }
         }
     }
-    if (dir[0] == 0)
-        getcwd(dir, MAXPATHLEN);
-    if (dir[strlen(dir) - 1] != '/')
-        strcat(dir, "/");
-    if (stat(dir, &sbuf) == -1 || !S_ISDIR(sbuf.st_mode)) {
-        error(LOG_ERR, "Can't access directory %s", dir);
+    if (g_dir[0] == 0)
+        getcwd(g_dir, MAXPATHLEN);
+    if (g_dir[strlen(g_dir) - 1] != '/')
+        strcat(g_dir, "/");
+    if (stat(g_dir, &sbuf) == -1 || !S_ISDIR(sbuf.st_mode)) {
+        error(LOG_ERR, "Can't access directory %s", g_dir);
         usage(1);
     }
 }

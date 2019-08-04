@@ -12,15 +12,16 @@
 #include "misc.hpp"
 #include "smugl.hpp"
 
+static bool in_input = false;  // Initially we're not inputting
+
 char lastc = 0;            // Remember last character sent us
-char in_input = FALSE;     // Initially we're not inputting
-char txnest = FALSE;       // So tx can tell when it calls itself
-char addcr = FALSE;        // When true, calls to 'tx()' are interrupts
-char txed = FALSE;         // So you know if you were interrupted
+int txnest = 0;            // So tx can tell when it calls itself
+bool addcr = false;        // When true, calls to 'tx()' are interrupts
+bool txed = false;         // So you know if you were interrupted
 char xpos = 0;             // Horizontal cursor position
 char ypos = 0;             // Vertical cursor position
 long last_prompt = 0;      // Last string used to prompt user
-char trailing_ws = FALSE;  // Trailing white space flag
+bool trailing_ws = false;  // Trailing white space flag
 
 char temp[10240];  // Space for output strings
 
@@ -61,10 +62,12 @@ ans(const char *s)
 {
     if (!(me->flags & ufANSI))
         return;
-    int old_addcr = addcr;
+
+    bool old_addcr = addcr;
     int old_xpos = xpos;
+
     xpos = 0;           // So we don't do a line-wrap
-    addcr = FALSE;      // So we don't add a cr to start
+    addcr = false;      // So we don't add a cr to start
     txc(27);            // Escape
     txc('[');           // Open square bracket
     tx(s);              // The string itself
@@ -77,37 +80,35 @@ ans(const char *s)
  * to this function
  */
 void
-tx(const char *s, char c)
+tx(const char *s, char c /*=0*/)
 {
+    if (!*s)
+        // Anything to print?
+        return;
+
     char tstr[OBLIM * 2];  // YEUCH! on the stack!?!
-    char *p = tstr;
     char *old_out_buf = nullptr;
     long old_out_bufsz = 0;
     const char *working_ptr;
     char *out;
     int cur_x, cur_y;
     int i;
-    int slen;
-    int llen;
 
-    if (!*s)
-        // Anything to print?
-        return;
-    txed = TRUE;  // flag that tx was called
+    txed = true;  // flag that tx was called
     if (addcr && xpos)
         // If this is an interruption,
         txc('\n');  // we may need to add a cr
-    addcr = FALSE;  // ... but now we're sorted
+    addcr = false;  // ... but now we're sorted
 
-    if (manager) {  // If we're the manager, don't be clever
+    if (g_manager) {  // If we're the manager, don't be clever
         fprintf(stderr, "%s%c", s, c);
         return;
     }
 
     // Make local 'llen' and 'slen' variables; use defaults if
     // we don't have a player structure or it's not set up yet
-    slen = (me && me->slen && me->llen) ? me->slen : DSLEN;
-    llen = (me && me->slen && me->llen) ? me->llen : DLLEN;
+    const int slen = (me && me->slen && me->llen) ? me->slen : DSLEN;
+    const int llen = (me && me->slen && me->llen) ? me->llen : DLLEN;
 
     // We may recursively call 'tx' (e.g. during a long, paged output
     // the call to press_ret() will generate a call to tx)
@@ -129,12 +130,13 @@ tx(const char *s, char c)
     while (*out)
     // While there's anything to print
     {
-        *(p = tstr) = 0;
+        char *p = tstr;
+        *p = 0;
         // Now copy from 'out' to 'p', looking for end-of-lines;
         char *last_break = nullptr;
         do {
             while (*out && *out != 12 && (!llen || cur_x < llen)) {
-                trailing_ws = FALSE;
+                trailing_ws = false;
                 if (*out == '\n') {
                     out++;
                     cur_x = llen;
@@ -181,7 +183,7 @@ tx(const char *s, char c)
                             out++;
                         break;
                     }
-                    trailing_ws = TRUE;
+                    trailing_ws = false;
                     continue;
                 }
 
@@ -224,7 +226,7 @@ tx(const char *s, char c)
                 cur_x = llen;
             }
             if (cur_x >= llen) {
-                trailing_ws = FALSE;
+                trailing_ws = false;
                 if (last_break)
                     p = last_break;
                 if (p != tstr) {
@@ -241,7 +243,9 @@ tx(const char *s, char c)
             cur_x = 0;  // Assuming terminal has automargins
         xpos = cur_x;   // Update cursor position
 
-        write(conn_sock_fd, tstr, p - tstr);  // Print the text
+        static const ssize_t bytes = (p - tstr);
+        // Print the text
+        write(conn_sock_fd, tstr, bytes);
 
         // If we have exceeded the screen length, or if we've reached
         // a form-feed mid-text, use a 'more' prompt
@@ -262,7 +266,7 @@ tx(const char *s, char c)
     // as it causes an additional call to 'write'.
     if (c == SPC || c == TAB) {
         if (llen && cur_x >= llen)
-            addcr = TRUE;
+            addcr = true;
         else if (cur_x && !trailing_ws)
             txc(c);
     } else if (c)
@@ -294,20 +298,20 @@ txc(char c)
     if (!c)
         // Don't send nulls
         return;
-    if (manager) {  // Nothing fancy for the manager
+    if (g_manager) {  // Nothing fancy for the manager
         putchar(c);
         return;
     }
-    txed = TRUE;                            // YES! We have SENT THE LIGHT!
+    txed = true;                            // YES! We have SENT THE LIGHT!
     if (addcr && c != '\r' && c != '\n') {  // When we need our own line
         txc('\n');
-        addcr = FALSE;
+        addcr = false;
     }
     if (c == 12) {  // form feed
         write(conn_sock_fd, &c, 1);
         xpos = 0;
         ypos = 0;
-        trailing_ws = FALSE;
+        trailing_ws = false;
     } else if (c == '\r' || c == '\n') {  // CRLF
         // XXX: Should only send '\r' if player has ufCRLF
         // Really ought to deal with the situation where we get
@@ -316,19 +320,19 @@ txc(char c)
         write(conn_sock_fd, "\r\n", 2);
         xpos = 0;
         ypos++;
-        trailing_ws = FALSE;
+        trailing_ws = false;
     } else if (c == 8 || c == 127) {  // Backspace / delete
         if (xpos == 0)
             return;
         write(conn_sock_fd, "\x08 \x08", 3);
         xpos--;
-        trailing_ws = FALSE;
+        trailing_ws = false;
     } else if (!(trailing_ws && (c == SPC || c == TAB))) {  // Any other character
         write(conn_sock_fd, &c, 1);
         xpos++;
         if (me && me->llen && xpos >= me->llen)
             txc('\n');  // Do we need to line-wrap?
-        trailing_ws = FALSE;
+        trailing_ws = false;
     }
 }
 
@@ -368,7 +372,7 @@ fetch_input(char *to, int length)
 {
     char *p = to;
     char c = 0;
-    char noecho;
+    bool noecho;
     int max = conn_sock_fd;
     fd_set fds, rd_fds;
 
@@ -379,15 +383,15 @@ fetch_input(char *to, int length)
         max = ipc_fd;
 
     *p = 0;
-    forced = FALSE;
+    forced = false;
 
     if (length < 0) {  // A negative length means 'hidden input'
-        noecho = TRUE;
+        noecho = true;
         length = -length;
     } else
-        noecho = FALSE;  // A length of zero means 'hit a key'
+        noecho = false;  // A length of zero means 'hit a key'
 
-    in_input = TRUE;
+    in_input = true;
 
     do {
         int ret;  // Return value from select
@@ -496,7 +500,7 @@ fetch_input(char *to, int length)
     } while (c != '\r');
     while (p > to && isspace(*(p - 1)))
         *(p--) = 0;
-    in_input = FALSE;
+    in_input = false;
 }
 
 /* telnet_opt is a hack. SMUGL implements a very quick and nasty
@@ -509,6 +513,7 @@ void
 telnet_opt(u_char neg_type, u_char opt)
 {
     u_char options[3];
+
     options[0] = 255;
     options[1] = neg_type;
     options[2] = opt;

@@ -3,10 +3,14 @@
  *
  */
 
-#include "include/fperror.hpp"
-#include "smuglcom/smuglcom.hpp"
+#include <cstring>
 
-static char *mobpget(const char *s, char *p, long *n);
+#include "errors.hpp"
+#include "fileio.hpp"
+#include "fperror.hpp"
+#include "smuglcom.hpp"
+
+static char *mobpget(const char *s, char *p, msgno_t *n);
 static char *getmobmsg(char *p, const char *s, msgno_t *n);
 
 static inline void
@@ -28,13 +32,13 @@ struct MOBMSGS {
 struct MOBMSGS mmsgdata[] = { { "arrive=", &mob.arr }, { "depart=", &mob.dep },
                               { "flee=", &mob.flee },  { "strike=", &mob.hit },
                               { "miss=", &mob.miss },  { "dies=", &mob.death },
-                              { NULL, NULL } };
+                              { nullptr, nullptr } };
 
 void
-mob_proc1(void)
+mob_proc1()
 {
     char *p, *s;
-    long n;
+    msgno_t n;
 
     mobchars = 0;
     fopenw(mobfn);
@@ -60,12 +64,12 @@ mob_proc1(void)
         do {
             if (!*s)
                 break;
-            if (!strncmp(s, "dead=", 5)) {
+            if (strncmp(s, "dead=", 5) == 0) {
                 s = getword(s + 5);
                 mob.dead = atoi(Word);
                 continue;
             }
-            if (!strncmp(s, "dmove=", 6)) {
+            if (strncmp(s, "dmove=", 6) == 0) {
                 s = getword(s + 6);
                 mob.dmove = is_container(Word);
                 if (mob.dmove == -1)
@@ -82,32 +86,32 @@ mob_proc1(void)
             }
         } while (!*(s = skipspc(s)));
 
-        if ((s = mobpget("speed=", s, &n)) == NULL)
+        if (!(s = mobpget("speed=", s, &n)))
             goto end;
         mob.speed = n;
-        if ((s = mobpget("travel=", s, &n)) == NULL)
+        if (!(s = mobpget("travel=", s, &n)))
             goto end;
         mob.travel = n;
-        if ((s = mobpget("fight=", s, &n)) == NULL)
+        if (!(s = mobpget("fight=", s, &n)))
             goto end;
         mob.fight = n;
-        if ((s = mobpget("act=", s, &n)) == NULL)
+        if (!(s = mobpget("act=", s, &n)))
             goto end;
         mob.act = n;
-        if ((s = mobpget("wait=", s, &n)) == NULL)
+        if (!(s = mobpget("wait=", s, &n)))
             goto end;
         mob.wait = n;
         if (mob.travel + mob.fight + mob.act + mob.wait != 100) {
             warne("%s: Travel+Fight+Act+Wait don't add to 100%! Please check!\n", mob.id);
         }
 
-        if ((s = mobpget("fear=", s, &n)) == NULL)
+        if (!(s = mobpget("fear=", s, &n)))
             goto end;
         mob.fear = n;
-        if ((s = mobpget("attack=", s, &n)) == NULL)
+        if (!(s = mobpget("attack=", s, &n)))
             goto end;
         mob.attack = n;
-        if ((s = mobpget("hitpower=", s, &n)) == NULL)
+        if (!(s = mobpget("hitpower=", s, &n)))
             goto end;
         mob.hitpower = n;
 
@@ -122,7 +126,7 @@ mob_proc1(void)
 
     errabort();  // Abort if an error
     if (mobchars) {
-        mobp = (struct MOB_ENT *) grow(NULL, sizeof(*mobp) * mobchars, "Reading Mobile Table");
+        mobp = (struct MOB_ENT *) grow(nullptr, sizeof(*mobp) * mobchars, "Reading Mobile Table");
         fopena(mobfn);
         static const size_t bytes = sizeof(mob) * mobchars;
         if (fread((char *) mobp, bytes, 1, afp) < bytes)
@@ -137,7 +141,7 @@ mobpget(const char *s, char *p, msgno_t *n)
     p = getword(skiplead(s, p));
     if (!*Word) {
         mobmis(s);
-        return NULL;
+        return nullptr;
     }
     *n = atoi(Word);
     return p;
@@ -146,8 +150,7 @@ mobpget(const char *s, char *p, msgno_t *n)
 static char *
 getmobmsg(char *p, const char *s, msgno_t *n)
 {  // Fetch a mobile message line
-    char *q = NULL;
-
+    char *q = nullptr;
     *n = -1;
 
     // We have to allow that there might be some 'empty' lines
@@ -163,10 +166,8 @@ getmobmsg(char *p, const char *s, msgno_t *n)
 
     q = skiplead(s, q);
     if (*q == '\'' || *q == '\"') {
-        char *copy;
-
         strcpy(g_block, q);
-        copy = g_block + 1;
+        char *copy = g_block + 1;
         while (*copy && *copy != g_block[0])
             copy++;
         *(copy++) = 0;

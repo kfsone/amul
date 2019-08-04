@@ -62,7 +62,7 @@ login()
     // Not a success
     {
         tx(message(FAILEDLOGIN), '\n');
-        if (debug)
+        if (g_debug)
             syslog(LOG_INFO, "didn't bother logging in");
         exit(0);
     }
@@ -87,7 +87,7 @@ login()
     // If we have enough score for the next level, we obviously haven't
     // met the neccesary task requirements.
     if (myRank < RankIdx::top_rank() && me->score >= (myRank + 1)->score) {
-        if (debug)
+        if (g_debug)
             syslog(LOG_INFO,
                    "%s has %ld points for rank %ld but not %ld",
                    me->_name,
@@ -109,12 +109,13 @@ login()
 
     // Try and find a start location
     // XXX: Surely this should be a 'RoomIdx::' function?
-    class Room *start_room = data->anterm;
+    Room *start_room = data->anterm;
     if (start_room == nullptr) {
         long which_start = rand() % data->start_rooms;
-        class RoomIdx Iteration;
-        class Room *first = nullptr;
-        class Room *cur = Iteration.current();
+        RoomIdx Iteration;
+        Room *first = nullptr;
+        Room *cur = Iteration.current();
+
         while (!start_room && cur) {
             if (cur->flags & STARTL && which_start-- == 0) {
                 start_room = cur;
@@ -160,6 +161,7 @@ login()
 
     // Make sure we're flagged as not having visited any rooms
     unsigned long clr_bit = ~me->bitmask;
+
     for (i = 0; i < data->rooms; i++)
         data->roombase[i].visitor_bf &= clr_bit;
 
@@ -168,7 +170,7 @@ login()
         tx(message(WELCOMEBAK), '\n');
     else
         tx(message(YOUBEGIN), '\n');
-    announce(ALLBUT(slot), COMMENCED);
+    announce(ALLBUT(g_slot), COMMENCED);
     me->locations = 1;
     start_room->enter();
 }
@@ -205,6 +207,7 @@ getname()
     // If they enter a word that we already know, it means
     // something in the game is already using the word.
     vocid_t name_id = is_word(new_name);
+
     if (name_id != -1) {
         // If it's another player, tell the other player someone
         // just tried to use their name, and reject this login.
@@ -231,25 +234,25 @@ newid()
     strcpy(me->_name, new_name);
 
     prompt(CREATE);  // Create a new user?
-    fetch_input(input, 3);
-    if (toupper(*input) != 'Y')
+    fetch_input(g_input, 3);
+    if (toupper(*g_input) != 'Y')
         return -1;
 
     do  // Choose gender
     {
         prompt(WHATGENDER);
-        fetch_input(input, 2);
-        *input = toupper(*input);
-        if (*input != 'M' && *input != 'F')
+        fetch_input(g_input, 2);
+        *g_input = toupper(*g_input);
+        if (*g_input != 'M' && *g_input != 'F')
             tx(message(GENDINVALID), '\n');
-    } while (*input != 'M' && *input != 'F');
-    me->sex = (*input == 'M') ? MALE : FEMALE;
+    } while (*g_input != 'M' && *g_input != 'F');
+    me->sex = (*g_input == 'M') ? MALE : FEMALE;
 
     prompt(ENTERPASSWD);  // Ask the user for a password
-    fetch_input(input, -20);
-    if (!*input)
+    fetch_input(g_input, -20);
+    if (!*g_input)
         return -1;
-    strcpy(me->passwd, input);
+    strcpy(me->passwd, g_input);
 
     // Capitalise the name properly
     me->_name[0] = toupper(me->_name[0]);
@@ -280,17 +283,17 @@ newid()
 
 #ifdef NEVER
 int
-getpasswd(void)
+getpasswd()
 // Existing user - verify password
 {
     // Give the user three attempts at entering the right password.
     for (i = 0; i < 3; i++) {
         txprintf("\nTry #%d -- ", i + 1);
         prompt(ENTERPASSWD);
-        fetch_input(input, -20);
-        if (!*input)
+        fetch_input(g_input, -20);
+        if (!*g_input)
             return -1;
-        if (strcmp(input, me->passwd) == 0)
+        if (strcmp(g_input, me->passwd) == 0)
             break;
     }
 

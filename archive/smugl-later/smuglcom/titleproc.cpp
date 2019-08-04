@@ -2,7 +2,11 @@
  * titleproc.cpp -- process SYSTEM.txt
  */
 
-#include "smuglcom/smuglcom.hpp"
+#include <cctype>
+#include <cstring>
+
+#include "errors.hpp"
+#include "smuglcom.hpp"
 
 #define BAD_STRING "Invalid %s specified (%s).\n"
 
@@ -12,7 +16,7 @@ static int def_prompt_id = -1;
 
 counter_t top_num_obj = 0;
 
-extern const char vername[];
+extern char vername[];
 
 enum {         // List of system options
     SO_NAME,   // name of this game
@@ -91,7 +95,6 @@ static inline void
 option_line(char *s)
 {
     int i;
-
     // Check to see if we're changing section
     if (skiplead("[ranks]", s) != s) {
         Section = stRanks;
@@ -99,7 +102,6 @@ option_line(char *s)
     }
     // Otherwise we should have an option line
     char *p;
-
     while (*(s = skipspc(s))) {
         // We're expecting wwwwwww=value or wwwwww="value"
         p = s;
@@ -207,16 +209,14 @@ option_line(char *s)
                 //  "I know this word, but it doesn't have a counterpart"
                 // Which means it's a dud and can be ignored
                 char *end;
-
                 do {
-                    if ((end = strchr(p, ',')) != 0)
+                    if ((end = strchr(p, ',')) != nullptr)
                         *(end++) = 0;
                     if (!*p) {
                         error("Invalid 'noise=' string");
                         break;
                     }
                     vocid_t alias = new_word(p, true);
-
                     if (alias == -1) {
                         error("Bad/duplicate noise word '%s'", p);
                         break;
@@ -238,7 +238,9 @@ option_line(char *s)
     }
 }
 
-static inline int chkline(char *p)  // Test for incomplete rank line
+static int
+chkline(char *p)
+// Test for incomplete rank line
 {
     if (*p)
         return 0;
@@ -246,7 +248,9 @@ static inline int chkline(char *p)  // Test for incomplete rank line
     return 1;
 }
 
-static inline void badrank(const char *s)  // Complain about a bad rank line
+static void
+badrank(const char *s)
+// Complain about a bad rank line
 {
     error("%3ld/%s: Invalid number for %s - \"%s\".\n", ranks, rank.male, s, Word);
 }
@@ -269,7 +273,6 @@ static inline void
 rank_line(char *s)
 {
     int i;
-
     s = skipspc(s);
     if (!*s)
         return;
@@ -327,14 +330,13 @@ rank_line(char *s)
     // Do we have a prompt?
     if (*s == '\"' || *s == '\'') {
         char *quot = s;
-
         s++;
         while (*s && *s != *quot)
             s++;
         quot++;
         *(s++) = 0;
         if (*quot) {
-            rank.prompt = add_msg(NULL);
+            rank.prompt = add_msg(nullptr);
             fwrite(quot, (size_t)(s - quot) + 1, 1, msgfp);
         }
     } else if (*s) {
@@ -343,7 +345,7 @@ rank_line(char *s)
     }
     if (rank.prompt == -1) {
         if (def_prompt_id == -1) {
-            def_prompt_id = add_msg(NULL);
+            def_prompt_id = add_msg(nullptr);
             fwrite("> ", 3, 1, msgfp);
         }
         rank.prompt = def_prompt_id;
@@ -355,7 +357,7 @@ rank_line(char *s)
 }
 
 void
-sys_proc(void)
+sys_proc()
 {
     char *next_line, *prev_line;
 
@@ -432,13 +434,13 @@ sys_proc(void)
  * and we don't already have an error, then create a file with defaults
  */
 void
-checksys(void)
+checksys()
 {
     sprintf(g_block, "%s%s.smg", g_dir, txtfile[TF_SYSTEM]);
     ifp = fopen(g_block, "rb");
     if (ifp) {
         fclose(ifp);
-        ifp = NULL;
+        ifp = nullptr;
         return;
     }
 
@@ -471,5 +473,5 @@ checksys(void)
             sysopt[SO_NOISE]);
 
     fclose(ofp1);
-    ofp1 = NULL;
+    ofp1 = nullptr;
 }

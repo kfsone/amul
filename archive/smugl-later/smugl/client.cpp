@@ -1,15 +1,16 @@
 // Client-specific routines, etc.
 
-#include "smugl/io.hpp"
-#include "smugl/ipc.hpp"
-#include "smugl/misc.hpp"
-#include "smugl/smugl.hpp"
+#include "client.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "misc.hpp"
+#include "smugl.hpp"
 
 int g_slot = -1;  // Game slot assigned to us
 
 // Initialise the client's environment
 void
-client_initialise(void)
+client_initialise()
 {
     // When we reach here, the manager will have a lock on 'sem_DATA'.
     // Until it's finished, we want to wait around, so use a dummy lock.

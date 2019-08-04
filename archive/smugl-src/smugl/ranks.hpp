@@ -7,9 +7,9 @@
 class Rank : public RANKS
 {
   public:
-    int describe(Gender sex);  // Not really apropriate
-    void detail(void);
-    char *copy(char *dest, Gender sex = me->sex, int verbose = TRUE);
+    bool describe(Gender sex);  // Not really apropriate
+    void detail();
+    char *copy(char *dest, Gender sex = me->sex, bool verbose = true);
     long number();
 };
 

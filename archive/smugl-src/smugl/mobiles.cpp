@@ -1,16 +1,15 @@
 // Definition of mobile classes and functions
 
-#define MOBILES_C 1
-
 #include "smugl.hpp"
 #include "structs.hpp"
 
 #include "data.hpp"
 #include "mobiles.hpp"
+#include "rooms.hpp"
 
 // class MobileIdx MobileIdx;
 
-inline class Room *
+class Room *
 Mobile::dmoveRm()
 // Return DMOVE room of a mobile
 {
@@ -18,7 +17,7 @@ Mobile::dmoveRm()
 }
 
 // XXX: Debugging version of describe
-int
+bool
 Mobile::describe()
 {
     txprintf("mobile=%s(%ld)\n", word(id), id);
@@ -46,7 +45,7 @@ Mobile::describe()
         txprintf("miss=\"%s\"\n", message(miss));
     if (death != -1)
         txprintf("death=\"%s\"\n", message(death));
-    return TRUE;
+    return true;
 }
 
 //////////////////////////////////////// Mobile Index functions

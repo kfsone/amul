@@ -1,7 +1,9 @@
 // Functions belonging to the database manager
 
 #include <cerrno>
+#include <csignal>
 #include <cstring>
+#include <sys/resource.h>
 
 #include "consts.hpp"
 #include "fileio.hpp"
@@ -18,13 +20,11 @@
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
-#include <csignal>
-#include <sys/resource.h>
 
 // Manager/child indicator. manager == 0 if this is a child process
-char manager = 1;
+bool g_manager{ true };
 
-struct DATA *data;
+DATA *data;
 long roomCount, nounCount;
 
 static inline void incoming_connection();
@@ -33,7 +33,7 @@ static inline void incoming_connection();
 static size_t
 memsize(const char *file)
 {
-    ssize_t size = filesize(datafile(file));
+    const ssize_t size = filesize(datafile(file));
     if (size == -1) {
         error(LOG_ERR, "can't access %s: %s", datafile(file), strerror(errno));
         exit(1);
@@ -50,11 +50,9 @@ long
 memory_required()
 {
     long mem = 0L;
-    FILE *fp;
-    char *file;
 
-    file = datafile(statsfn);
-    fp = fopen(file, "rb");
+    char *file = datafile(statsfn);
+    FILE *fp = fopen(file, "rb");
     if (fp == nullptr) {
         error(LOG_ERR, "Missing stats file %s, invalid database", file);
         exit(1);
@@ -66,12 +64,12 @@ memory_required()
 
     // Unfortunately I don't store these, so we have to repeat
     // the "experiment" afterwards
-    mem = ptr_align(sizeof(struct DATA));
+    mem = ptr_align(sizeof(DATA));
     mem += memsize(umsgifn) + memsize(umsgfn);
     mem += memsize(ranksfn);
-    mem += ptr_align(sizeof(class Room) * roomCount);
+    mem += ptr_align(sizeof(Room) * roomCount);
     mem += memsize(mobfn);
-    mem += ptr_align(sizeof(class Object) * nounCount);
+    mem += ptr_align(sizeof(Object) * nounCount);
     mem += memsize(statfn);
     mem += memsize(langfn);
     mem += memsize(ttfn) + memsize(ttpfn);
@@ -86,13 +84,12 @@ memory_required()
 static void
 child_reaper(int)
 {
-    int pid;
-    int i;
     signal(SIGCHLD, child_reaper);
+    int pid;
     while ((pid = waitpid(-1, nullptr, WNOHANG)) != -1) {
         if (pid <= 0)
             break;
-        for (i = 0; i < MAXU; i++) {
+        for (int i = 0; i < MAXU; i++) {
             if (data->pid[i] == pid) {
                 assume_identity(i);
                 me->disconnected();
@@ -113,6 +110,7 @@ run_the_game()
 {
     int n = 0;
     fd_set fds, rd_fds;
+
     FD_ZERO(&fds);
     FD_SET(listen_sock_fd, &fds);  // incoming client connections
     if (listen_sock_fd > n)
@@ -129,16 +127,17 @@ run_the_game()
     // Set the signal handler for dealing with dead-children
     child_reaper(0);
 
-    char *cr;
     time(&data->game_start);  // Get current time stamp
     strcpy(data->lastres, ctime(&data->game_start));
-    if ((cr = strchr(data->lastres, '\n')))
+    char *cr = strchr(data->lastres, '\n');
+    if (cr != nullptr)
         *cr = 0;
     strcpy(data->lastcrt, ctime(&data->compiled));
-    if ((cr = strchr(data->lastcrt, '\n')))
+    cr = strchr(data->lastcrt, '\n');
+    if (cr != nullptr)
         *cr = 0;
 
-    if (fork_on_load) {
+    if (g_fork_on_load) {
         close(STDIN_FILENO);
         close(STDOUT_FILENO);
         switch (fork())
@@ -151,14 +150,14 @@ run_the_game()
             case 0:  // Child
                 break;
 
-            default:                // Parent
-                fork_on_load = -1;  // So we don't get mistaken for manager
+            default:                  // Parent
+                g_fork_on_load = -1;  // So we don't get mistaken for manager
                 exit(0);
         }
     }
     syslog(LOG_INFO, "'%s' restarted on port %d", data->name, data->port);
 
-    while (TRUE) {
+    while (true) {
         int ret;  // Return value from select
 
         // Wait for some input
@@ -175,13 +174,13 @@ run_the_game()
         }
 
         if (FD_ISSET(listen_sock_fd, &rd_fds)) {  // New Connection arriving
-            if (debug)
+            if (g_debug)
                 syslog(LOG_INFO, "accepting game connection #%d", data->connections + 1);
-            if (accept_connection() == FALSE)
+            if (accept_connection() == false)
                 return;  // Failed to accept() new connection
 
             incoming_connection();
-            if (!manager)
+            if (!g_manager)
                 return;
             close(conn_sock_fd);
             conn_sock_fd = -1;
@@ -191,7 +190,7 @@ run_the_game()
             ipc_proc();
 
         if (FD_ISSET(command_sock_fd, &rd_fds)) {
-            if (debug)
+            if (g_debug)
                 syslog(LOG_INFO, "accepting command connection");
             accept_command();  // Accept a command connection
             exit(0);
@@ -244,14 +243,14 @@ incoming_connection()
     srand(id + rand());  // Just so we don't share the same seed
 
     if (!id) {
-        close(listen_sock_fd);                // Dispose of the listener
-        listen_sock_fd = -1;                  // We don't need it
-        manager = 0;                          // Flag that we're not the manager
-        slot = assigned_slot;                 // So we know which slot we're on
-        close(clifd[slot & 0xff][WRITEfd]);   // Handle for writing to me
-        close(servfd[READfd]);                // Server's read handle
-        ipc_fd = clifd[slot & 0xff][READfd];  // Listen here for IPC
-        me = &data->user[slot & 0xff];        // Used throughout the game to refer to self
+        close(listen_sock_fd);                  // Dispose of the listener
+        listen_sock_fd = -1;                    // We don't need it
+        g_manager = false;                      // Flag that we're not the manager
+        g_slot = assigned_slot;                 // So we know which slot we're on
+        close(clifd[g_slot & 0xff][WRITEfd]);   // Handle for writing to me
+        close(servfd[READfd]);                  // Server's read handle
+        ipc_fd = clifd[g_slot & 0xff][READfd];  // Listen here for IPC
+        me = &data->user[g_slot & 0xff];        // Used throughout the game to refer to self
         me->init_bob();
         me->state = OFFLINE;
 
@@ -264,7 +263,7 @@ incoming_connection()
     }
 
     // Otherwise we're back to being the manager
-    if (debug)
+    if (g_debug)
         syslog(LOG_INFO, "new client (pid=%d) in slot %d", id, assigned_slot);
     data->connected++;
     data->pid[assigned_slot] = id;

@@ -1,11 +1,13 @@
 // Definition of player classes and functions
 
-#include "include/consts.hpp"
-#include "smugl/smugl.hpp"
+#include <cassert>
 
-#include "smugl/ipc.hpp"
-#include "smugl/ranks.hpp"
-#include "smugl/rooms.hpp"
+#include "consts.hpp"
+#include "fileio.hpp"
+#include "ipc.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
+#include "smugl.hpp"
 
 class Player *me;           // Pointer to our entry in data
 class Player *userbase;     // Same as data->user :-(
@@ -14,14 +16,20 @@ class Player *last_him;
 class Player *last_her;
 
 bool
-Player::describe(void)
+Player::describe()
 {  // Describe this player
     txprintf("%s is here. ", name());
     return true;
 }
 
+basic_obj
+Player::Location() const
+{
+    return containers[conLocation].boContainer;
+}
+
 const char *
-Player::name(void)
+Player::name()
 {
     if (_name[0])
         // Does the player have a name?
@@ -32,10 +40,9 @@ Player::name(void)
 
 // Remove a player from the game, "physically"
 void
-Player::disconnected(void)
+Player::disconnected()
 {  // Remove evidence of a given player
     int i = number();
-
     remove_name();       // Make sure our name leaves, regardless
     sem_lock(sem_DATA);  // "Most interesting lock"
     if (data->pid[i]) {  // Only do this if we are 'connected'
@@ -44,7 +51,7 @@ Player::disconnected(void)
         data->pid[i] = 0;  // Remove our process id
         data->user[i].init_bob();
         data->connected--;  // One less player
-        _close(clifd[i][WRITEfd]);
+        close(clifd[i][WRITEfd]);
         clifd[i][WRITEfd] = 0;  // Nuke the write fd
         clifd[i][READfd] = 0;   // Nuke the read fd
     }
@@ -54,7 +61,7 @@ Player::disconnected(void)
 // The next two functions deal with adding a players name into the
 // vocab table.
 void
-Player::add_name(void)
+Player::add_name()
 {  // Add name to the vocab table
     if (_name[0] == 0)
         // Does the player have a name?
@@ -65,7 +72,7 @@ Player::add_name(void)
 }
 
 void
-Player::remove_name(void)
+Player::remove_name()
 {  // Remove player's name from the vocab table
     if (_name[0] == 0)
         // Does the player have a name?
@@ -81,8 +88,7 @@ Player::init_bob(basic_obj bobno /*=-1*/)
 {
     id = -1;  // No ID at present
     if (bobno != -1)
-        bob = bobno;         // Basic object number
-    next = bobs[bobno + 1];  // Yeuch
+        bob = bobno;  // Basic object number
     type = WPLAYER;
     std_flags = 0;  // Especially not bob_INPLAY
     weight = 0;
@@ -114,7 +120,7 @@ Player::set_rank(int rankno)
 
 // Initialiase the structure of player to 'entering game' status
 void
-Player::reset(void)
+Player::reset()
 {
     init_bob();
     remove_name();    // Make sure my name is not in the database
@@ -141,21 +147,20 @@ Player::reset(void)
     *me->pre = 0;                // Pre-rank string
     *me->post = 0;               // Post-rank string
 
-    last_him = NULL;  // We haven't talked about anyone yet
-    last_her = NULL;
-    last_room = NULL;  // Haven't been elsewhere yet
-    cur_loc = NULL;
+    last_him = nullptr;  // We haven't talked about anyone yet
+    last_her = nullptr;
+    last_room = nullptr;  // Haven't been elsewhere yet
+    cur_loc = nullptr;
 }
 
 // Move the player from here to another room
 bool
-Player::go_to(basic_obj dest_rm, const char *dep_msg /*=NULL*/, const char *arr_msg /*=NULL*/)
+Player::go_to(basic_obj dest_rm, const char *dep_msg /*=nullptr*/, const char *arr_msg /*=nullptr*/)
 {
     assert(dest_rm >= 0 && dest_rm < nbobs);
 
-    class Room *dest = (Room *) bobs[dest_rm];
-
-    if (dest == NULL || ((dest->flags & SMALL) && PlayerIdx::locate_in(dest_rm))) {
+    Room *dest = (Room *) bobs[dest_rm];
+    if (dest == nullptr || ((dest->flags & SMALL) && PlayerIdx::locate_in(dest_rm))) {
         tx(message(NOROOM), '\n');
         return false;
     }
@@ -183,27 +188,26 @@ Player::go_to(basic_obj dest_rm, const char *dep_msg /*=NULL*/, const char *arr_
 
 ////////////////////////////// PlayerIdx functions
 
-Player *
-PlayerIdx::locate(long id)
 // Locate player by ID number
+Player *
+PlayerIdx::locate(basic_obj id)
 {
-    int i;
-
-    if ((i = id - vc->items) < 0 || i > MAXU)
-        return NULL;
-    return &data->user[i];
+    id -= vc->items;
+    if (id < 0 || id > MAXU)
+        return nullptr;
+    return &data->user[id];
 }
 
+// Locate player by name
 Player *
 PlayerIdx::locate(char *s)
-// Locate player by name
 {
     return locate(is_word(s));
 }
 
 // Iterate through players in a room
 class Player *
-PlayerIdx::locate_in(basic_obj cont, class Player *from /*=NULL*/, long want_id /*=-1*/)
+PlayerIdx::locate_in(basic_obj cont, class Player *from /*=nullptr*/, long want_id /*=-1*/)
 {
     class Player *curnt = from;
 
@@ -216,15 +220,14 @@ PlayerIdx::locate_in(basic_obj cont, class Player *from /*=NULL*/, long want_id 
         if ((want_id == -1 || want_id == curnt->id) && curnt->is_in(cont))
             return curnt;
     }
-    return NULL;
+    return nullptr;
 }
 
 // Iterate through players in a room, but exclude self
 class Player *
-PlayerIdx::locate_others_in(basic_obj in, class Player *from /*=NULL*/, long wantid /*=-1*/)
+PlayerIdx::locate_others_in(basic_obj in, class Player *from /*=nullptr*/, long wantid /*=-1*/)
 {
     Player *player = locate_in(in, from, wantid);
-
     if (player == me)
         return locate_in(in, player, wantid);
     return player;
@@ -236,7 +239,6 @@ long
 PlayerIdx::mask_in_room(basic_obj room)
 {
     long mask = 0;
-
     if (room < 0 || room > nbobs || bobs[room]->type != WROOM)
         return 0;
     for (int i = 0; i < MAXU; i++) {
@@ -255,9 +257,8 @@ assume_identity(int id)
     me = &data->user[id];
     myRank = RankIdx::ptr(me->rank);
     basic_obj loc = me->Location();
-
     if (loc < 0 || loc == me->bob)
-        cur_loc = NULL;
+        cur_loc = nullptr;
     else if ((cur_loc = (Room *) bobs[loc]) && cur_loc->type != WROOM)
-        cur_loc = NULL;
+        cur_loc = nullptr;
 }

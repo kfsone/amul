@@ -1,23 +1,18 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: cl_object.hpp,v 1.1 1999/06/08 15:36:45 oliver Exp $
-//
-////////////////////////////// OBJECT STRUCTURE
-//
-
 #ifndef OBJ_H
 #define OBJ_H 1
 #include "cl_basicobj.hpp"
+////////////////////////////// OBJECT STRUCTURE
 
 class OBJ : public BASIC_OBJ
 {  // Object (temporary) definition
   public:
-    virtual ~OBJ() {}
+    ~OBJ() override = default;
 
     //// Object::FUNCTIONS
-    virtual int describe(void) override { return 0; };
-    virtual int describe_verbose(void) override { return 0; };
-    virtual int Write(FILE *) override;
-    virtual int Read(FILE *) override;
+    bool describe() override { return false; };
+    bool describe_verbose() override { return false; };
+    int Write(FILE *) override;
+    int Read(FILE *) override;
 
     //// Object::DATA
     char putto;           // Where things go

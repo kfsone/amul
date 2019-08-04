@@ -1,6 +1,7 @@
-/* $Id: portable.hpp,v 1.5 1997/05/22 16:34:25 oliver Exp $
- * Portability definitions
- */
+#ifndef SMUGL_H_PORTABLE_H
+#define SMUGL_H_PORTABLE_H
+
+// Portability definitions
 
 #if defined(_WIN32) || defined(_MSC_VER)
 /******************************************/
@@ -22,3 +23,5 @@
 #define PATH_SEP_CHAR '/'
 
 #endif
+
+#endif  // SMUGL_H_PORTABLE_H

@@ -1,25 +1,29 @@
 // Definition of alias (synonym) class and functions
 
-#include "smugl/aliases.hpp"
-#include "include/structs.hpp"
-#include "smugl/smugl.hpp"
+#include "aliases.hpp"
+#include "smugl.hpp"
+#include "structs.hpp"
 
-long
-Alias::locate(const char* alias)
+vocid_t
+Alias::meaning(vocid_t num)
+{
+    return data->aliasbase[num].means;
+}
+
+vocid_t
+Alias::locate(string *alias)
 // locate an alias by it's name
 {
     vocid_t id = is_word(alias);
-
     return (id == -1) ? -1 : locate(id);
 }
 
-long
+vocid_t
 Alias::locate(vocid_t id)
 // Locate an alias by it's vocab id
 {
     long i;
-    Alias* ptr;
-
+    class Alias *ptr;
     for (i = 0, ptr = data->aliasbase; i < data->aliases; i++, ptr++) {
         if (ptr->given == id)
             return i;

@@ -1,12 +1,11 @@
-#pragma once
-// This may look like C, but it's really -*- C++ -*-
-// mobile class definitions and function protos
+#ifndef MOBILES_H
+#define MOBILES_H 1
 
 class Mobile : public MOB_ENT
 {
   public:
-    bool describe(void);               // Not really apropriate
-    inline class Room *dmoveRm(void);  // What room should we dmove to?
+    bool describe();               // Not really apropriate
+    inline class Room *dmoveRm();  // What room should we dmove to?
 };
 
 class MobileIdx
@@ -15,3 +14,5 @@ class MobileIdx
     static class Mobile *locate(char *s);
     static class Mobile *locate(long id);
 };
+
+#endif  // MOBILES_H

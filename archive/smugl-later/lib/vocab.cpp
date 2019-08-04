@@ -3,15 +3,21 @@
  * Common to both the compiler and the frame
  */
 
-#include "include/vocab.hpp"
-#include "include/defines.hpp"
-#include "include/includes.hpp"
-#include "include/structs.hpp"
-#include "include/typedefs.hpp"
+#include "vocab.hpp"
+#include "defines.hpp"
+#include "fileio.hpp"
+#include "includes.hpp"
+#include "structs.hpp"
+#include "typedefs.hpp"
 
-struct VOCAB *vc;  // Vocabulary index data
-u_long hash;       // Last hash number we used
-u_long hash_len;   // Length of last hashed key
+#include "cl_vocab.hpp"
+
+#include <cctype>
+#include <cstring>
+
+struct VOCAB *vc;   // Vocabulary index data
+uint32_t hash;      // Last hash number we used
+uint32_t hash_len;  // Length of last hashed key
 
 extern char g_dir[];
 extern char vocifn[];
@@ -23,14 +29,14 @@ word(vocid_t idx)
 {
     if (idx == vocUNKNOWN)
         return "(undef)";
-    off_t offset = vc->index[idx];
+    offset_t offset = vc->index[idx];
     if (idx > vc->items) {
         if (offset == -1L)
             return "(undef string)";
         else
-            return (const char *) (vc->index[idx]);
+            return reinterpret_cast<const char *>(vc->index[idx]);
     } else
-        return (const char *) (vc->vocab + offset);
+        return static_cast<const char *>(vc->vocab + offset);
 }
 
 // Calculate the hash of a word
@@ -38,7 +44,7 @@ word(vocid_t idx)
  * I've played with various algorithms, and so far this one gives
  * best distribution over a number of test-data samples.
  * The guiding principle is of add, shift and fold; where folding
- * involves a prime number (hence VOCROWS must always be prime,
+ * involves a prime number (hence VOCAB_ROWS must always be prime,
  * and 13, 5783 and 1049 are fitting-selected primes).
  * '0xe0000000' is a detector for if the shift has moved a word
  * to the top of the long; the algorithm in libg++ uses 0xf...
@@ -49,7 +55,7 @@ word(vocid_t idx)
  * everything nicely. Not doing this tended to have a detrimental
  * effect.
  */
-u_long
+uint32_t
 hash_of(const char *p)
 {
     hash = 0;
@@ -60,11 +66,11 @@ hash_of(const char *p)
             c = '_';
         hash_len++;
         hash = (hash << 4) + (c - '!');
-        if (hash & (unsigned long) (0xe0000000))
+        if (hash & 0xe0000000UL)
             hash = ((hash ^ (hash_len * 13)) % 5783);
     }
-    hash += (hash_len * VOCROWS) % 1049;
-    return (hash = hash % VOCROWS);
+    hash += (hash_len * VOCAB_ROWS) % 1049;
+    return (hash = hash % VOCAB_ROWS);
 }
 
 // Determine if this word is in the vocab table
@@ -87,7 +93,7 @@ is_word(const char *p)
     // Lastly; check to see if it's in the extras area
     int idx = vc->items;
     for (i = 0; i < vc->extras; i++, idx++) {
-        if (vc->index[idx] != -1 && strcmp(p, (const char *) vc->index[idx]) == 0)
+        if (vc->index[idx] != -1 && strcmp(p, reinterpret_cast<string *>(vc->index[idx])) == 0)
             return idx;
     }
     return vocUNKNOWN;
@@ -101,10 +107,9 @@ read_in_vocab(void *membase)
     long vcrows;
     size_t mem;
     int fd;
-    int i;
 
     sprintf(tmp, "%sData/%s", g_dir, vocifn);
-    fd = _open(tmp, O_RDONLY);
+    fd = open(tmp, O_RDONLY);
     if (fd < 0) {
         printf(">> No Vocab Index: %s\n", tmp);
         exit(1);
@@ -112,44 +117,44 @@ read_in_vocab(void *membase)
 
     try {
         // Use the "number of rows" value as a version ID for files
-        int rv = _read(fd, (char *) &vcrows, sizeof(long));
+        int rv = read(fd, (char *) &vcrows, sizeof(vcrows));
         if (rv < 0)
             throw rv;
-        if (vcrows != VOCROWS) {
+        if (vcrows != VOCAB_ROWS) {
             fprintf(stderr, ">> Incompatible hashing mechanism in %s - aborted.\n", tmp);
             exit(1);
         }
         // Read the item count
-        rv = _read(fd, &vc->items, sizeof(counter_t));
+        rv = read(fd, &vc->items, sizeof(vc->items));
         if (rv < 0)
             throw rv;
         // Now the hash depth
-        rv = _read(fd, &vc->hash_depth, sizeof(counter_t));
+        rv = read(fd, &vc->hash_depth, sizeof(vc->hash_depth));
         if (rv < 0)
             throw rv;
         // The size of 'vocab'
-        rv = _read(fd, &vc->cur_vocab, sizeof(size_t));
+        rv = read(fd, &vc->cur_vocab, sizeof(vc->cur_vocab));
         if (rv < 0)
             throw rv;
         // Followed by the reverse index
-        rv = _read(fd, &vc->hash_size, sizeof(long) * VOCROWS);
+        rv = read(fd, &vc->hash_size, sizeof(long) * VOCAB_ROWS);
         if (rv < 0)
             throw rv;
         // Designate memory for reverse index, including player entries
         mem = vc->items * sizeof(long);
         mem += MAXU * sizeof(long);
         if (membase) {
-            vc->index = (off_t *) membase;
+            vc->index = (offset_t *) membase;
             membase = (void *) ((char *) membase + mem);
         } else {
-            vc->index = (off_t *) malloc(mem);
-            if (vc->index == NULL) {
+            vc->index = (offset_t *) malloc(mem);
+            if (vc->index == nullptr) {
                 printf(">> Out of memory for vocab reverse index\n");
                 exit(2);
             }
         }
-        bzero((char *) vc->index, mem);
-        rv = _read(fd, (char *) vc->index, sizeof(long) * vc->items);
+        memset((char *) vc->index, 0, mem);
+        rv = read(fd, (char *) vc->index, sizeof(long) * vc->items);
         if (rv < 0)
             throw rv;
         vc->extras = MAXU;
@@ -157,28 +162,28 @@ read_in_vocab(void *membase)
             vc->index[vc->items + extras] = -1;
 
         // Now provide for and read in each of the hash rows
-        for (i = 0; i < VOCROWS; i++) {
+        for (uint32_t i = 0; i < VOCAB_ROWS; i++) {
             mem = vc->hash_depth * sizeof(long);
             if (membase) {
-                vc->hash[i] = (long *) membase;
-                bzero(membase, mem);
+                vc->hash[i] = (vocid_t *) membase;
+                memset(membase, 0, mem);
                 membase = (void *) ((char *) membase + mem);
             } else {
-                vc->hash[i] = (long *) malloc(mem);
-                if (vc->hash[i] == NULL) {
+                vc->hash[i] = (vocid_t *) malloc(mem);
+                if (vc->hash[i] == nullptr) {
                     printf(">> Out of memory for vocab hash index\n");
                     exit(2);
                 }
             }
-            rv = _read(fd, vc->hash[i], vc->hash_depth * sizeof(long));
+            rv = read(fd, vc->hash[i], vc->hash_depth * sizeof(long));
             if (rv < 0)
                 throw rv;
         }
         // We're done with the index file
-        _close(fd);
+        close(fd);
 
         sprintf(tmp, "%sData/%s", g_dir, vocfn);
-        fd = _open(tmp, O_RDONLY);
+        fd = open(tmp, O_RDONLY);
         if (fd == -1) {
             printf(">> No Vocab Data: %s\n", tmp);
             exit(1);
@@ -188,19 +193,19 @@ read_in_vocab(void *membase)
             vc->vocab = (char *) membase;
             membase = (void *) (vc->vocab + vc->vocab_alloc);
         } else {
-            vc->vocab = (char *) malloc((u_long) vc->vocab_alloc);
-            if (vc->vocab == NULL) {
+            vc->vocab = (char *) malloc(vc->vocab_alloc);
+            if (vc->vocab == nullptr) {
                 printf(">> Out of memory for vocab data.\n");
                 exit(2);
             }
         }
-        bzero(vc->vocab, vc->vocab_alloc);
-        rv = _read(fd, vc->vocab, (u_long) vc->cur_vocab);
+        memset(vc->vocab, 0, vc->vocab_alloc);
+        rv = read(fd, vc->vocab, vc->cur_vocab);
         if (rv < 0)
             throw rv;
-        _close(fd);
+        close(fd);
     } catch (...) {
-        _close(fd);
+        close(fd);
         fprintf(stderr, ">> Read error on %s", tmp);
         exit(1);
     }

@@ -1,13 +1,11 @@
-#pragma once
-// This may look like C, but it's really -*- C++ -*-
+#ifndef SMUGL_SMUGL_IO_H
+#define SMUGL_SMUGL_IO_H
 
-// extern void tx(char *s, char c=0); // In smugl.h
-// extern void txprintf(char *s, ...); // In smugl.h
-// extern void txc(char c); // In smugl.h
+#include <cstdint>
 
 extern void prompt(long n);
 extern void fetch_input(char *s, int length);
-extern void telnet_opt(u_char, u_char);
+extern void telnet_opt(uint8_t, uint8_t);
 extern void ans(const char *s);
 extern void error(int pri, const char *msg, ...);
 extern void syslog_perror(const char *s);
@@ -29,4 +27,4 @@ union semun {
 };
 #endif
 
-// Bah -- end insert
+#endif  // SMUGL_SMUGL_IO_H

@@ -3,54 +3,18 @@
  * These are mostly here to make proto-ising easier :-(
  */
 
-#include "include/libprotos.hpp"
-#include "smuglcom/smuglcom.hpp"
-
-void
-error(const char *msg, ...)
-{  // Report a compiler error
-    va_list va;
-
-    if (needcr == true) {
-        printf("\n");
-        needcr = false;
-    }
-
-    printf("\007#E#> ");
-
-    va_start(va, msg);
-    vprintf(msg, va);
-    va_end(va);
-
-    err++;
-    if (err > 20)
-        errabort();
-}
-
-void
-warne(const char *msg, ...)
-{  // Report a compiler warning
-    va_list va;
-
-    if (!warn)
-        return;
-    if (needcr == true) {
-        printf("\n");
-        needcr = false;
-    }
-    printf(" W > ");
-    va_start(va, msg);
-    vprintf(msg, va);
-    va_end(va);
-}
+#include "errors.hpp"
+#include "fileio.hpp"
+#include "libprotos.hpp"
+#include "smuglcom.hpp"
 
 // "End of Section": Abort if errors were encountered, otherwise tidy up
 void
-errabort(void)
+errabort()
 {
     if (data) {
         free(data);
-        data = NULL;
+        data = nullptr;
     }
     if (err)
         quit("\n\n!! Aborting due to %ld errors !!\n\n", (char *) err, 0L, 0L, 0L, 0L);
@@ -59,26 +23,20 @@ errabort(void)
     needcr = false;
 }
 
+// Exit with a message
 void
-quit(const char *msg, ...)
-{  // Exit with a message
-    if (msg && *msg) {
-        va_list va;
-
-        va_start(va, msg);
-        vprintf(msg, va);
-        va_end(va);
-    }
+quit()
+{
     if (exi != 1) {
-        char *const p = datafile(advfn);
-        _unlink(p);
+        char *p = datafile(advfn);
+        unlink(p);
     }
     if (ifp)
         fclose(ifp);
-    ifp = NULL;
+    ifp = nullptr;
     if (msgfp)
         fclose(msgfp);
-    msgfp = NULL;
+    msgfp = nullptr;
     close_ofps();
     exit(0);
 }
