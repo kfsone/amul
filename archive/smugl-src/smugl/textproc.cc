@@ -132,7 +132,7 @@ esc(const char *code, char *to)
                 case 'h':  // @gh = him/her
                     return strcopy(to, (me->sex) ? "her" : "him");
                 case 'p':  // @gp = games player
-                    return (to + sprintf(to, "%ld", me->plays));
+                    return (to + sprintf(to, "%d", me->plays));
             }
             break;
 

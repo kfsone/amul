@@ -8,6 +8,7 @@
 #define PLAYER_H 1
 
 #include "cl_basicobj.hpp"
+#include "defines.hpp"
 
 class PLAYER : public BASIC_OBJ
 {

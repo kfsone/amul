@@ -10,15 +10,17 @@
 
 static const char rcsid[] = "$Id: vocab.cc,v 1.7 1997/05/22 02:21:44 oliver Exp $";
 
-#include "vocab.hpp"
+#include <cstring>
+#include <iostream>
+
 #include "fileio.hpp"
 #include "includes.hpp"
 #include "libprotos.hpp"
 #include "protos.hpp"
 #include "structs.hpp"
+#include "vocab.hpp"
 
-#include <cstring>
-#include <iostream>
+#include "cl_vocab.hpp"
 
 /* Statistical information */
 static long hash_allocs;      /* Number of times we alloc'd the hash */
@@ -53,14 +55,14 @@ new_word(const char *p, int need_new)
     /* First; make sure there's enough memory in this hash slot */
     if (VC.hash_size[hash] % VCHASH_GROW_SIZE == 0) {
         size_t req = (VC.hash_size[hash] + VCHASH_GROW_SIZE) * sizeof(long);
-        VC.hash[hash] = (long *) grow(VC.hash[hash], req, "Resizing Vocab Hash table");
+        VC.hash[hash] = (vocid_t *) grow(VC.hash[hash], req, "Resizing Vocab Hash table");
         hash_allocs++;
         hash_total_alloc += VCHASH_GROW_SIZE * sizeof(long);
     }
     /* Now the reverse index */
     if (VC.items % VCREV_GROW_SIZE == 0) {
         size_t req = (VC.items + VCREV_GROW_SIZE) * sizeof(long);
-        VC.index = (off_t *) grow(VC.index, req, "Resizing Vocab Index");
+        VC.index = (offset_t *) grow(VC.index, req, "Resizing Vocab Index");
         idx_allocs++;
     }
     /* Next, ensure there's memory in the vocab space */
@@ -84,13 +86,12 @@ new_word(const char *p, int need_new)
 void
 hash_stats(void)
 { /* Display the hash-table statistics */
-    int i, j;
     int zeros[2] = { 0, 0 };
     long lowest = VC.hash_depth;
     int at_low = 0, at_high = 0;
     long avg = 0;
     long avg_div = 0;
-    for (i = 0; i < VOCROWS; i++) {
+    for (uint32_t i = 0; i < VOCAB_ROWS; i++) {
         if (VC.hash_size[i] == 0)
             zeros[i % 2]++;
         if (VC.hash_size[i] < lowest) {
@@ -106,7 +107,7 @@ hash_stats(void)
             if (VC.hash_size[i] == VC.hash_depth) {
                 at_high++;
                 printf("clumpers: ");
-                for (j = 0; j < VC.hash_depth; j++) {
+                for (counter_t j = 0; j < VC.hash_depth; j++) {
                     printf("%s, ", word(VC.hash[i][j]));
                 }
                 printf("\n");
@@ -118,13 +119,14 @@ hash_stats(void)
     std::cout << " Vocab string space: " << VC.vocab_alloc << "(" << VC.cur_vocab << "), "
               << "Allocs: " << str_allocs << "\n";
     std::cout << " Reverse index allocs: " << idx_allocs << "\n";
-    std::cout << " Hash rows: " << VOCROWS << ", Mem: " << hash_total_alloc
-              << ", Allocs: " << hash_allocs << ", Use: " << lowest << "(" << at_low << ")"
+    std::cout << " Hash rows: " << static_cast<uint32_t>(VOCAB_ROWS)
+              << ", Mem: " << hash_total_alloc << ", Allocs: " << hash_allocs << ", Use: " << lowest
+              << "(" << at_low << ")"
               << " - " << VC.hash_depth << "(" << at_high << "), Avg: " << avg / avg_div << "\n";
     std::cout << " Zeros = Even:" << zeros[0] << ", Odd:" << zeros[1] << "\n";
     std::cout << " Entries in the hash: " << VC.items << "\n";
-    for (i = 1; i <= VC.hash_depth; i++) {
-        for (j = 0; j < VOCROWS; j++) {
+    for (counter_t i = 1; i <= VC.hash_depth; i++) {
+        for (uint32_t j = 0; j < VOCAB_ROWS; j++) {
             std::cout << (VC.hash_size[j] >= 1 ? '#' : '.');
         }
         std::cout << "\n";
@@ -142,17 +144,17 @@ save_vocab_index(void)
     if (fd == -1)
         Err("write", datafile(vocifn));
     /* First write the number of rows, number of indexes and hash depth */
-    i = VOCROWS;
+    i = VOCAB_ROWS;
     write(fd, (char *) &i, sizeof(long));
     write(fd, (char *) &VC.items, sizeof(long));
     write(fd, (char *) &VC.hash_depth, sizeof(long));
     /* Record how large 'vocab' is */
     write(fd, (char *) &VC.cur_vocab, sizeof(long));
     /* Write out the hash row sizes */
-    write(fd, (char *) &VC.hash_size, sizeof(long) * VOCROWS);
+    write(fd, (char *) &VC.hash_size, sizeof(long) * VOCAB_ROWS);
     /* Write out the reverse-lookup index */
     write(fd, (char *) VC.index, sizeof(long) * VC.items);
-    for (i = 0; i < VOCROWS; i++) {
+    for (i = 0; i < VOCAB_ROWS; i++) {
         long zero = 0;
         write(fd, VC.hash[i], sizeof(long) * VC.hash_size[i]);
         /* Pad the line out to 'hash_depth' to allow for growth */

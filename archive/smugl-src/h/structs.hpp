@@ -8,24 +8,11 @@
 #include "defines.hpp"
 #include "typedefs.hpp"
 
-/* The container object: Indicates which objects are inside
-** which other objects. Each object has an array of CONTAINERs
-** describing all of the objects locations.
-** All instances of an object are stored consecutively
-*/
-struct CONTAINER {
-    basic_obj boSelf;       // The object being 'contained'
-    basic_obj boContainer;  // The object 'self' is inside
-    // The linked list lists contents of rooms; all locations of
-    // an individual object are stored consecutively
-    container_t conNext;  // } Neighbours in a
-    container_t conPrev;  // } linked list
-};
-
 #include "cl_basicobj.hpp"
 #include "cl_object.hpp"
 #include "cl_player.hpp"
 #include "cl_room.hpp"
+#include "container.hpp"
 
 struct OBJ_STATE {     // State description
     long weight;       // In grammes
@@ -77,8 +64,8 @@ struct VERB {    // Verb def struct
 struct SLOTTAB {        // Slot table def
     char wtype[2];      // Word type expected
     long slot[2];       // List of slots
-    long adj[2];        // List of adjectives
-    u_long ents;        // No. of entries
+    adjid_t adj[2];     // List of adjectives
+    uint16_t ents;      // No. of entries
     struct VBTAB *ptr;  // Points to Verb Table
 };
 
@@ -130,18 +117,6 @@ struct ALIAS  // For synonyms
 {
     vocid_t given;  // The given name
     vocid_t means;  // The real word
-};
-
-struct VOCAB {
-    counter_t items;          // Number of items in table
-    off_t *index;             // Reverse lookup index (offsets in vocab)
-    long hash_size[VOCROWS];  // Size of (items in) each hash-slot
-    vocid_t *hash[VOCROWS];   // Forward hash
-    char *vocab;              // Vocab text
-    counter_t hash_depth;     // Greatest number of entries in a hash slot
-    size_t cur_vocab;         // Vocab string space (bytes) in use
-    size_t vocab_alloc;       // Vocab string space (bytes) allocated
-    counter_t extras;         // Extra vocab entries for players, etc
 };
 
 #ifdef AMAN

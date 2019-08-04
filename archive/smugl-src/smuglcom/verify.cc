@@ -11,10 +11,11 @@ static const char rcsid[] = "$Id: verify.cc,v 1.11 1999/06/08 15:36:54 oliver Ex
 #define SMUGLCOM 1
 #define PORTS 1
 
+#include <cstring>
+
+#include "cl_vocab.hpp"
 #include "smuglcom.hpp"
 #include "virtuals.hpp"
-
-#include <cstring>
 
 FILE *fp;
 char *mem;
@@ -149,7 +150,7 @@ main(int argc, char *argv[])
 static void
 describe_std_flags(flag_t std_flags)
 {
-    printf(" std_flags: %08lx: ", std_flags);
+    printf(" std_flags: %08x: ", std_flags);
     if (std_flags == 0) {
         printf("<none>\n");
         return;
@@ -168,7 +169,7 @@ describe_std_flags(flag_t std_flags)
 void
 Lcont(void)
 {
-    printf("Total of %ld containers\n", ncontainers);
+    printf("Total of %d containers\n", ncontainers);
     for (int i = 0; i < ncontainers; i++) {
         printf("CONTAINER#%d: %s inside %s\n",
                i,
@@ -185,18 +186,18 @@ Lrooms(void)
         printf("ROOM %d: %s\n", i, word(rmp->id));
         printf(" ttlines: %d\n", rmp->ttlines);
         describe_std_flags(rmp->std_flags);
-        printf(" flags:   %04lx ", rmp->flags);
+        printf(" flags:   %04x ", rmp->flags);
         for (j = 0; rflag[j]; j++) {
             if (rmp->flags & (1 << j))
                 printf("%02x:%s ", 1 << j, rflag[j]);
         }
         printf("\n");
-        printf(" s_descrip: %ld, l_descrip: %ld\n", rmp->s_descrip, rmp->l_descrip);
+        printf(" s_descrip: %d, l_descrip: %d\n", rmp->s_descrip, rmp->l_descrip);
         printf(" tabptr:    %ld\n", rmp->tabptr);
-        printf(" dmove:     %ld\n", rmp->dmove);
+        printf(" dmove:     %d\n", rmp->dmove);
         printf(" Short:     %s\n", umsg(rmp->s_descrip));
         printf(" Long :     %s\n", umsg(rmp->l_descrip));
-        printf(" Contents:  %ld", rmp->contents);
+        printf(" Contents:  %d", rmp->contents);
         if (rmp->contents > 0) {
             j = rmp->conTent;
             for (j = rmp->conTent; j != -1; j = containers[j].conNext) {
@@ -217,7 +218,7 @@ Lranks(void)
 
     printf("Calling 'read_in'\n");
     ranks = read_in(ranksfn, sizeof(RANKS));
-    printf("ranks = %ld\n", ranks);
+    printf("ranks = %d\n", ranks);
     ranktab = (RANKS *) mem;
     for (i = 0; i < ranks; i++, ranktab++) {
         printf("RANK %d: [%s][%s]\n", i, ranktab->male, ranktab->female);
@@ -275,8 +276,8 @@ Lmobs(void)
         printf(" wait = %d\n", mobp->wait);
         printf(" fear = %d\n", mobp->fear);
         printf(" attack = %d\n", mobp->attack);
-        printf(" flags = %ld\n", mobp->flags);
-        printf(" dmove = %ld\n", mobp->dmove);
+        printf(" flags = %d\n", mobp->flags);
+        printf(" dmove = %d\n", mobp->dmove);
         printf(" hitpower = %d\n", mobp->hitpower);
         printf(" arr = %s\n", umsg(mobp->arr));
         printf(" dep = %s\n", umsg(mobp->dep));
@@ -292,17 +293,16 @@ Lmobs(void)
 void
 Lvocab(void)
 {
-    long i, j, errs = 0;
     printf("By 'index':\n");
-    for (i = 0; i < VC.items; i++) {
+    for (counter_t i = 0; i < VC.items; i++) {
         printf("%s, ", word(i));
     }
     printf("\n");
     printf("By 'hash':\n");
-    for (i = 0; i < VOCROWS; i++) {
-        printf("%ld:[", i);
+    for (uint32_t i = 0; i < VOCAB_ROWS; i++) {
+        printf("%d:[", i);
         fflush(stdout);
-        for (j = 0; j < VC.hash_size[i]; j++) {
+        for (counter_t j = 0; j < VC.hash_size[i]; j++) {
             printf("%s ", word(VC.hash[i][j]));
             fflush(stdout);
         }
@@ -313,10 +313,11 @@ Lvocab(void)
     /* Go through all the entries in the reverse index,
      * look the word up via the hash, and see if we get back
      * where we started */
-    for (i = 0, errs = 0; i < VC.items; i++) {
-        j = is_word(word(i));
+    long errs = 0;
+    for (counter_t i = 0; i < VC.items; i++) {
+        vocid_t j = is_word(word(i));
         if (j != i) {
-            printf(" * %ld(%s) returns %ld(%s)\n", i, word(i), j, word(j));
+            printf(" * %d(%s) returns %d(%s)\n", i, word(i), j, word(j));
             errs++;
         }
     }

@@ -71,11 +71,11 @@ extern int heavyDebug;
 extern void txprintf(const char *, ...);
 extern void tx(const char *s, char c = 0);
 extern void txc(char);
-extern void announce(long to, const char *msg);
-extern void announce(long to, long msg);
-extern void announce_into(long to, const char *msg);
+extern void announce(basic_obj to, const char *msg);
+extern void announce(basic_obj to, msgno_t msg);
+extern void announce_into(basic_obj to, const char *msg);
 static inline void
-announce_into(long to, long msg)
+announce_into(basic_obj to, msgno_t msg)
 {
     announce_into(to, message(msg));
 }

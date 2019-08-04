@@ -133,7 +133,7 @@ add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags)
     ptr->std_flags = flags;
 
     nbobs++;
-    printf("Added %s basic obj#%ld:", word(ptr->id), nbobs);
+    printf("Added %s basic obj#%d:", word(ptr->id), nbobs);
     printf("\n");
 
     return nbobs;
