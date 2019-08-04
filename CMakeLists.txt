@@ -15,8 +15,12 @@ SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 OPTION(AMUL_CLANG_TIDY "Use clang-tidy on AMUL source code" ON)
+OPTION(AMUL_CLANG_TIDY_FIX "Use -fix-errors with clang-tidy" OFF)
 IF (AMUL_CLANG_TIDY)
-    SET(CMAKE_CXX_CLANG_TIDY clang-tidy --checks= --format-style=file -p=${CMAKE_BINARY_DIR})
+    IF (AMUL_CLANG_TIDY_FIX)
+        SET(CLANG_TIDY_FIX_ERRORS -fix-errors)
+    ENDIF ()
+    SET(CMAKE_CXX_CLANG_TIDY clang-tidy --checks= --format-style=file ${CLANG_TIDY_FIX_ERRORS} -p=${CMAKE_BINARY_DIR})
 ENDIF()
 
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}")
