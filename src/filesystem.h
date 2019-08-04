@@ -4,7 +4,7 @@
 #include <h/amul.enum.h>
 #include <h/amul.type.h>
 
-#include <string.h>
+#include <cstring>
 
 extern char gameDir[MAX_PATH_LENGTH];
 

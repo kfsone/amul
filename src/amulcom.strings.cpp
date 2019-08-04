@@ -155,13 +155,14 @@ RegisterTextString(
 error_t
 LookupTextString(const char *label, stringid_t *idp)
 {
-    REQUIRE(label && idp);
+    REQUIRE(label);
     std::string labelId { label };
     StringLower(labelId);
 	auto it = stringMap.find(labelId);
 	if (it == stringMap.end())
 		return ENOENT;
-	*idp = it->second;
+    if (idp)
+	    *idp = it->second;
 	return 0;
 }
 
