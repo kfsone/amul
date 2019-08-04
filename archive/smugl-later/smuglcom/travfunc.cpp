@@ -4,10 +4,14 @@
  *  to handling both the language and travel code]
  */
 
-#include "include/actuals.hpp"
-#include "smuglcom/smuglcom.hpp"
+#include <cctype>
+#include <cstring>
 
-#define GROW_SIZE 1024
+#include "actuals.hpp"
+#include "errors.hpp"
+#include "smuglcom.hpp"
+
+constexpr size_t GROW_SIZE = 1024;
 
 arg_t *argptr;        // Where to place next c/a argument
 arg_t *argtab;        // Table of arguments
@@ -19,7 +23,7 @@ static int antype(char *);
 static int isnounh(char *);
 static int rdmode(char);
 static int spell(char *);
-static int stat(char *);
+static int isstat(char *);
 static long bvmode(char);
 static int onoff(char *);
 static int randgo(char *);
@@ -46,12 +50,13 @@ chkp(char *p, arg_t type, int c, int z)
               word((proc == 1) ? verb.id : bobs[cur_room]->id),
               (z == 1) ? "condition" : "action",
               (z == 1) ? cond[c].name : action[c].name);
-        return NULL;
+        return nullptr;
     }
 
     // Extract this value and null-terminate it for easy manipulation
     if (*p != '\"' && *p != '\'')
-        while (*p && *p != 32)  // Non-quoted expression
+        // Non-quoted expression
+        while (*p && *p != ' ')
             p++;
     else {            // Quoted expression
         qc = *(p++);  // Search for same CLOSE quote
@@ -74,7 +79,7 @@ chkp(char *p, arg_t type, int c, int z)
                   p2,
                   (z == 1) ? "condition" : "action",
                   (z == 1) ? cond[c].name : action[c].name);
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -97,7 +102,7 @@ chkp(char *p, arg_t type, int c, int z)
                 value = bvmode(p2char);
                 break;
             case -4:  // Player-statistic type
-                value = stat(p2);
+                value = isstat(p2);
                 break;
             case -3:  // Spell type
                 value = spell(p2);
@@ -149,7 +154,7 @@ chkp(char *p, arg_t type, int c, int z)
                 // Make sure it's a noun AND it has the mobile flag
                 if ((value = is_bob(p2, WNOUN)) == -1)
                     break;
-                if (((OBJ *) bobs[value])->mobile == -1)
+                if (static_cast<OBJ *>(bobs[value])->mobile == -1)
                     value = -1;
                 break;
             default:
@@ -162,7 +167,7 @@ chkp(char *p, arg_t type, int c, int z)
                           word((proc == 1) ? verb.id : bobs[cur_room]->id),
                           type,
                           p2);
-                    return NULL;
+                    return nullptr;
                 }
         }
 
@@ -176,7 +181,7 @@ chkp(char *p, arg_t type, int c, int z)
                   p2,
                   (z == 1) ? "condition" : "action",
                   (z == 1) ? cond[c].name : action[c].name);
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -184,17 +189,18 @@ chkp(char *p, arg_t type, int c, int z)
     if (!z && c == ATREATAS && value == (IWORD + IVERB)) {
         error("%s: Action 'treatas verb' is illegal.\n",
               word((proc == 1) ? (verb.id) : bobs[cur_room]->id));
-        return NULL;
+        return nullptr;
     }
 
     // Grow the argument-list memory area as neccesary
     if (arg_alloc % GROW_SIZE == 0) {
         long new_alloc = arg_alloc + GROW_SIZE;
-        argtab = (arg_t *) grow(argtab, new_alloc * sizeof(long), "Sizing Argument Table");
+        argtab = static_cast<arg_t *>(
+                grow(argtab, new_alloc * sizeof(long), "Sizing Argument Table"));
         argptr = argtab + arg_alloc;
     }
     // Now store the argument into memory
-    *(argptr++) = static_cast<arg_t>(value);
+    *(argptr++) = value;
     arg_alloc++;
     return p;
 }
@@ -204,10 +210,9 @@ char *
 chkaparms(char *p, int c)
 {
     int i;
-
     for (i = 0; i < action[c].argc; i++) {
         if (!(p = chkp(p, action[c].argv[i], c, 0)))
-            return NULL;
+            return nullptr;
     }
     return p;
 }
@@ -217,14 +222,15 @@ char *
 chkcparms(char *p, int c)
 {
     int i;
-
     for (i = 0; i < cond[c].argc; i++)
         if (!(p = chkp(p, cond[c].argv[i], c, 1)))
-            return NULL;
+            return nullptr;
     return p;
 }
 
-static long chknum(const char *s)  // Check a numeric arguments
+static long
+chknum(const char *s)
+// Check a numeric arguments
 {
     long n;
 
@@ -242,11 +248,11 @@ static long chknum(const char *s)  // Check a numeric arguments
         return -1000001;
     }
     if (*s == '-')
-        return (long) -n;
+        return -n;
     if (*s == '>')
-        return (long) (n | LESS);
+        return (n | LESS);
     if (*s == '<')
-        return (long) (n | MORE);
+        return (n | MORE);
     return n;
 }
 
@@ -254,7 +260,6 @@ char *
 optis(char *s)
 {  // Remove optional strings before condition
     char *old_s = s;
-
     s = precon(s);
     s = skiplead("of ", s);
     s = skiplead("are ", s);
@@ -277,7 +282,6 @@ char *
 precon(char *s)
 {
     char *old_s = s;
-
     s = skiplead("the ", skiplead("if ", s));
     s = skiplead("i ", s);
     s = skiplead("as ", s);
@@ -292,7 +296,6 @@ char *
 preact(char *s)
 {
     char *old_s = s;
-
     s = skiplead("as", skiplead("to ", skiplead("go ", skiplead("goto ", skiplead("then ", s)))));
     if (s != old_s)
         s = preact(s);
@@ -336,7 +339,6 @@ antype(char *s)
 }
 
 // Look for a noun, prefering one that should be in this room
-
 // (applies to travel table only)
 static int
 isnounh(char *s)
@@ -351,9 +353,7 @@ isnounh(char *s)
 
     int last = -1;  // Closest match
     int i = 0;
-    OBJ *ptr = obtab;
-
-    for (; i < nouns && ptr; i++, ptr = (OBJ *) ptr->next) {
+    for (OBJ *ptr = obtab; i < nouns && ptr; i++, ptr = static_cast<OBJ *>(ptr->next)) {
         if (ptr->id != id)
             continue;
         if (is_inside(ptr->bob, cur_room))
@@ -401,7 +401,7 @@ spell(char *s)
 
 // Player statistics
 static int
-stat(char *s)
+isstat(char *s)
 {
     if (strcmp(s, "sctg") == 0L)
         return STSCTG;

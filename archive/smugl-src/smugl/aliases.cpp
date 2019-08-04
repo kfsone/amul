@@ -1,7 +1,5 @@
 // Definition of alias (synonym) class and functions
 
-#define ALIASESS_C 1
-
 #include "aliases.hpp"
 #include "smugl.hpp"
 #include "structs.hpp"

@@ -8,10 +8,10 @@
 #include "includes.hpp"
 #include "typedefs.hpp"
 
-char dir[130];      // spc for work dir path
-char block[1024];   // 1k block of spare txt
-char adname[65];    // Adventure name
-char logname[130];  // Name of log file
+char g_dir[130];      // spc for work dir path
+char g_block[1024];   // 1k block of spare txt
+char g_adname[65];    // Adventure name
+char g_logname[130];  // Name of log file
 
 const char *std_flag[] = {  // basic object std_flags
     "inplay", "scenery", "counter", "death",     "light",  "shines",   "flamable", "lit",

@@ -47,13 +47,18 @@
  *
  */
 
-#include "smuglcom/smuglcom.hpp"
+#include "smuglcom.hpp"
 
-#define fQ -1  // Handle quotes
-#define fC -2  // Handle a comma
-#define fM -3  // Handle a comment
-#define fS -4  // Handle a line extension (usually 'slash')
-#define fR -5  // Handle \r
+#define fQ (-1)
+// Handle quotes
+#define fC (-2)
+// Handle a comma
+#define fM (-3)
+// Handle a comment
+#define fS (-4)
+// Handle a line extension (usually 'slash')
+#define fR (-5)
+// Handle \r
 
 /* List of replacement characters. For each possible character,
 ** the entry in this table specifies the replacement character.
@@ -157,7 +162,7 @@ static const char repl[256] = {
     'r',
     's',
     // 84--85--86--87--88--89--90--91--92--93--94--95--96--97
-    // T...U...V...W...X...Y...Z...[...\       
+    // T...U...V...W...X...Y...Z...[...\...
     't',
     'u',
     'v',
@@ -174,13 +179,13 @@ static const char repl[256] = {
 ** the compiler has to do when looking at text
 */
 void
-clean_up(char* p)
+clean_up(char *p)
 {
     if (!*p)
         return;
 
-    const char* start = p;
-    char* s = p;
+    const char *start = p;
+    char *s = p;
     while (*p) {
         char c = (*s = *(p++));
         if (c > 93) {

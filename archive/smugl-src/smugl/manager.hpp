@@ -1,8 +1,10 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: manager.hpp,v 1.3 1999/06/09 10:25:12 oliver Exp $
+#ifndef SMUL_SMUGL_MANAGER_H
+#define SMUL_SMUGL_MANAGER_H
 // Manager routines
-extern long memory_required(void);
-extern void run_the_game(void);
+long memory_required();
+void run_the_game();
 
 extern struct DATA *data;
 extern long roomCount, nounCount;
+
+#endif  // SMUL_SMUGL_MANAGER_H

@@ -1,23 +1,19 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: lang.hpp,v 1.5 1997/05/22 02:21:24 oliver Exp $
-// language (verbs) class definitions and function protos
-
-#ifndef LANG_H
-#define LANG_H 1
+#ifndef SMUGL_SMUGL_LANG_H
+#define SMUGL_SMUGL_LANG_H
 
 #include "rooms.hpp"
 
 class Verb : public VERB
 {
   public:
-    int describe(void);  // Not really apropriate
+    bool describe();  // Not really apropriate
 };
 
 class VerbIdx
 {
   public:
-    static class Verb *locate(char *s);
-    static class Verb *locate(long id);
+    static Verb *locate(char *s);
+    static Verb *locate(vocid_t id);
 };
 
-#endif  // LANG_H
+#endif  // SMUGL_SMUGL_LANG_H

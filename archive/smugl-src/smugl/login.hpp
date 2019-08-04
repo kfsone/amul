@@ -1,4 +1,6 @@
-// defines for the login.C program
-// $Id: login.hpp,v 1.3 1997/05/22 02:21:25 oliver Exp $
+#ifndef SMUGL_SMUGL_LOGIN_H
+#define SMUGL_SMUGL_LOGIN_H
 
-extern void login(void);
+void login();
+
+#endif  // SMUGL_SMUGL_LOGIN_H

@@ -1,6 +1,7 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: parser.hpp,v 1.4 1999/06/11 14:26:45 oliver Exp $
-// Protos and definitions for the parser code
+#ifndef SMUGL_SMUGL_PARSER_H
+#define SMUGL_SMUGL_PARSER_H
+
+#include "typedefs.hpp"
 
 // Defines
 #define MAX_PHRASE_SIZE 255  // Maximum input size
@@ -10,9 +11,6 @@
 
 enum tokType { tokUNK = -1, tokWORD, tokSTRING };
 enum slotResult { slotFailed = -1, slotIgnore, slotProcessed };
-
-extern bool do_condition(struct VBTAB *vt, bool lastCond);
-extern slotResult do_action(struct VBTAB *vt, bool lastCond);
 
 struct TOKEN {
     tokType type;
@@ -31,7 +29,9 @@ extern TOKEN token[MAX_TOK];  // Details on the tokens
 extern int tokens;            // Number of tokens in current phrase
 
 // Functions
-extern void sanitise_input(void);
+extern void sanitise_input();
 extern void parse(char *s);
 extern int tokenise_phrase(char *s);
 extern slotResult parse_phrase();
+
+#endif  // SMUGL_SMUGL_PARSER_H

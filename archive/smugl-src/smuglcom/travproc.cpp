@@ -1,5 +1,5 @@
 /*
- * travproc.cpp -- TRAVEL.txt processing
+ * travproc.cpp -- TRAVEL processing
  */
 
 #include <cassert>
@@ -8,7 +8,9 @@
 #include "errors.hpp"
 #include "smuglcom.hpp"
 
-extern long arg_alloc, *argtab, *argptr;
+extern counter_t arg_alloc;
+extern arg_t *argtab;
+extern arg_t *argptr;
 
 void
 trav_proc()

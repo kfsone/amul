@@ -57,7 +57,7 @@ mob_proc1()
             continue;
         mobchars++;
         s = getword(s);
-        mob.id = new_word(Word, TRUE);
+        mob.id = new_word(Word, true);
         mob.dmove = -1;
         mob.dead = 1;
         do {
@@ -138,7 +138,7 @@ mobpget(const char *s, char *p, msgno_t *n)
     p = getword(skiplead(s, p));
     if (!*Word) {
         mobmis(s);
-        return FALSE;
+        return nullptr;
     }
     *n = atoi(Word);
     return p;
@@ -163,10 +163,9 @@ getmobmsg(char *p, const char *s, msgno_t *n)
 
     q = skiplead(s, q);
     if (*q == '\'' || *q == '\"') {
-        char *copy;
-        strcpy(block, q);
-        copy = block + 1;
-        while (*copy && *copy != block[0])
+        strcpy(g_block, q);
+        char *copy = g_block + 1;
+        while (*copy && *copy != g_block[0])
             copy++;
         *(copy++) = 0;
     }

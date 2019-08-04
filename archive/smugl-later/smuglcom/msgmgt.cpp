@@ -2,8 +2,12 @@
  * msgmgt -- manage the message table index
  */
 
-#include "include/libprotos.hpp"
-#include "smuglcom/smuglcom.hpp"
+#include <cctype>
+#include <cstring>
+
+#include "errors.hpp"
+#include "libprotos.hpp"
+#include "smuglcom.hpp"
 
 #define GROW_SIZE 256  // Size to grow index by
 
@@ -21,18 +25,18 @@ struct MSGID *msgidp;    // Current position in the index
 
 /* add the message to the index. if 'id' is set, this will be
  * considered a 'umsg'
- *  id   = NULL or id of a 'umsg'
+ *  id   = nullptr or id of a 'umsg'
  *  pos  = message offset within the umsg file.
  * returns id of the message added
  */
-long
+msgno_t
 add_msg(const char *id)
 {
     size_t new_alloc;
 
     if (!msgfp) {  // Haven't opened message file yet
         msgfp = fopen(datafile(umsgfn), "wb");
-        if (msgfp == NULL)
+        if (msgfp == nullptr)
             Err("writ", datafile(umsgfn));
     }
 
@@ -50,7 +54,7 @@ add_msg(const char *id)
             msgidp = msgidtab + id_alloc;
         }
         msgidp->msg = i_alloc;
-        msgidp->id = _strdup(id);
+        msgidp->id = strdup(id);
 
         id_alloc++;
         msgidp++;
@@ -62,7 +66,7 @@ add_msg(const char *id)
 
 // Save the current message index table
 void
-save_messages(void)
+save_messages()
 {
     FILE *fp;
 
@@ -81,10 +85,10 @@ save_messages(void)
 **  -1 for no
 **  0+ for message id
 */
-long
+msgno_t
 ismsgid(const char *s)
 {
-    struct MSGID *tmpidp;
+    MSGID *tmpidp;
 
     // Is it a "no message" id?
     if (!strncmp("none", s, 4) && (!*(s + 4) || !isalnum(*(s + 4))))
@@ -92,9 +96,7 @@ ismsgid(const char *s)
 
     // Is it a system message?
     if (*s == '$') {
-        int i;
-
-        i = atoi(s + 1);
+        int i = atoi(s + 1);
         if (i < 1 || i > NSMSGS) {
             error("Invalid SysMsg ID '%s'.\n", s);
             return -1;

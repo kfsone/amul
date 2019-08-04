@@ -11,8 +11,8 @@
 #include "misc.hpp"
 #include "smugl.hpp"
 
-long
-filesize(const char *filename)
+size_t
+filesize(const char *const filename)
 // Return size of an (unopened) file
 {
     struct stat sbuf;
@@ -26,15 +26,16 @@ filesize(const char *filename)
 }
 
 fileInfo *
-locate_file(const char *file, int it_matters)
+locate_file(const char *file, bool it_matters)
 {
     static fileInfo fi;
+
     if (strcmp(rightstr(file, 4), ".CMP") == 0)
         fi.name = datafile(file);
     else
         fi.name = textfile(file);
     fi.size = filesize(fi.name);
-    if (fi.size == -1 && (it_matters | ENOENT)) {
+    if (fi.size == -1 && (it_matters || ENOENT)) {
         error(LOG_ERR, "can't access file '%s': %s", file, strerror(errno));
         exit(1);
     }
@@ -46,7 +47,7 @@ locate_file(const char *file, int it_matters)
 //  if base is NULL, then we will malloc you some memory
 //  it_matters determines whether failure is fatal or not
 long
-read_file(const char *file, void *&base, int it_matters)
+read_file(const char *file, void *&base, bool it_matters)
 {
     fileInfo *fi;
     int fd;
@@ -62,7 +63,7 @@ read_file(const char *file, void *&base, int it_matters)
     }
     if (base == nullptr) {
         base = malloc(fi->size + 2);
-        bzero(base, fi->size + 2);
+        memset(base, 0, fi->size + 2);
     }
     read(fd, base, fi->size);
     close(fd);
@@ -85,9 +86,7 @@ ShowFile(const char *file)
 // Display a file
 {
     void *text = nullptr;
-    long size;
-
-    size = read_file(file, text, FALSE);
+    size_t size = read_file(file, text, false);
     if (size == -1) {
         txprintf(">> Unable to open file '%s'\n", file);
         syslog(LOG_INFO, "ShowFile: can't open file %s", file);

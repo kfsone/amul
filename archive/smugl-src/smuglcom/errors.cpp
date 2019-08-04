@@ -20,7 +20,7 @@ errabort()
         quit("\n\n!! Aborting due to %ld errors !!\n\n", (char *) err, 0L, 0L, 0L, 0L);
     close_ofps();
     save_messages();
-    needcr = FALSE;
+    needcr = false;
 }
 
 // Exit with a message

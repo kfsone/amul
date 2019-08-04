@@ -1,7 +1,8 @@
-// This may look like C, but it's actually -*- C++ -*-
-// $Id: client.hpp,v 1.2 1997/04/25 01:13:27 oliver Exp $
+#ifndef SMUGL_SMUGL_CLIENT_H
+#define SMUGL_SMUGL_CLIENT_H
 // Client specific classes, protos, etc
 
-// Function protos
-void client_initialise(void);
-void client_terminate(void);
+void client_initialise();
+void client_terminate();
+
+#endif  // SMUGL_SMUGL_CLIENT_H

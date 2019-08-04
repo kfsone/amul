@@ -1,6 +1,6 @@
 // Definition of player classes and functions
 
-#define PLAYERS_C 1
+#include <cassert>
 
 #include "consts.hpp"
 #include "fileio.hpp"
@@ -15,11 +15,11 @@ class PlayerIdx PlayerIdx;  // Player-index functions
 class Player *last_him;
 class Player *last_her;
 
-int
+bool
 Player::describe()
 {  // Describe this player
     txprintf("%s is here. ", name());
-    return TRUE;
+    return true;
 }
 
 basic_obj
@@ -84,7 +84,7 @@ Player::remove_name()
 
 // Initialise the 'bob' fields
 void
-Player::init_bob(basic_obj bobno)
+Player::init_bob(basic_obj bobno /*=-1*/)
 {
     id = -1;  // No ID at present
     if (bobno != -1)
@@ -128,7 +128,7 @@ Player::reset()
     *passwd = 0;      // No password
     state = LOGGING;  // Flag that we're logging in
     plays = 0;        // Never played
-    bitmask = 1 << slot;
+    bitmask = 1 << g_slot;
     score = 0;
     tasks = 0;
     set_rank(0);
@@ -154,13 +154,15 @@ Player::reset()
 }
 
 // Move the player from here to another room
-int
-Player::go_to(basic_obj dest_rm, const char *dep_msg, const char *arr_msg)
+bool
+Player::go_to(basic_obj dest_rm, const char *dep_msg /*=nullptr*/, const char *arr_msg /*=nullptr*/)
 {
+    assert(dest_rm >= 0 && dest_rm < nbobs);
+
     Room *dest = (Room *) bobs[dest_rm];
-    if ((dest->flags & SMALL) && PlayerIdx::locate_in(dest_rm)) {
+    if (dest == nullptr || ((dest->flags & SMALL) && PlayerIdx::locate_in(dest_rm))) {
         tx(message(NOROOM), '\n');
-        return FALSE;
+        return false;
     }
 
     // Set up the arrive/depart messages
@@ -181,7 +183,7 @@ Player::go_to(basic_obj dest_rm, const char *dep_msg, const char *arr_msg)
     sem_unlock(sem_MOTION);
     dest->describe();
     //            ipc_check();
-    return TRUE;
+    return true;
 }
 
 ////////////////////////////// PlayerIdx functions
@@ -205,7 +207,7 @@ PlayerIdx::locate(char *s)
 
 // Iterate through players in a room
 class Player *
-PlayerIdx::locate_in(basic_obj cont, class Player *from, long want_id)
+PlayerIdx::locate_in(basic_obj cont, class Player *from /*=nullptr*/, long want_id /*=-1*/)
 {
     class Player *curnt = from;
 
@@ -223,7 +225,7 @@ PlayerIdx::locate_in(basic_obj cont, class Player *from, long want_id)
 
 // Iterate through players in a room, but exclude self
 class Player *
-PlayerIdx::locate_others_in(basic_obj in, class Player *from, long wantid)
+PlayerIdx::locate_others_in(basic_obj in, class Player *from /*=nullptr*/, long wantid /*=-1*/)
 {
     Player *player = locate_in(in, from, wantid);
     if (player == me)

@@ -2,15 +2,20 @@
  * filebits -- various file manipulation functions
  */
 
-#include "include/fperror.hpp"
-#include "include/libprotos.hpp"
-#include "smuglcom/smuglcom.hpp"
+#include <cctype>
+#include <cstring>
 
-static char *func_get(off_t off);
-static size_t filesize(void);
+#include "errors.hpp"
+#include "fileio.hpp"
+#include "fperror.hpp"
+#include "libprotos.hpp"
+#include "smuglcom.hpp"
+
+static char *func_get(offset_t off);
+static size_t filesize();
 
 void
-close_ofps(void)
+close_ofps()
 {  // Close the common file handles
     if (ofp1)
         fclose(ofp1);
@@ -24,7 +29,7 @@ close_ofps(void)
         fclose(ofp5);
     if (afp)
         fclose(afp);
-    ofp1 = ofp2 = ofp3 = ofp4 = ofp5 = afp = NULL;
+    ofp1 = ofp2 = ofp3 = ofp4 = ofp5 = afp = nullptr;
 }
 
 /* Find the next "real data" in 'ifp'.
@@ -32,13 +37,12 @@ close_ofps(void)
 int
 nextc(int required)
 {
-    char c;
-
+    int c;
     do {
         while ((c = fgetc(ifp)) != EOF && isspace(c))
             ;
         if (c == ';') {
-            if (fgets(g_block, 1024, ifp) == NULL)
+            if (fgets(g_block, 1024, ifp) == nullptr)
                 c = EOF;
         }
     } while (c != EOF && (c == ';' || isspace(c)));
@@ -55,7 +59,6 @@ fopenw(const char *s)
 {  // Open the next free 'ofp' for writing
     FILE *tfp;
     char *file = datafile(s);
-
     if (!(tfp = fopen(file, "wb")))
         Err("write", file);
     if (!ofp1)
@@ -74,7 +77,6 @@ void
 fopena(const char *s)
 {  // Open file for appending
     char *file = datafile(s);
-
     if (afp)
         fclose(afp);
     if (!(afp = fopen(file, "rb+")))
@@ -85,14 +87,15 @@ void
 fopenr(const char *s)
 {  // Open file for reading
     char *file = datafile(s);
-
     if (ifp)
         fclose(ifp);
     if (!(ifp = fopen(file, "rb")))
         Err("open", file);
 }
 
-FILE *rfopen(const char *s)  // Open file for reading
+// Open file for reading
+FILE *
+rfopen(const char *s)
 {
     FILE *fp;
     char *file = datafile(s);
@@ -105,9 +108,9 @@ FILE *rfopen(const char *s)  // Open file for reading
 /* Skip the current 'block' of text on 'ifp'. That is, search for
 ** the next \n\n terminator */
 void
-skipblock(void)
+skipblock()
 {
-    char c, lc;
+    int c, lc;
 
     lc = 0;
     c = '\n';
@@ -122,7 +125,6 @@ char *
 skipdata(char *p)
 {
     char *s;
-
     do
         p = skipline(s = p);
     while (*s && *s != 10);
@@ -136,7 +138,6 @@ void
 tidy(char *s)
 {
     char *p = s;
-
     repspc(s);  // Clean up whitespace
     s = skipspc(s);
     if (s != p) {
@@ -156,10 +157,8 @@ void
 get_line(FILE *fp, char *into, int limit)
 {
     char *base = into;
-
     while (fgets(into, limit, fp)) {
         int l = strlen(into);
-
         into += (l - 2);  // Move to possible last char
         limit -= l;
         if (*into != '\\' && *into != '+')
@@ -185,7 +184,7 @@ clean_trim(char *s)
 ** 'off' allows you to specify an additional quantity of surplus,
 ** useful if you intend to re-use the memory for output */
 inline static char *
-func_get(off_t off)
+func_get(offset_t off)
 {
     if (!ifp) {
         error(">> no input file open for reading!\n");
@@ -193,8 +192,8 @@ func_get(off_t off)
     }
     const size_t fileSize = filesize();
     const size_t size = (((fileSize + off) / 4096) + 1) * 4096;
-    char *const p = (char *) grow(NULL, size, "Reading file to memory");
-    bzero(p, size);
+    char *const p = (char *) grow(nullptr, size, "Reading file to memory");
+    memset(p, 0, size);
     size_t bytesRead = fread(p + off, 1, fileSize, ifp);
     if (bytesRead < fileSize)
         throw Smugl::FPReadError("file", errno, ifp);
@@ -221,16 +220,17 @@ blkget()
 ** Used for reading any files which don't have text-blocks
 */
 char *
-cleanget(off_t off /*=0*/)
+cleanget(offset_t off)
 {
     char *p;
-
     p = func_get(off);
     clean_up(p + off);
     return p;
 }
 
-static size_t filesize()  // Return size of current file (ifp)
+static size_t
+filesize()
+// Return size of current file (ifp)
 {
     const off_t now = ftell(ifp);
     fseek(ifp, 0, 2L);
@@ -245,9 +245,8 @@ char *
 text_proc(char *p, FILE *destfp)
 {
     char overflow = 0;
-    long LEN;
     char *s;
-
+    long LEN;
     do {
         s = p;
         p = skipline(s);  // Next line
@@ -277,8 +276,8 @@ opentxt(const char *s)
 {  // Open a game '.txt' file for reading.
     // Write to 'block' because some external callers want it there
     sprintf(g_block, "%s%s.smg", g_dir, s);
-    ifp = fopen(g_block, "rb");
-    if (ifp == NULL)
+    ifp = fopen(g_block, "r");
+    if (ifp == nullptr)
         quit("## Missing file: %s!\n", g_block);
 }
 
@@ -315,7 +314,6 @@ char *
 skiplead(const char *skip, char *in)
 {
     char *p;
-
     // Ignore any leading white space
     if (*in == SPC)
         p = skipspc(in);
@@ -334,8 +332,8 @@ char *
 skipline(char *s)
 {
     while (*s) {
-        if (*s == EOL)  // End of line
-        {
+        // End of line
+        if (*s == EOL) {
             *s = 0;
             return (s + 1);  // Return beginning of *next* line
         }

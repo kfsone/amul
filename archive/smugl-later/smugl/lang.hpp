@@ -1,18 +1,19 @@
-#pragma once
-// This may look like C, but it's really -*- C++ -*-
-// language (verbs) class definitions and function protos
+#ifndef SMUGL_SMUGL_LANG_H
+#define SMUGL_SMUGL_LANG_H
 
-#include "smugl/rooms.hpp"
+#include "rooms.hpp"
 
 class Verb : public VERB
 {
   public:
-    bool describe(void);  // Not really apropriate
+    bool describe();  // Not really apropriate
 };
 
 class VerbIdx
 {
   public:
-    static class Verb* locate(char* s);
-    static class Verb* locate(vocid_t id);
+    static Verb *locate(char *s);
+    static Verb *locate(vocid_t id);
 };
+
+#endif  // SMUGL_SMUGL_LANG_H

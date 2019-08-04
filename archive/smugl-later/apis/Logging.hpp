@@ -3,9 +3,9 @@
 // Defines a logging interface, to be implemented in a platform-specific fashion, but provide a
 // platform-agnostic interface.
 
-#include <errno.h>
-#include <stdarg.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdarg>
+#include <cstring>
 #include <string>
 
 // Helper macros; example usage:
@@ -37,7 +37,7 @@ class Log
     //! @param[in]	name_			How the log entries will be identified either as a filename or a
     //! logging level, or possible both.
     //! @param[in]	minLevel_		Minimum log-level to record to this mechanism.
-    Log(const wchar_t* const name_, const APIs::Logging::Level minLevel_);
+    Log(const wchar_t *const name_, const APIs::Logging::Level minLevel_);
 
   public:
     //! Destructor.
@@ -53,7 +53,7 @@ class Log
     //! Allows you to optimize out expensive calls involved in preparing log
     //! messages when the level would be below current reporting.
     //! @result true if the specified logging level will write to the log, false otherwise.
-    bool WillLog(const APIs::Logging::Level level_) const
+    [[nodiscard]] bool WillLog(const APIs::Logging::Level level_) const
     {
         return (m_currentLevel > APIs::Logging::Disabled) & (m_currentLevel >= level_);
     }
@@ -64,10 +64,10 @@ class Log
     //! @param[in]	srcLineNo_		Origin line within srcFileName_ of the error, i.e. __LINE__
     //! @param[in]	level_			Logging::Level at which to record the message
     //! @param[in]	format_			"sprintf" style format mask
-    void Write(const char* const srcFilename_,
+    void Write(const char *const srcFilename_,
                const unsigned int srcLineNo_,
                const APIs::Logging::Level level_,
-               const char* const format_,
+               const char *const format_,
                ...)
     {
         if (WillLog(level_) == false)
@@ -84,10 +84,10 @@ class Log
     //! @param[in]	srcLineNo_		Origin line within srcFileName_ of the error, i.e. __LINE__
     //! @param[in]	level_			Logging::Level at which to record the message
     //! @param[in]	prefix_			Prefix message.
-    void Perror(const char* const srcFilename_,
+    void Perror(const char *const srcFilename_,
                 const unsigned int srcLineNo_,
                 const APIs::Logging::Level level_,
-                const char* const prefix_,
+                const char *const prefix_,
                 ...)
     {
         Write(srcFilename_, srcLineNo_, level_, "%s: %s", prefix_, strerror(errno));
@@ -99,10 +99,10 @@ class Log
     //! @param[in]	srcLineNo_		Origin line within srcFileName_ of the error, i.e. __LINE__
     //! @param[in]	level_			Logging::Level at which to record the message
     //! @param[in]	format_			"sprintf" style format mask
-    void operator()(const char* const srcFilename_,
+    void operator()(const char *const srcFilename_,
                     const unsigned int srcLineNo_,
                     const APIs::Logging::Level level_,
-                    const char* const format_,
+                    const char *const format_,
                     ...)
     {
         if (WillLog(level_) == false)
@@ -113,16 +113,15 @@ class Log
         va_end(args);
     }
 
-  private:
-    Log() {}                     // Default constructor prohibited.
-    Log(const Log&) {}           // Copy constructor prohibited.
-    Log& operator=(const Log&);  // Copy operator prohibited.
+    Log() = delete;                        // Default constructor prohibited.
+    Log(const Log &) = delete;             // Copy constructor prohibited.
+    Log &operator=(const Log &) = delete;  // Copy operator prohibited.
 
-    void vWrite(const char* const srcFilename_,
+    void vWrite(const char *const srcFilename_,
                 const unsigned int srcLineNo_,
                 const APIs::Logging::Level level_,
-                const char* const format_,
-                va_list& args);
+                const char *const format_,
+                va_list &args);
 
   private:
     std::wstring m_name;            // File/level name of the log.

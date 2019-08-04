@@ -2,8 +2,8 @@
  * conditions.cpp -- The condition table
  */
 
-#include "include/includes.hpp"
-#include "include/structs.hpp"
+#include "includes.hpp"
+#include "structs.hpp"
 
 /*
  * Current language/travel conditions:   (x=players name or ME)
@@ -82,7 +82,7 @@
  * canput o1 o2 -       Can I put <o1> into <o1>
  *
  */
-struct ARGS cond[CONDITIONS] = {
+ARGS cond[CONDITIONS] = {
     { "&", 0, { NONE } },
     { "-", 0, { NONE } },
     { "else", 0, { NONE } },

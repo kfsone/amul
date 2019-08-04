@@ -79,13 +79,6 @@ match(const char *s1, const char *s2)
     return 0;
 }
 
-#ifdef NEVER
-char *
-strcopy(char *to, char const *from)
-{
-}
-#endif
-
 // Process an '@XX' escape code, and write the apropriate string
 // into the 'to' area.
 // XXX: currently no boundary checking implemented - worrisome?
@@ -133,13 +126,25 @@ esc(const char *code, char *to)
         case 'g':  // Gender words
             switch (second) {
                 case 'n':  // @gn = gender name
-                    return strcopy(to, (me->sex) ? "female" : "male");
+                    if (me->sex)
+                        return strcopy(to, "female");
+                    else
+                        return strcopy(to, "male");
                 case 'e':  // @ge = he/she
-                    return strcopy(to, (me->sex) ? "she" : "he");
+                    if (me->sex)
+                        return strcopy(to, "she");
+                    else
+                        return strcopy(to, "he");
                 case 'o':  // @go = gender for owner, i.e. his/her
-                    return strcopy(to, (me->sex) ? "her" : "his");
+                    if (me->sex)
+                        return strcopy(to, "her");
+                    else
+                        return strcopy(to, "his");
                 case 'h':  // @gh = him/her
-                    return strcopy(to, (me->sex) ? "her" : "him");
+                    if (me->sex)
+                        return strcopy(to, "her");
+                    else
+                        return strcopy(to, "him");
                 case 'p':  // @gp = games player
                     return (to + sprintf(to, "%d", me->plays));
             }
@@ -281,8 +286,7 @@ esc(const char *code, char *to)
             // if(c=='e') { strcpy(s,(vbtab+iverb)->id); return 1; }
             // if(c=='1' && inoun1>=0 && wtype[1]==WNOUN) {
             // sprintf(s,"%ld",scaled(State(inoun1)->value,State(inoun1)->flags)); return 1; }
-            // if(c=='2'
-            // && inoun2>=0 && wtype[3]==WNOUN) {
+            // if(c=='2' && inoun2>=0 && wtype[3]==WNOUN) {
             // sprintf(s,"%ld",scaled(State(inoun2)->value,State(inoun2)->flags)); return 1; }
             break;
 

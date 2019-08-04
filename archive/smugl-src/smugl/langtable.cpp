@@ -10,6 +10,7 @@
 #include "aliases.hpp"
 #include "io.hpp"
 #include "lang.hpp"
+#include "langtable.hpp"
 #include "parser.hpp"
 #include "smugl.hpp"
 #include "structs.hpp"
@@ -18,13 +19,14 @@ bool
 quit()
 {
     char quityn[3];
+
     prompt(REALLYQUIT);
     fetch_input(quityn, 2);
     if (tolower(quityn[0]) == 'y') {
-        exiting = ecQuit;
-        return TRUE;
+        g_exiting = ecQuit;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
 void
@@ -47,7 +49,7 @@ do_condition(VBTAB *vt, bool lastCond)
         case CALTEP:   // Always .. endparse
         case CSTAR:    // Always
         case CALWAYS:  // Always literally
-            result = TRUE;
+            result = true;
             break;
 
         case CELTEP:  // Else ... endparse
@@ -115,13 +117,13 @@ do_condition(VBTAB *vt, bool lastCond)
         case CEXISTS:      // Does object exist (in play)?
         case CWILLGO:      // Will object fit inside container?
             tx("Alas, SMUGL does not yet know how to do this. Be patient\n");
-            result = FALSE;
+            result = false;
             break;
 
         default:
-            if (debug)
+            if (g_debug)
                 txprintf("Unknown condition number %d\n", vt->condition);
-            result = FALSE;
+            result = false;
             break;
     }
 
@@ -136,7 +138,7 @@ do_action(VBTAB *vt, bool /*lastCond*/)
 {
     assert(vt->action_type == ACT_DO);
 
-    if (debug)
+    if (g_debug)
         txprintf("trying action [%ld]\n", vt->action);
 
     switch (vt->action) {
@@ -154,7 +156,7 @@ do_action(VBTAB *vt, bool /*lastCond*/)
             return slotProcessed;
 
         default:
-            if (debug > 1)
+            if (g_debug > 1)
                 txprintf("Unimplemented action %d\n", vt->action);
     }
     return slotFailed;

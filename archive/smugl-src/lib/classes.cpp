@@ -1,6 +1,6 @@
+#include "fileio.hpp"
 #include "includes.hpp"
 #include "structs.hpp"
-#include <fcntl.h>
 
 int
 BASIC_OBJ::Write(FILE *file)

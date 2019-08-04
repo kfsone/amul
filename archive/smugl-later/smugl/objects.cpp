@@ -1,17 +1,17 @@
 // Object and Object-State class/functions
 
-#include "include/consts.hpp"
-#include "include/structs.hpp"
-#include "smugl/smugl.hpp"
+#include "consts.hpp"
+#include "smugl.hpp"
+#include "structs.hpp"
 
-#include "smugl/data.hpp"
-#include "smugl/objects.hpp"
-#include "smugl/rooms.hpp"
+#include "data.hpp"
+#include "objects.hpp"
+#include "rooms.hpp"
 
 // class ObjectIdx ObjectIdx;
 
 bool
-Object::describe(void)
+Object::describe()
 {
     if (state < 0 || !states || state >= nstates)
         return false;  // Not in play or no states
@@ -22,7 +22,7 @@ Object::describe(void)
 
 // Describe a given state of an object
 bool
-State::describe(void)
+State::describe()
 {
     if (descrip != -1 && descrip != -2) {
         tx(message(descrip), ' ');
@@ -38,10 +38,9 @@ ObjectIdx::locate(char *s)
 // Locate an object by it's name
 {
     long w = is_word(s);
-
     if (w == -1)
         // We don't know that word
-        return NULL;
+        return nullptr;
     return locate(w);
 }
 
@@ -51,14 +50,13 @@ ObjectIdx::locate(long id)
 {
     Object *ptr;
     long i;
-
     // Search through the objects for something with this id
     for (ptr = data->objbase, i = 0; i < data->objects; i++, ptr++) {
         if (ptr->id == id)
             return ptr;
     }
     // No match
-    return NULL;
+    return nullptr;
 }
 
 // Locate an object, or all objects, in a given room
@@ -68,7 +66,7 @@ ObjectIdx::locate(long id)
 // neccesary; you should be able to say:
 //  for (curnt = room->child; curnt; curnt = curnt->next_here) ...
 Object *
-ObjectIdx::locate_in(basic_obj in, Object *from /*=NULL*/, long want_id /*=-1*/)
+ObjectIdx::locate_in(basic_obj in, Object *from /*=nullptr*/, long want_id /*=-1*/)
 {
     Object *curnt = from;
 
@@ -81,5 +79,5 @@ ObjectIdx::locate_in(basic_obj in, Object *from /*=NULL*/, long want_id /*=-1*/)
         if ((want_id == -1 || want_id == curnt->id) && curnt->is_in(in))
             return curnt;
     }
-    return NULL;
+    return nullptr;
 }

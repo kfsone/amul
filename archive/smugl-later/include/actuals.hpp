@@ -1,4 +1,6 @@
-#pragma once
+#ifndef ACTUALS_H
+#define ACTUALS_H 1
+
 /*
 ** "Actuals"
 ** Why didn't I call these variables or indirections. An "actual" is a
@@ -48,6 +50,7 @@
 #define LESS 0x40000000  // <Beyond max lim>
 #define MORE 0x80000000  // <Beyond max lim>
 
+#include "typedefs.hpp"
 #define NACTUALS 32  // No. of actual names
 struct ACTUAL {      // Structure for actual data
     string *name;    // Name of actual
@@ -56,3 +59,5 @@ struct ACTUAL {      // Structure for actual data
 };
 
 extern struct ACTUAL actual[];
+
+#endif  // ACTUALS_H

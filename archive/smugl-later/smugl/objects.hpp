@@ -1,24 +1,27 @@
-#pragma once
+#ifndef SMUGL_SMUGL_OBJECTS_H
+#define SMUGL_SMUGL_OBJECTS_H
 
-// This may look like C, but it's really -*- C++ -*-
-// object and object-state class definitions and function protos
+#include "cl_object.hpp"
+#include "structs.hpp"
 
-class Object : public OBJ
+class Object final : public OBJ
 {
   public:
-    bool describe(void);
+    bool describe() override;
 };
 
-class State : public OBJ_STATE
+class State final : public OBJ_STATE
 {
   public:
-    bool describe(void);
+    bool describe();
 };
 
-class ObjectIdx
+class ObjectIdx final
 {
   public:
-    static class Object *locate(char *s);
-    static class Object *locate(long id);
-    static class Object *locate_in(basic_obj in, class Object *first = NULL, long id = -1);
+    static Object *locate(char *s);
+    static Object *locate(long id);
+    static Object *locate_in(basic_obj in, class Object *first = nullptr, long id = -1);
 };
+
+#endif  // SMUGL_SMUGL_OBJECTS_H

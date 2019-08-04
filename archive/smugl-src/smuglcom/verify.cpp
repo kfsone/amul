@@ -17,7 +17,7 @@
 
 FILE *fp;
 char *mem;
-long size;
+size_t size;
 char *rdesc;
 ROOM *rmp;
 
@@ -32,9 +32,9 @@ VOCAB VC;
 
 int read_in(const char *s, size_t sized);
 
-static __inline const char *
-umsg(msgno_t n)
 // Output a umsg
+static const char *
+umsg(msgno_t n)
 {
     if (n < 0)
         return "(none)";
@@ -202,7 +202,6 @@ Lrooms()
         printf(" Long :     %s\n", umsg(rmp->l_descrip));
         printf(" Contents:  %d", rmp->contents);
         if (rmp->contents > 0) {
-            j = rmp->conTent;
             for (j = rmp->conTent; j != -1; j = containers[j].conNext) {
                 basic_obj bob = containers[j].boSelf;
                 printf(" %s", word(bobs[bob]->id));
@@ -211,7 +210,7 @@ Lrooms()
         printf("\n\n");
     }
 
-    free((char *) roomtab);
+    free(roomtab);
 }
 
 void

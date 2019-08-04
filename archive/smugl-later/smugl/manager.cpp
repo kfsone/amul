@@ -1,61 +1,61 @@
 // Functions belonging to the database manager
 
-#include "smugl/smugl.hpp"
+#include <cerrno>
+#include <csignal>
+#include <cstring>
+#include <sys/resource.h>
+
+#include "consts.hpp"
+#include "fileio.hpp"
+#include "fperror.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "libprotos.hpp"
+#include "manager.hpp"
+#include "misc.hpp"
+#include "objects.hpp"
+#include "rooms.hpp"
+#include "smugl.hpp"
+#include "syslog.hpp"
+#include "variables.hpp"
+
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
-#endif
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
-#include "include/consts.hpp"
-#include "include/fperror.hpp"
-#include "include/libprotos.hpp"
-#include "include/syslog.hpp"
-#include "include/variables.hpp"
-#include "smugl/io.hpp"
-#include "smugl/ipc.hpp"
-#include "smugl/misc.hpp"
-#include "smugl/objects.hpp"
-#include "smugl/rooms.hpp"
 
 // Manager/child indicator. manager == 0 if this is a child process
-bool g_manager = 1;
+bool g_manager{ true };
 
-struct DATA* data;
+DATA *data;
 long roomCount, nounCount;
 
-static inline void incoming_connection(void);
+static inline void incoming_connection();
 
 // Return filesize optimized for memory allocations
-static long
-memsize(const char* file)
+static size_t
+memsize(const char *file)
 {
-    const size_t size = filesize(datafile(file));
-
+    const ssize_t size = filesize(datafile(file));
     if (size == -1) {
         sysLog.Write(_FLT, "can't access %s: %s", datafile(file), strerror(errno));
         /*ABORT*/
     }
-
     // In order to ensure we allow for boundary rationalising,
     // such as on M68k architecture, allow for an additional
     // two long words - that'll allow for boundaries, etc
-    return NORMALISE(size);
+    return ptr_align((size_t) size);
 }
 
 // Evaluate and return the amount of memory required to load the
 // complete game into memory
 long
-memory_required(void)
+memory_required()
 {
     long mem = 0L;
 
-    char* file = datafile(statsfn);
-    FILE* fp = fopen(file, "rb");
-    if (fp == NULL) {
+    char *file = datafile(statsfn);
+    FILE *fp = fopen(file, "rb");
+    if (fp == nullptr) {
         sysLog.Write(_FLT, "Missing stats file %s, invalid database", file);
         /*ABORT*/
     }
@@ -67,12 +67,12 @@ memory_required(void)
 
     // Unfortunately I don't store these, so we have to repeat
     // the "experiment" afterwards
-    mem = NORMALISE(sizeof(struct DATA));
-    mem += memsize((const char*) umsgifn) + memsize(umsgfn);
+    mem = ptr_align(sizeof(DATA));
+    mem += memsize(umsgifn) + memsize(umsgfn);
     mem += memsize(ranksfn);
-    mem += NORMALISE(sizeof(class Room) * roomCount);
+    mem += ptr_align(sizeof(Room) * roomCount);
     mem += memsize(mobfn);
-    mem += NORMALISE(sizeof(class Object) * nounCount);
+    mem += ptr_align(sizeof(Object) * nounCount);
     mem += memsize(statfn);
     mem += memsize(langfn);
     mem += memsize(ttfn) + memsize(ttpfn);
@@ -84,17 +84,15 @@ memory_required(void)
 }
 
 // Collect notification of dead children
-void
+static void
 child_reaper(int)
 {
-    int pid;
-    int i;
-
     signal(SIGCHLD, child_reaper);
-    while ((pid = waitpid(-1, NULL, WNOHANG)) != -1) {
+    int pid;
+    while ((pid = waitpid(-1, nullptr, WNOHANG)) != -1) {
         if (pid <= 0)
             break;
-        for (i = 0; i < MAXU; i++) {
+        for (int i = 0; i < MAXU; i++) {
             if (data->pid[i] == pid) {
                 assume_identity(i);
                 me->disconnected();
@@ -111,7 +109,7 @@ child_reaper(int)
 //  . command_sock_fd -- connections from command-line tools
 //  * ipc_pipe_fd     -- [will be] IPC from clients
 void
-run_the_game(void)
+run_the_game()
 {
     int n = 0;
     fd_set fds, rd_fds;
@@ -132,21 +130,19 @@ run_the_game(void)
     // Set the signal handler for dealing with dead-children
     child_reaper(0);
 
-    char* cr;
-
     time(&data->game_start);  // Get current time stamp
     strcpy(data->lastres, ctime(&data->game_start));
-    cr = strchr(data->lastres, '\n');
-    if (cr != NULL)
+    char *cr = strchr(data->lastres, '\n');
+    if (cr != nullptr)
         *cr = 0;
     strcpy(data->lastcrt, ctime(&data->compiled));
     cr = strchr(data->lastcrt, '\n');
-    if (cr != NULL)
+    if (cr != nullptr)
         *cr = 0;
 
     if (g_fork_on_load) {
-        _close(STDIN_FILENO);
-        _close(STDOUT_FILENO);
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
         switch (fork())
         // Called one, returns twice
         {
@@ -170,7 +166,7 @@ run_the_game(void)
 
         // Wait for some input
         rd_fds = fds;  // So we don't have to keep constructing it
-        ret = select(n + 1, &rd_fds, NULL, NULL, NULL);
+        ret = select(n + 1, &rd_fds, nullptr, nullptr, nullptr);
         if (ret == -1)
         // If select call fails
         {
@@ -189,7 +185,7 @@ run_the_game(void)
             incoming_connection();
             if (!g_manager)
                 return;
-            _close(conn_sock_fd);
+            close(conn_sock_fd);
             conn_sock_fd = -1;
         }
 
@@ -207,7 +203,7 @@ run_the_game(void)
 
 // Accept an incoming IP connection.
 static inline void
-incoming_connection(void)
+incoming_connection()
 {
     int id = -1;
     int assigned_slot = 0;  // slot we get assigned as a client
@@ -239,7 +235,7 @@ incoming_connection(void)
         sem_unlock(sem_DATA);
         return;
     }
-    srand((unsigned int) time(NULL) + rand());
+    srand((unsigned int) time(nullptr) + rand());
     id = fork();     // Create a client-child
     if (id == -1) {  // fork() failed
         sysLog.Perror(_FLW, "incoming_connect::fork()");
@@ -249,14 +245,14 @@ incoming_connection(void)
     srand(id + rand());  // Just so we don't share the same seed
 
     if (!id) {
-        _close(listen_sock_fd);          // Dispose of the listener
-        listen_sock_fd = -1;             // We don't need it
-        g_manager = false;               // Flag that we're not the manager
-        g_slot = assigned_slot;          // So we know which slot we're on
-        _close(clifd[g_slot][WRITEfd]);  // Handle for writing to me
-        _close(servfd[READfd]);          // Server's read handle
-        ipc_fd = clifd[g_slot][READfd];  // Listen here for IPC
-        me = &data->user[g_slot];        // Used throughout the game to refer to self
+        close(listen_sock_fd);                  // Dispose of the listener
+        listen_sock_fd = -1;                    // We don't need it
+        g_manager = false;                      // Flag that we're not the manager
+        g_slot = assigned_slot;                 // So we know which slot we're on
+        close(clifd[g_slot & 0xff][WRITEfd]);   // Handle for writing to me
+        close(servfd[READfd]);                  // Server's read handle
+        ipc_fd = clifd[g_slot & 0xff][READfd];  // Listen here for IPC
+        me = &data->user[g_slot & 0xff];        // Used throughout the game to refer to self
         me->init_bob();
         me->state = OFFLINE;
 
@@ -274,7 +270,7 @@ incoming_connection(void)
     data->pid[assigned_slot] = id;
 
     // We have some file handles to modify:
-    _close(clifd[assigned_slot][READfd]);
+    close(clifd[assigned_slot][READfd]);
 
     sem_unlock(sem_DATA);
     return;

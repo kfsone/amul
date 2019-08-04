@@ -2,10 +2,12 @@
  * object description table process
  */
 
-#include "smuglcom/smuglcom.hpp"
+#include "errors.hpp"
+#include "fileio.hpp"
+#include "smuglcom.hpp"
 
 void
-obds_proc(void)
+obds_proc()
 {
     char *p, *s;
 

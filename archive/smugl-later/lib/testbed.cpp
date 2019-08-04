@@ -1,13 +1,13 @@
+#include <cstdio>
+#include <cstring>  // for strerror
 #include <stdexcept>
-#include <stdio.h>
-#include <string.h>  // for strerror
 
-#include "include/cl_mappedfile.hpp"
-#include "include/fileerror.hpp"
-#include "include/portable.hpp"
+#include "cl_mappedfile.hpp"
+#include "fileerror.hpp"
+#include "portable.hpp"
 
 int
-main(int argc, char* argv[])
+main(int argc, char *argv[])
 {
     printf("SMUGL code testbed.\n");
 
@@ -16,9 +16,9 @@ main(int argc, char* argv[])
     try {
         Smugl::MappedFile mf(PATH_SEP "this-file-shouldnt-exist");
         printf("FAIL: Mapped a non-existent file\n");
-    } catch (Smugl::FileError& /*e*/) {
+    } catch (Smugl::FileError & /*e*/) {
         printf("OK: Exception on non-existent file, that's good.\n");
-    } catch (std::exception& /*e*/) {
+    } catch (std::exception & /*e*/) {
         printf("FAIL: Unknown exception\n");
         return -1;
     }
@@ -46,7 +46,7 @@ main(int argc, char* argv[])
         c = *(mf.currentPtr() + mf.sizeBytes());
         printf("eof character is %d [%c]\n", (int) c, c);
 
-        const char* line = mf.currentPtr();
+        const char *line = mf.currentPtr();
         if (!mf.advanceToNonWhitespace()) {
             printf("FAIL: EOF looking for non-whitespace\n");
             return -1;
@@ -116,10 +116,10 @@ main(int argc, char* argv[])
         printf("--- snip --- rest of paragraph --- snip ---\n%s--- snip --- end of excerpt --- "
                "snip\n\n",
                lineContent.c_str());
-    } catch (Smugl::FileError& e) {
+    } catch (Smugl::FileError &e) {
         printf("FAIL: FileError %d: %s\n", e.m_errno, strerror(e.m_errno));
         return -1;
-    } catch (std::exception& e) {
+    } catch (std::exception &e) {
         printf("FAIL: Exception: %s\n", e.what());
         return -1;
     }

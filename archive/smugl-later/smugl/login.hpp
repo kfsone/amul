@@ -1,4 +1,6 @@
-#pragma once
-// defines for the login.C program
+#ifndef SMUGL_SMUGL_LOGIN_H
+#define SMUGL_SMUGL_LOGIN_H
 
-extern void login(void);
+void login();
+
+#endif  // SMUGL_SMUGL_LOGIN_H

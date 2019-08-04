@@ -2,18 +2,19 @@
 // This file is for 'stand alone' functions that don't otherwise fit into
 // the object hierachy and don't fit into one of the other catagories
 
-#include "smugl/smugl.hpp"
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#include "include/fderror.hpp"
-#include "include/libprotos.hpp"
-#include "include/syslog.hpp"
-#include "smugl/io.hpp"
-#include "smugl/misc.hpp"
+#include <cerrno>
+#include <cstring>
+
+#include "fderror.hpp"
+#include "fileio.hpp"
+#include "io.hpp"
+#include "libprotos.hpp"
+#include "misc.hpp"
+#include "smugl.hpp"
+#include "syslog.hpp"
 
 size_t
-filesize(const char* const filename)
+filesize(const char *const filename)
 // Return size of an (unopened) file
 {
     struct stat sbuf;
@@ -26,8 +27,8 @@ filesize(const char* const filename)
     return sbuf.st_size;
 }
 
-fileInfo*
-locate_file(const char* file, bool it_matters)
+fileInfo *
+locate_file(const char *file, bool it_matters)
 {
     static fileInfo fi;
 
@@ -45,16 +46,16 @@ locate_file(const char* file, bool it_matters)
 }
 
 // Load a file into a given area of memory
-//  if base is NULL, then we will malloc you some memory
+//  if base is nullptr, then we will malloc you some memory
 //  it_matters determines whether failure is fatal or not
 long
-read_file(const char* file, void*& base, bool it_matters)
+read_file(const char *file, void *&base, bool it_matters)
 {
-    fileInfo* fi;
+    fileInfo *fi;
     int fd;
 
     fi = locate_file(file, it_matters);
-    fd = _open(fi->name, O_RDONLY);
+    fd = open(fi->name, O_RDONLY);
     if (fd == -1) {
         if (it_matters) {
             sysLog(_FLT, "open(%s, RDONLY): %s\n", file, strerror(errno));
@@ -62,33 +63,32 @@ read_file(const char* file, void*& base, bool it_matters)
         }
         return -1;
     }
-    if (base == NULL) {
+    if (base == nullptr) {
         base = malloc(fi->size + 2);
-        bzero(base, fi->size + 2);
+        memset(base, 0, fi->size + 2);
     }
-    if ((long) _read(fd, base, fi->size) < (long) fi->size)
+    if ((long) read(fd, base, fi->size) < (long) fi->size)
         throw Smugl::FDReadError(file, errno, fd);
-    _close(fd);
+    close(fd);
     // We return the file size
     return fi->size;
 }
 
 void
-pressret(void)
+pressret()
 // Prompt the user to press return
 {
     char c;
-
     tx(message(RETURN));
     fetch_input(&c, 0);
     fflush(stdout);
 }
 
 void
-ShowFile(const char* file)
+ShowFile(const char *file)
 // Display a file
 {
-    void* text = NULL;
+    void *text = nullptr;
     size_t size = read_file(file, text, false);
     if (size == -1) {
         txprintf(">> Unable to open file '%s'\n", file);
@@ -97,7 +97,7 @@ ShowFile(const char* file)
     }
     if (size == 0)
         return;
-    tx((char*) text, '\n');
+    tx((char *) text, '\n');
     free(text);
     return;
 }

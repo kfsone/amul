@@ -1,16 +1,16 @@
 // Definition of room classes and functions
 
-#include "include/structs.hpp"
-#include "smugl/smugl.hpp"
+#include "smugl.hpp"
+#include "structs.hpp"
 
-#include "smugl/data.hpp"
-#include "smugl/rooms.hpp"
-#include "smugl/travel.hpp"
+#include "data.hpp"
+#include "rooms.hpp"
+#include "travel.hpp"
 
 class TTIdx TTIdx;
 
 bool
-TTEnt::describe(void)
+TTEnt::describe()
 {
     tx("Why are you calling TTEnt::describe? Duffer.\n");
     return false;
@@ -26,7 +26,7 @@ TTIdx::locate(char *s)
 
     // Is this a valid word?
     if (id == -1)
-        return NULL;
+        return nullptr;
     return locate(id);
 }
 
@@ -43,6 +43,6 @@ TTIdx::locate(long id)
             return (class TTEnt *) ptr->tabptr;
     }
 
-    // We didn't find a match, return a NULL pointer
-    return NULL;
+    // We didn't find a match, return a nullptr pointer
+    return nullptr;
 }

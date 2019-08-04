@@ -11,19 +11,19 @@
 void
 umsg_proc()
 {  // Process the umsg file
-    char *p, *s;
-
     if (nextc(0) == -1) {
         tx("<No Entries>");
         errabort();
         return;
-    }  // None to process
-    p = data = blkget();
+    }
 
+    char *p = data = blkget();
     do {
-        p = skipline(s = p);
+        char *s = p;
+        char *p = skipline(s);
         if (!*s)
             continue;
+
         clean_up(s);
         s = skipspc(s);
         if (!*s || *s == ';')

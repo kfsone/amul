@@ -14,33 +14,35 @@
 // Actually, this is just an experiment to see if I can convert
 // AMUL to C++ ;-)
 
+#include <cstring>
+
 #define DEF
-#include "smugl/smugl.hpp"
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_PARAM_H
-#include <sys/param.h>
-#endif
-#include "include/consts.hpp"
-#include "include/syslog.hpp"
-#include "smugl/client.hpp"
-#include "smugl/loaders.hpp"
+#include "client.hpp"
+#include "consts.hpp"
+#include "fileio.hpp"
+#include "loaders.hpp"
+#include "smugl.hpp"
+#include "syslog.hpp"
 
 // Proto files
-#include "include/libprotos.hpp"
-#include "smugl/io.hpp"
-#include "smugl/ipc.hpp"
-#include "smugl/lang.hpp"
-#include "smugl/login.hpp"
-#include "smugl/manager.hpp"
-#include "smugl/misc.hpp"
-#include "smugl/mobiles.hpp"
-#include "smugl/objects.hpp"
-#include "smugl/parser.hpp"
-#include "smugl/ranks.hpp"
-#include "smugl/rooms.hpp"
-#include "smugl/travel.hpp"
+#include "io.hpp"
+#include "ipc.hpp"
+#include "lang.hpp"
+#include "libprotos.hpp"
+#include "login.hpp"
+#include "manager.hpp"
+#include "misc.hpp"
+#include "mobiles.hpp"
+#include "objects.hpp"
+#include "parser.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
+#include "travel.hpp"
+
+#ifdef HAVE_SYS_STAT_H
+#include "sys/stat.h"
+#endif
+#include "sys/param.h"
 
 char g_fork_on_load;  // Do we detach on startup?
 int g_debug;          // What debug level?
@@ -48,20 +50,19 @@ int g_debug;          // What debug level?
 int g_exiting = ecFalse;    // If we're exiting
 bool g_heavyDebug = false;  // Enable heavy debugging
 
-char* program;                // Program name (argv[0])
-extern const char vername[];  // Version name from version.C
+char *program;          // Program name (argv[0])
+extern char vername[];  // Version name from version.C
 
 // Local forward-protos
-static void argue(int argc, char* argv[]);
+static void argue(int argc, char *argv[]);
 
 int
-main(int argc, char* argv[])
+main(int argc, char *argv[])
 {
     program = argv[0];
 
     // For safeties sake, we kick the random seed around some
-    srand((unsigned int) time(
-            NULL));  /// TODO: Not good enough; two people can log in the same second.
+    srand(time(nullptr) % getpid());
 
     argue(argc - 1, argv + 1);  // Process the command line arguments
 
@@ -109,7 +110,7 @@ main(int argc, char* argv[])
 }
 
 // Describe how to run the program
-static void
+[[noreturn]] static void
 usage(int code)
 {
     printf("Usage: %s [-d] [-f] [path]\n"
@@ -124,11 +125,10 @@ usage(int code)
 
 // Process the arguments
 static void
-argue(int argc, char* argv[])
+argue(int argc, char *argv[])
 {
     struct stat sbuf;
     int arg = 0;
-
     g_dir[0] = 0;
     // NOTE: This isn't real argv - argv[0] is the first ARGUMENT
     // the program was called with. Don't get confused ;-)
@@ -172,7 +172,7 @@ argue(int argc, char* argv[])
         }
     }
     if (g_dir[0] == 0) {
-        if (_getcwd(g_dir, MAXPATHLEN) == NULL) {
+        if (getcwd(g_dir, MAXPATHLEN) == nullptr) {
             sysLog.Write(_FLE, "Can't get current directory: %d", errno);
             usage(1);
         }

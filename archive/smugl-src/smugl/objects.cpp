@@ -1,7 +1,5 @@
 // Object and Object-State class/functions
 
-#define OBJECTS_C 1
-
 #include "consts.hpp"
 #include "smugl.hpp"
 #include "structs.hpp"
@@ -12,30 +10,30 @@
 
 // class ObjectIdx ObjectIdx;
 
-int
+bool
 Object::describe()
 {
     if (state < 0 || !states || state >= nstates)
-        return FALSE;  // Not in play or no states
+        return false;  // Not in play or no states
     return states[state].describe();
 }
 
 // State Functions
 
 // Describe a given state of an object
-int
+bool
 State::describe()
 {
     if (descrip != -1 && descrip != -2) {
         tx(message(descrip), ' ');
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
 ///////////////////////////////// Object Index Functions
 
-class Object *
+Object *
 ObjectIdx::locate(char *s)
 // Locate an object by it's name
 {
@@ -46,11 +44,11 @@ ObjectIdx::locate(char *s)
     return locate(w);
 }
 
-class Object *
+Object *
 ObjectIdx::locate(long id)
 // Locate an object by it's vocab id
 {
-    class Object *ptr;
+    Object *ptr;
     long i;
     // Search through the objects for something with this id
     for (ptr = data->objbase, i = 0; i < data->objects; i++, ptr++) {
@@ -67,10 +65,10 @@ ObjectIdx::locate(long id)
 // By properly arranging linked lists, this function shouldn't be
 // neccesary; you should be able to say:
 //  for (curnt = room->child; curnt; curnt = curnt->next_here) ...
-class Object *
-ObjectIdx::locate_in(basic_obj in, class Object *from, long want_id)
+Object *
+ObjectIdx::locate_in(basic_obj in, Object *from /*=nullptr*/, long want_id /*=-1*/)
 {
-    class Object *curnt = from;
+    Object *curnt = from;
 
     if (curnt)
         curnt++;

@@ -9,27 +9,32 @@
 #define SMUGLCOM 1
 #define PORTS 1
 
-#include "smuglcom/smuglcom.hpp"
-#include "smuglcom/virtuals.hpp"
+#include <cstring>
 
-FILE* fp;
-char* mem;
+#include "cl_vocab.hpp"
+#include "smuglcom.hpp"
+#include "virtuals.hpp"
+
+FILE *fp;
+char *mem;
 size_t size;
-char* rdesc;
-ROOM* rmp;
+char *rdesc;
+ROOM *rmp;
 
 counter_t nbobs;
-BASIC_OBJ** bobs;
+BASIC_OBJ **bobs;
 counter_t ncontainers;
-CONTAINER* containers;
+CONTAINER *containers;
 
 VOCAB VC;
 
 #define CHUNKS 1024
 
-int read_in(const char* s, size_t sized);
+int read_in(const char *s, size_t sized);
 
-static const char* umsg(msgno_t n)  // Output a umsg
+// Output a umsg
+static const char *
+umsg(msgno_t n)
 {
     if (n < 0)
         return "(none)";
@@ -37,16 +42,16 @@ static const char* umsg(msgno_t n)  // Output a umsg
         return umsgp + umsgip[n];
 }
 
-const char* options[] = {
+const char *options[] = {
     "-rooms", "-ranks", "-smsgs", "-umsgs", "-mobs", "-vocab", "-containers"
 };
 
 enum { mROOMS, mRANKS, mSMSGS, mUMSGS, mMOBS, mVOCAB, mCONT, nOPTS };
 
-void Lrooms(void), Lranks(void), Lsmsgs(void), Lumsgs(void), Lmobs(void), Lvocab(void), Lcont(void);
+void Lrooms(), Lranks(), Lsmsgs(), Lumsgs(), Lmobs(), Lvocab(), Lcont();
 
 int
-main(int argc, char* argv[])
+main(int argc, char *argv[])
 {
     int i, j;
 
@@ -56,14 +61,14 @@ main(int argc, char* argv[])
     msgs = read_in(umsgifn, sizeof(long));
     if (msgs < NSMSGS)
         printf("** Incomplete System Message file\n");
-    umsgip = (long*) mem;
-    mem = NULL;
+    umsgip = (long *) mem;
+    mem = nullptr;
     read_in(umsgfn, CHUNKS);
-    umsgp = (char*) mem;
-    mem = NULL;
+    umsgp = mem;
+    mem = nullptr;
 
     // Next we're gonna need the vocab table
-    read_in_vocab(NULL);
+    read_in_vocab(nullptr);
 
     // Always read the rooms file in
     rooms = read_in(roomsfn, sizeof(ROOM));
@@ -71,8 +76,8 @@ main(int argc, char* argv[])
         printf("** Defunct rooms file\n");
         exit(1);
     }
-    roomtab = (ROOM*) mem;
-    mem = NULL;
+    roomtab = (ROOM *) mem;
+    mem = nullptr;
 
     // Always read in the object table
     nouns = read_in(objsfn, sizeof(OBJ));
@@ -80,34 +85,34 @@ main(int argc, char* argv[])
         printf("** Defunct objects file\n");
         exit(1);
     }
-    obtab = (OBJ*) mem;
-    mem = NULL;
+    obtab = (OBJ *) mem;
+    mem = nullptr;
 
     // Next, load in the containers and bobs index
     if (read_in(bobfn, CHUNKS) <= 0) {
         printf("** Defunct 'Basic Objects' file\n");
         exit(1);
     }
-    nbobs = ((long*) mem)[0];
-    ncontainers = ((long*) mem)[1];
+    nbobs = ((long *) mem)[0];
+    ncontainers = ((long *) mem)[1];
     mem += sizeof(counter_t) * 2;
-    bobs = (BASIC_OBJ**) mem;
-    mem += sizeof(BASIC_OBJ*) * nbobs;
-    containers = (CONTAINER*) mem;
-    mem = NULL;
+    bobs = (BASIC_OBJ **) mem;
+    mem += sizeof(BASIC_OBJ *) * nbobs;
+    containers = (CONTAINER *) mem;
+    mem = nullptr;
 
     // Finally, knock up the bobs index based on what we know
     for (i = 0; i < rooms; i++)
         // Index rooms
-        bobs[i] = (BASIC_OBJ*) (roomtab + i);
+        bobs[i] = (BASIC_OBJ *) (roomtab + i);
     for (i = 0; i < nouns; i++)
         // Index objects
-        bobs[rooms + i] = (BASIC_OBJ*) (obtab + i);
+        bobs[rooms + i] = (BASIC_OBJ *) (obtab + i);
     for (i = 1; i < rooms + nouns; i++)
     // Linked list
     {
         bobs[i - 1]->next = bobs[i];
-        bobs[i]->next = NULL;
+        bobs[i]->next = nullptr;
     }
 
     for (i = 1; i < argc; i++) {
@@ -145,16 +150,15 @@ main(int argc, char* argv[])
     }
 }
 
-void
+static void
 describe_std_flags(flag_t std_flags)
 {
-    printf(" std_flags: %08lx: ", std_flags);
+    printf(" std_flags: %08x: ", std_flags);
     if (std_flags == 0) {
         printf("<none>\n");
         return;
     }
     int flags = 0;
-
     for (int i = 0; std_flag[i]; i++) {
         if (std_flags & (1 << i)) {
             if (flags++)
@@ -166,9 +170,9 @@ describe_std_flags(flag_t std_flags)
 }
 
 void
-Lcont(void)
+Lcont()
 {
-    printf("Total of %ld containers\n", ncontainers);
+    printf("Total of %d containers\n", ncontainers);
     for (int i = 0; i < ncontainers; i++) {
         printf("CONTAINER#%d: %s inside %s\n",
                i,
@@ -178,30 +182,28 @@ Lcont(void)
 }
 
 void
-Lrooms(void)
+Lrooms()
 {
     int i, j;
-
     for (rmp = roomtab, i = 0; i < rooms; i++, rmp++) {
         printf("ROOM %d: %s\n", i, word(rmp->id));
         printf(" ttlines: %d\n", rmp->ttlines);
         describe_std_flags(rmp->std_flags);
-        printf(" flags:   %04lx ", rmp->flags);
+        printf(" flags:   %04x ", rmp->flags);
         for (j = 0; rflag[j]; j++) {
             if (rmp->flags & (1 << j))
                 printf("%02x:%s ", 1 << j, rflag[j]);
         }
         printf("\n");
-        printf(" s_descrip: %ld, l_descrip: %ld\n", rmp->s_descrip, rmp->l_descrip);
+        printf(" s_descrip: %d, l_descrip: %d\n", rmp->s_descrip, rmp->l_descrip);
         printf(" tabptr:    %ld\n", rmp->tabptr);
-        printf(" dmove:     %ld\n", rmp->dmove);
+        printf(" dmove:     %d\n", rmp->dmove);
         printf(" Short:     %s\n", umsg(rmp->s_descrip));
         printf(" Long :     %s\n", umsg(rmp->l_descrip));
-        printf(" Contents:  %ld", rmp->contents);
+        printf(" Contents:  %d", rmp->contents);
         if (rmp->contents > 0) {
             for (j = rmp->conTent; j != -1; j = containers[j].conNext) {
                 basic_obj bob = containers[j].boSelf;
-
                 printf(" %s", word(bobs[bob]->id));
             }
         }
@@ -212,14 +214,14 @@ Lrooms(void)
 }
 
 void
-Lranks(void)
+Lranks()
 {
     int i;
 
     printf("Calling 'read_in'\n");
     ranks = read_in(ranksfn, sizeof(RANKS));
-    printf("ranks = %ld\n", ranks);
-    ranktab = (RANKS*) mem;
+    printf("ranks = %d\n", ranks);
+    ranktab = (RANKS *) mem;
     for (i = 0; i < ranks; i++, ranktab++) {
         printf("RANK %d: [%s][%s]\n", i, ranktab->male, ranktab->female);
         printf(" score:      %ld\n", ranktab->score);
@@ -236,14 +238,13 @@ Lranks(void)
         printf(" prompt:     %s\n", umsg(ranktab->prompt));
     }
     free(mem);
-    mem = NULL;
+    mem = nullptr;
 }
 
 void
-Lsmsgs(void)
+Lsmsgs()
 {
     long i;
-
     for (i = 0; i < msgs && i < NSMSGS; i++) {
         printf("System Message #%ld:\n", i);
         printf("> %s\n", umsg(i));
@@ -251,10 +252,9 @@ Lsmsgs(void)
 }
 
 void
-Lumsgs(void)
+Lumsgs()
 {
     long i;
-
     for (i = NSMSGS; i < msgs; i++) {
         printf("Message #%ld:\n", i);
         printf("> %s\n", umsg(i));
@@ -263,12 +263,11 @@ Lumsgs(void)
 
 #define MDIS(x, y) printf(" %s = %d\n", x, mobp->y)
 void
-Lmobs(void)
+Lmobs()
 {
     int i = 0;
-
     mobs = read_in(mobfn, sizeof(MOB_ENT));
-    mobp = (MOB_ENT*) mem;
+    mobp = (MOB_ENT *) mem;
     for (i = 0; i < mobs; i++, mobp++) {
         printf("MOB #%d: %s\n", i, word(mobp->id));
         printf(" dead = %d\n", mobp->dead);
@@ -279,8 +278,8 @@ Lmobs(void)
         printf(" wait = %d\n", mobp->wait);
         printf(" fear = %d\n", mobp->fear);
         printf(" attack = %d\n", mobp->attack);
-        printf(" flags = %ld\n", mobp->flags);
-        printf(" dmove = %ld\n", mobp->dmove);
+        printf(" flags = %d\n", mobp->flags);
+        printf(" dmove = %d\n", mobp->dmove);
         printf(" hitpower = %d\n", mobp->hitpower);
         printf(" arr = %s\n", umsg(mobp->arr));
         printf(" dep = %s\n", umsg(mobp->dep));
@@ -290,24 +289,22 @@ Lmobs(void)
         printf(" death = %s\n", umsg(mobp->death));
     }
     free(mem);
-    mem = NULL;
+    mem = nullptr;
 }
 
 void
-Lvocab(void)
+Lvocab()
 {
-    long i, j, errs = 0;
-
     printf("By 'index':\n");
-    for (i = 0; i < VC.items; i++) {
+    for (counter_t i = 0; i < VC.items; i++) {
         printf("%s, ", word(i));
     }
     printf("\n");
     printf("By 'hash':\n");
-    for (i = 0; i < VOCROWS; i++) {
-        printf("%ld:[", i);
+    for (uint32_t i = 0; i < VOCAB_ROWS; i++) {
+        printf("%d:[", i);
         fflush(stdout);
-        for (j = 0; j < VC.hash_size[i]; j++) {
+        for (counter_t j = 0; j < VC.hash_size[i]; j++) {
             printf("%s ", word(VC.hash[i][j]));
             fflush(stdout);
         }
@@ -318,10 +315,11 @@ Lvocab(void)
     /* Go through all the entries in the reverse index,
      * look the word up via the hash, and see if we get back
      * where we started */
-    for (i = 0, errs = 0; i < VC.items; i++) {
-        j = is_word(word(i));
+    long errs = 0;
+    for (counter_t i = 0; i < VC.items; i++) {
+        vocid_t j = is_word(word(i));
         if (j != i) {
-            printf(" * %ld(%s) returns %ld(%s)\n", i, word(i), j, word(j));
+            printf(" * %d(%s) returns %d(%s)\n", i, word(i), j, word(j));
             errs++;
         }
     }
@@ -332,7 +330,7 @@ Lvocab(void)
 }
 
 int
-read_in(const char* s, size_t sized)
+read_in(const char *s, size_t sized)
 {
     char tmp[100];
     int cnt = 0;
@@ -340,25 +338,25 @@ read_in(const char* s, size_t sized)
 
     if (fp)
         fclose(fp);
-    fp = 0L;
+    fp = nullptr;
     if (mem)
         free(mem);
-    mem = 0L;
+    mem = nullptr;
     sprintf(tmp, "Data" PATH_SEP "%s", s);
     fp = fopen(tmp, "rb");
-    if (fp == NULL) {
+    if (fp == nullptr) {
         printf("Can't read file '%s'\n", tmp);
         exit(1);
     }
 
-    mem = (char*) malloc((size_t)((size = sized) + 1));
+    mem = (char *) malloc((size_t)((size = sized) + 1));
     while ((bytes = fread(mem + (cnt * sized), 1, sized, fp)) == sized) {
-        mem = (char*) realloc(mem, size + sized + 1);
-        bzero(mem + size, (size_t)(sized + 1));
+        mem = (char *) realloc(mem, size + sized + 1);
+        memset(mem + size, 0, sized + 1);
         size += sized;
         cnt++;
     }
     fclose(fp);
-    fp = NULL;
+    fp = nullptr;
     return cnt;
 }

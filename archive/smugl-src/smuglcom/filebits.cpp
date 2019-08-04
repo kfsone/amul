@@ -40,8 +40,10 @@ nextc(int required)
     do {
         while ((c = fgetc(ifp)) != EOF && isspace(c))
             ;
-        if (c == ';')
-            fgets(block, 1024, ifp);
+        if (c == ';') {
+            if (fgets(g_block, 1024, ifp) == nullptr)
+                c = EOF;
+        }
     } while (c != EOF && (c == ';' || isspace(c)));
     if (required == 1 && c == EOF)
         quit("File contains NO data!\n");
@@ -183,14 +185,12 @@ clean_trim(char *s)
 inline static char *
 func_get(offset_t off)
 {
-    char *p;
-    size_t size;
     if (!ifp) {
         error(">> no input file open for reading!\n");
         errabort();
     }
-    size = (((filesize() + off) / 4096) + 1) * 4096;
-    p = (char *) grow(nullptr, size, "Reading file to memory");
+    const size_t size = (((filesize() + off) / 4096) + 1) * 4096;
+    char *const p = (char *) grow(nullptr, size, "Reading file to memory");
     memset(p, 0, size);
     fread(p + off, 1, size - off, ifp);
     return p;
@@ -202,10 +202,9 @@ func_get(offset_t off)
 char *
 blkget()
 {
-    char *p;
-    char c, *s;
-    p = func_get(0L);
-    s = p;
+    char *const p = func_get(0L);
+    char *s = p;
+    char c;
     while ((c = *(s++))) {
         if (c == 13)
             *(s - 1) = EOL;
@@ -229,14 +228,11 @@ static size_t
 filesize()
 // Return size of current file (ifp)
 {
-    offset_t pos;
-    size_t s;
-
-    pos = ftell(ifp);
+    const off_t now = ftell(ifp);
     fseek(ifp, 0, 2L);
-    s = ftell(ifp) - pos;
-    fseek(ifp, pos, 0L);
-    return (s + 4);  // Just for luck!
+    const size_t s = ftell(ifp) - now;
+    fseek(ifp, now, 0L);
+    return s;
 }
 
 /* Take a text block (p), process and output to desftp. Used for
@@ -248,9 +244,9 @@ text_proc(char *p, FILE *destfp)
     char *s;
     long LEN;
     do {
-        p = skipline(s = p);  // Next line
-        if (!*s)
-            // Blank-line == end of block
+        s = p;
+        p = skipline(s);  // Next line
+        if (!*s)          // Blank-line == end of block
             break;
         if (overflow) {  // We have an overflow character
             fputc(overflow, destfp);
@@ -273,12 +269,12 @@ text_proc(char *p, FILE *destfp)
 
 void
 opentxt(const char *s)
-{  // Open a game '.txt' file
+{  // Open a game '.txt' file for reading.
     // Write to 'block' because some external callers want it there
-    sprintf(block, "%s%s.txt", dir, s);
-    ifp = fopen(block, "rb");
+    sprintf(g_block, "%s%s.txt", g_dir, s);
+    ifp = fopen(g_block, "r");
     if (ifp == nullptr)
-        quit("## Missing file: %s!\n", block);
+        quit("## Missing file: %s!\n", g_block);
 }
 
 /* get_word fetches the next 'word' from 's' into the static buffer
@@ -332,9 +328,8 @@ char *
 skipline(char *s)
 {
     while (*s) {
-        if (*s == EOL)
         // End of line
-        {
+        if (*s == EOL) {
             *s = 0;
             return (s + 1);  // Return beginning of *next* line
         }

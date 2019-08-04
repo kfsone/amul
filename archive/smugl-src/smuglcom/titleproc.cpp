@@ -100,15 +100,16 @@ option_line(char *s)
         // Now relate the value to it's option type & validate it
         switch (i) {       // What type?
             case SO_NAME:  // Adventure name
-                memset(adname, 0, ADNAMEL);
+                memset(g_adname, 0, ADNAMEL);
                 if (strlen(p) > ADNAMEL) {
                     warne("Adventure name too long! Truncated.\n");
                     *(p + ADNAMEL) = 0;
                 }
-                strcpy(adname, p);
+                strcpy(g_adname, p);
                 break;
             case SO_SESH:  // Session time
-                if ((mins = number(p)) == -1) {
+                mins = number(p);
+                if (mins == -1) {
                     error(BAD_STRING, "session time", p);
                     break;
                 }
@@ -118,32 +119,37 @@ option_line(char *s)
                 }
                 break;
             case SO_SEE1:  // Invisible see invis
-                if ((invis = number(p)) == -1)
+                invis = number(p);
+                if (invis == -1)
                     error(BAD_STRING, "'see invisible' level", p);
                 break;
             case SO_SEE2:  // visible see invis
-                if ((invis2 = number(p)) == -1)
+                invis2 = number(p);
+                if (invis2 == -1)
                     error(BAD_STRING, "'visible can see invisible' level", p);
                 break;
             case SO_MSGO:
-                if ((minsgo = number(p)) == -1)
+                minsgo = number(p);
+                if (minsgo == -1)
                     error(BAD_STRING, "minimum supergo rank", p);
                 break;
             case SO_RSCL:
-                if ((rscale = number(p)) == -1)
+                rscale = number(p);
+                if (rscale == -1)
                     error(BAD_STRING, "rank-scaling amount", p);
                 break;
             case SO_TSCL:
-                if ((tscale = number(p)) == -1)
+                tscale = number(p);
+                if (tscale == -1)
                     error(BAD_STRING, "time-scaling amount", p);
                 break;
             case SO_LOG:
-                memset(logname, 0, ADNAMEL);
+                memset(g_logname, 0, ADNAMEL);
                 if (strlen(p) > ADNAMEL) {
                     error("Log-file name too long!\n");
                     break;
                 }
-                strcpy(logname, p);
+                strcpy(g_logname, p);
                 break;
             case SO_PORT:
                 if ((port = number(p)) == -1)
@@ -164,7 +170,7 @@ option_line(char *s)
                         error("Invalid 'noise=' string");
                         break;
                     }
-                    vocid_t alias = new_word(p, TRUE);
+                    vocid_t alias = new_word(p, true);
                     if (alias == -1) {
                         error("Bad/duplicate noise word '%s'", p);
                         break;
@@ -186,7 +192,7 @@ option_line(char *s)
     }
 }
 
-static inline int
+static int
 chkline(char *p)
 // Test for incomplete rank line
 {
@@ -196,25 +202,25 @@ chkline(char *p)
     return 1;
 }
 
-static inline void
+static void
 badrank(const char *s)
 // Complain about a bad rank line
 {
     error("%3ld/%s: Invalid number for %s - \"%s\".\n", ranks, rank.male, s, Word);
 }
 
-static inline int
+static bool
 rank_item(const char *type, char *&s, long &val)
 {
     s = getword(s);
     if (chkline(s))
-        return FALSE;
+        return false;
     if (!isdigit(*Word)) {
         badrank(type);
-        return FALSE;
+        return false;
     } else
         val = atol(Word);
-    return TRUE;
+    return true;
 }
 
 static inline void
@@ -311,9 +317,9 @@ sys_proc()
 
     nextc(1);
     next_line = data = cleanget();
-    *adname = 0;
+    *g_adname = 0;
     mins = invis = invis2 = minsgo = rscale = tscale = port = -2;
-    strcpy(logname, "smugl.log");
+    strcpy(g_logname, "smugl.log");
     fopenw(ranksfn);  // ofp1
     fopenw(synsifn);  // ofp2
 
@@ -341,7 +347,7 @@ sys_proc()
     } while (*next_line);
 
     // Finally; check for default values, etc
-    if (!*adname)
+    if (!*g_adname)
         error("Missing adventure name.\n");
     if (mins == -2) {
         warne("No %s entry. Default %s enforced: %s.\n",
@@ -385,22 +391,26 @@ void
 checksys()
 {
     int w;
-    sprintf(block, "%s%s.txt", dir, txtfile[TF_SYSTEM]);
-    if ((ifp = fopen(block, "rb"))) {
+    sprintf(g_block, "%s%s.txt", g_dir, txtfile[TF_SYSTEM]);
+    if ((ifp = fopen(g_block, "rb"))) {
         fclose(ifp);
         ifp = nullptr;
         return;
     }
+
+    // If we've already encountered an error, then treat this
+    // as an error also, rather than creating files all over
+    // the place.
     if (err) {
-        error("Missing: file %s!\n", block);
+        error("Missing: file %s!\n", g_block);
         return;
     }
     w = warn;
     warn = 0;
-    warne("Missing: file %s!\n", block);
-    if (!(ofp1 = fopen(block, "wb")))
-        quit("Unable to create file %s.\n", block);
-    warne("Creating DEFAULT %s.txt file.\n", block);
+    warne("Missing: file %s!\n", g_block);
+    if (!(ofp1 = fopen(g_block, "wb")))
+        quit("Unable to create file %s.\n", g_block);
+    warne("Creating DEFAULT %s.txt file.\n", g_block);
     fprintf(ofp1,
             ";\n"
             "; Default %s.txt\n"

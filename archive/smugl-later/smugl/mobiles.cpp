@@ -1,16 +1,16 @@
 // Definition of mobile classes and functions
 
-#include "include/structs.hpp"
-#include "smugl/smugl.hpp"
+#include "smugl.hpp"
+#include "structs.hpp"
 
-#include "smugl/data.hpp"
-#include "smugl/mobiles.hpp"
-#include "smugl/rooms.hpp"
+#include "data.hpp"
+#include "mobiles.hpp"
+#include "rooms.hpp"
 
 // class MobileIdx MobileIdx;
 
 class Room *
-Mobile::dmoveRm(void)
+Mobile::dmoveRm()
 // Return DMOVE room of a mobile
 {
     return data->roombase + dmove;
@@ -18,7 +18,7 @@ Mobile::dmoveRm(void)
 
 // XXX: Debugging version of describe
 bool
-Mobile::describe(void)
+Mobile::describe()
 {
     txprintf("mobile=%s(%ld)\n", word(id), id);
     txprintf("speed=%d travel=%d fight=%d act=%d wait=%d\n", speed, travel, fight, act, wait);
@@ -55,10 +55,9 @@ MobileIdx::locate(char *s)
 // Locate a mobile by name
 {
     long w;
-
     w = is_word(s);
     if (w == -1)
-        return NULL;
+        return nullptr;
     return locate(w);
 }
 
@@ -73,5 +72,5 @@ MobileIdx::locate(long id)
         if (ptr->id == id)
             return ptr;
     }
-    return NULL;
+    return nullptr;
 }

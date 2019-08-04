@@ -1,7 +1,7 @@
-#include "include/fperror.hpp"
-#include "include/includes.hpp"
-#include "include/structs.hpp"
-#include <fcntl.h>
+#include "fileio.hpp"
+#include "fperror.hpp"
+#include "includes.hpp"
+#include "structs.hpp"
 
 int
 BASIC_OBJ::Write(FILE *file)

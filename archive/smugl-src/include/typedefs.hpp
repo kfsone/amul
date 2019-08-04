@@ -1,7 +1,7 @@
 #ifndef TYPEDEFS_H
 #define TYPEDEFS_H 1
 
-/* $Id: typedefs.hpp,v 1.5 1997/05/05 15:17:38 oliver Exp $
+/*
  *  Definitions for 'native types' so that things get typecast
  *  properly
  */

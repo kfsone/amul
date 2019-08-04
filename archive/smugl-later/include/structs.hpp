@@ -1,28 +1,14 @@
-#pragma once
-// This may look like C, but it's really -*- C++ -*-
-// Structure definitions
+#ifndef SMUGL_H_STRUCTS_H
+#define SMUGL_H_STRUCTS_H 1
 
-#include "include/defines.hpp"
-#include "include/typedefs.hpp"
+#include "defines.hpp"
+#include "typedefs.hpp"
 
-/* The container object: Indicates which objects are inside
-** which other objects. Each object has an array of CONTAINERs
-** describing all of the objects locations.
-** All instances of an object are stored consecutively
-*/
-struct CONTAINER {
-    basic_obj boSelf;       // The object being 'contained'
-    basic_obj boContainer;  // The object 'self' is inside
-    // The linked list lists contents of rooms; all locations of
-    // an individual object are stored consecutively
-    container_t conNext;  // } Neighbours in a
-    container_t conPrev;  // } linked list
-};
-
-#include "include/cl_basicobj.hpp"
-#include "include/cl_object.hpp"
-#include "include/cl_player.hpp"
-#include "include/cl_room.hpp"
+#include "cl_basicobj.hpp"
+#include "cl_object.hpp"
+#include "cl_player.hpp"
+#include "cl_room.hpp"
+#include "container.hpp"
 
 struct OBJ_STATE {     // State description
     long weight;       // In grammes
@@ -60,10 +46,12 @@ struct MOB_ENT {                           // Mobile Character Entry
     msgno_t death;                         // 'has died' message
 };
 
-struct VERB {             // Verb def struct
-    vocid_t id;           // The Verb itself
-    char sort[4];         // Sort method...(yawn)
-    char sort2[4];        // Sort #2!
+struct VERB {    // Verb def struct
+    vocid_t id;  // The Verb itself
+    union {
+        char precedence[2][4];
+        char precedences[8];
+    };
     short ents;           // No. of slot entries
     flag_t flags;         // Travel? etc...
     struct SLOTTAB *ptr;  // Pointer to slots tab
@@ -72,8 +60,8 @@ struct VERB {             // Verb def struct
 struct SLOTTAB {        // Slot table def
     char wtype[2];      // Word type expected
     long slot[2];       // List of slots
-    long adj[2];        // List of adjectives
-    u_long ents;        // No. of entries
+    adjid_t adj[2];     // List of adjectives
+    uint16_t ents;      // No. of entries
     struct VBTAB *ptr;  // Points to Verb Table
 };
 
@@ -127,18 +115,6 @@ struct ALIAS  // For synonyms
     vocid_t means;  // The real word
 };
 
-struct VOCAB {
-    counter_t items;          // Number of items in table
-    off_t *index;             // Reverse lookup index (offsets in vocab)
-    long hash_size[VOCROWS];  // Size of (items in) each hash-slot
-    vocid_t *hash[VOCROWS];   // Forward hash
-    char *vocab;              // Vocab text
-    counter_t hash_depth;     // Greatest number of entries in a hash slot
-    size_t cur_vocab;         // Vocab string space (bytes) in use
-    size_t vocab_alloc;       // Vocab string space (bytes) allocated
-    counter_t extras;         // Extra vocab entries for players, etc
-};
-
 #ifdef AMAN
 struct DAEMON {  // AMan Daemon Timer
     struct DAEMON *nxt, *prv;
@@ -146,3 +122,5 @@ struct DAEMON {  // AMan Daemon Timer
     long val[2], typ[2];
 };
 #endif
+
+#endif  // SMUGL_H_STRUCTS_H

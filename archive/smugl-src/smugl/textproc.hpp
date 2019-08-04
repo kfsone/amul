@@ -1,8 +1,7 @@
-// $Id: textproc.hpp,v 1.4 1997/04/28 01:10:23 oliver Exp $
-// protos/externs for textprocessing functions
+#ifndef SMUGL_SMUGL_TEXTPROC_H
+#define SMUGL_SMUGL_TEXTPROC_H
 
-#ifndef TEXTPROC_H
-#define TEXTPROC_H 1
+#include "typedefs.hpp"
 
 extern const char *message(msgno_t id);
 extern const char *rightstr(const char *s, int len);
@@ -13,7 +12,7 @@ extern void ioproc(const char *str);
 // Copy a string, returning a pointer to the null byte in the copy
 // Avoids strcpy(into, from); into += strlen(into); situations
 static inline char *
-strcopy(char *to, char const *from)
+strcopy(char *to, const char *from)
 {
     while ((*to = (*(from++))))
         to++;

@@ -1,11 +1,7 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: cl_player.hpp,v 1.1 1999/06/08 15:36:45 oliver Exp $
-//
-////////////////////////////// PLAYER STRUCTURE
-//
+#ifndef SMUGL_H_CL_PLAYER_H
+#define SMUGL_H_CL_PLAYER_H 1
 
-#ifndef PLAYER_H
-#define PLAYER_H 1
+////////////////////////////// PLAYER STRUCTURE
 
 #include "cl_basicobj.hpp"
 #include "defines.hpp"
@@ -13,13 +9,13 @@
 class PLAYER : public BASIC_OBJ
 {
   public:
-    virtual ~PLAYER() {}
+    ~PLAYER() override = default;
 
     //// Player::FUNCTIONS
-    virtual int describe(void) override { return 0; };
-    virtual int describe_verbose(void) override { return 0; }
-    virtual int Write(FILE *) override;
-    virtual int Read(FILE *) override;
+    bool describe() override { return false; };
+    bool describe_verbose() override { return false; }
+    int Write(FILE *) override;
+    int Read(FILE *) override;
 
     //// Player::DATA
     char _name[NAMEL + 1]{ 0 };  // Player's name

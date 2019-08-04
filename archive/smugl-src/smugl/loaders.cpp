@@ -4,8 +4,6 @@
 // I've broken this down into functions, but then I've made them
 // static inline, so that the end result is one big function.
 
-#define LOADERS_C 1
-
 #include <cassert>
 #include <cerrno>
 #include <cstring>
@@ -33,20 +31,18 @@
 static void *
 read_in_umsgs(void *base)
 {
-    long msgs;
-
     // First load in the index
-    size_t size = read_file(umsgifn, base, TRUE);
+    size_t size = read_file(umsgifn, base, true);
     data->msgbase = (long *) base;
     base = void_add(base, size);
-    msgs = size / sizeof(long);  // Number of messages
+    size_t msgs = size / sizeof(long);  // Number of messages
 
     // Adjust the index pointers to point at the real text
-    for (long i = 0; i < msgs; i++)
+    for (size_t i = 0; i < msgs; i++)
         data->msgbase[i] += (long) base;
 
     // Second load in the actual text
-    size = read_file(umsgfn, base, TRUE);
+    size = read_file(umsgfn, base, true);
 
     return ptr_align(void_add(base, size));
 }
@@ -55,8 +51,8 @@ read_in_umsgs(void *base)
 static void *
 read_in_ranks(void *base)
 {
-    size_t size = read_file(ranksfn, base, TRUE);
-    data->rankbase = (class Rank *) base;
+    size_t size = read_file(ranksfn, base, true);
+    data->rankbase = (Rank *) base;
     data->ranks = size / sizeof(Rank);
     return ptr_align(void_add(base, size));
 }
@@ -67,16 +63,14 @@ read_in_ranks(void *base)
 static void *
 read_in_rooms(void *base)
 {
-    long i;
-
-    fileInfo *fi = locate_file(roomsfn, TRUE);
+    fileInfo *fi = locate_file(roomsfn, true);
     FILE *fp = fopen(fi->name, "rb");
     if (fp == nullptr) {
         error(LOG_ERR, "unable to read %s", roomsfn);
         exit(1);
     }
 
-    data->roombase = (class Room *) base;
+    data->roombase = (Room *) base;
     data->rooms = roomCount;
 
     // Work out how many start rooms there are...
@@ -85,7 +79,7 @@ read_in_rooms(void *base)
     Room *roomcur = data->roombase;
     data->anterm = nullptr;
 
-    for (i = 0; i < data->rooms; roomcur++, i++) {
+    for (counter_t i = 0; i < data->rooms; roomcur++, i++) {
         Room *dest = new (roomcur) Room;
         dest->Read(fp);
 
@@ -105,8 +99,8 @@ read_in_rooms(void *base)
 static void *
 read_in_mobiles(void *base)
 {
-    size_t size = read_file(mobfn, base, TRUE);
-    data->mobbase = (class Mobile *) base;
+    size_t size = read_file(mobfn, base, true);
+    data->mobbase = (Mobile *) base;
     data->mobiles = size / sizeof(Mobile);
     return ptr_align(void_add(base, size));
 }
@@ -115,29 +109,23 @@ read_in_mobiles(void *base)
 static void *
 read_in_objects(void *base)
 {
-    FILE *fp;
-    State *statep;
-    Object *cur;
-    fileInfo *fi;
-    int i;
-
     // Read in the state descriptions
-    size_t size = read_file(statfn, base, TRUE);
-    statep = (class State *) base;
+    size_t size = read_file(statfn, base, true);
+    State *statep = static_cast<class State *>(base);
     base = void_add(base, size);
 
     // Read in the main object sections
-    fi = locate_file(objsfn, TRUE);
-    fp = fopen(fi->name, "rb");
+    fileInfo *fi = locate_file(objsfn, true);
+    FILE *fp = fopen(fi->name, "rb");
     if (fp == nullptr) {
         error(LOG_ERR, "unable to read %s", objsfn);
         exit(1);
     }
-    data->objbase = (class Object *) base;
+    data->objbase = (Object *) base;
     data->objects = nounCount;
 
-    cur = (Object *) base;
-    for (i = 0; i < data->objects; i++, cur++) {
+    Object *cur = static_cast<Object *>(base);
+    for (counter_t i = 0; i < data->objects; i++, cur++) {
         new (cur) Object;
         cur->Read(fp);
 
@@ -154,7 +142,7 @@ read_in_objects(void *base)
 static void *
 read_in_basic_objs(void *base)
 {
-    read_file(bobfn, base, TRUE);
+    read_file(bobfn, base, true);
     // The first two longs of the file are the counters
     nbobs = ((container_t *) base)[0];
     ncontainers = ((container_t *) base)[1];
@@ -171,39 +159,30 @@ read_in_basic_objs(void *base)
 static void *
 read_in_verbs(void *base)
 {
-    int i;
-    counter_t slots, cmds;
-    counter_t *counters;
-    class Verb *vbp;
-    struct SLOTTAB *slotp;
-    struct VBTAB *cmdp;
-    long *argp;
-
     // Read in the base verb objects
-    size_t size = read_file(langfn, base, TRUE);
+    counter_t size = read_file(langfn, base, true);
 
     // The first 3 values are counters:
-    counters = (counter_t *) base;
+    counter_t *counters = static_cast<counter_t *>(base);
     data->verbs = *(counters++);
-    slots = *(counters++);
-    cmds = *(counters++);
+    counter_t slots = *(counters++);
+    counter_t cmds = *(counters++);
 
     // Now we're at the base of the verb table
-    vbp = (data->verbbase = (class Verb *) counters);
-    slotp = (struct SLOTTAB *) (data->verbbase + data->verbs);
-    cmdp = (struct VBTAB *) (slotp + slots);
-    argp = (long *) (cmdp + cmds);
+    Verb *vbp = (data->verbbase = (Verb *) (counters));
+    SLOTTAB *slotp = (SLOTTAB *) (data->verbbase + data->verbs);
+    VBTAB *cmdp = (VBTAB *) (slotp + slots);
+    long *argp = (long *) (cmdp + cmds);
 
     // Change the offsets in the various objects to pointers
-    for (i = 0; i < data->verbs; i++, vbp++) {
-        int j;
+    for (counter_t i = 0; i < data->verbs; i++, vbp++) {
         if (vbp->ents <= 0) {
             vbp->ptr = nullptr;
             continue;
         }
         vbp->ptr = slotp;
         // Now adjust the slot entries
-        for (j = 0; j < vbp->ents; j++, slotp++) {
+        for (counter_t j = 0; j < vbp->ents; j++, slotp++) {
             if (slotp->ents <= 0) {
                 slotp->ptr = nullptr;
                 continue;
@@ -227,7 +206,7 @@ read_in_verbs(void *base)
 }
 
 // Read in the travel table
-static inline void *
+static void *
 read_in_travel(void *base)
 {
     int i;
@@ -235,13 +214,13 @@ read_in_travel(void *base)
     long *argp;
 
     // First read in the TT_ENT data
-    size_t size = read_file(ttfn, base, TRUE);
+    size_t size = read_file(ttfn, base, true);
     data->ttbase = (class TTEnt *) base;
-    data->ttents = size / sizeof(struct TT_ENT);
+    data->ttents = size / sizeof(TT_ENT);
     base = void_add(base, size);
 
     // Now read in the condition/action parameters
-    size = read_file(ttpfn, base, TRUE);
+    size = read_file(ttpfn, base, true);
     argp = (long *) base;
 
     // Now fix pointers
@@ -266,7 +245,7 @@ read_in_travel(void *base)
 static void *
 read_in_aliases(void *base)
 {
-    size_t size = read_file(synsifn, base, TRUE);
+    const size_t size = read_file(synsifn, base, true);
     data->aliasbase = (class Alias *) base;
     data->aliases = size / sizeof(struct ALIAS);
     return void_add(base, size);
@@ -308,7 +287,7 @@ read_in_advfn()
 }
 
 void
-load_database(void *membase)
+load_database(void *const membase)
 // Load all the files in the database
 {
     container_t conPlayer;
@@ -319,30 +298,32 @@ load_database(void *membase)
     mention("Info");
     read_in_advfn();
     mention("Text");
-    membase = read_in_umsgs(membase);
+    void *ptr = read_in_umsgs(membase);
     mention("Vocab");
-    membase = read_in_vocab(membase);
+    ptr = read_in_vocab(ptr);
     mention("Ranks");
-    membase = read_in_ranks(membase);
+    ptr = read_in_ranks(ptr);
     mention("Rooms");
-    membase = read_in_rooms(membase);
+    ptr = read_in_rooms(ptr);
     mention("Mobiles");
-    membase = read_in_mobiles(membase);
+    ptr = read_in_mobiles(ptr);
     mention("Objects");
-    membase = read_in_objects(membase);
-    membase = read_in_basic_objs(membase);
+    ptr = read_in_objects(ptr);
+    ptr = read_in_basic_objs(ptr);
     mention("Lang");
-    membase = read_in_verbs(membase);
+    ptr = read_in_verbs(ptr);
     mention("Travel");
-    membase = read_in_travel(membase);
+    ptr = read_in_travel(ptr);
     mention("Syns");
-    membase = read_in_aliases(membase);
-    printf("LOADED.\n");
+    ptr = read_in_aliases(ptr);
+    printf("LOADED. [%zu bytes]\n",
+           static_cast<const char *>(ptr) - static_cast<const char *>(membase));
 
     // Clear some of the fields in data
 
     // Initialise the basic object index
     int bobno = 0;
+
     // Index rooms
     for (i = 0; i < data->rooms; i++, bobno++)
         bobs[bobno] = (BASIC_OBJ *) (data->roombase + i);
@@ -372,7 +353,7 @@ load_database(void *membase)
     for (; bobno-- > 0;)
         bobs[bobno]->next = bobs[bobno + 1];
 
-    if (debug > 1) {
+    if (g_debug > 1) {
         printf("\nScanning Contents Tree\n");
         for (i = 0; i < data->rooms; i++) {
             Room *room = data->roombase + i;

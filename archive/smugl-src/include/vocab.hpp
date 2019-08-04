@@ -1,18 +1,18 @@
-#ifndef VOCAB_H
-#define VOCAB_H 1
+#ifndef SMUGL_H_VOCAB_H
+#define SMUGL_H_VOCAB_H
 
-/* $Id: vocab.hpp,v 1.4 1997/11/26 17:26:37 oliver Exp $
+/*
  * Vocab manipulation routines
  * Common to both the compiler and the frame
  */
 
 #include "typedefs.hpp"
 
-#define VCHASH_GROW_SIZE 6   // Forward hash growth rate
-#define VCREV_GROW_SIZE 256  // Reverse hash growth rate
-#define VC_GROW_SIZE 4096    // Vocab Table growth rate
+constexpr size_t VCHASH_GROW_SIZE = 6;   // Forward hash growth rate
+constexpr size_t VCREV_GROW_SIZE = 256;  // Reverse hash growth rate
+constexpr size_t VC_GROW_SIZE = 4096;    // Vocab Table growth rate
 
-#define vocUNKNOWN -1  // Word we don't recognise
+enum { vocUNKNOWN = -1 };  // Word we don't recognise
 
 extern struct VOCAB *vc;   // Primary vocab data structure
 extern uint32_t hash;      // Last hash number we used

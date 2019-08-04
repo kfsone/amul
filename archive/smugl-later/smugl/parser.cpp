@@ -1,14 +1,18 @@
 // SMUGL Parser
 
-#include "smugl/parser.hpp"
-#include "include/consts.hpp"
-#include "smugl/aliases.hpp"
-#include "smugl/ipc.hpp"
-#include "smugl/lang.hpp"
-#include "smugl/langtable.hpp"
-#include "smugl/ranks.hpp"
-#include "smugl/rooms.hpp"
-#include "smugl/smugl.hpp"
+#include <cassert>
+#include <cctype>
+#include <cstring>
+
+#include "aliases.hpp"
+#include "consts.hpp"
+#include "ipc.hpp"
+#include "lang.hpp"
+#include "langtable.hpp"
+#include "parser.hpp"
+#include "ranks.hpp"
+#include "rooms.hpp"
+#include "smugl.hpp"
 
 vocid_t verb = -1;                  // Current verb
 char g_input[MAX_PHRASE_SIZE + 1];  // Current input
@@ -34,9 +38,9 @@ bool parse_failed = false;
 // sanitise_input()
 // Removes excess whitespace from an input string
 void
-sanitise_input(void)
+sanitise_input()
 {
-    char* start = g_input;
+    char *start = g_input;
 
     while (isspace(*start))
         // Remove leading spaces
@@ -47,10 +51,9 @@ sanitise_input(void)
         g_input[0] = 0;
         return;
     }
-    char* rptr = start;    // Read
-    char* wptr = g_input;  // Write
+    char *rptr = start;    // Read
+    char *wptr = g_input;  // Write
     char in_quote = 0;
-
     // Now iterate through the string and do any substitutions or
     // tokenisations neccesary
     while (*rptr) {
@@ -77,7 +80,7 @@ sanitise_input(void)
 // phrases (or sentences) and passes them on to the
 // next level
 void
-parse(char* string)
+parse(char *string)
 {
     int phrase_no = 0;
 
@@ -87,7 +90,7 @@ parse(char* string)
     parse_failed = false;
 
     while (*string && !forced && !g_exiting && !parse_failed) {
-        char* dest = phrase;  // Start a new phrase
+        char *dest = phrase;  // Start a new phrase
         *dest = 0;
 
         while (*string) {
@@ -115,9 +118,9 @@ parse(char* string)
             }
 
             // Capture the beginning of this token
-            char* token = dest;
+            char *tokenStart = dest;
 
-            while (*string && strchr(",.!?; ", *string) == 0)
+            while (*string && strchr(",.!?; ", *string) == nullptr)
                 *(dest++) = *(string++);
             *dest = 0;
 
@@ -127,9 +130,9 @@ parse(char* string)
             }
 
             // Tokens that we treat as 'eol'
-            if (strcmp(token, "then") == 0) {
-                while (token > phrase && isspace(*(token - 1)))
-                    *(--token) = 0;
+            if (strcmp(tokenStart, "then") == 0) {
+                while (tokenStart > phrase && isspace(*(tokenStart - 1)))
+                    *(--tokenStart) = 0;
                 break;
             }
         }
@@ -157,28 +160,29 @@ parse(char* string)
 
 // Determines if the given token represents one of the special words
 ////////////////////////////////////////////////////
-// special_word(char* token)
+// special_word(char *token)
 // Determines if the given token represents one of the special words
 // e.g., him, her, she, it, etc...
 static inline basic_obj
-special_word(char* token)
+special_word(char *candidate)
 {
-    if (strcmp(token, "me") == 0 || strcmp(token, "myself") == 0 || strcmp(token, "self") == 0)
+    if (strcmp(candidate, "me") == 0 || strcmp(candidate, "myself") == 0 ||
+        strcmp(candidate, "self") == 0)
         return me->id;
-    if (last_him &&
-        (strcmp(token, "he") == 0 || strcmp(token, "him") == 0 || strcmp(token, "his") == 0))
+    if (last_him && (strcmp(candidate, "he") == 0 || strcmp(candidate, "him") == 0 ||
+                     strcmp(candidate, "his") == 0))
         return last_him->id;
-    if (last_her &&
-        (strcmp(token, "she") == 0 || strcmp(token, "her") == 0 || strcmp(token, "hers") == 0))
+    if (last_her && (strcmp(candidate, "she") == 0 || strcmp(candidate, "her") == 0 ||
+                     strcmp(candidate, "hers") == 0))
         return last_her->id;
     return vocUNKNOWN;
 }
 
 ////////////////////////////////////////////////////
-// tokenise_phrase(char* string)
+// tokenise_phrase(char *string)
 // Break a phrase up into tokens
 int
-tokenise_phrase(char* string)
+tokenise_phrase(char *string)
 {
     // Nuke the current phrase
     for (tokens = 0; tokens < MAX_TOK; tokens++)
@@ -206,9 +210,8 @@ tokenise_phrase(char* string)
                 string++;
         } else {
             vocid_t this_id;
-            char* next_tok = string;
+            char *next_tok = string;
             char original_char = 0;
-
             // Check the immediate string for a word; since words can
             // contain spaces, we expand outward, checking
             do {
@@ -235,7 +238,6 @@ tokenise_phrase(char* string)
             }
 
             long alias;
-
             while ((alias = Alias::locate(this_id)) != -1) {
                 if ((this_id = Alias::meaning(alias)) == -1)
                     break;
@@ -258,7 +260,7 @@ tokenise_phrase(char* string)
 // Returns true or false whether the current tokens
 // may possibly match given language slot
 static bool
-matching_phrase(SLOTTAB* slot)
+matching_phrase(SLOTTAB *slot)
 {
     // This is fiddly, on the grounds that we may have to juggle
     // tokens around. Why? Because of adjectives. The trouble is,
@@ -291,13 +293,13 @@ matching_phrase(SLOTTAB* slot)
 // said, were simply looking for patterns that may
 // match what they said.
 slotResult
-slot_process(SLOTTAB* slot)
+slot_process(SLOTTAB *slot)
 {
     unsigned int ent;
     bool lastCond = false;
-    VBTAB* vt;
+    VBTAB *vt;
 
-    assert(slot->ptr != NULL);
+    assert(slot->ptr != nullptr);
 
     for (ent = 0, vt = slot->ptr; ent < slot->ents; ent++, vt++) {
         if (g_debug)
@@ -318,7 +320,6 @@ slot_process(SLOTTAB* slot)
 
         if (lastCond == true) {
             slotResult sr;
-
             sr = do_action(vt, lastCond);
             if (g_debug)
                 txprintf("result was %d\n", sr);
@@ -340,11 +341,9 @@ parse_phrase()
 
     if (g_debug) {
         int tokens_shown;
-
         tx("De-tokenised phrase is:\n");
         for (i = 0, tokens_shown = 0; i < MAX_TOK && token[i].type != tokUNK; i++) {
-            char tbuf[16];
-
+            char tbuf[32];
             sprintf(tbuf, "[%d: @t%d] ", i, i);
             tx(tbuf);
             tokens_shown++;
@@ -380,12 +379,12 @@ parse_phrase()
                     return slotFailed;
                 }
 
-                assert(maybe.Vb->ents == 0 || maybe.Vb->ptr != NULL);
+                assert(maybe.Vb->ents == 0 || maybe.Vb->ptr != nullptr);
 
                 for (i = 0; i < maybe.Vb->ents; i++) {
                     slotResult srResult;
 
-                    SLOTTAB* slot = maybe.Vb->ptr + i;
+                    SLOTTAB *slot = maybe.Vb->ptr + i;
 
                     if (g_debug)
                         txprintf("Slot %d has %ld entries for (%s:%ld,%s:%ld)\n",

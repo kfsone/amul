@@ -19,7 +19,7 @@ struct VOCAB *vc;   // Vocabulary index data
 uint32_t hash;      // Last hash number we used
 uint32_t hash_len;  // Length of last hashed key
 
-extern char dir[];
+extern char g_dir[];
 extern char vocifn[];
 extern char vocfn[];
 
@@ -36,7 +36,7 @@ word(vocid_t idx)
         else
             return reinterpret_cast<const char *>(vc->index[idx]);
     } else
-        return reinterpret_cast<const char *>(vc->vocab + offset);
+        return static_cast<const char *>(vc->vocab + offset);
 }
 
 // Calculate the hash of a word
@@ -108,24 +108,24 @@ read_in_vocab(void *membase)
     size_t mem;
     int fd;
 
-    sprintf(tmp, "%sData/%s", dir, vocifn);
+    sprintf(tmp, "%sData/%s", g_dir, vocifn);
     fd = open(tmp, O_RDONLY);
-    if (fd == -1) {
+    if (fd < 0) {
         printf(">> No Vocab Index: %s\n", tmp);
         exit(1);
     }
     // Use the "number of rows" value as a version ID for files
-    read(fd, (char *) &vcrows, sizeof(long));
+    read(fd, (char *) &vcrows, sizeof(vcrows));
     if (vcrows != VOCAB_ROWS) {
         fprintf(stderr, ">> Incompatible hashing mechanism in %s - aborted.\n", tmp);
         exit(1);
     }
     // Read the item count
-    read(fd, &vc->items, sizeof(counter_t));
+    read(fd, &vc->items, sizeof(vc->items));
     // Now the hash depth
-    read(fd, &vc->hash_depth, sizeof(counter_t));
+    read(fd, &vc->hash_depth, sizeof(vc->hash_depth));
     // The size of 'vocab'
-    read(fd, &vc->cur_vocab, sizeof(size_t));
+    read(fd, &vc->cur_vocab, sizeof(vc->cur_vocab));
     // Followed by the reverse index
     read(fd, &vc->hash_size, sizeof(long) * VOCAB_ROWS);
     // Designate memory for reverse index, including player entries
@@ -141,7 +141,7 @@ read_in_vocab(void *membase)
             exit(2);
         }
     }
-    bzero((char *) vc->index, mem);
+    memset((char *) vc->index, 0, mem);
     read(fd, (char *) vc->index, sizeof(long) * vc->items);
     vc->extras = MAXU;
     for (int extras = 0; extras < vc->extras; extras++)
@@ -166,7 +166,7 @@ read_in_vocab(void *membase)
     // We're done with the index file
     close(fd);
 
-    sprintf(tmp, "%sData/%s", dir, vocfn);
+    sprintf(tmp, "%sData/%s", g_dir, vocfn);
     fd = open(tmp, O_RDONLY);
     if (fd == -1) {
         printf(">> No Vocab Data: %s\n", tmp);

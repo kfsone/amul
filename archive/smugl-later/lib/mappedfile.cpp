@@ -1,6 +1,6 @@
+#include "cl_mappedfile.hpp"
 #include "config.h"
-#include "include/cl_mappedfile.hpp"
-#include "include/fderror.hpp"
+#include "fderror.hpp"
 
 #if defined(HAVE_MMAN_H)
 #include <mman.h>
@@ -13,7 +13,7 @@
 #endif
 
 #if defined(HAVE_MMAP)
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -28,9 +28,9 @@ namespace Smugl
 // Posix version.
 
 #if defined(HAVE_MMAP)
-MappedFile::MappedFile(const char* const filename_, const std::string dirname_)
-    : m_filename(filename_), m_basePtr(NULL), m_endPtr(NULL), m_currentPtr(NULL), m_size(0),
-      m_lineNo(0), m_fd(-1)
+MappedFile::MappedFile(const char *const filename_, const std::string &dirname_)
+    : m_filename(filename_), m_basePtr(nullptr), m_endPtr(nullptr), m_currentPtr(nullptr),
+      m_size(0), m_lineNo(0), m_fd(-1)
 {
     if (dirname_.empty() == false && dirname_[0] != PATH_SEP_CHAR) {
         if (dirname_.back() != PATH_SEP_CHAR)
@@ -39,7 +39,7 @@ MappedFile::MappedFile(const char* const filename_, const std::string dirname_)
     }
 
     // Check we can open the file.
-    const int fd = _open(m_filename.c_str(), O_RDONLY);
+    const int fd = open(m_filename.c_str(), O_RDONLY);
     if (fd < 0)
         throw Smugl::FileError(filename_, errno);
     m_fd = fd;
@@ -60,12 +60,12 @@ MappedFile::MappedFile(const char* const filename_, const std::string dirname_)
     static const int flags =
             MAP_FILE | MAP_SHARED |
             MAP_POPULATE;  //| MAP_DENYWRITE | MAP_FILE | MAP_NORESERVE | MAP_POPULATE ;
-    void* const ptr = mmap(NULL, m_size + 1, PROT_READ, flags, m_fd, 0);
+    void *const ptr = mmap(nullptr, m_size + 1, PROT_READ, flags, m_fd, 0);
     if (ptr == MAP_FAILED)
         throw Smugl::FileError(filename_, errno);
 
     m_basePtr = ptr;
-    m_currentPtr = static_cast<const char*>(m_basePtr);
+    m_currentPtr = static_cast<const char *>(m_basePtr);
     m_endPtr = m_currentPtr + m_size;
 
     // Skip ahead for any meaningful content.
@@ -74,23 +74,23 @@ MappedFile::MappedFile(const char* const filename_, const std::string dirname_)
 
 MappedFile::~MappedFile()
 {
-    if (m_basePtr != NULL) {
+    if (m_basePtr != nullptr) {
         munmap(m_basePtr, m_size + 1);
-        m_basePtr = NULL;
-        m_endPtr = m_currentPtr = NULL;
+        m_basePtr = nullptr;
+        m_endPtr = m_currentPtr = nullptr;
         m_size = 0;
     }
     if (m_filename.empty() == false && m_fd >= 0) {
-        _close(m_fd);
+        close(m_fd);
         m_fd = -1;
     }
 }
 
 #else
 
-MappedFile::MappedFile(const char* const filename_, const std::string dirname_)
-    : m_filename(filename_), m_basePtr(NULL), m_endPtr(NULL), m_currentPtr(NULL), m_size(0),
-      m_lineNo(0), m_handle(INVALID_HANDLE_VALUE), m_mapping(INVALID_HANDLE_VALUE)
+MappedFile::MappedFile(const char *const filename_, const std::string dirname_)
+    : m_filename(filename_), m_basePtr(nullptr), m_endPtr(nullptr), m_currentPtr(nullptr),
+      m_size(0), m_lineNo(0), m_handle(INVALID_HANDLE_VALUE), m_mapping(INVALID_HANDLE_VALUE)
 {
     if (dirname_.empty() == false && dirname_[0] != PATH_SEP_CHAR) {
         if (dirname_.back() != PATH_SEP_CHAR)
@@ -100,9 +100,9 @@ MappedFile::MappedFile(const char* const filename_, const std::string dirname_)
     }
 
     // Check we can open the file.
-    const char* const filename = m_filename.c_str();
-    m_handle =
-            CreateFile(filename, FILE_GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    const char *const filename = m_filename.c_str();
+    m_handle = CreateFile(
+            filename, FILE_GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
     if (m_handle == INVALID_HANDLE_VALUE)
         throw Smugl::FileError(filename, GetLastError());
 
@@ -117,16 +117,16 @@ MappedFile::MappedFile(const char* const filename_, const std::string dirname_)
         return;
 
     // Try to memory map the data into memory.
-    m_mapping = CreateFileMapping(m_handle, NULL, PAGE_READONLY, 0, 0, NULL);
+    m_mapping = CreateFileMapping(m_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
     if (m_mapping == INVALID_HANDLE_VALUE)
         throw Smugl::FileError(filename, GetLastError());
 
-    LPVOID const ptr = MapViewOfFileEx(m_mapping, FILE_MAP_READ, 0, 0, 0, NULL);
-    if (ptr == NULL)
+    LPVOID const ptr = MapViewOfFileEx(m_mapping, FILE_MAP_READ, 0, 0, 0, nullptr);
+    if (ptr == nullptr)
         throw Smugl::FileError(filename, GetLastError());
 
-    m_basePtr = (void*) ptr;
-    m_currentPtr = static_cast<const char*>(m_basePtr);
+    m_basePtr = (void *) ptr;
+    m_currentPtr = static_cast<const char *>(m_basePtr);
     m_endPtr = m_currentPtr + m_size;
 
     // Skip ahead for any meaningful content.
@@ -135,10 +135,10 @@ MappedFile::MappedFile(const char* const filename_, const std::string dirname_)
 
 MappedFile::~MappedFile()
 {
-    if (m_basePtr != NULL) {
+    if (m_basePtr != nullptr) {
         UnmapViewOfFile(m_basePtr);
-        m_basePtr = NULL;
-        m_endPtr = m_currentPtr = NULL;
+        m_basePtr = nullptr;
+        m_endPtr = m_currentPtr = nullptr;
         m_size = 0;
     }
     if (m_mapping != INVALID_HANDLE_VALUE) {
@@ -162,7 +162,7 @@ MappedFile::~MappedFile()
 bool
 MappedFile::advanceToEndOfLine()
 {
-    const char* ptr = m_currentPtr;
+    const char *ptr = m_currentPtr;
     while (ptr < m_endPtr) {
         const char cur = *(ptr++);
         if (cur == ';' || cur == '\r' || cur == '\n')
@@ -269,16 +269,16 @@ MappedFile::advancePastCurrentWord()
 // Allow partial copying of mapped files; this creates a sub-view that
 // doesn't own the file mapping itself.
 
-MappedFile&
-MappedFile::operator=(const MappedFile& rhs_)
+MappedFile &
+MappedFile::operator=(const MappedFile &rhs_)
 {
-    if (rhs_.m_filename.empty() == false || rhs_.m_basePtr != NULL)
+    if (rhs_.m_filename.empty() == false || rhs_.m_basePtr != nullptr)
         throw std::runtime_error("illegal mapped-file operation");
-    if (m_filename.empty() == false || m_basePtr != NULL)
+    if (m_filename.empty() == false || m_basePtr != nullptr)
         throw std::runtime_error("illegal mapped-file overwrite operation");
 
     m_filename = "";
-    m_basePtr = NULL;
+    m_basePtr = nullptr;
     m_endPtr = rhs_.m_endPtr;
     m_currentPtr = rhs_.m_currentPtr;
     m_size = m_endPtr - m_currentPtr;

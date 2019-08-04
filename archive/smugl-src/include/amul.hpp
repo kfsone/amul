@@ -1,6 +1,7 @@
-/* $Id: amul.hpp,v 1.3 1997/04/26 21:43:12 oliver Exp $
- * defines for the main program
- */
+#ifndef SMUGL_H_AMUL_H
+#define SMUGL_H_AMUL_H
+
+// defines for the main program
 
 #define DED 1
 #define DEDDED 2
@@ -107,3 +108,5 @@ enum {
 #define STATE (objtab->states + (long) objtab->state)
 #define State(i) ((obtab + i)->states + (long) (obtab + i)->state)
 #define ItsState(it) (it->states + (long) it->state)
+
+#endif

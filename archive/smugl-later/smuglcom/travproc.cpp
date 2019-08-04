@@ -1,15 +1,19 @@
 /*
- * travproc.cpp -- TRAVEL.smg processing
+ * travproc.cpp -- TRAVEL processing
  */
 
-#include "smuglcom/smuglcom.hpp"
+#include <cassert>
+#include <cstring>
+
+#include "errors.hpp"
+#include "smuglcom.hpp"
 
 extern counter_t arg_alloc;
 extern arg_t *argtab;
 extern arg_t *argptr;
 
 void
-trav_proc(void)
+trav_proc()
 {  // Process travel table
     int strip, lines;
     int nvbs, i, ntt;
@@ -37,7 +41,8 @@ trav_proc(void)
             p = skipdata(p);
             continue;
         }
-        rmp = (ROOM *) bobs[cur_room];
+        rmp = dynamic_cast<ROOM *>(bobs[cur_room]);
+        assert(rmp != nullptr);
         if (rmp->tabptr != -1) {
             error("%s: Travel already defined.\n", Word);
             p = skipdata(p);
@@ -92,7 +97,7 @@ trav_proc(void)
         }
         // Now process each instruction line
         do {
-            tt.not_condition = 0;
+            tt.not_condition = false;
             tt.condition = -1;
             tt.action_type = ACT_GO;
             tt.action = -1;
@@ -115,11 +120,11 @@ trav_proc(void)
 
             // Negations
             if (*s == '!') {
-                tt.not_condition = 1;
+                tt.not_condition = true;
                 s++;
             }
             if (strncmp(s, "not ", 4) == 0) {
-                tt.not_condition = 1;
+                tt.not_condition = true;
                 s += 4;  // Skip the phrase 'not '
             }
             s = getword(s);
@@ -183,15 +188,18 @@ trav_proc(void)
             goto vbproc;
         ntt++;
     } while (*p);
+
     if (!err && ntt != rooms && warn == 1) {
-        for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = (ROOM *) rmp->next)
+        for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = rmp->getNext(rmp)) {
             if (rmp->tabptr == -1 && (rmp->std_flags & bob_DEATH) != bob_DEATH)
                 warne("No exits for %s\n", word(rmp->id));
+        }
     }
+
     fwrite(argtab, sizeof(*argtab), (size_t) arg_alloc, ofp2);
     free(argtab);
     arg_alloc = 0;
-    argtab = argptr = NULL;
+    argtab = argptr = nullptr;
 
     errabort();
 }

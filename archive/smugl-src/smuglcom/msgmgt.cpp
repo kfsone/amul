@@ -25,7 +25,7 @@ struct MSGID *msgidp;    // Current position in the index
 
 /* add the message to the index. if 'id' is set, this will be
  * considered a 'umsg'
- *  id   = NULL or id of a 'umsg'
+ *  id   = nullptr or id of a 'umsg'
  *  pos  = message offset within the umsg file.
  * returns id of the message added
  */
@@ -69,6 +69,7 @@ void
 save_messages()
 {
     FILE *fp;
+
     if (!msgitab || !i_alloc)
         return;
     fp = fopen(datafile(umsgifn), "wb");
@@ -95,8 +96,7 @@ ismsgid(const char *s)
 
     // Is it a system message?
     if (*s == '$') {
-        int i;
-        i = atoi(s + 1);
+        int i = atoi(s + 1);
         if (i < 1 || i > NSMSGS) {
             error("Invalid SysMsg ID '%s'.\n", s);
             return -1;
