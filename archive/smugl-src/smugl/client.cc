@@ -12,7 +12,7 @@ char slot = -1;  // Game slot assigned to us
 
 // Initialise the client's environment
 void
-client_initialise(void)
+client_initialise()
 {
     // When we reach here, the manager will have a lock on 'sem_DATA'.
     // Until it's finished, we want to wait around, so use a dummy lock.

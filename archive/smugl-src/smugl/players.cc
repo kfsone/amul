@@ -18,7 +18,7 @@ class Player *last_him;
 class Player *last_her;
 
 int
-Player::describe(void)
+Player::describe()
 {  // Describe this player
     txprintf("%s is here. ", name());
     return TRUE;
@@ -31,7 +31,7 @@ Player::Location() const
 }
 
 const char *
-Player::name(void)
+Player::name()
 {
     if (_name[0])  // Does the player have a name?
         return _name;
@@ -41,7 +41,7 @@ Player::name(void)
 
 // Remove a player from the game, "physically"
 void
-Player::disconnected(void)
+Player::disconnected()
 {  // Remove evidence of a given player
     int i = number();
     remove_name();       // Make sure our name leaves, regardless
@@ -62,7 +62,7 @@ Player::disconnected(void)
 // The next two functions deal with adding a players name into the
 // vocab table.
 void
-Player::add_name(void)
+Player::add_name()
 {                       // Add name to the vocab table
     if (_name[0] == 0)  // Does the player have a name?
         return;
@@ -72,7 +72,7 @@ Player::add_name(void)
 }
 
 void
-Player::remove_name(void)
+Player::remove_name()
 {                       // Remove player's name from the vocab table
     if (_name[0] == 0)  // Does the player have a name?
         return;
@@ -119,7 +119,7 @@ Player::set_rank(int rankno)
 
 // Initialiase the structure of player to 'entering game' status
 void
-Player::reset(void)
+Player::reset()
 {
     init_bob();
     remove_name();    // Make sure my name is not in the database

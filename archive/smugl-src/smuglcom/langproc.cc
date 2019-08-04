@@ -2,10 +2,9 @@
  * Lang.TXT processor
  */
 
-static const char rcsid[] = "$Id: langproc.cc,v 1.10 1999/06/11 14:27:02 oliver Exp $";
-
 #include "actuals.hpp"
 #include "smuglcom.hpp"
+#include "errors.hpp"
 
 #include <cctype>
 #include <cstring>
@@ -14,7 +13,7 @@ static const char rcsid[] = "$Id: langproc.cc,v 1.10 1999/06/11 14:27:02 oliver 
 #define INVALID "Invalid syntax= line!"
 
 static int chae_proc(char *from, char *to);
-static void chae_err(void);
+static void chae_err();
 static void setslots(int);
 static int iswtype(char *s);
 static void vbprob(const char *s, char *p);
@@ -32,7 +31,7 @@ static SLOTTAB *stp;   /* Current slottab */
 /* The default 'CHAE' pattern is -1/C/H/E for both sets */
 static const char default_chae[] = { -1, 'C', 'H', 'E', -1, 'C', 'H', 'E' };
 
-void lang_proc(void) /* Process language table */
+void lang_proc() /* Process language table */
 {
     char *p, *s;
     char *ls;
@@ -125,7 +124,7 @@ void lang_proc(void) /* Process language table */
         do {
             p = skipline(ls = s = p);
             if (!*s) {
-                if (!verb.ents && !verb.flags & VB_TRAVEL)
+                if (!verb.ents && !(verb.flags & VB_TRAVEL))
                     warne("%s: No entries!\n", word(verb.id));
                 break;
             }
@@ -135,7 +134,7 @@ void lang_proc(void) /* Process language table */
             continue;
 
         setslots(WANY);
-        if (strncmp(s, "syntax=", 7)) {
+        if (strncmp(s, "syntax=", 7) != 0) {
             verb.ents++;
             *(p - 1) = 10;
             p = s;
@@ -176,7 +175,7 @@ void lang_proc(void) /* Process language table */
                 vbprob(block, ls);
                 goto endsynt;
             }
-            if (n == WPLAYER && strcmp(Word, "me")) {
+            if (n == WPLAYER && strcmp(Word, "me") != 0) {
                 vbprob("Tried to specify player other than self", ls);
                 goto endsynt;
             }
@@ -471,7 +470,7 @@ static int chae_proc(char *f, char *t) /* From and To */
 }
 
 static void
-chae_err(void)
+chae_err()
 { /* Report a 'CHAE' error */
     error("%s: Invalid sort-order flags \"%s\"\n", word(verb.id), Word);
 }
@@ -553,7 +552,7 @@ actualval(const char *s, arg_t n)
     if (!isalpha(*s))
         return -2;
     for (i = 0; i < NACTUALS; i++) {
-        if (strcmp(s, actual[i].name))
+        if (strcmp(s, actual[i].name) != 0)
             continue;
         /* If not a slot label, and wtypes match, is okay! */
         if (!(actual[i].value & IWORD))

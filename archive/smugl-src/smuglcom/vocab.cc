@@ -8,8 +8,6 @@
  * much faster lookups of names based on hash keys.
  */
 
-static const char rcsid[] = "$Id: vocab.cc,v 1.7 1997/05/22 02:21:44 oliver Exp $";
-
 #include <cstring>
 #include <iostream>
 
@@ -84,7 +82,7 @@ new_word(const char *p, int need_new)
 }
 
 void
-hash_stats(void)
+hash_stats()
 { /* Display the hash-table statistics */
     int zeros[2] = { 0, 0 };
     long lowest = VC.hash_depth;
@@ -134,7 +132,7 @@ hash_stats(void)
 }
 
 void
-save_vocab_index(void)
+save_vocab_index()
 { /* Write the vocab indexes to disk */
     int fd;
     long i;

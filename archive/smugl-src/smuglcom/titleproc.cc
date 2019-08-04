@@ -2,12 +2,11 @@
  * titleproc.cpp -- process SYSTEM.txt
  */
 
-static const char rcsid[] = "$Id: titleproc.cc,v 1.9 1999/06/08 15:36:54 oliver Exp $";
-
-#include "smuglcom.hpp"
-
 #include <cctype>
 #include <cstring>
+
+#include "errors.hpp"
+#include "smuglcom.hpp"
 
 #define BAD_STRING "Invalid %s specified (%s).\n"
 
@@ -100,7 +99,7 @@ option_line(char *s)
         // Now relate the value to it's option type & validate it
         switch (i) {       // What type?
             case SO_NAME:  // Adventure name
-                bzero(adname, ADNAMEL);
+                memset(adname, 0, ADNAMEL);
                 if (strlen(p) > ADNAMEL) {
                     warne("Adventure name too long! Truncated.\n");
                     *(p + ADNAMEL) = 0;
@@ -138,7 +137,7 @@ option_line(char *s)
                     error(BAD_STRING, "time-scaling amount", p);
                 break;
             case SO_LOG:
-                bzero(logname, ADNAMEL);
+                memset(logname, 0, ADNAMEL);
                 if (strlen(p) > ADNAMEL) {
                     error("Log-file name too long!\n");
                     break;
@@ -158,7 +157,7 @@ option_line(char *s)
                 // Which means it's a dud and can be ignored
                 char *end;
                 do {
-                    if ((end = strchr(p, ',')) != 0)
+                    if ((end = strchr(p, ',')) != nullptr)
                         *(end++) = 0;
                     if (!*p) {
                         error("Invalid 'noise=' string");
@@ -301,7 +300,7 @@ rank_line(char *s)
 }
 
 void
-sys_proc(void)
+sys_proc()
 {
     char *next_line, *prev_line;
 
@@ -378,7 +377,7 @@ sys_proc(void)
  * and we don't already have an error, then create a file with defaults
  */
 void
-checksys(void)
+checksys()
 {
     int w;
     sprintf(block, "%s%s.txt", dir, txtfile[TF_SYSTEM]);

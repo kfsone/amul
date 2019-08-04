@@ -57,7 +57,7 @@ extern char vername[];  // Version name from version.C
 
 // Local forward-protos
 static void argue(int argc, char *argv[]);
-extern void set_version_string(void);
+extern void set_version_string();
 
 int
 main(int argc, char *argv[])

@@ -5,13 +5,12 @@
  * be supplied with the package, so the user has a set of defaults.
  */
 
-static const char rcsid[] = "$Id: smsgproc.cc,v 1.5 1997/05/22 02:21:41 oliver Exp $";
-
+#include "errors.hpp"
 #include "fileio.hpp"
 #include "smuglcom.hpp"
 
 void
-smsg_proc(void)
+smsg_proc()
 {
     char *p, *s;
     long smsgs;

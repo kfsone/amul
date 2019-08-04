@@ -1,8 +1,7 @@
 /*
  * miscellaneous routines - stop putting them in random places, oliver
  */
-static const char rcsid[] = "$Id: misc.cc,v 1.2 1997/05/22 02:21:37 oliver Exp $";
-
+#include "errors.hpp"
 #include "smuglcom.hpp"
 
 /* Extend an existing, or allocate a new, area of memory, for a given

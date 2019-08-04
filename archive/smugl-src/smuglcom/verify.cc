@@ -6,8 +6,6 @@
  * but without it I'd never have gotten this far.
  */
 
-static const char rcsid[] = "$Id: verify.cc,v 1.11 1999/06/08 15:36:54 oliver Exp $";
-
 #define SMUGLCOM 1
 #define PORTS 1
 
@@ -48,7 +46,7 @@ const char *options[] = {
 
 enum { mROOMS, mRANKS, mSMSGS, mUMSGS, mMOBS, mVOCAB, mCONT, nOPTS };
 
-void Lrooms(void), Lranks(void), Lsmsgs(void), Lumsgs(void), Lmobs(void), Lvocab(void), Lcont(void);
+void Lrooms(), Lranks(), Lsmsgs(), Lumsgs(), Lmobs(), Lvocab(), Lcont();
 
 int
 main(int argc, char *argv[])
@@ -167,7 +165,7 @@ describe_std_flags(flag_t std_flags)
 }
 
 void
-Lcont(void)
+Lcont()
 {
     printf("Total of %d containers\n", ncontainers);
     for (int i = 0; i < ncontainers; i++) {
@@ -179,7 +177,7 @@ Lcont(void)
 }
 
 void
-Lrooms(void)
+Lrooms()
 {
     int i, j;
     for (rmp = roomtab, i = 0; i < rooms; i++, rmp++) {
@@ -212,7 +210,7 @@ Lrooms(void)
 }
 
 void
-Lranks(void)
+Lranks()
 {
     int i;
 
@@ -240,7 +238,7 @@ Lranks(void)
 }
 
 void
-Lsmsgs(void)
+Lsmsgs()
 {
     long i;
     for (i = 0; i < msgs && i < NSMSGS; i++) {
@@ -250,7 +248,7 @@ Lsmsgs(void)
 }
 
 void
-Lumsgs(void)
+Lumsgs()
 {
     long i;
     for (i = NSMSGS; i < msgs; i++) {
@@ -261,7 +259,7 @@ Lumsgs(void)
 
 #define MDIS(x, y) printf(" %s = %d\n", x, mobp->y)
 void
-Lmobs(void)
+Lmobs()
 {
     int i = 0;
     mobs = read_in(mobfn, sizeof(MOB_ENT));
@@ -291,7 +289,7 @@ Lmobs(void)
 }
 
 void
-Lvocab(void)
+Lvocab()
 {
     printf("By 'index':\n");
     for (counter_t i = 0; i < VC.items; i++) {
@@ -336,10 +334,10 @@ read_in(const char *s, size_t sized)
 
     if (fp)
         fclose(fp);
-    fp = 0L;
+    fp = nullptr;
     if (mem)
         free(mem);
-    mem = 0L;
+    mem = nullptr;
     sprintf(tmp, "Data" PATH_SEP "%s", s);
     fp = fopen(tmp, "rb");
     if (fp == NULL) {
@@ -350,7 +348,7 @@ read_in(const char *s, size_t sized)
     mem = (char *) malloc((size_t)((size = sized) + 1));
     while ((bytes = fread(mem + (cnt * sized), 1, sized, fp)) == sized) {
         mem = (char *) realloc(mem, size + sized + 1);
-        bzero(mem + size, sized + 1);
+        memset(mem + size, 0, sized + 1);
         size += sized;
         cnt++;
     }

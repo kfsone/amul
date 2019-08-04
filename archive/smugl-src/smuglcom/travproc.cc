@@ -2,17 +2,16 @@
  * travproc.cpp -- TRAVEL.txt processing
  */
 
-static const char rcsid[] = "$Id: travproc.cc,v 1.9 1999/06/11 14:27:02 oliver Exp $";
-
-#include "smuglcom.hpp"
-
 #include <cassert>
 #include <cstring>
+
+#include "smuglcom.hpp"
+#include "errors.hpp"
 
 extern long arg_alloc, *argtab, *argptr;
 
 void
-trav_proc(void)
+trav_proc()
 { /* Process travel table */
     int strip, lines;
     int nvbs, i, ntt;

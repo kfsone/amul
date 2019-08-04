@@ -2,15 +2,14 @@
  * User defined message table processor
  */
 
-static const char rcsid[] = "$Id: umsgproc.cc,v 1.5 1997/05/22 02:21:43 oliver Exp $";
-
 #include <cstring>
 
+#include "errors.hpp"
 #include "fileio.hpp"
 #include "smuglcom.hpp"
 
 void
-umsg_proc(void)
+umsg_proc()
 { /* Process the umsg file */
     char *p, *s;
 

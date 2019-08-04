@@ -26,10 +26,10 @@ static const char rcsid[] = "$Id: login.cc,v 1.11 1999/06/08 15:36:50 oliver Exp
 
 char new_name[NAMEL + 1];
 
-static inline int getname(void);
-static inline int newid(void);
+static inline int getname();
+static inline int newid();
 
-void login(void)  // Log a player in
+void login()  // Log a player in
 {
     // Initialise player variables
     // iverb = iadj1 = inoun1 = iadj2 = inoun2 = actor = -1;
@@ -169,7 +169,7 @@ void login(void)  // Log a player in
     start_room->enter();
 }
 
-static inline int getname(void)  // Get the player's name
+static inline int getname()  // Get the player's name
 {
     char *p = new_name;
 
@@ -216,7 +216,7 @@ static inline int getname(void)  // Get the player's name
     return 0;
 }
 
-static inline int newid(void)  // Create a new user
+static inline int newid()  // Create a new user
 {
     me->reset();
     strcpy(me->_name, new_name);

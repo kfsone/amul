@@ -4,15 +4,14 @@
  *  to handling both the language and travel code]
  */
 
-static const char rcsid[] = "$Id: travfunc.cc,v 1.8 1999/09/10 15:57:32 oliver Exp $";
-
-#include "actuals.hpp"
-#include "smuglcom.hpp"
-
 #include <cctype>
 #include <cstring>
 
-#define GROW_SIZE 1024
+#include "actuals.hpp"
+#include "errors.hpp"
+#include "smuglcom.hpp"
+
+constexpr size_t GROW_SIZE = 1024;
 
 arg_t *argptr;       /* Where to place next c/a argument */
 arg_t *argtab;       /* Table of arguments */

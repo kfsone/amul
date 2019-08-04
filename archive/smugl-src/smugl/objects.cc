@@ -15,7 +15,7 @@ static const char rcsid[] = "$Id: objects.cc,v 1.6 1997/05/22 02:21:26 oliver Ex
 // class ObjectIdx ObjectIdx;
 
 int
-Object::describe(void)
+Object::describe()
 {
     if (state < 0 || !states || state >= nstates)
         return FALSE;  // Not in play or no states
@@ -26,7 +26,7 @@ Object::describe(void)
 
 // Describe a given state of an object
 int
-State::describe(void)
+State::describe()
 {
     if (descrip != -1 && descrip != -2) {
         tx(message(descrip), ' ');
