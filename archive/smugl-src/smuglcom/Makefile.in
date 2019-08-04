@@ -9,19 +9,19 @@ all::
 
 EXES   = smuglcom verify
 VER    = SMUGLCOM
-SRCS   = smuglcom.cc  langproc.cc  objproc.cc   smsgproc.cc \
-         travfunc.cc  mobproc.cc   synsproc.cc  travproc.cc \
-         cleanup.cc   filebits.cc  obdsproc.cc  roomproc.cc \
-         titleproc.cc umsgproc.cc  basicobjs.cc errors.cc   \
-         msgmgt.cc    misc.cc      vocab.cc
-OBJS   = $(SRCS:.cc=.o)
+SRCS   = smuglcom.cpp  langproc.cpp  objproc.cpp   smsgproc.cpp \
+         travfunc.cpp  mobproc.cpp   synsproc.cpp  travproc.cpp \
+         cleanup.cpp   filebits.cpp  obdsproc.cpp  roomproc.cpp \
+         titleproc.cpp umsgproc.cpp  basicobjs.cpp errors.cpp   \
+         msgmgt.cpp    misc.cpp      vocab.cpp
+OBJS   = $(SRCS:.cpp=.o)
 
-include @top_srcdir@/h/Makefile
+include @top_srcdir@/include/Makefile
 
 smuglcom: $(OBJS)  $(SMUGLLIB) version.o
 	$(CXX) -o $@ @CFLAGS@ $(OBJS) version.o $(LIBS)
 
-verify:	verify.cc $(SMUGLLIB)
+verify:	verify.cpp $(SMUGLLIB)
 	$(CXX) -o $@ $(ALL_CFLAGS) $< $(LIBS)
 
 install:: $(EXES)
@@ -29,11 +29,5 @@ install:: $(EXES)
 
 install-strip:: $(EXES)
 	$(INSTALL_PROGRAM) -c -s $(EXES) $(bindir)
-
-tidy: $(SRCS)
-	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
-
-fix-tidy: $(SRCS)
-	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
 
 include Makefile.dep

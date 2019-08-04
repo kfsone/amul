@@ -1,10 +1,9 @@
 #pragma once
 // This may look like C, but it's really -*- C++ -*-
 
-struct fileInfo
-{
-	const char* name;
-	size_t size;
+struct fileInfo {
+    const char* name;
+    size_t size;
 };
 
 extern size_t filesize(const char* filename);

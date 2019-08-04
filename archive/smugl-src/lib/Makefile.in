@@ -8,21 +8,15 @@ SHELL = /bin/sh
 all::
 
 EXES   = libsmugl.a
-SRCS   = data.cc vocab.cc conditions.cc actions.cc misc.cc classes.cc
-OBJS   = $(SRCS:.cc=.o)
+SRCS   = data.cpp vocab.cpp conditions.cpp actions.cpp misc.cpp classes.cpp
+OBJS   = $(SRCS:.cpp=.o)
 
-include @top_srcdir@/h/Makefile
+include @top_srcdir@/include/Makefile
 
 lib: $(EXES)
 
 $(EXES): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $(RANLIBFLAGS) $@
-
-tidy: $(SRCS)
-	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
-
-fix-tidy: $(SRCS)
-	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
 
 include Makefile.dep

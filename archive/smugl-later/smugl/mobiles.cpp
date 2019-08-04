@@ -9,12 +9,14 @@
 
 // class MobileIdx MobileIdx;
 
-class Room *Mobile::dmoveRm(void)  // Return DMOVE room of a mobile
+class Room *
+Mobile::dmoveRm(void)
+// Return DMOVE room of a mobile
 {
     return data->roombase + dmove;
 }
 
-/* XXX: Debugging version of describe */
+// XXX: Debugging version of describe
 bool
 Mobile::describe(void)
 {
@@ -48,7 +50,9 @@ Mobile::describe(void)
 
 //////////////////////////////////////// Mobile Index functions
 
-Mobile *MobileIdx::locate(char *s)  // Locate a mobile by name
+Mobile *
+MobileIdx::locate(char *s)
+// Locate a mobile by name
 {
     long w;
 
@@ -58,7 +62,9 @@ Mobile *MobileIdx::locate(char *s)  // Locate a mobile by name
     return locate(w);
 }
 
-Mobile *MobileIdx::locate(long id)  // Locate a mobile by vocab id
+Mobile *
+MobileIdx::locate(long id)
+// Locate a mobile by vocab id
 {
     class Mobile *ptr;
     int i;

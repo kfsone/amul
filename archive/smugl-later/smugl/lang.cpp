@@ -17,7 +17,9 @@ Verb::describe(void)
 
 //////////////////////////////////////// Verb Index functions
 
-Verb* VerbIdx::locate(char* s)  // Locate a verb by it's name
+Verb*
+VerbIdx::locate(char* s)
+// Locate a verb by it's name
 {
     vocid_t w = is_word(s);
     if (w == -1)
@@ -25,7 +27,9 @@ Verb* VerbIdx::locate(char* s)  // Locate a verb by it's name
     return locate(w);
 }
 
-Verb* VerbIdx::locate(vocid_t id)  // Locate a verb by it's vocab id
+Verb*
+VerbIdx::locate(vocid_t id)
+// Locate a verb by it's vocab id
 {
     class Verb* ptr;
     int i;

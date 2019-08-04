@@ -147,7 +147,8 @@ run_the_game(void)
     if (g_fork_on_load) {
         _close(STDIN_FILENO);
         _close(STDOUT_FILENO);
-        switch (fork())  // Called one, returns twice
+        switch (fork())
+        // Called one, returns twice
         {
             case -1:  // Failed
                 sysLog.Perror(_FLF, "can't detach: fork()");
@@ -170,7 +171,8 @@ run_the_game(void)
         // Wait for some input
         rd_fds = fds;  // So we don't have to keep constructing it
         ret = select(n + 1, &rd_fds, NULL, NULL, NULL);
-        if (ret == -1)  // If select call fails
+        if (ret == -1)
+        // If select call fails
         {
             if (errno != EINTR && errno != EAGAIN) {
                 sysLog.Perror(_FLT, "run_the_game::select()");

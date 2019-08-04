@@ -17,11 +17,11 @@
 
 #include <iostream>
 
-/* Statistical information */
-static long hash_allocs;      /* Number of times we alloc'd the hash */
-static long str_allocs;       /* Number of times we alloc'd vocab */
-static long hash_total_alloc; /* Total hash memory */
-static long idx_allocs;       /* Number of reallocs of index memory */
+// Statistical information
+static long hash_allocs;       // Number of times we alloc'd the hash
+static long str_allocs;        // Number of times we alloc'd vocab
+static long hash_total_alloc;  // Total hash memory
+static long idx_allocs;        // Number of reallocs of index memory
 
 extern char vocifn[], vocfn[];
 extern struct VOCAB VC;
@@ -35,19 +35,19 @@ new_word(const char *p, bool need_new)
 {
     vocid_t i;
 
-    /* Make sure there's something to look at */
+    // Make sure there's something to look at
     if (!p || !*p)
         return -1;
 
-    /* Is this word already in the vocab table? */
+    // Is this word already in the vocab table?
     i = is_word(p);
     if (need_new && i != -1)
         return -1;
     else if (i != -1)
         return i;
 
-    /* So let's add it */
-    /* First; make sure there's enough memory in this hash slot */
+    // So let's add it
+    // First; make sure there's enough memory in this hash slot
     if (VC.hash_size[hash] % VCHASH_GROW_SIZE == 0) {
         size_t req = (VC.hash_size[hash] + VCHASH_GROW_SIZE) * sizeof(long);
 
@@ -55,25 +55,25 @@ new_word(const char *p, bool need_new)
         hash_allocs++;
         hash_total_alloc += VCHASH_GROW_SIZE * sizeof(long);
     }
-    /* Now the reverse index */
+    // Now the reverse index
     if (VC.items % VCREV_GROW_SIZE == 0) {
         size_t req = (VC.items + VCREV_GROW_SIZE) * sizeof(long);
 
         VC.index = (off_t *) grow(VC.index, req, "Resizing Vocab Index");
         idx_allocs++;
     }
-    /* Next, ensure there's memory in the vocab space */
+    // Next, ensure there's memory in the vocab space
     if ((VC.cur_vocab + hash_len + 1) >= VC.vocab_alloc) {
         VC.vocab_alloc += VC_GROW_SIZE;
         VC.vocab = (char *) grow(VC.vocab, VC.vocab_alloc, "Resizing Vocab space");
         str_allocs++;
     }
-    /* Copy the text into the vocab area */
+    // Copy the text into the vocab area
     strcpy((VC.vocab + VC.cur_vocab), p);
-    /* Set the index offset pointer for this hash entry */
+    // Set the index offset pointer for this hash entry
     VC.hash[hash][VC.hash_size[hash]++] = VC.items;
     VC.index[VC.items] = VC.cur_vocab;
-    /* Increment cur_vocab past the null byte */
+    // Increment cur_vocab past the null byte
     VC.cur_vocab += hash_len + 1;
     if (VC.hash_size[hash] > VC.hash_depth)
         VC.hash_depth = VC.hash_size[hash];
@@ -82,7 +82,7 @@ new_word(const char *p, bool need_new)
 
 void
 hash_stats(void)
-{ /* Display the hash-table statistics */
+{  // Display the hash-table statistics
     int i, j;
     int zeros[2] = { 0, 0 };
     long lowest = VC.hash_depth;
@@ -99,7 +99,7 @@ hash_stats(void)
         } else if (VC.hash_size[i] == lowest)
             at_low++;
 
-        /* Don't consider this any further unless it was used */
+        // Don't consider this any further unless it was used
         if (VC.hash_size[i]) {
             avg += VC.hash_size[i];
             avg_div++;
@@ -133,7 +133,7 @@ hash_stats(void)
 
 void
 save_vocab_index(void)
-{ /* Write the vocab indexes to disk */
+{  // Write the vocab indexes to disk
     int fd;
     long i;
     int j;
@@ -141,7 +141,7 @@ save_vocab_index(void)
     fd = _open(datafile(vocifn), O_WRONLY | O_CREAT | O_TRUNC, 0664);
     if (fd == -1)
         Err("write", datafile(vocifn));
-    /* First write the number of rows, number of indexes and hash depth */
+    // First write the number of rows, number of indexes and hash depth
     i = VOCROWS;
     if (_write(fd, (char *) &i, sizeof(long)) < (ssize_t) sizeof(long))
         throw Smugl::FDWriteError(datafile(vocifn), errno, fd);
@@ -149,14 +149,14 @@ save_vocab_index(void)
         throw Smugl::FDWriteError(datafile(vocifn), errno, fd);
     if (_write(fd, (char *) &VC.hash_depth, sizeof(long)) < (ssize_t) sizeof(long))
         throw Smugl::FDWriteError(datafile(vocifn), errno, fd);
-    /* Record how large 'vocab' is */
+    // Record how large 'vocab' is
     if (_write(fd, (char *) &VC.cur_vocab, sizeof(long)) < (ssize_t) sizeof(long))
         throw Smugl::FDWriteError(datafile(vocifn), errno, fd);
-    /* Write out the hash row sizes */
+    // Write out the hash row sizes
     if (_write(fd, (char *) &VC.hash_size, sizeof(long) * VOCROWS) <
         (ssize_t) sizeof(long) * VOCROWS)
         throw Smugl::FDWriteError(datafile(vocifn), errno, fd);
-    /* Write out the reverse-lookup index */
+    // Write out the reverse-lookup index
     if (_write(fd, (char *) VC.index, sizeof(long) * VC.items) < (ssize_t) sizeof(long) * VC.items)
         throw Smugl::FDWriteError(datafile(vocifn), errno, fd);
     for (i = 0; i < VOCROWS; i++) {
@@ -164,14 +164,14 @@ save_vocab_index(void)
         if (_write(fd, VC.hash[i], sizeof(long) * VC.hash_size[i]) <
             (ssize_t) sizeof(long) * VC.hash_size[i])
             throw Smugl::FDWriteError(datafile(vocifn), errno, fd);
-        /* Pad the line out to 'hash_depth' to allow for growth */
+        // Pad the line out to 'hash_depth' to allow for growth
         for (j = VC.hash_size[i]; j < VC.hash_depth; j++)
             if (_write(fd, &zero, sizeof(long)) < (ssize_t) sizeof(long))
                 throw Smugl::FDWriteError(datafile(vocifn), errno, fd);
     }
     _close(fd);
 
-    /* Now write the actual vocab to disk */
+    // Now write the actual vocab to disk
     fd = _open(datafile(vocfn), O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd == -1)
         Err("write", datafile(vocfn));

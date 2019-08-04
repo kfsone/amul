@@ -11,7 +11,7 @@ static size_t filesize(void);
 
 void
 close_ofps(void)
-{ /* Close the common file handles */
+{  // Close the common file handles
     if (ofp1)
         fclose(ofp1);
     if (ofp2)
@@ -46,13 +46,13 @@ nextc(int required)
         quit("File contains NO data!\n");
     if (c == EOF)
         return -1;
-    fseek(ifp, -1, 1); /* Move back 1 char */
+    fseek(ifp, -1, 1);  // Move back 1 char
     return 0;
 }
 
 void
 fopenw(const char *s)
-{ /* Open the next free 'ofp' for writing */
+{  // Open the next free 'ofp' for writing
     FILE *tfp;
     char *file = datafile(s);
 
@@ -72,7 +72,7 @@ fopenw(const char *s)
 
 void
 fopena(const char *s)
-{ /* Open file for appending */
+{  // Open file for appending
     char *file = datafile(s);
 
     if (afp)
@@ -83,7 +83,7 @@ fopena(const char *s)
 
 void
 fopenr(const char *s)
-{ /* Open file for reading */
+{  // Open file for reading
     char *file = datafile(s);
 
     if (ifp)
@@ -92,7 +92,7 @@ fopenr(const char *s)
         Err("open", file);
 }
 
-FILE *rfopen(const char *s) /* Open file for reading */
+FILE *rfopen(const char *s)  // Open file for reading
 {
     FILE *fp;
     char *file = datafile(s);
@@ -117,7 +117,7 @@ skipblock(void)
     }
 }
 
-/* The string-based equivalent of skipblock */
+// The string-based equivalent of skipblock
 char *
 skipdata(char *p)
 {
@@ -137,10 +137,10 @@ tidy(char *s)
 {
     char *p = s;
 
-    repspc(s); /* Clean up whitespace */
+    repspc(s);  // Clean up whitespace
     s = skipspc(s);
     if (s != p) {
-        strcpy(p, s); /* Remove that annoying leading whitespace */
+        strcpy(p, s);  // Remove that annoying leading whitespace
         s = p;
     }
     s = s + strlen(s) - 1;
@@ -160,7 +160,7 @@ get_line(FILE *fp, char *into, int limit)
     while (fgets(into, limit, fp)) {
         int l = strlen(into);
 
-        into += (l - 2); /* Move to possible last char */
+        into += (l - 2);  // Move to possible last char
         limit -= l;
         if (*into != '\\' && *into != '+')
             break;
@@ -230,7 +230,7 @@ cleanget(off_t off /*=0*/)
     return p;
 }
 
-static size_t filesize() /* Return size of current file (ifp) */
+static size_t filesize()  // Return size of current file (ifp)
 {
     const off_t now = ftell(ifp);
     fseek(ifp, 0, 2L);
@@ -250,10 +250,10 @@ text_proc(char *p, FILE *destfp)
 
     do {
         s = p;
-        p = skipline(s); /* Next line */
-        if (!*s)         /* Blank-line == end of block */
+        p = skipline(s);  // Next line
+        if (!*s)          // Blank-line == end of block
             break;
-        if (overflow) { /* We have an overflow character */
+        if (overflow) {  // We have an overflow character
             fputc(overflow, destfp);
             overflow = 0;
         }
@@ -263,19 +263,19 @@ text_proc(char *p, FILE *destfp)
             s++;
         LEN = p - s - 1;
         if (*(p - 2) == '{')
-            LEN--; /* {<EOL> = don't add CRLF */
+            LEN--;  // {<EOL> = don't add CRLF
         else
             overflow = '\n';
         fwrite(s, sizeof(*s), (size_t) LEN, destfp);
     } while (*s);
-    fputc(0, destfp); /* Null terminate for easy handling */
+    fputc(0, destfp);  // Null terminate for easy handling
     return p;
 }
 
 void
 opentxt(const char *s)
-{ /* Open a game '.txt' file for reading. */
-    /* Write to 'block' because some external callers want it there */
+{  // Open a game '.txt' file for reading.
+    // Write to 'block' because some external callers want it there
     sprintf(g_block, "%s%s.smg", g_dir, s);
     ifp = fopen(g_block, "rb");
     if (ifp == NULL)
@@ -291,7 +291,7 @@ getword(char *s)
     char *dst;
     int bytes;
 
-    *(dst = Word) = 0; /* Clear Word */
+    *(dst = Word) = 0;  // Clear Word
     bytes = 62;
 
     s = skipspc(s);
@@ -316,35 +316,35 @@ skiplead(const char *skip, char *in)
 {
     char *p;
 
-    /* Ignore any leading white space */
+    // Ignore any leading white space
     if (*in == SPC)
         p = skipspc(in);
     else
         p = in;
     while (*skip && *skip == *(p++))
         skip++;
-    /* In case of a match, *skip will be 0 */
+    // In case of a match, *skip will be 0
     if (*skip == 0)
         return p;
     return in;
 }
 
-/* skipline -- returns a pointer to the beginning of the next line */
+// skipline -- returns a pointer to the beginning of the next line
 char *
 skipline(char *s)
 {
     while (*s) {
-        if (*s == EOL) /* End of line */
+        if (*s == EOL)  // End of line
         {
             *s = 0;
-            return (s + 1); /* Return beginning of *next* line */
+            return (s + 1);  // Return beginning of *next* line
         }
         s++;
     }
     return s;
 }
 
-/* repspc -- tidy up the white space in a text block */
+// repspc -- tidy up the white space in a text block
 void
 repspc(char *s)
 {

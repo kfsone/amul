@@ -8,15 +8,15 @@ SHELL = /bin/sh
 all::
 
 EXES   = smugl
-SRCS   = smugl.cc manager.cc client.cc loaders.cc misc.cc \
-	  parser.cc langtable.cc \
-	  textproc.cc ipc.cc io.cc login.cc aliases.cc ranks.cc \
-	  basicobjs.cc rooms.cc objects.cc players.cc mobiles.cc \
-	  lang.cc travel.cc version.cc
+SRCS   = smugl.cpp manager.cpp client.cpp loaders.cpp misc.cpp \
+	  parser.cpp langtable.cpp \
+	  textproc.cpp ipc.cpp io.cpp login.cpp aliases.cpp ranks.cpp \
+	  basicobjs.cpp rooms.cpp objects.cpp players.cpp mobiles.cpp \
+	  lang.cpp travel.cpp version.cpp
 VER    = SMUGL
-OBJS   = $(SRCS:.cc=.o)
+OBJS   = $(SRCS:.cpp=.o)
 
-include @top_srcdir@/h/Makefile
+include @top_srcdir@/include/Makefile
 
 $(EXES): $(OBJS) $(SMUGLLIB)
 	$(CXX) -o $@ @CFLAGS@ $(OBJS) $(LIBS)
@@ -31,10 +31,4 @@ include Makefile.dep
 
 cleanup:
 	@ipcs | @PERL@ -ne '$$type = $$1 if /^(shm|sem)id/; `ipcrm $$type $$1` if /^(\d+)/'
-
-tidy: $(SRCS)
-	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
-
-fix-tidy: $(SRCS)
-	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
 

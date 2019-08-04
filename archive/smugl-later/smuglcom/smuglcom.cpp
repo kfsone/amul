@@ -37,7 +37,7 @@ struct VOCAB VC;
 
 int
 main(int argc, char *argv[])
-{ /* Main program - entry point */
+{  // Main program - entry point
     ofp1 = ofp2 = ofp3 = NULL;
     g_dir[0] = 0;
     warn = 1;
@@ -51,11 +51,11 @@ main(int argc, char *argv[])
 
     printf("SMUGL Compiler: %s\n", vername);
 
-    /* Ensure that TF_SYSTEM exists, if not, create one */
+    // Ensure that TF_SYSTEM exists, if not, create one
     checksys();
     errabort();
 
-    /* Create the Data subdirectory */
+    // Create the Data subdirectory
     sprintf(temp, "%sData", g_dir);
 #if !defined(WIN32)
     mkdir(temp, 0777);
@@ -80,7 +80,7 @@ main(int argc, char *argv[])
         ifp = NULL;
     }
 
-    /* Write miscellaneous stuff to disk */
+    // Write miscellaneous stuff to disk
     finish_rooms();
     save_vocab_index();
     save_basic_objs();
@@ -98,14 +98,14 @@ main(int argc, char *argv[])
     fopenw(advfn);
     time(&compiled);
 
-    /* Now print the hash statistics, if desired */
+    // Now print the hash statistics, if desired
     if (inc_hash_stats)
         hash_stats();
 
-    /* Game name and Logfile name */
+    // Game name and Logfile name
     fwrite(g_adname, ADNAMEL + 1, 1, ofp1);
     fwrite(g_logname, ADNAMEL + 1, 1, ofp1);
-    /* Various parameters */
+    // Various parameters
     fprintf(ofp1,
             "%ld %ld %d %d %d %d %d %d\n",
             compiled,
@@ -122,7 +122,7 @@ main(int argc, char *argv[])
 
 static void
 version(void)
-{ /* Display current version information */
+{  // Display current version information
     printf("SMUGL: Simple Multi-User Games Language, (C) KingFisher Software 1996-1997\n");
     printf("AMUL:  Amiga Multi-User games Language, (C) KingFisher Software 1990-1993\n\n");
     printf("SMUGL Compiler: %s\n", vername);
@@ -139,7 +139,7 @@ usage(void)
 
 static void
 argue(int argc, char *argv[])
-{ /* Handle the program arguments */
+{  // Handle the program arguments
     char c;
     int n;
 
@@ -168,7 +168,7 @@ argue(int argc, char *argv[])
 
 int
 iscond(const char *s)
-{ /* Test 's' is a condition name */
+{  // Test 's' is a condition name
     int i;
 
     for (i = 0; i < CONDITIONS; i++)
@@ -179,7 +179,7 @@ iscond(const char *s)
 
 int
 isact(const char *s)
-{ /* Test 's' is an action name */
+{  // Test 's' is an action name
     int i;
 
     for (i = 0; i < ACTIONS; i++)
@@ -188,7 +188,7 @@ isact(const char *s)
     return -1;
 }
 
-void section(int i) /* Start a new compile section */
+void section(int i)  // Start a new compile section
 {
     printf("%s:", txtfile[i]);
     opentxt(txtfile[i]);

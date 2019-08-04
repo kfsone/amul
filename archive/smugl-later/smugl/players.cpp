@@ -23,7 +23,8 @@ Player::describe(void)
 const char *
 Player::name(void)
 {
-    if (_name[0])  // Does the player have a name?
+    if (_name[0])
+        // Does the player have a name?
         return _name;
     else
         return "(somebody)";  // Should probably trap this ;-)
@@ -54,8 +55,9 @@ Player::disconnected(void)
 // vocab table.
 void
 Player::add_name(void)
-{                       // Add name to the vocab table
-    if (_name[0] == 0)  // Does the player have a name?
+{  // Add name to the vocab table
+    if (_name[0] == 0)
+        // Does the player have a name?
         return;
     sem_lock(sem_VOCAB);
     vc->index[vc->items + number()] = (long) (_name);
@@ -64,8 +66,9 @@ Player::add_name(void)
 
 void
 Player::remove_name(void)
-{                       // Remove player's name from the vocab table
-    if (_name[0] == 0)  // Does the player have a name?
+{  // Remove player's name from the vocab table
+    if (_name[0] == 0)
+        // Does the player have a name?
         return;
     sem_lock(sem_VOCAB);
     vc->index[vc->items + number()] = -1;
@@ -180,7 +183,9 @@ Player::go_to(basic_obj dest_rm, const char *dep_msg /*=NULL*/, const char *arr_
 
 ////////////////////////////// PlayerIdx functions
 
-Player *PlayerIdx::locate(long id)  // Locate player by ID number
+Player *
+PlayerIdx::locate(long id)
+// Locate player by ID number
 {
     int i;
 
@@ -189,7 +194,9 @@ Player *PlayerIdx::locate(long id)  // Locate player by ID number
     return &data->user[i];
 }
 
-Player *PlayerIdx::locate(char *s)  // Locate player by name
+Player *
+PlayerIdx::locate(char *s)
+// Locate player by name
 {
     return locate(is_word(s));
 }

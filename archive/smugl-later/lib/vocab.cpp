@@ -9,15 +9,15 @@
 #include "include/structs.hpp"
 #include "include/typedefs.hpp"
 
-struct VOCAB *vc; /* Vocabulary index data */
-u_long hash;      /* Last hash number we used */
-u_long hash_len;  /* Length of last hashed key */
+struct VOCAB *vc;  // Vocabulary index data
+u_long hash;       // Last hash number we used
+u_long hash_len;   // Length of last hashed key
 
 extern char g_dir[];
 extern char vocifn[];
 extern char vocfn[];
 
-/* Return a pointer to a given word */
+// Return a pointer to a given word
 const char *
 word(vocid_t idx)
 {
@@ -33,7 +33,7 @@ word(vocid_t idx)
         return (const char *) (vc->vocab + offset);
 }
 
-/* Calculate the hash of a word */
+// Calculate the hash of a word
 /* Please don't ask how this works. I don't actually know ;-).
  * I've played with various algorithms, and so far this one gives
  * best distribution over a number of test-data samples.
@@ -67,12 +67,12 @@ hash_of(const char *p)
     return (hash = hash % VOCROWS);
 }
 
-/* Determine if this word is in the vocab table */
+// Determine if this word is in the vocab table
 vocid_t
 is_word(const char *p)
 {
     int i, w;
-    /* Work out which hash position it's in */
+    // Work out which hash position it's in
     hash_of(p);
     for (i = 0; i < vc->hash_size[hash]; i++) {
         const char *p1 = p;
@@ -84,7 +84,7 @@ is_word(const char *p)
         if (!*p1 && !*p2)
             return w;
     }
-    /* Lastly; check to see if it's in the extras area */
+    // Lastly; check to see if it's in the extras area
     int idx = vc->items;
     for (i = 0; i < vc->extras; i++, idx++) {
         if (vc->index[idx] != -1 && strcmp(p, (const char *) vc->index[idx]) == 0)
@@ -93,7 +93,7 @@ is_word(const char *p)
     return vocUNKNOWN;
 }
 
-/* Load the vocab table into memory */
+// Load the vocab table into memory
 void *
 read_in_vocab(void *membase)
 {
@@ -119,23 +119,23 @@ read_in_vocab(void *membase)
             fprintf(stderr, ">> Incompatible hashing mechanism in %s - aborted.\n", tmp);
             exit(1);
         }
-        /* Read the item count */
+        // Read the item count
         rv = _read(fd, &vc->items, sizeof(counter_t));
         if (rv < 0)
             throw rv;
-        /* Now the hash depth */
+        // Now the hash depth
         rv = _read(fd, &vc->hash_depth, sizeof(counter_t));
         if (rv < 0)
             throw rv;
-        /* The size of 'vocab' */
+        // The size of 'vocab'
         rv = _read(fd, &vc->cur_vocab, sizeof(size_t));
         if (rv < 0)
             throw rv;
-        /* Followed by the reverse index */
+        // Followed by the reverse index
         rv = _read(fd, &vc->hash_size, sizeof(long) * VOCROWS);
         if (rv < 0)
             throw rv;
-        /* Designate memory for reverse index, including player entries */
+        // Designate memory for reverse index, including player entries
         mem = vc->items * sizeof(long);
         mem += MAXU * sizeof(long);
         if (membase) {
@@ -156,7 +156,7 @@ read_in_vocab(void *membase)
         for (int extras = 0; extras < vc->extras; extras++)
             vc->index[vc->items + extras] = -1;
 
-        /* Now provide for and read in each of the hash rows */
+        // Now provide for and read in each of the hash rows
         for (i = 0; i < VOCROWS; i++) {
             mem = vc->hash_depth * sizeof(long);
             if (membase) {
@@ -174,7 +174,7 @@ read_in_vocab(void *membase)
             if (rv < 0)
                 throw rv;
         }
-        /* We're done with the index file */
+        // We're done with the index file
         _close(fd);
 
         sprintf(tmp, "%sData/%s", g_dir, vocfn);

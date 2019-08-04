@@ -9,9 +9,9 @@ size_t rdalloc = 0;             // Text buffer memory allocated
 /* To enable us to track DMOVEs which aren't resolvable first pass,
  * we'll track each unresolved DMOVE and then make a second pass */
 struct Dmove {
-    struct Dmove *next; /* Next DMOVE object */
-    basic_obj room;     /* The room the dmove is FROM */
-    char *to;           /* Name of room to dmove to */
+    struct Dmove *next;  // Next DMOVE object
+    basic_obj room;      // The room the dmove is FROM
+    char *to;            // Name of room to dmove to
 };
 struct Dmove *first = NULL, *dmv;
 
@@ -51,7 +51,7 @@ is_room_param(char *&s)
 
 void
 room_proc(void)
-{ /* Process the rooms file */
+{  // Process the rooms file
     ROOM *rmp;
     char *bufmem;
     char *p;
@@ -63,7 +63,7 @@ room_proc(void)
         exit(-1);
 
     rooms = 0;
-    nextc(1); /* Skip to first character */
+    nextc(1);  // Skip to first character
 
     for (rmp = NULL; rmp == NULL || nextc(0) == 0; rooms++) {
         // Create a new object
@@ -74,12 +74,12 @@ room_proc(void)
         ////////////////////////////////////////////////////////
         // First line of the room table is the room ID and flags
 
-        /* allow for line-extension */
+        // allow for line-extension
         get_line(ifp, g_block, 1000);
         p = skiplead("room=", g_block);
         p = getword(p);  // Extract the room id
 
-        /* Add the room name to vocab; mustn't already be in use */
+        // Add the room name to vocab; mustn't already be in use
         rmp->clear();
         rmp->id = new_word(Word, true);
         if ((rid = rmp->id) == -1)
@@ -113,12 +113,13 @@ room_proc(void)
                     case rp_dmove:  // Inventory moves elsewhere if you die
                         basic_obj dmove;
                         dmove = is_container(ptr);
-                        if (dmove == -1)  // Don't know this room yet
+                        if (dmove == -1)
+                        // Don't know this room yet
                         {
                             dmv = (Dmove *) grow(NULL, sizeof(struct Dmove), "Tracking DMOVEs");
                             dmv->room = rmp->bob;
                             dmv->to = _strdup(ptr);
-                            dmv->next = first; /* forward-only Linked list */
+                            dmv->next = first;  // forward-only Linked list
                             first = dmv;
                         } else
                             rmp->dmove = dmove;
@@ -136,7 +137,7 @@ room_proc(void)
                 }
         }
 
-        /* Get short desc */
+        // Get short desc
         if (fgets(bufmem, rdalloc, ifp)) {
             throw Smugl::FPReadError("rooms", errno, ifp);
         }
@@ -154,36 +155,36 @@ room_proc(void)
             while (fgets(bufmem + mem_off, (size_t)(rdalloc - mem_off), ifp)) {
                 char *base = bufmem + mem_off;
 
-                /* Was it a blank line? */
+                // Was it a blank line?
                 if (*base == '\n' || *base == 0) {
                     *base = 0;
                     break;
                 }
-                /* Remove one leading tab */
+                // Remove one leading tab
                 if (*base == '\t')
                     memmove(base, base + 1, strlen(base));
-                /* Fetch more lines as neccesary */
+                // Fetch more lines as neccesary
                 while ((q = strrchr(base, '\n')) == NULL) {
-                    /* Grow some more memory */
+                    // Grow some more memory
                     mem_off += strlen(base);
                     if ((size_t)(mem_off + ROOMDSC_GROW_RATE) >= rdalloc) {
                         rdalloc += ROOMDSC_GROW_RATE;
                         bufmem = (char *) grow(bufmem, rdalloc + 2, "Extending RDesc Line");
                     }
                     base = bufmem + mem_off;
-                    /* Read some more text */
+                    // Read some more text
                     if (fgets(base, rdalloc - mem_off, ifp) == NULL)
                         break;
                 }
                 if (q == NULL)
                     q = base + strlen(base);
-                /* Remove the carriage return */
+                // Remove the carriage return
                 *q = ' ';
                 *(q + 1) = 0;
-                /* Trim any extra trailing white spaces */
+                // Trim any extra trailing white spaces
                 while (isspace(*(--q)))
                     *(q + 1) = 0;
-                /* Grow the memory buffer */
+                // Grow the memory buffer
                 mem_off += strlen(base);
                 if ((size_t)(mem_off + ROOMDSC_GROW_RATE) >= rdalloc) {
                     rdalloc += ROOMDSC_GROW_RATE;
@@ -216,7 +217,7 @@ finish_rooms(void)
 {
     ROOM *rmp;
 
-    /* Process the dmove tables */
+    // Process the dmove tables
     /* The DMOVE flag specifies that when a player dies in a given room,
      * their inventory should be relocated to a different room (e.g. if
      * you drown underwater, you might want the players inventory to be
@@ -235,12 +236,12 @@ finish_rooms(void)
         else
             rmp->dmove = dest;
         free(dmv->to);
-        free(dmv); /* Release this memory */
+        free(dmv);  // Release this memory
     }
 
     errabort();
 
-    /* Write copy of stuff to disk */
+    // Write copy of stuff to disk
     fopenw(roomsfn);
     for (rmp = roomtab; rmp && rmp->type == WROOM; rmp = (ROOM *) rmp->next) {
         ROOM temp;

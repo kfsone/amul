@@ -96,7 +96,8 @@ Room::leave(vocid_t wordno)
     HEAVYDEBUG("Room::leave");
     class Verb *vb = VerbIdx::locate(wordno);
 
-    if (vb == NULL)  // word must be a verb
+    if (vb == NULL)
+        // word must be a verb
         return false;
     return leave(vb);
 }
@@ -113,7 +114,8 @@ Room::leave(class Verb *vb)
     bool did_anything = false;
     class TTEnt *ttp;  // TT Entry pointer
 
-    if (tabptr == -1)  // Anything to see?
+    if (tabptr == -1)
+    // Anything to see?
     {
         tx(message(CANTGO), '\n');
         return true;
@@ -161,7 +163,8 @@ Room::depart(const char *how /*=me->dep*/)
     sem_lock(sem_MOTION);
     from_container(me->conLocation);  // Move to nowhere
     cur_loc = NULL;
-    if (bob != me->bob)           // If it's not inside itself
+    if (bob != me->bob)
+        // If it's not inside itself
         announce_into(bob, how);  // Tell players back there
     sem_unlock(sem_MOTION);
 }

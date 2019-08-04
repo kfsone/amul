@@ -226,8 +226,9 @@ handle_std_flag(const char *phrase, flag_t &flags, flag_t filter)
 
     for (i = 0, bit = 1; std_flag[i]; i++, bit = bit << 1) {
         if (strcmp(phrase, std_flag[i]) != 0)
-            continue;             // Doesn't match
-        if ((filter & bit) != 0)  // Not allowed by filter
+            continue;  // Doesn't match
+        if ((filter & bit) != 0)
+            // Not allowed by filter
             return 1;
         flags |= bit;  // Add to flags
         return 0;

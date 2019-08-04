@@ -132,7 +132,8 @@ argue(int argc, char* argv[])
     g_dir[0] = 0;
     // NOTE: This isn't real argv - argv[0] is the first ARGUMENT
     // the program was called with. Don't get confused ;-)
-    if (argc >= 1)  // We have some arguments
+    if (argc >= 1)
+    // We have some arguments
     {
         if (strcmp(argv[0], "?") == 0)
             usage(0);  // Allow "smugl ?" for usage
@@ -143,7 +144,7 @@ argue(int argc, char* argv[])
                     case 'h':
                     case 'u':
                         usage(0);
-                        /* NOTREACHED */
+                        // NOTREACHED
 
                     case 'f':  // fork after loading everything
                         g_fork_on_load = 1;
@@ -155,7 +156,7 @@ argue(int argc, char* argv[])
 
                     default:
                         usage(0);
-                        /* NOTREACHED */
+                        // NOTREACHED
                 }
             } else {
                 if (arg + 1 < argc) {
@@ -164,7 +165,7 @@ argue(int argc, char* argv[])
                                  argv[arg],
                                  argv[arg + 1]);
                     usage(1);
-                    /* NOTREACHED */
+                    // NOTREACHED
                 }
                 strcpy(g_dir, argv[arg]);
             }
