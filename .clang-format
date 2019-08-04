@@ -1,41 +1,30 @@
 ﻿---
-BasedOnStyle: LLVM
-IndentWidth: 4
-TabWidth: 4
-UseTab: Never
-ReflowComments: true
-SpaceBeforeAssignmentOperators: true
-PointerAlignment: Right
-IndentCaseLabels: false
-AlwaysBreakTemplateDeclarations: true
-AlignAfterOpenBracket: AlwaysBreak
+BasedOnStyle: Mozilla
+AlignEscapedNewlines: Right
+AlignTrailingComments: 'true'
 AlwaysBreakAfterReturnType: TopLevelDefinitions
-FixNamespaceComments: true
+AlwaysBreakTemplateDeclarations: 'Yes'
 BreakBeforeBraces: Linux
-AllowShortIfStatementsOnASingleLine: false
-AllowShortLoopsOnASingleLine: false
-SpacesBeforeTrailingComments: 2
-BreakBeforeInheritanceComma: true
-BreakConstructorInitializers: BeforeComma
-CompactNamespaces: true
-ContinuationIndentWidth: 8
-ConstructorInitializerIndentWidth: 4
-IndentPPDirectives: AfterHash
-KeepEmptyLinesAtTheStartOfBlocks: false
-ColumnLimit: 100
-AlignConsecutiveDeclarations: true
+BreakConstructorInitializers: BeforeColon
+ColumnLimit: '100'
+CompactNamespaces: 'true'
+ConstructorInitializerIndentWidth: '4'
+ContinuationIndentWidth: '8'
+DerivePointerAlignment: 'false'
+DisableFormat: 'false'
+FixNamespaceComments: 'true'
+IndentWidth: '4'
+PenaltyBreakBeforeFirstCallParameter: '8'
+PenaltyReturnTypeOnItsOwnLine: '0'
+PointerAlignment: Right
+ReflowComments: 'true'
+SpaceAfterCStyleCast: 'true'
+SpaceBeforeAssignmentOperators: 'true'
+SpaceBeforeCtorInitializerColon: 'true'
+SpaceBeforeRangeBasedForLoopColon: 'true'
+SpacesBeforeTrailingComments: '2'
+Standard: Auto
+TabWidth: '4'
+UseTab: Never
+
 ...
-#BreakInheritanceList: BeforeComma
-#AllowShortBlocksOnASingleLine: true
-#AllowShortFunctionsOnASingleLine: true
-#AllowShortCaseLabelsOnASingleLine: true
-#AlignConsecutiveAssignments: false
-#AlwaysBreakBeforeMultilineStrings: true
-
-
-#AllowAllParametersOfDeclarationOnNextLine: false
-#ConstructorInitializerAllOnOneLineOrOnePerLine: true
-#DerivePointerAlignment: false
-#NamespaceIndentation: Inner
-#PenaltyReturnTypeOnItsOwnLine: 0
-#Cpp11BracedListStyle: false
