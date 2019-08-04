@@ -47,7 +47,7 @@ const char* obflags2[] = {  // Object state flags
 const char* syntax[NSYNTS] = {  // Syntax "types"
     "none", "any", "noun", "adj", "player", "room", "syn", "text", "verb", "class", "number"
 };
-/* For speeds sake, we remember the size of each of the above */
+// For speeds sake, we remember the size of each of the above
 unsigned char syntl[NSYNTS] = { 4, 3, 4, 3, 6, 4, 3, 4, 4, 5, 6 };
 
 const char* obputs[NPUTS] = { "in", "on", "behind", "under" };
@@ -56,23 +56,23 @@ const char* prep[NPREP] = { "in", "on", "behind", "under", "from", "with" };
 
 const char* article[NART] = { "a", "an", "the", "some" };
 
-char advfn[] = "Main.CMP";       /* Game profile */
-char plyrfn[] = "PlayerData";    /* User Details */
-char roomsfn[] = "Rooms.CMP";    /* Room blocks */
-char ranksfn[] = "Ranks.CMP";    /* Rank details */
-char ttfn[] = "TTEnt.CMP";       /* T.T. Entries */
-char ttpfn[] = "TTPar.CMP";      /* TT Paramters */
-char langfn[] = "Verbs.CMP";     /* Verb blocks */
-char synsifn[] = "SynIdx.CMP";   /* Syns Index */
-char objsfn[] = "Objects.CMP";   /* Detail!!! */
-char statfn[] = "ObjStates.CMP"; /* Obj. States */
-char umsgifn[] = "TextI.CMP";    /* UMsgs Index */
-char umsgfn[] = "Text.CMP";      /* Umsg text */
-char mobfn[] = "Mobs.CMP";       /* Mobile data */
-char vocifn[] = "VocInd.CMP";    /* Vocab Index */
-char vocfn[] = "Vocab.CMP";      /* Vocab Index */
-char bobfn[] = "Bobs.CMP";       /* Bob Index and Containers */
-char statsfn[] = "Stats.CMP";    /* Stats */
+char advfn[] = "Main.CMP";        // Game profile
+char plyrfn[] = "PlayerData";     // User Details
+char roomsfn[] = "Rooms.CMP";     // Room blocks
+char ranksfn[] = "Ranks.CMP";     // Rank details
+char ttfn[] = "TTEnt.CMP";        // T.T. Entries
+char ttpfn[] = "TTPar.CMP";       // TT Paramters
+char langfn[] = "Verbs.CMP";      // Verb blocks
+char synsifn[] = "SynIdx.CMP";    // Syns Index
+char objsfn[] = "Objects.CMP";    // Detail!!!
+char statfn[] = "ObjStates.CMP";  // Obj. States
+char umsgifn[] = "TextI.CMP";     // UMsgs Index
+char umsgfn[] = "Text.CMP";       // Umsg text
+char mobfn[] = "Mobs.CMP";        // Mobile data
+char vocifn[] = "VocInd.CMP";     // Vocab Index
+char vocfn[] = "Vocab.CMP";       // Vocab Index
+char bobfn[] = "Bobs.CMP";        // Bob Index and Containers
+char statsfn[] = "Stats.CMP";     // Stats
 
 struct ACTUAL actual[NACTUALS] = {
     { "verb", IWORD + IVERB, WVERB },       { "adj", IWORD + IADJ1, WADJ },

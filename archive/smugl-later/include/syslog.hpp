@@ -3,4 +3,4 @@
 
 #include "apis/Logging.hpp"
 
-extern APIs::Logging::Log sysLog ;
+extern APIs::Logging::Log sysLog;

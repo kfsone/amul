@@ -38,9 +38,11 @@ sanitise_input(void)
 {
     char* start = g_input;
 
-    while (isspace(*start))  // Remove leading spaces
+    while (isspace(*start))
+        // Remove leading spaces
         start++;
-    if (!*start)  // Ignore a white-space only input
+    if (!*start)
+    // Ignore a white-space only input
     {
         g_input[0] = 0;
         return;

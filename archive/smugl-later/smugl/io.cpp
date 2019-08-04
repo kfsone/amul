@@ -50,7 +50,7 @@ APIs::Logging::Log::vWrite(const char* const srcFilename_,
         exit(level_);
 }
 
-/* ans(string) - sends an ansi string if the user has ansi capability */
+// ans(string) - sends an ansi string if the user has ansi capability
 void
 ans(const char* s)
 {
@@ -77,7 +77,8 @@ void
 
 tx(const char* s, char c /*=0*/)
 {
-    if (!*s)  // Anything to print?
+    if (!*s)
+        // Anything to print?
         return;
 
     char tstr[OBLIM * 2];  // YEUCH! on the stack!?!
@@ -88,10 +89,11 @@ tx(const char* s, char c /*=0*/)
     int cur_x, cur_y;
     int i;
 
-    txed = true;        // flag that tx was called
-    if (addcr && xpos)  // If this is an interruption,
-        txc('\n');      // we may need to add a cr
-    addcr = false;      // ... but now we're sorted
+    txed = true;  // flag that tx was called
+    if (addcr && xpos)
+        // If this is an interruption,
+        txc('\n');  // we may need to add a cr
+    addcr = false;  // ... but now we're sorted
 
     if (g_manager) {  // If we're the manager, don't be clever
         fprintf(stderr, "%s%c", s, c);
@@ -111,7 +113,8 @@ tx(const char* s, char c /*=0*/)
         old_out_bufsz = out_bufsz;
     }
 
-    if (*s == 12)  // Allow form feed at start-of-string
+    if (*s == 12)
+        // Allow form feed at start-of-string
         txc(*(s++));
     working_ptr = s;  // For working through the input string
     cur_y = 0;        // Lines we've printed
@@ -119,7 +122,8 @@ tx(const char* s, char c /*=0*/)
     ioproc(working_ptr);  // Process the text for output
     out = out_buf;
     cur_x = xpos;  // Adopt cursor position
-    while (*out)   // While there's anything to print
+    while (*out)
+    // While there's anything to print
     {
         char* p = tstr;
         *p = 0;
@@ -253,7 +257,8 @@ tx(const char* s, char c /*=0*/)
             txnest--;
             xpos = cur_x;
         }
-        if (*out == 12)  // Print form feeds on their own
+        if (*out == 12)
+            // Print form feeds on their own
             txc(*(out++));
     }
 
@@ -275,7 +280,7 @@ tx(const char* s, char c /*=0*/)
     }
 }
 
-/* call TX with printf style arguments */
+// call TX with printf style arguments
 void
 txprintf(const char* s, ...)
 {
@@ -287,11 +292,12 @@ txprintf(const char* s, ...)
     tx(temp, 0);
 }
 
-/* print a single character */
+// print a single character
 void
 txc(char c)
 {
-    if (!c)  // Don't send nulls
+    if (!c)
+        // Don't send nulls
         return;
     if (g_manager) {  // Nothing fancy for the manager
         putchar(c);
@@ -351,7 +357,7 @@ do_read(char* p)
     return ret;
 }
 
-/* prompt the user, but remember what we prompted with */
+// prompt the user, but remember what we prompted with
 void
 prompt(long msg)
 {
@@ -436,7 +442,8 @@ fetch_input(char* to, int length)
         // Because of al the crap we did with telnet stuff, and because
         // we're assuming the user is using a telnet client, we need to
         // implement very rudimentary telnet support
-        if ((u_char) c == 255)  // Telnet option?
+        if ((u_char) c == 255)
+        // Telnet option?
         {
             u_char byte;
 
@@ -453,16 +460,19 @@ fetch_input(char* to, int length)
             continue;
         }
 
-        if (c == '\r' || c == '\n')  // Ignore \r's
+        if (c == '\r' || c == '\n')
+        // Ignore \r's
         {
             *p = 0;
             txc('\n');
             break;
         }
 
-        if (c == 8 || c == 127)  // Backspace
+        if (c == 8 || c == 127)
+        // Backspace
         {
-            if (p <= to)  // Beginning of string
+            if (p <= to)
+            // Beginning of string
             {
                 txc(7);
                 continue;
@@ -472,7 +482,8 @@ fetch_input(char* to, int length)
             continue;
         }
 
-        if (c == 27 || c == 21)  // Escape or CTRL-U
+        if (c == 27 || c == 21)
+        // Escape or CTRL-U
         {
             while (p > to) {
                 txc(8);
@@ -487,7 +498,8 @@ fetch_input(char* to, int length)
 
         p++;
         *p = 0;
-        if (noecho)  // For hidden input, eg. passwords
+        if (noecho)
+            // For hidden input, eg. passwords
             txc('*');
         else
             txc(c);

@@ -14,9 +14,12 @@ char *out_buf;         // Generic output buffer
 long out_buf_len = 0;  // Length of data in output buffer
 long out_bufsz;        // Total size of outbuf memory allocation
 
-const char *message(msgno_t id)  // Convert umsg id into a string pointer
+const char *
+message(msgno_t id)
+// Convert umsg id into a string pointer
 {
-    if (id & IWORD)  // It's actually a player-context word
+    if (id & IWORD)
+    // It's actually a player-context word
     {
         if (id == -1 || id == -2)
             return "\0";
@@ -25,7 +28,9 @@ const char *message(msgno_t id)  // Convert umsg id into a string pointer
     return (char *) (data->msgbase[id]);  // De-reference a message id
 }
 
-const char *rightstr(const char *s, int len)  // Return EOS - len characters
+const char *
+rightstr(const char *s, int len)
+// Return EOS - len characters
 {
     len = strlen(s) - len;
     if (len <= 0)
@@ -53,7 +58,8 @@ match(const char *s1, const char *s2)
         char c1 = *(s1++);
         char c2 = *(s2++);
 
-        if (c1 == c2)  // Keep looping if we find an accepted match
+        if (c1 == c2)
+            // Keep looping if we find an accepted match
 
             continue;
         if ((c1 == ' ' || c1 == '_') && (c2 == ' ' || c2 == '_'))
@@ -82,21 +88,26 @@ esc(const char *code, char *to)
 
     switch (first) {
         case 'a':
-            if (second == 'd')  // @ad = ADventure name
+            if (second == 'd')
+                // @ad = ADventure name
                 return strcopy(to, data->name);
-            if (second == 'n')  // @an = Author Name (Oliver)
+            if (second == 'n')
+                // @an = Author Name (Oliver)
                 return strcopy(to, "Oliver Smith <oliver@kfs.org>");
-            if (second == 'v')  // @av = Adventure Version
+            if (second == 'v')
+                // @av = Adventure Version
                 return strcopy(to, vername);
             break;
 
         case 'c':
-            if (second == 'r')  // @cr = <return>
+            if (second == 'r')
+                // @cr = <return>
                 return strcopy(to, "\n");
             break;
 
         case 'e':
-            if (second == 'x')  // @ex = my experience
+            if (second == 'x')
+            // @ex = my experience
             {
                 return (to + sprintf(to, "%ld", me->experience));
             }
@@ -135,15 +146,17 @@ esc(const char *code, char *to)
             }
             break;
 
-        case 'h': /* The person helping you */
+        case 'h':  // The person helping you
             //            if(c=='e' && me->helped!=-1) { strcpy(s,(usr+me->helped)->name); return 1;
             //            }
             break;
 
         case 'l':
-            if (second == 'r')  // @lr = last reset time
+            if (second == 'r')
+                // @lr = last reset time
                 return strcopy(to, data->lastres);
-            if (second == 'c')  // @lc = last compile time
+            if (second == 'c')
+                // @lc = last compile time
                 return strcopy(to, data->lastcrt);
             break;
 
@@ -191,9 +204,11 @@ esc(const char *code, char *to)
 
         case 'p':
             // if(c=='l') { strcpy(s,(usr+me->fighting)->name); return 1; }
-            if (second == 'w')  // @pw = my password (bad idea really)
+            if (second == 'w')
+                // @pw = my password (bad idea really)
                 return strcopy(to, me->passwd);
-            if (second == 'o')  // @po = players online
+            if (second == 'o')
+            // @po = players online
             {
                 // Capture the 'online' count so it doesn't change
                 int online = data->connected;
@@ -275,11 +290,12 @@ esc(const char *code, char *to)
 
         case 'w':
             // if(c=='1' && inoun1>=0 && wtype[1]==WNOUN) {
-            // sprintf(s,"%ldg",((obtab+inoun1)->states+(long)(obtab+inoun1)->state)->weight); return
-            // 1; } if(c=='2' && inoun2>=0 && wtype[3]==WNOUN) {
-            // sprintf(s,"%ldg",((obtab+inoun2)->states+(long)(obtab+inoun2)->state)->weight); return
-            // 1; }
-            if (second == 'i')  // @wi = my wisdom
+            // sprintf(s,"%ldg",((obtab+inoun1)->states+(long)(obtab+inoun1)->state)->weight);
+            // return 1; } if(c=='2' && inoun2>=0 && wtype[3]==WNOUN) {
+            // sprintf(s,"%ldg",((obtab+inoun2)->states+(long)(obtab+inoun2)->state)->weight);
+            // return 1; }
+            if (second == 'i')
+                // @wi = my wisdom
                 return (to + sprintf(to, "%ld", me->wisdom));
             break;
 
@@ -301,7 +317,8 @@ esc(const char *code, char *to)
 void
 ioproc(const char *str)
 {
-    if (!out_buf)  // No output buffer currently
+    if (!out_buf)
+        // No output buffer currently
         out_buf = (char *) malloc((out_bufsz = OBLIM));
     char *p = out_buf;  // Local pointer
 
@@ -312,7 +329,8 @@ ioproc(const char *str)
      * We can afford to whack a lot of short lines in the buffer, but
      * we try to avoid filling the buffer */
     while (*str) {
-        if (p > high_water)  // Do we need more memory?
+        if (p > high_water)
+        // Do we need more memory?
         {
             long off = p - out_buf;  // Offset of 'p' relative to out_buf
 
@@ -328,7 +346,7 @@ ioproc(const char *str)
         char thisc = *(str++);
         char *advance;
 
-        /* Escape code: Process it, and find the end of the output */
+        // Escape code: Process it, and find the end of the output
         if (thisc == '@' && (advance = esc(str, p)) != NULL) {
             p = advance;  // Move to end of string
             str += 2;     // Skip the escape code (2 characters)

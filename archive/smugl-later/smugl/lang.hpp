@@ -4,16 +4,15 @@
 
 #include "smugl/rooms.hpp"
 
-class   Verb:public VERB
+class Verb : public VERB
 {
   public:
-	bool    describe(void);		// Not really apropriate
+    bool describe(void);  // Not really apropriate
 };
 
-class   VerbIdx
+class VerbIdx
 {
   public:
-	static class Verb* locate(char* s);
-	static class Verb* locate(vocid_t id);
+    static class Verb* locate(char* s);
+    static class Verb* locate(vocid_t id);
 };
-

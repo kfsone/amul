@@ -36,4 +36,4 @@ class RoomIdx
 extern Room *cur_loc;
 extern Room *last_room;
 
-#endif /* ROOMS_H */
+#endif  // ROOMS_H

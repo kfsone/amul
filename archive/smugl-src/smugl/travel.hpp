@@ -18,4 +18,4 @@ class TTIdx
     static class TTEnt *locate(long id);
 };
 
-#endif /* Travel_H */
+#endif  // Travel_H

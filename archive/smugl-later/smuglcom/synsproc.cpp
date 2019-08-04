@@ -14,7 +14,7 @@
 
 #include "smuglcom/smuglcom.hpp"
 
-/* Process the synonyms table */
+// Process the synonyms table
 void
 syn_proc(void)
 {

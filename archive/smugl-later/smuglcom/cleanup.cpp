@@ -49,11 +49,11 @@
 
 #include "smuglcom/smuglcom.hpp"
 
-#define fQ -1 /* Handle quotes */
-#define fC -2 /* Handle a comma */
-#define fM -3 /* Handle a comment */
-#define fS -4 /* Handle a line extension (usually 'slash') */
-#define fR -5 /* Handle \r */
+#define fQ -1  // Handle quotes
+#define fC -2  // Handle a comma
+#define fM -3  // Handle a comment
+#define fS -4  // Handle a line extension (usually 'slash')
+#define fR -5  // Handle \r
 
 /* List of replacement characters. For each possible character,
 ** the entry in this table specifies the replacement character.
@@ -61,7 +61,7 @@
 ** above
 */
 static const char repl[256] = {
-    /*      0---1---2---3---4---5---6---7---8---9---10--11--12--13  */
+    // 0---1---2---3---4---5---6---7---8---9---10--11--12--13
     0,
     32,
     32,
@@ -76,8 +76,8 @@ static const char repl[256] = {
     32,
     0,
     fR,
-    /*      14--15--16--17--18--19--20--21--22--23--24--25--26--27  */
-    /*      ....................................................esc */
+    // 14--15--16--17--18--19--20--21--22--23--24--25--26--27
+    // ....................................................esc
     32,
     32,
     32,
@@ -92,24 +92,24 @@ static const char repl[256] = {
     32,
     32,
     0,
-    /*      28--29--30--31--32--33--34--35--36--37--38--39--40--41  */
-    /*      ................ ...!..."...#...$...%...&...'...(...)   */
+    // 28--29--30--31--32--33--34--35--36--37--38--39--40--41
+    // ................ ...!..."...#...$...%...&...'...(...)
     32,
     32,
     32,
     32,
-    0,
-    0,
-    fQ,
-    0,
-    0,
     0,
     0,
     fQ,
     0,
     0,
-    /*      42--43--44--45--46--47--48--49--50--51--52--53--54--55  */
-    /*      *...+...,...-..'.'../...0...1...2...3...4...5...6...7   */
+    0,
+    0,
+    fQ,
+    0,
+    0,
+    // 42--43--44--45--46--47--48--49--50--51--52--53--54--55
+    // *...+...,...-..'.'../...0...1...2...3...4...5...6...7
     0,
     fS,
     fC,
@@ -124,8 +124,8 @@ static const char repl[256] = {
     0,
     0,
     0,
-    /*      56--57--58--59--60--61--62--63--64--65--66--67--68--69  */
-    /*      8...9...:...;...<...=...>...?...@...A...B...C...D...E   */
+    // 56--57--58--59--60--61--62--63--64--65--66--67--68--69
+    // 8...9...:...;...<...=...>...?...@...A...B...C...D...E
     0,
     0,
     0,
@@ -140,8 +140,8 @@ static const char repl[256] = {
     'c',
     'd',
     'e',
-    /*      70--71--72--73--74--75--76--77--78--79--80--81--82--83  */
-    /*      F...G...H...I...J...K...L...M...N...O...P...Q...R...S   */
+    // 70--71--72--73--74--75--76--77--78--79--80--81--82--83
+    // F...G...H...I...J...K...L...M...N...O...P...Q...R...S
     'f',
     'g',
     'h',
@@ -156,8 +156,8 @@ static const char repl[256] = {
     'q',
     'r',
     's',
-    /*      84--85--86--87--88--89--90--91--92--93--94--95--96--97  */
-    /*      T...U...V...W...X...Y...Z...[...\       */
+    // 84--85--86--87--88--89--90--91--92--93--94--95--96--97
+    // T...U...V...W...X...Y...Z...[...\       
     't',
     'u',
     'v',
@@ -189,49 +189,49 @@ clean_up(char* p)
         } else {
             c = repl[(int) c];
             switch (c) {
-                case 0: /* Do nothing */
+                case 0:  // Do nothing
                     break;
 
-                case fQ: /* Handle quoted text */
+                case fQ:  // Handle quoted text
                 {
-                    char qt = *s; /* Quote character */
-                    /* Find the close quote, or EOL */
+                    char qt = *s;  // Quote character
+                    // Find the close quote, or EOL
                     while (*p && *p != qt && repl[(int) *p] != EOL)
                         *(++s) = *(p++);
-                    if (*p == qt) /* If we ended on a quote char, skip it */
+                    if (*p == qt)  // If we ended on a quote char, skip it
                         *(++s) = *(p++);
                 } break;
 
-                case fC: /* Handle a comma */
+                case fC:  // Handle a comma
                     if (repl[(int) *p] == EOL)
-                        s--; /* Comma at EOL is uneccesary, remove it */
+                        s--;  // Comma at EOL is uneccesary, remove it
                     else
-                        *s = EOL; /* Otherwise make it an EOL */
+                        *s = EOL;  // Otherwise make it an EOL
                     break;
 
-                case fM: /* Handle a comment */
-                    s--; /* Remove the comment character */
+                case fM:  // Handle a comment
+                    s--;  // Remove the comment character
                     if (s > start && *s == EOL)
-                        s--; /* Remove comment-only lines completely */
+                        s--;  // Remove comment-only lines completely
                     while (*p && repl[(int) (*p)] != EOL)
                         p++;
                     break;
 
-                case fS:                       /* Handle \ or + at EOL */
-                    if (repl[(int) *p] == EOL) /* Useless unless at EOL */
+                case fS:                        // Handle \ or + at EOL
+                    if (repl[(int) *p] == EOL)  // Useless unless at EOL
                     {
-                        *s = ' '; /* Remove the extend character */
-                        p++;      /* But also forget about the EOL character */
+                        *s = ' ';  // Remove the extend character
+                        p++;       // But also forget about the EOL character
                     }
                     break;
 
-                case fR:            /* Handle a \r */
-                    if (*p == '\n') /* Reduce \r\n to EOL */
+                case fR:             // Handle a \r
+                    if (*p == '\n')  // Reduce \r\n to EOL
                         p++;
                     *s = EOL;
                     break;
 
-                default: /* Replace */
+                default:  // Replace
                     *s = c;
                     break;
             }

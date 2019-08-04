@@ -18,22 +18,22 @@ extern counter_t arg_alloc;
 extern arg_t *argtab;
 extern arg_t *argptr;
 
-static struct VBTAB *vttab;   /* Table of 'vt's */
-counter_t vt_alloc;           /* Number of 'vt's in use */
-static struct VBTAB *vtp;     /* Current 'vt' */
-static struct SLOTTAB *sttab; /* Table of slottab's */
-counter_t st_alloc;           /* Allocation of slottabs */
-static struct SLOTTAB *stp;   /* Current slottab */
+static struct VBTAB *vttab;    // Table of 'vt's
+counter_t vt_alloc;            // Number of 'vt's in use
+static struct VBTAB *vtp;      // Current 'vt'
+static struct SLOTTAB *sttab;  // Table of slottab's
+counter_t st_alloc;            // Allocation of slottabs
+static struct SLOTTAB *stp;    // Current slottab
 
-/* The default 'CHAE' pattern is -1/C/H/E for both sets */
+// The default 'CHAE' pattern is -1/C/H/E for both sets
 static const char default_chae[] = { -1, 'C', 'H', 'E', -1, 'C', 'H', 'E' };
 
-void lang_proc(void) /* Process language table */
+void lang_proc(void)  // Process language table
 {
     char *p, *s;
     char *ls;
 
-    /* n=general, cs=Current Slot, x=slot */
+    // n=general, cs=Current Slot, x=slot
     int n, cs;
     signed long x;
     char lastc;
@@ -52,10 +52,10 @@ void lang_proc(void) /* Process language table */
 
     do {
         p = skipline(ls = s = p);
-        if (!*s) /* Blank line? */
+        if (!*s)  // Blank line?
             continue;
         s = skipspc(s);
-        if (!*s) /* Empty line */
+        if (!*s)  // Empty line
             continue;
         verb.id = -1;
         if (!strncmp(s, "travel=", 7)) {
@@ -96,7 +96,7 @@ void lang_proc(void) /* Process language table */
         strcpy(verb.sort, default_chae);
         verbs++;
 
-        /* Check the verb flags and/or 'chae' options */
+        // Check the verb flags and/or 'chae' options
         verb.flags = 0L;
         if (*s) {
             s = getword(s);
@@ -118,7 +118,7 @@ void lang_proc(void) /* Process language table */
         verb.ents = 0;
         verb.ptr = (struct SLOTTAB *) (st_alloc * sizeof(vbslot));
 
-        /* Skip Empty lines */
+        // Skip Empty lines
         do {
             p = skipline(ls = s = p);
             if (!*s) {
@@ -128,7 +128,7 @@ void lang_proc(void) /* Process language table */
             }
             s = skipspc(s);
         } while (!*s);
-        if (!*s) /* Incase we hit end-of-paragraph */
+        if (!*s)  // Incase we hit end-of-paragraph
             continue;
 
         setslots(WANY);
@@ -139,13 +139,13 @@ void lang_proc(void) /* Process language table */
             goto endsynt;
         }
 
-        /* Syntax line loop */
+        // Syntax line loop
     synloop:
         s = skipspc(skiplead("syntax=", s));
         setslots(WNONE);
         verb.ents++;
         s = skipspc(skiplead("verb", s));
-        /* ? line is '[syntax=][verb] any' or '[syntax=][verb] none' */
+        // ? line is '[syntax=][verb] any' or '[syntax=][verb] none'
         if (!strncmp("any", s, 3)) {
             setslots(WANY);
             goto endsynt;
@@ -155,7 +155,7 @@ void lang_proc(void) /* Process language table */
             goto endsynt;
         }
 
-    sp2: /* Syntax line processing */
+    sp2:  // Syntax line processing
         s = getword(s);
         if (!*Word)
             goto endsynt;
@@ -168,7 +168,7 @@ void lang_proc(void) /* Process language table */
             x = WANY;
         else {
 
-            /* Eliminate illegal combinations */
+            // Eliminate illegal combinations
             if (n == WNONE || n == WANY) {
                 sprintf(g_block, "Tried to use %s= on syntax line", syntax[n]);
                 vbprob(g_block, ls);
@@ -179,10 +179,10 @@ void lang_proc(void) /* Process language table */
                 goto endsynt;
             }
 
-            /* Check "tag" is the correct type */
+            // Check "tag" is the correct type
             x = -1;
             switch (n) {
-                case WADJ: /* Need ISADJ() - do TT entry too */
+                case WADJ:  // Need ISADJ() - do TT entry too
                 case WNOUN:
                     x = is_bob(Word, WNOUN);
                     break;
@@ -227,7 +227,7 @@ void lang_proc(void) /* Process language table */
                 x = -1;
         }
 
-        /* Now fit into correct slot */
+        // Now fit into correct slot
         if (n == WADJ) {
             // Adjectives are a special case because they have their
             // own slots to be stored in, so we must process them
@@ -246,7 +246,7 @@ void lang_proc(void) /* Process language table */
             // Don't do the rest of the processing
             goto sp2;
         }
-        cs = 0; /* Noun1 */
+        cs = 0;  // Noun1
         switch (n) {
             case WNOUN:
                 if (vbslot.wtype[0] != WNONE && vbslot.wtype[1] != WNONE) {
@@ -287,7 +287,7 @@ void lang_proc(void) /* Process language table */
         lastc = 'x';
 
     cmdloop:
-        /* Reset the basic details */
+        // Reset the basic details
         vt.not_condition = 0;
         vt.condition = -1;
         vt.action_type = ACT_DO;
@@ -309,15 +309,15 @@ void lang_proc(void) /* Process language table */
         vbslot.ents++;
         vt.pptr = (long *) (arg_alloc * sizeof(long));
 
-        /* Process the condition */
+        // Process the condition
         s = precon(s);
-        /* Negations */
+        // Negations
         if (*s == '!') {
             vt.not_condition = 1;
             s++;
         } else if (strncmp(s, "not ", 4) == 0) {
             vt.not_condition = 1;
-            s += 4; /* skip the phrase  'not ' */
+            s += 4;  // skip the phrase  'not '
         }
 
         s = getword(s);
@@ -391,26 +391,26 @@ void lang_proc(void) /* Process language table */
 
         lastc = '\n';
 
-        /* Write the record out */
+        // Write the record out
         *(vbtab + (verbs - 1)) = verb;
         if ((long) (vbtab + (verbs - 1)) > (long) p)
             printf("@! table overtaking p\n");
     } while (*p);
 
     /*** Write out the verb data ***/
-    /* First: number of verbs, syntax slots and command entries */
+    // First: number of verbs, syntax slots and command entries
     fwrite(&verbs, sizeof(counter_t), 1, ofp1);
     fwrite(&st_alloc, sizeof(counter_t), 1, ofp1);
     fwrite(&vt_alloc, sizeof(counter_t), 1, ofp1);
-    /* Second: The verbs themselves */
+    // Second: The verbs themselves
     fwrite(vbtab, sizeof(verb), (size_t) verbs, ofp1);
-    /* Third: Write out the syntax table */
+    // Third: Write out the syntax table
     fwrite(sttab, sizeof(vbslot), (size_t) st_alloc, ofp1);
-    /* Write out command tables */
+    // Write out command tables
     fwrite(vttab, sizeof(vt), (size_t) vt_alloc, ofp1);
-    /* Write the argument lists out */
+    // Write the argument lists out
     fwrite(argtab, sizeof(long), (size_t) arg_alloc, ofp1);
-    /* Give back the released memory */
+    // Give back the released memory
     free(sttab);
     free(vttab);
     free(argtab);
@@ -419,7 +419,7 @@ void lang_proc(void) /* Process language table */
     errabort();
 }
 
-/* returns -1 if 's' is not a known word, otherwise returns the vocab id */
+// returns -1 if 's' is not a known word, otherwise returns the vocab id
 int
 is_verb(const char *s)
 {
@@ -439,8 +439,8 @@ is_verb(const char *s)
     return -1;
 }
 
-static int chae_proc(char *f, char *t) /* From and To */
-{                                      /* Process a 'CHAE' string */
+static int chae_proc(char *f, char *t)  // From and To
+{                                       // Process a 'CHAE' string
     int n;
 
     if ((*f < '0' || *f > '9') && *f != '?') {
@@ -477,13 +477,13 @@ static int chae_proc(char *f, char *t) /* From and To */
 
 static void
 chae_err(void)
-{ /* Report a 'CHAE' error */
+{  // Report a 'CHAE' error
     error("%s: Invalid sort-order flags \"%s\"\n", word(verb.id), Word);
 }
 
 static void
 setslots(int i)
-{ /* Initialise vb-slot entries */
+{  // Initialise vb-slot entries
     vbslot.wtype[0] = vbslot.wtype[1] = (char) i;
     vbslot.slot[0] = vbslot.slot[1] = WANY;
     vbslot.adj[0] = vbslot.adj[1] = -1;
@@ -491,8 +491,8 @@ setslots(int i)
 
 static int
 iswtype(char *s)
-{          /* Determine if 's' is a 'word type' */
-    int i; /* e.g. 'noun', etc */
+{           // Determine if 's' is a 'word type'
+    int i;  // e.g. 'noun', etc
 
     for (i = 0; i < NSYNTS; i++) {
         if (!strcmp(s, syntax[i])) {
@@ -511,7 +511,7 @@ iswtype(char *s)
 
 static void
 vbprob(const char *s, char *p)
-{ /* Declare a PROBLEM, and which verb its in */
+{  // Declare a PROBLEM, and which verb its in
     error("%s: line '%s'\n   > %s!\n", word(verb.id), p, s);
 }
 
@@ -527,7 +527,7 @@ vbprob(const char *s, char *p)
 ** the user is refering to. */
 int
 actualval(const char *s, arg_t n)
-{ /* Determine the actual value of a variable */
+{  // Determine the actual value of a variable
     int i;
 
     if (n != PREAL && (strchr("?%^~`*#", *s))) {
@@ -560,17 +560,17 @@ actualval(const char *s, arg_t n)
     for (i = 0; i < NACTUALS; i++) {
         if (strcmp(s, actual[i].name))
             continue;
-        /* If not a slot label, and wtypes match, is okay! */
+        // If not a slot label, and wtypes match, is okay!
         if (!(actual[i].value & IWORD))
             return (actual[i].wtype == n || n == PREAL) ? actual[i].value : -1;
 
-        /* we know its a slot label - check which: */
+        // we know its a slot label - check which:
         switch (actual[i].value - IWORD) {
-            case IVERB: /* Verb */
+            case IVERB:  // Verb
                 if (n == PVERB || n == PREAL)
                     return actual[i].value;
                 return -1;
-            case IADJ1: /* Adj #1 */
+            case IADJ1:  // Adj #1
                 if (vbslot.adj[0] == n)
                     return actual[i].value;
                 if (*(s + strlen(s) - 1) != '1' && vbslot.adj[1] == n)
@@ -578,7 +578,7 @@ actualval(const char *s, arg_t n)
                 if (n == PREAL)
                     return actual[i].value;
                 return -1;
-            case INOUN1: /* noun 1 */
+            case INOUN1:  // noun 1
                 if (vbslot.wtype[0] == n)
                     return actual[i].value;
                 if (*(s + strlen(s) - 1) != '1') {
@@ -601,7 +601,7 @@ actualval(const char *s, arg_t n)
                 return -1;
         }
     }
-    return -2; /* It was no actual! */
+    return -2;  // It was no actual!
 }
 
 #undef INVALID

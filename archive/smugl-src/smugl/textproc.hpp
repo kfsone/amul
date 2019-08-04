@@ -24,4 +24,4 @@ extern char *out_buf;
 extern long out_bufsz;
 extern long out_buf_len;
 
-#endif /* TEXTPROC_H */
+#endif  // TEXTPROC_H

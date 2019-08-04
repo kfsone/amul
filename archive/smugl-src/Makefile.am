@@ -10,7 +10,7 @@ DIRS = lib smuglcom smugl
 SUBDIRS = $(DIRS)
 
 release:
-	@touch h/*.rev
+	@touch ./include/*.rev
 	@make all
 
 dep depend:

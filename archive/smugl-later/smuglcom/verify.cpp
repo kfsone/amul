@@ -29,7 +29,7 @@ VOCAB VC;
 
 int read_in(const char* s, size_t sized);
 
-static const char* umsg(msgno_t n) /* Output a umsg */
+static const char* umsg(msgno_t n)  // Output a umsg
 {
     if (n < 0)
         return "(none)";
@@ -52,7 +52,7 @@ main(int argc, char* argv[])
 
     vc = &VC;
 
-    /* Always read in the message file */
+    // Always read in the message file
     msgs = read_in(umsgifn, sizeof(long));
     if (msgs < NSMSGS)
         printf("** Incomplete System Message file\n");
@@ -62,10 +62,10 @@ main(int argc, char* argv[])
     umsgp = (char*) mem;
     mem = NULL;
 
-    /* Next we're gonna need the vocab table */
+    // Next we're gonna need the vocab table
     read_in_vocab(NULL);
 
-    /* Always read the rooms file in */
+    // Always read the rooms file in
     rooms = read_in(roomsfn, sizeof(ROOM));
     if (rooms <= 0) {
         printf("** Defunct rooms file\n");
@@ -74,7 +74,7 @@ main(int argc, char* argv[])
     roomtab = (ROOM*) mem;
     mem = NULL;
 
-    /* Always read in the object table */
+    // Always read in the object table
     nouns = read_in(objsfn, sizeof(OBJ));
     if (nouns <= 0) {
         printf("** Defunct objects file\n");
@@ -83,7 +83,7 @@ main(int argc, char* argv[])
     obtab = (OBJ*) mem;
     mem = NULL;
 
-    /* Next, load in the containers and bobs index */
+    // Next, load in the containers and bobs index
     if (read_in(bobfn, CHUNKS) <= 0) {
         printf("** Defunct 'Basic Objects' file\n");
         exit(1);
@@ -96,12 +96,15 @@ main(int argc, char* argv[])
     containers = (CONTAINER*) mem;
     mem = NULL;
 
-    /* Finally, knock up the bobs index based on what we know */
-    for (i = 0; i < rooms; i++)  // Index rooms
+    // Finally, knock up the bobs index based on what we know
+    for (i = 0; i < rooms; i++)
+        // Index rooms
         bobs[i] = (BASIC_OBJ*) (roomtab + i);
-    for (i = 0; i < nouns; i++)  // Index objects
+    for (i = 0; i < nouns; i++)
+        // Index objects
         bobs[rooms + i] = (BASIC_OBJ*) (obtab + i);
-    for (i = 1; i < rooms + nouns; i++)  // Linked list
+    for (i = 1; i < rooms + nouns; i++)
+    // Linked list
     {
         bobs[i - 1]->next = bobs[i];
         bobs[i]->next = NULL;

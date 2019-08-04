@@ -6,8 +6,8 @@
 #include "include/cl_basicobj.hpp"
 
 class ROOM : public BASIC_OBJ
-    {				// Room def struct
-public:
+{  // Room def struct
+  public:
     //// Room::FUNCTIONS
     virtual bool describe(void) { return 0; };
     virtual bool describe_verbose(void) { return 0; };
@@ -15,8 +15,7 @@ public:
     virtual int Read(FILE *);
 
     //// Room::DATA
-    u_long visitor_bf;          // Bit field - which users have visited?
-    long tabptr;                // Travel Table data Offset (yeuch)
-    short ttlines;              // No. of TT lines
-    };
-
+    u_long visitor_bf;  // Bit field - which users have visited?
+    long tabptr;        // Travel Table data Offset (yeuch)
+    short ttlines;      // No. of TT lines
+};

@@ -1,9 +1,9 @@
 dnl $Id: configure.in,v 1.5 1997/04/28 01:10:07 oliver Exp $
 dnl Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision: 1.5 $)
-AC_INIT([h/SMUGL.h], [1.5])
-AC_CONFIG_HEADER(h/config.h)
-AC_CONFIG_SRCDIR([lib/misc.cc], [smugl/smugl.cc], [smuglcom/smuglcom.cc])
+AC_INIT([./include/SMUGL.h], [1.5])
+AC_CONFIG_HEADER(./include/config.h)
+AC_CONFIG_SRCDIR([lib/misc.cpp], [smugl/smugl.cpp], [smuglcom/smuglcom.cpp])
 AM_INIT_AUTOMAKE
 LT_INIT
 AC_CONFIG_MACRO_DIRS([m4])
@@ -45,6 +45,6 @@ AC_CHECK_FUNCS(getcwd mkdir select socket strdup strerror vfprintf, ,
 	AC_MSG_ERROR(Can't cope without this function))
 AC_CHECK_FUNCS(vsyslog)
 
-AC_OUTPUT(smuglcom/Makefile lib/Makefile test/Makefile smugl/Makefile h/Makefile Makefile)
+AC_OUTPUT(./smuglcom/Makefile ./lib/Makefile ./test/Makefile ./smugl/Makefile ./include/Makefile ./Makefile)
 AC_MSG_RESULT()
 AC_MSG_RESULT(Now do make depend ; make)

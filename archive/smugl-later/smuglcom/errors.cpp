@@ -8,7 +8,7 @@
 
 void
 error(const char *msg, ...)
-{ /* Report a compiler error */
+{  // Report a compiler error
     va_list va;
 
     if (needcr == true) {
@@ -29,7 +29,7 @@ error(const char *msg, ...)
 
 void
 warne(const char *msg, ...)
-{ /* Report a compiler warning */
+{  // Report a compiler warning
     va_list va;
 
     if (!warn)
@@ -44,7 +44,7 @@ warne(const char *msg, ...)
     va_end(va);
 }
 
-/* "End of Section": Abort if errors were encountered, otherwise tidy up */
+// "End of Section": Abort if errors were encountered, otherwise tidy up
 void
 errabort(void)
 {
@@ -61,7 +61,7 @@ errabort(void)
 
 void
 quit(const char *msg, ...)
-{ /* Exit with a message */
+{  // Exit with a message
     if (msg && *msg) {
         va_list va;
 
@@ -85,6 +85,6 @@ quit(const char *msg, ...)
 
 void
 Err(const char *s, const char *t)
-{ /* Error function for file operations */
+{  // Error function for file operations
     quit("FATAL ERROR! Can't %s %s!\n", s, t);
 }

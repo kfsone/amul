@@ -66,4 +66,4 @@ struct DATA {
 };
 
 extern struct DATA *data;
-#endif /* DATA_H */
+#endif  // DATA_H
