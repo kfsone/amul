@@ -52,9 +52,8 @@
  *
  */
 
-#include "revision.h"			// From the build directory.
+#include "revision.h"  // From the build directory.
 
 #include "smuglcom/smuglcom.hpp"
 
-extern const char vername[] =  "SMUGLCom " Smugl_BUILD_BUILT ;			// Version name string
-
+extern const char vername[] = "SMUGLCom " Smugl_BUILD_BUILT;  // Version name string
