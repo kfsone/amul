@@ -17,11 +17,16 @@ static const char rcsid[] = "$Id: rooms.cc,v 1.15 1999/09/10 15:57:31 oliver Exp
 #include "structs.hpp"
 #include "travel.hpp"
 
-class Room *cur_loc;
+Room *cur_loc;
 // class RoomIdx RoomIdx;
-class Room *last_room;
+Room *last_room;
 
-int RoomIdx::cur_no;
+Room *
+RoomIdx::first()
+{
+    cur_no = 0;
+    return data->roombase;
+}
 
 int
 Room::describe(void)
@@ -130,7 +135,7 @@ Room::leave(class Verb *vb)
                    "but I can't handle them yet.\n");
                 return TRUE;
             }
-            class Room *dest = (Room *) bobs[ttp->action];
+            Room *dest = (Room *) bobs[ttp->action];
             if ((dest->flags & SMALL) && PlayerIdx::locate_in(ttp->action)) {
                 tx("Not enough.\n");
                 return FALSE;
@@ -210,8 +215,26 @@ Room::exits(void)
 
 //////////////////////// RoomIdx functions
 
+Room *
+RoomIdx::current()
+{
+    if (cur_no >= data->rooms)
+        return NULL;
+    return data->roombase + cur_no;
+}
+
+Room *
+RoomIdx::next()
+{
+    if (++cur_no >= data->rooms) {
+        cur_no = data->rooms;
+        return NULL;
+    }
+    return data->roombase + cur_no;
+}
+
 // Locate a room by it's name
-class Room *
+Room *
 RoomIdx::locate(const char *s)
 {
     vocid_t id = is_word(s);
@@ -222,10 +245,10 @@ RoomIdx::locate(const char *s)
 }
 
 // Locate a room by it's vocab id
-class Room *
+Room *
 RoomIdx::locate(vocid_t id)
 {
-    class Room *rm;
+    Room *rm;
     long i;
 
     // Look for a room with this name

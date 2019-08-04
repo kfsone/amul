@@ -24,6 +24,12 @@ Player::describe(void)
     return TRUE;
 }
 
+basic_obj
+Player::Location() const
+{
+    return containers[conLocation].boContainer;
+}
+
 const char *
 Player::name(void)
 {
@@ -179,15 +185,19 @@ Player::go_to(basic_obj dest_rm, const char *dep_msg, const char *arr_msg)
 
 ////////////////////////////// PlayerIdx functions
 
-Player *PlayerIdx::locate(long id)  // Locate player by ID number
+// Locate player by ID number
+Player *
+PlayerIdx::locate(basic_obj id)
 {
-    int i;
-    if ((i = id - vc->items) < 0 || i > MAXU)
+    id -= vc->items;
+    if (id < 0 || id > MAXU)
         return NULL;
-    return &data->user[i];
+    return &data->user[id];
 }
 
-Player *PlayerIdx::locate(char *s)  // Locate player by name
+// Locate player by name
+Player *
+PlayerIdx::locate(char *s)
 {
     return locate(is_word(s));
 }

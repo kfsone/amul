@@ -380,7 +380,7 @@ void load_database(void *membase)  // Load all the files in the database
             Room *room = data->roombase + i;
             container_t conChild;
 
-            printf("+ Room: RoomNo=%4d, ID=%4ld, Name=%s, Contains %ld\n",
+            printf("+ Room: RoomNo=%4d, ID=%4d, Name=%s, Contains %d\n",
                    i,
                    room->id,
                    word(room->id),
@@ -394,7 +394,7 @@ void load_database(void *membase)  // Load all the files in the database
                 boSelf = containers[conChild].boSelf;
                 boParent = containers[conChild].boContainer;
 
-                printf("| + Item=%s Bob=%ld, bob->bob=%ld, container=%ld\n",
+                printf("| + Item=%s Bob=%d, bob->bob=%d, container=%d\n",
                        word(bobs[boSelf]->id),
                        boSelf,
                        bobs[boSelf]->bob,
@@ -406,7 +406,7 @@ void load_database(void *membase)  // Load all the files in the database
         for (i = 0; i < data->objects; i++) {
             Object *obj = data->objbase + i;
 
-            printf("+ Object: ObjNo=%4d, ID=%4ld, Name=%s, Contains %ld, Locations=%ld\n",
+            printf("+ Object: ObjNo=%4d, ID=%4d, Name=%s, Contains %d, Locations=%d\n",
                    i,
                    obj->id,
                    word(obj->id),

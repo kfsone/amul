@@ -176,7 +176,7 @@ run_the_game(void)
 
         if (FD_ISSET(listen_sock_fd, &rd_fds)) {  // New Connection arriving
             if (debug)
-                syslog(LOG_INFO, "accepting game connection #%ld", data->connections + 1);
+                syslog(LOG_INFO, "accepting game connection #%d", data->connections + 1);
             if (accept_connection() == FALSE)
                 return;  // Failed to accept() new connection
 

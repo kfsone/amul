@@ -8,12 +8,13 @@
 #define DATA_H 1
 
 #include "basicobjs.hpp"
+#include "cl_vocab.hpp"
 #include "players.hpp"
 
 struct DATA {
-    int semid;       // Semaphore ID for locking
-    u_short errors;  // Global error count
-    u_long wflags;   // World flags
+    int semid;        // Semaphore ID for locking
+    uint16_t errors;  // Global error count
+    uint16_t wflags;  // World flags
 
     // Basic game information (from advfn)
     char name[ADNAMEL + 1];     // The game's name

@@ -1,9 +1,8 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: objects.hpp,v 1.7 1997/05/22 02:21:27 oliver Exp $
-// object and object-state class definitions and function protos
-
 #ifndef OBJECTS_H
 #define OBJECTS_H 1
+
+#include "cl_object.hpp"
+#include "structs.hpp"
 
 class Object : public OBJ
 {

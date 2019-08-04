@@ -5,11 +5,12 @@
 
 static const char rcsid[] = "$Id: mobproc.cc,v 1.7 1997/05/22 02:21:37 oliver Exp $";
 
-#include "smuglcom.hpp"
-
 #include <cstring>
 
-static char *mobpget(const char *s, char *p, long *n);
+#include "fileio.hpp"
+#include "smuglcom.hpp"
+
+static char *mobpget(const char *s, char *p, msgno_t *n);
 static char *getmobmsg(char *p, const char *s, msgno_t *n);
 
 static inline void
@@ -37,7 +38,7 @@ void
 mob_proc1(void)
 {
     char *p, *s;
-    long n;
+    msgno_t n;
 
     mobchars = 0;
     fopenw(mobfn);

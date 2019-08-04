@@ -1,7 +1,9 @@
 // SMUGL Parser
 static const char cvsid[] = "$Id: parser.cc,v 1.9 1999/06/11 14:26:45 oliver Exp $";
 
+#include <cassert>
 #include <cctype>
+#include <cstring>
 
 #include "aliases.hpp"
 #include "consts.hpp"

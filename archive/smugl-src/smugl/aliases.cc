@@ -8,13 +8,19 @@ static const char rcsid[] = "$Id: aliases.cc,v 1.4 1997/05/22 02:21:17 oliver Ex
 #include "smugl.hpp"
 #include "structs.hpp"
 
-long Alias::locate(const char *alias)  // locate an alias by it's name
+vocid_t
+Alias::meaning(vocid_t num)
+{
+    return data->aliasbase[num].means;
+}
+
+vocid_t Alias::locate(string *alias)  // locate an alias by it's name
 {
     vocid_t id = is_word(alias);
     return (id == -1) ? -1 : locate(id);
 }
 
-long Alias::locate(vocid_t id)  // Locate an alias by it's vocab id
+vocid_t Alias::locate(vocid_t id)  // Locate an alias by it's vocab id
 {
     long i;
     class Alias *ptr;

@@ -4,6 +4,7 @@
 
 static const char rcsid[] = "$Id: obdsproc.cc,v 1.5 1997/05/22 02:21:38 oliver Exp $";
 
+#include "fileio.hpp"
 #include "smuglcom.hpp"
 
 void
