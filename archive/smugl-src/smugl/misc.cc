@@ -2,8 +2,6 @@
 // This file is for 'stand alone' functions that don't otherwise fit into
 // the object hierachy and don't fit into one of the other catagories
 
-static const char rcsid[] = "$Id: misc.cc,v 1.7 1999/06/08 15:36:50 oliver Exp $";
-
 #include <cerrno>
 #include <cstring>
 

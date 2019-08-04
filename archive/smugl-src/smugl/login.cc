@@ -5,8 +5,6 @@
 // player has been shown all introductory text, and moved into their
 // start location
 
-static const char rcsid[] = "$Id: login.cc,v 1.11 1999/06/08 15:36:50 oliver Exp $";
-
 #include <cctype>
 #include <cstring>
 

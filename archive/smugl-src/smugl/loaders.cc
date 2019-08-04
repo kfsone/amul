@@ -4,8 +4,6 @@
 // I've broken this down into functions, but then I've made them
 // static inline, so that the end result is one big function.
 
-static const char rcsid[] = "$Id: loaders.cc,v 1.16 1999/06/11 14:26:45 oliver Exp $";
-
 #define LOADERS_C 1
 
 #include <cassert>

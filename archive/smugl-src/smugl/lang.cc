@@ -1,7 +1,5 @@
 // Definition of language (verb) classes and functions
 
-static const char rcsid[] = "$Id: lang.cc,v 1.5 1999/06/11 14:26:45 oliver Exp $";
-
 #define LANG_C 1
 
 #include "lang.hpp"

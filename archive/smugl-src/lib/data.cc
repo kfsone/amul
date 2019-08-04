@@ -3,8 +3,6 @@
  * definitions for the SMUGL system.
  */
 
-static const char rcsid[] = "$Id: data.cc,v 1.6 1999/06/09 10:25:11 oliver Exp $";
-
 #include "actuals.hpp"
 #include "defines.hpp"
 #include "includes.hpp"

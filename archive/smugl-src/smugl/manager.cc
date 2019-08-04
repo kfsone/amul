@@ -1,7 +1,5 @@
 // Functions belonging to the database manager
 
-static const char rcsid[] = "$Id: manager.cc,v 1.18 1999/09/10 15:57:31 oliver Exp $";
-
 #include <cerrno>
 #include <cstring>
 
@@ -20,7 +18,7 @@ static const char rcsid[] = "$Id: manager.cc,v 1.18 1999/09/10 15:57:31 oliver E
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
-#include <signal.h>
+#include <csignal>
 #include <sys/resource.h>
 
 // Manager/child indicator. manager == 0 if this is a child process

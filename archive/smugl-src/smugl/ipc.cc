@@ -10,8 +10,6 @@
 //  sem_unlock(table)
 //   Unlock a table by semaphore
 
-static const char rcsid[] = "$Id: ipc.cc,v 1.13 1999/05/25 13:08:12 oliver Exp $";
-
 #include <cerrno>
 #include <cstring>
 
@@ -23,9 +21,9 @@ static const char rcsid[] = "$Id: ipc.cc,v 1.13 1999/05/25 13:08:12 oliver Exp $
 #include "smugl.hpp"
 
 #include <arpa/inet.h>
+#include <csignal>
 #include <netinet/in.h>
 #include <poll.h>
-#include <signal.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/shm.h>

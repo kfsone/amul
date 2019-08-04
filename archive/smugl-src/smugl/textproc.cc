@@ -2,8 +2,6 @@
 // This file is for 'stand alone' functions that don't otherwise fit into
 // the object hierachy.
 
-static const char rcsid[] = "$Id: textproc.cc,v 1.10 1999/06/09 13:01:41 oliver Exp $";
-
 #include <cctype>
 #include <cstring>
 

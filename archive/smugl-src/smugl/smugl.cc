@@ -15,8 +15,6 @@
 // Actually, this is just an experiment to see if I can convert
 // AMUL to C++ ;-)
 
-static const char rcsid[] = "$Id: smugl.cc,v 1.14 1999/09/10 15:57:31 oliver Exp $";
-
 #include <cstring>
 
 #define DEF
