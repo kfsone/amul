@@ -146,10 +146,10 @@ Player::reset()
     *me->pre = 0;                // Pre-rank string
     *me->post = 0;               // Post-rank string
 
-    last_him = NULL;  // We haven't talked about anyone yet
-    last_her = NULL;
-    last_room = NULL;  // Haven't been elsewhere yet
-    cur_loc = NULL;
+    last_him = nullptr;  // We haven't talked about anyone yet
+    last_her = nullptr;
+    last_room = nullptr;  // Haven't been elsewhere yet
+    cur_loc = nullptr;
 }
 
 // Move the player from here to another room
@@ -191,7 +191,7 @@ PlayerIdx::locate(basic_obj id)
 {
     id -= vc->items;
     if (id < 0 || id > MAXU)
-        return NULL;
+        return nullptr;
     return &data->user[id];
 }
 
@@ -217,7 +217,7 @@ PlayerIdx::locate_in(basic_obj cont, class Player *from, long want_id)
         if ((want_id == -1 || want_id == curnt->id) && curnt->is_in(cont))
             return curnt;
     }
-    return NULL;
+    return nullptr;
 }
 
 // Iterate through players in a room, but exclude self
@@ -255,7 +255,7 @@ assume_identity(int id)
     myRank = RankIdx::ptr(me->rank);
     basic_obj loc = me->Location();
     if (loc < 0 || loc == me->bob)
-        cur_loc = NULL;
+        cur_loc = nullptr;
     else if ((cur_loc = (Room *) bobs[loc]) && cur_loc->type != WROOM)
-        cur_loc = NULL;
+        cur_loc = nullptr;
 }

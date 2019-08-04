@@ -35,7 +35,6 @@ static const char rcsid[] = "$Id: loaders.cc,v 1.16 1999/06/11 14:26:45 oliver E
 static void *
 read_in_umsgs(void *base)
 {
-    int i;
     long msgs;
 
     // First load in the index
@@ -45,7 +44,7 @@ read_in_umsgs(void *base)
     msgs = size / sizeof(long);  // Number of messages
 
     // Adjust the index pointers to point at the real text
-    for (i = 0; i < msgs; i++)
+    for (long i = 0; i < msgs; i++)
         data->msgbase[i] += (long) base;
 
     // Second load in the actual text
@@ -74,7 +73,7 @@ read_in_rooms(void *base)
 
     fileInfo *fi = locate_file(roomsfn, TRUE);
     FILE *fp = fopen(fi->name, "rb");
-    if (fp == NULL) {
+    if (fp == nullptr) {
         error(LOG_ERR, "unable to read %s", roomsfn);
         exit(1);
     }
@@ -86,7 +85,7 @@ read_in_rooms(void *base)
     data->start_rooms = 0;
 
     Room *roomcur = data->roombase;
-    data->anterm = NULL;
+    data->anterm = nullptr;
 
     for (i = 0; i < data->rooms; roomcur++, i++) {
         Room *dest = new (roomcur) Room;
@@ -132,7 +131,7 @@ read_in_objects(void *base)
     // Read in the main object sections
     fi = locate_file(objsfn, TRUE);
     fp = fopen(fi->name, "rb");
-    if (fp == NULL) {
+    if (fp == nullptr) {
         error(LOG_ERR, "unable to read %s", objsfn);
         exit(1);
     }
@@ -201,26 +200,25 @@ read_in_verbs(void *base)
     for (i = 0; i < data->verbs; i++, vbp++) {
         int j;
         if (vbp->ents <= 0) {
-            vbp->ptr = NULL;
+            vbp->ptr = nullptr;
             continue;
         }
         vbp->ptr = slotp;
         // Now adjust the slot entries
         for (j = 0; j < vbp->ents; j++, slotp++) {
-            u_int k;
             if (slotp->ents <= 0) {
-                slotp->ptr = NULL;
+                slotp->ptr = nullptr;
                 continue;
             }
             slotp->ptr = cmdp;
-            for (k = 0; k < slotp->ents; k++, cmdp++) {
+            for (int k = 0; k < slotp->ents; k++, cmdp++) {
                 int ncp = cond[cmdp->condition].argc;
                 int nap = 0;
 
                 if (cmdp->action_type == ACT_DO)
                     nap = action[cmdp->action].argc;
                 if (ncp + nap == 0)
-                    cmdp->pptr = NULL;
+                    cmdp->pptr = nullptr;
                 else
                     cmdp->pptr = argp;
                 argp += (ncp + nap);
@@ -291,7 +289,7 @@ static void
 read_in_advfn()
 {
     FILE *fp = fopen(datafile(advfn), "r");
-    if (fp == NULL) {
+    if (fp == nullptr) {
         error(LOG_ERR, "can't open file %s: %s", advfn, strerror(errno));
         exit(1);
     }
@@ -370,7 +368,7 @@ void load_database(void *membase)  // Load all the files in the database
 
     // Now we need to set all the 'next' values to make the
     // basic object chain work properly
-    bobs[--bobno]->next = NULL;
+    bobs[--bobno]->next = nullptr;
     for (; bobno-- > 0;)
         bobs[bobno]->next = bobs[bobno + 1];
 

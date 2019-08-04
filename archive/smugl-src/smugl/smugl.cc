@@ -66,7 +66,7 @@ main(int argc, char *argv[])
     program = argv[0];
 
     // For safeties sake, we kick the random seed around some
-    srand(time(NULL) % getpid());
+    srand(time(nullptr) % getpid());
 
     argue(argc - 1, argv + 1);  // Process the command line arguments
 

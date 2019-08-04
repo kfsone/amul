@@ -14,7 +14,7 @@ errabort()
 {
     if (data) {
         free(data);
-        data = NULL;
+        data = nullptr;
     }
     if (err)
         quit("\n\n!! Aborting due to %ld errors !!\n\n", (char *) err, 0L, 0L, 0L, 0L);
@@ -33,10 +33,10 @@ quit()
     }
     if (ifp)
         fclose(ifp);
-    ifp = NULL;
+    ifp = nullptr;
     if (msgfp)
         fclose(msgfp);
-    msgfp = NULL;
+    msgfp = nullptr;
     close_ofps();
     exit(0);
 }

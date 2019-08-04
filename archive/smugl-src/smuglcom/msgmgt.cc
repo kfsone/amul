@@ -36,7 +36,7 @@ add_msg(const char *id)
 
     if (!msgfp) { /* Haven't opened message file yet */
         msgfp = fopen(datafile(umsgfn), "wb");
-        if (msgfp == NULL)
+        if (msgfp == nullptr)
             Err("writ", datafile(umsgfn));
     }
 

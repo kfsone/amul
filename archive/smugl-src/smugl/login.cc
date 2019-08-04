@@ -106,10 +106,10 @@ void login()  // Log a player in
     // Try and find a start location
     // XXX: Surely this should be a 'RoomIdx::' function?
     class Room *start_room = data->anterm;
-    if (start_room == NULL) {
+    if (start_room == nullptr) {
         long which_start = rand() % data->start_rooms;
         class RoomIdx Iteration;
-        class Room *first = NULL;
+        class Room *first = nullptr;
         class Room *cur = Iteration.current();
         while (!start_room && cur) {
             if (cur->flags & STARTL && which_start-- == 0) {
@@ -244,7 +244,7 @@ static inline int newid()  // Create a new user
 
     // Capitalise the name properly
     me->_name[0] = toupper(me->_name[0]);
-    for (u_int i = 1; i < strlen(me->_name); i++) {
+    for (size_t i = 1; i < strlen(me->_name); i++) {
         me->_name[i] = (me->_name[i - 1] == ' ') ? toupper(me->_name[i]) : tolower(me->_name[i]);
     }
 

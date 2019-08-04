@@ -31,7 +31,7 @@ struct MOBMSGS {
 struct MOBMSGS mmsgdata[] = { { "arrive=", &mob.arr }, { "depart=", &mob.dep },
                               { "flee=", &mob.flee },  { "strike=", &mob.hit },
                               { "miss=", &mob.miss },  { "dies=", &mob.death },
-                              { NULL, NULL } };
+                              { nullptr, nullptr } };
 
 void
 mob_proc1()
@@ -125,7 +125,7 @@ mob_proc1()
 
     errabort(); /* Abort if an error */
     if (mobchars) {
-        mobp = (struct MOB_ENT *) grow(NULL, sizeof(*mobp) * mobchars, "Reading Mobile Table");
+        mobp = (struct MOB_ENT *) grow(nullptr, sizeof(*mobp) * mobchars, "Reading Mobile Table");
         fopena(mobfn);
         fread((char *) mobp, sizeof(mob) * mobchars, 1, afp);
         close_ofps();
@@ -147,7 +147,7 @@ mobpget(const char *s, char *p, msgno_t *n)
 static char *
 getmobmsg(char *p, const char *s, msgno_t *n)
 { /* Fetch a mobile message line */
-    char *q = NULL;
+    char *q = nullptr;
     *n = -1;
 
     /* We have to allow that there might be some 'empty' lines */

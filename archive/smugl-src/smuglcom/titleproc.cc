@@ -279,7 +279,7 @@ rank_line(char *s)
         quot++;
         *(s++) = 0;
         if (*quot) {
-            rank.prompt = add_msg(NULL);
+            rank.prompt = add_msg(nullptr);
             fwrite(quot, (size_t)(s - quot) + 1, 1, msgfp);
         }
     } else if (*s) {
@@ -288,7 +288,7 @@ rank_line(char *s)
     }
     if (rank.prompt == -1) {
         if (def_prompt_id == -1) {
-            def_prompt_id = add_msg(NULL);
+            def_prompt_id = add_msg(nullptr);
             fwrite("> ", 3, 1, msgfp);
         }
         rank.prompt = def_prompt_id;
@@ -383,7 +383,7 @@ checksys()
     sprintf(block, "%s%s.txt", dir, txtfile[TF_SYSTEM]);
     if ((ifp = fopen(block, "rb"))) {
         fclose(ifp);
-        ifp = NULL;
+        ifp = nullptr;
         return;
     }
     if (err) {
@@ -455,6 +455,6 @@ checksys()
             sysopt[SO_NOISE]);
 
     fclose(ofp1);
-    ofp1 = NULL;
+    ofp1 = nullptr;
     warn = w;
 }

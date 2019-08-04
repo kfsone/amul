@@ -197,7 +197,7 @@ trav_proc()
     fwrite(argtab, sizeof(*argtab), (size_t) arg_alloc, ofp2);
     free(argtab);
     arg_alloc = 0;
-    argtab = argptr = NULL;
+    argtab = argptr = nullptr;
 
     errabort();
 }

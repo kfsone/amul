@@ -128,7 +128,7 @@ add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags)
     bobs[nbobs] = ptr;
     ptr->bob = nbobs;
     ptr->type = type;
-    ptr->next = NULL;
+    ptr->next = nullptr;
     ptr->std_flags = flags;
 
     nbobs++;

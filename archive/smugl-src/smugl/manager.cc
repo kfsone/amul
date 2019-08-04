@@ -57,7 +57,7 @@ memory_required()
 
     file = datafile(statsfn);
     fp = fopen(file, "rb");
-    if (fp == NULL) {
+    if (fp == nullptr) {
         error(LOG_ERR, "Missing stats file %s, invalid database", file);
         exit(1);
     }
@@ -91,7 +91,7 @@ child_reaper(int)
     int pid;
     int i;
     signal(SIGCHLD, child_reaper);
-    while ((pid = waitpid(-1, NULL, WNOHANG)) != -1) {
+    while ((pid = waitpid(-1, nullptr, WNOHANG)) != -1) {
         if (pid <= 0)
             break;
         for (i = 0; i < MAXU; i++) {
@@ -164,7 +164,7 @@ run_the_game()
 
         // Wait for some input
         rd_fds = fds;  // So we don't have to keep constructing it
-        ret = select(n + 1, &rd_fds, NULL, NULL, NULL);
+        ret = select(n + 1, &rd_fds, nullptr, nullptr, nullptr);
         if (ret == -1)  // If select call fails
         {
             if (errno != EINTR && errno != EAGAIN) {
@@ -234,7 +234,7 @@ incoming_connection()
         sem_unlock(sem_DATA);
         return;
     }
-    srand((unsigned int) time(NULL) + rand());
+    srand((unsigned int) time(nullptr) + rand());
     id = fork();     // Create a client-child
     if (id == -1) {  // fork() failed
         error(LOG_NOTICE, "incoming_connect::fork(): %s", strerror(errno));

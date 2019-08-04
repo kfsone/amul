@@ -18,7 +18,7 @@ struct Dmove {
     basic_obj room;     /* The room the dmove is FROM */
     char *to;           /* Name of room to dmove to */
 };
-struct Dmove *first = NULL, *dmv;
+struct Dmove *first = nullptr, *dmv;
 
 // Define the default, initial std_flags for a room
 #define DEFAULT_STD (bob_INPLAY | bob_SCENERY | bob_LIGHT | bob_SHINES | bob_LIT)
@@ -61,7 +61,7 @@ room_proc()
     vocid_t rid;
 
     rdalloc = ROOMDSC_GROW_RATE;
-    bufmem = (char *) grow(NULL, rdalloc + 2, "Room description buffer");
+    bufmem = (char *) grow(nullptr, rdalloc + 2, "Room description buffer");
     if (bufmem == nullptr) {
         quit("Out of memory");
     }
@@ -117,7 +117,7 @@ room_proc()
                         dmove = is_container(ptr);
                         if (dmove == -1)  // Don't know this room yet
                         {
-                            dmv = (Dmove *) grow(NULL, sizeof(struct Dmove), "Tracking DMOVEs");
+                            dmv = (Dmove *) grow(nullptr, sizeof(struct Dmove), "Tracking DMOVEs");
                             dmv->room = rmp->bob;
                             dmv->to = strdup(ptr);
                             dmv->next = first; /* forward-only Linked list */
@@ -140,11 +140,11 @@ room_proc()
 
         fgets(bufmem, rdalloc, ifp); /* Get short desc */
         if (bufmem[0] != '\n' && bufmem[0] != '\r') {
-            char *q = NULL;
+            char *q = nullptr;
             size_t mem_off = 0;
 
             int len = strlen(bufmem);
-            rmp->s_descrip = add_msg(NULL);
+            rmp->s_descrip = add_msg(nullptr);
             bufmem[len - 1] = 0;
             fwrite(bufmem, len, 1, msgfp);
 
@@ -159,7 +159,7 @@ room_proc()
                 if (*base == '\t')
                     memmove(base, base + 1, strlen(base));
                 /* Fetch more lines as neccesary */
-                while ((q = strrchr(base, '\n')) == NULL) {
+                while ((q = strrchr(base, '\n')) == nullptr) {
                     /* Grow some more memory */
                     mem_off += strlen(base);
                     if (mem_off + ROOMDSC_GROW_RATE >= rdalloc) {
@@ -168,10 +168,10 @@ room_proc()
                     }
                     base = bufmem + mem_off;
                     /* Read some more text */
-                    if (fgets(base, rdalloc - mem_off, ifp) == NULL)
+                    if (fgets(base, rdalloc - mem_off, ifp) == nullptr)
                         break;
                 }
-                if (q == NULL)
+                if (q == nullptr)
                     q = base + strlen(base);
                 /* Remove the carriage return */
                 *q = ' ';
@@ -188,7 +188,7 @@ room_proc()
             }
 
             if (bufmem && *bufmem != 0 && *bufmem != '\n') {
-                rmp->l_descrip = add_msg(NULL);
+                rmp->l_descrip = add_msg(nullptr);
                 fwrite(bufmem, mem_off + 1, 1, msgfp);
             }
         }

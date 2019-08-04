@@ -48,7 +48,7 @@ static __inline msgno_t
 msgline(char *s)
 { /* Record a message and assign it an id */
     long msgno;
-    msgno = add_msg(NULL);
+    msgno = add_msg(nullptr);
     fwrite(s, strlen(s), 1, msgfp);
     fputc(0, msgfp);
     return msgno;
