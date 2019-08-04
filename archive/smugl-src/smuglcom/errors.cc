@@ -3,49 +3,14 @@
  * These are mostly here to make proto-ising easier :-(
  */
 
-static const char rcsid[] = "$Id: errors.cc,v 1.5 1997/05/22 02:21:36 oliver Exp $";
-
+#include "errors.hpp"
 #include "fileio.hpp"
 #include "libprotos.hpp"
 #include "smuglcom.hpp"
 
-#include <cstdarg>
-
-void
-error(const char *msg, ...)
-{ /* Report a compiler error */
-    va_list va;
-    if (needcr == TRUE)
-        printf("\n");
-    needcr = FALSE;
-    printf("\007#E#> ");
-    va_start(va, msg);
-    vprintf(msg, va);
-    va_end(va);
-    err++;
-    if (err > 20)
-        errabort();
-}
-
-void
-warne(const char *msg, ...)
-{ /* Report a compiler warning */
-    va_list va;
-
-    if (!warn)
-        return;
-    if (needcr == TRUE)
-        printf("\n");
-    needcr = FALSE;
-    printf(" W > ");
-    va_start(va, msg);
-    vprintf(msg, va);
-    va_end(va);
-}
-
 /* "End of Section": Abort if errors were encountered, otherwise tidy up */
 void
-errabort(void)
+errabort()
 {
     if (data) {
         free(data);
@@ -58,15 +23,10 @@ errabort(void)
     needcr = FALSE;
 }
 
+ /* Exit with a message */
 void
-quit(const char *msg, ...)
-{ /* Exit with a message */
-    if (msg && *msg) {
-        va_list va;
-        va_start(va, msg);
-        vprintf(msg, va);
-        va_end(va);
-    }
+quit()
+{
     if (exi != 1) {
         char *p = datafile(advfn);
         unlink(p);

@@ -2,8 +2,6 @@
  * synsproc.cpp -- Synonym (alias) table processing.
  */
 
-static const char rcsid[] = "$Id: synsproc.cc,v 1.5 1997/05/22 02:21:42 oliver Exp $";
-
 /*
  * This stuff is currently very basic, and synonyms are pretty much
  * treated as aliases. I'm not sure if I like the way this is done,
@@ -15,10 +13,11 @@ static const char rcsid[] = "$Id: synsproc.cc,v 1.5 1997/05/22 02:21:42 oliver E
  */
 
 #include "smuglcom.hpp"
+#include "errors.hpp"
 
 /* Process the synonyms table */
 void
-syn_proc(void)
+syn_proc()
 {
     char *p, *s;
     vocid_t real_word;

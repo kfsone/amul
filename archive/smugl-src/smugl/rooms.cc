@@ -29,7 +29,7 @@ RoomIdx::first()
 }
 
 int
-Room::describe(void)
+Room::describe()
 {
     HEAVYDEBUG("Room::describe");
     int described = FALSE;
@@ -89,7 +89,7 @@ Room::describe(void)
 }
 
 inline class TTEnt *
-Room::Tabptr(void)
+Room::Tabptr()
 {  // Return tabptr as a TTEnt pointer
     return data->ttbase + tabptr;
 }
@@ -197,7 +197,7 @@ Room::enter(const char *how)
 
 // Describe the exits in a room
 void
-Room::exits(void)
+Room::exits()
 {
     HEAVYDEBUG("Room::exits");
     class TTEnt *ttp = cur_loc->Tabptr();

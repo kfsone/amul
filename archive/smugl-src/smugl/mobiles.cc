@@ -12,14 +12,14 @@ static const char rcsid[] = "$Id: mobiles.cc,v 1.4 1997/05/22 02:21:26 oliver Ex
 
 // class MobileIdx MobileIdx;
 
-inline class Room *Mobile::dmoveRm(void)  // Return DMOVE room of a mobile
+inline class Room *Mobile::dmoveRm()  // Return DMOVE room of a mobile
 {
     return data->roombase + dmove;
 }
 
 /* XXX: Debugging version of describe */
 int
-Mobile::describe(void)
+Mobile::describe()
 {
     txprintf("mobile=%s(%ld)\n", word(id), id);
     txprintf("speed=%d travel=%d fight=%d act=%d wait=%d\n", speed, travel, fight, act, wait);

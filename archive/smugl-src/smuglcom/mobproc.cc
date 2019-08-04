@@ -3,11 +3,10 @@
  *
  */
 
-static const char rcsid[] = "$Id: mobproc.cc,v 1.7 1997/05/22 02:21:37 oliver Exp $";
-
 #include <cstring>
 
 #include "fileio.hpp"
+#include "errors.hpp"
 #include "smuglcom.hpp"
 
 static char *mobpget(const char *s, char *p, msgno_t *n);
@@ -35,7 +34,7 @@ struct MOBMSGS mmsgdata[] = { { "arrive=", &mob.arr }, { "depart=", &mob.dep },
                               { NULL, NULL } };
 
 void
-mob_proc1(void)
+mob_proc1()
 {
     char *p, *s;
     msgno_t n;
@@ -64,12 +63,12 @@ mob_proc1(void)
         do {
             if (!*s)
                 break;
-            if (!strncmp(s, "dead=", 5)) {
+            if (strncmp(s, "dead=", 5) == 0) {
                 s = getword(s + 5);
                 mob.dead = atoi(Word);
                 continue;
             }
-            if (!strncmp(s, "dmove=", 6)) {
+            if (strncmp(s, "dmove=", 6) == 0) {
                 s = getword(s + 6);
                 mob.dmove = is_container(Word);
                 if (mob.dmove == -1)

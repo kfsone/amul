@@ -13,7 +13,7 @@ static const char rcsid[] = "$Id: lang.cc,v 1.5 1999/06/11 14:26:45 oliver Exp $
 // class VerbIdx VerbIdx;
 
 int
-Verb::describe(void)
+Verb::describe()
 {
     txprintf("You want to describe %s.\n", word(id));
     return TRUE;

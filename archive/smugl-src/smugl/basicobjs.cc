@@ -107,7 +107,7 @@ BASIC_OBJ::is_in(basic_obj boContainer)
 }
 
 int
-BASIC_OBJ::describe(void)
+BASIC_OBJ::describe()
 {
     if (s_descrip == -1 && id == -1) {
         tx("<NULL OBJECT>");  // No description or short name

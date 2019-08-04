@@ -2,20 +2,19 @@
  * filebits -- various file manipulation functions
  */
 
-static const char rcsid[] = "$Id: filebits.cc,v 1.8 1997/05/22 02:21:36 oliver Exp $";
-
 #include <cctype>
 #include <cstring>
 
+#include "errors.hpp"
 #include "fileio.hpp"
 #include "libprotos.hpp"
 #include "smuglcom.hpp"
 
 static char *func_get(offset_t off);
-static size_t filesize(void);
+static size_t filesize();
 
 void
-close_ofps(void)
+close_ofps()
 { /* Close the common file handles */
     if (ofp1)
         fclose(ofp1);
@@ -37,7 +36,7 @@ close_ofps(void)
 int
 nextc(int required)
 {
-    char c;
+    int c;
     do {
         while ((c = fgetc(ifp)) != EOF && isspace(c))
             ;
@@ -106,9 +105,9 @@ rfopen(const char *s)
 /* Skip the current 'block' of text on 'ifp'. That is, search for
 ** the next \n\n terminator */
 void
-skipblock(void)
+skipblock()
 {
-    char c, lc;
+    int c, lc;
 
     lc = 0;
     c = '\n';
@@ -192,7 +191,7 @@ func_get(offset_t off)
     }
     size = (((filesize() + off) / 4096) + 1) * 4096;
     p = (char *) grow(NULL, size, "Reading file to memory");
-    bzero(p, size);
+    memset(p, 0, size);
     fread(p + off, 1, size - off, ifp);
     return p;
 }

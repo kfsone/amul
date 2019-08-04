@@ -2,13 +2,12 @@
  * msgmgt -- manage the message table index
  */
 
-static const char rcsid[] = "$Id: msgmgt.cc,v 1.5 1997/05/22 02:21:38 oliver Exp $";
-
-#include "libprotos.hpp"
-#include "smuglcom.hpp"
-
 #include <cctype>
 #include <cstring>
+
+#include "errors.hpp"
+#include "libprotos.hpp"
+#include "smuglcom.hpp"
 
 #define GROW_SIZE 256 /* Size to grow index by */
 
@@ -67,7 +66,7 @@ add_msg(const char *id)
 
 /* Save the current message index table */
 void
-save_messages(void)
+save_messages()
 {
     FILE *fp;
     if (!msgitab || !i_alloc)

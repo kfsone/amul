@@ -292,7 +292,7 @@ esc(const char *code, char *to)
             // return 1;
             break;
     }
-    return 0;
+    return nullptr;
 }
 
 // The smugl equivalent of 'printf'. Takes an input string and prepares

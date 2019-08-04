@@ -1,6 +1,5 @@
 // Basic Object routines
 // Mostly to do with table management (AGAIN)
-static const char rcsid[] = "$Id: basicobjs.cc,v 1.5 1999/06/08 15:36:54 oliver Exp $";
 
 #include "fileio.hpp"
 #include "libprotos.hpp"
@@ -9,25 +8,25 @@ static const char rcsid[] = "$Id: basicobjs.cc,v 1.5 1999/06/08 15:36:54 oliver 
 #include <cstring>
 
 // Container variables
-#define CONTAINER_GROW_RATE 1024  // Containers to allocate at-a-time
-CONTAINER *containers;            // The container table
-counter_t ncontainers;            // Number of containers
-counter_t ncontainers_allocd;     // Number allocated for
+constexpr size_t CONTAINER_GROW_RATE = 1024;  // Containers to allocate at-a-time
+CONTAINER *containers;                        // The container table
+counter_t ncontainers;                        // Number of containers
+counter_t ncontainers_allocd;                 // Number allocated for
 
-#define BOB_GROW_RATE 256  // Bob indexes to allocate at-a-time
-BASIC_OBJ **bobs;          // The bob index table
-counter_t nbobs;           // Number of containers
-counter_t nbobs_allocd;    // Number allocated for
+constexpr size_t BOB_GROW_RATE = 256;  // Bob indexes to allocate at-a-time
+BASIC_OBJ **bobs;                      // The bob index table
+counter_t nbobs;                       // Number of containers
+counter_t nbobs_allocd;                // Number allocated for
 
 // BASIC_OBJ::clear(void)
 // Nuke the fields in a bob
 void
-BASIC_OBJ::clear(void)
+BASIC_OBJ::clear()
 {
     id = -1;
     adj = -1;
     bob = -1;
-    next = 0;
+    next = nullptr;
     type = 0;
     state = 0;
     std_flags = 0;
@@ -58,8 +57,8 @@ add_container(basic_obj boSelf, basic_obj boContainer)
     // Make sure we've got enough memory allocated
     if (ncontainers >= ncontainers_allocd) {
         ncontainers_allocd += CONTAINER_GROW_RATE;
-        size_t new_size = ncontainers_allocd * sizeof(CONTAINER);
-        containers = (CONTAINER *) grow(containers, new_size, "Allocating container memory");
+        const size_t new_size = ncontainers_allocd * sizeof(CONTAINER);
+        containers = static_cast<CONTAINER*>(grow(containers, new_size, "Allocating container memory"));
     }
 
     cont = containers + ncontainers;
@@ -101,7 +100,7 @@ is_inside(basic_obj boItem, basic_obj boContainer)
 {
     container_t con;
     for (con = bobs[boContainer]->conTent; con != -1; con = containers[con].conNext) {
-        if ((containers[con].boSelf == boItem))
+        if (containers[con].boSelf == boItem)
             return TRUE;
     }
     return FALSE;
@@ -117,12 +116,12 @@ add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags)
     // Make sure we've got enough memory allocated
     if (nbobs >= nbobs_allocd) {
         nbobs_allocd += BOB_GROW_RATE;
-        size_t new_size = nbobs_allocd * sizeof(ptr);
-        bobs = (BASIC_OBJ **) grow(bobs, new_size, "Allocating basic object index memory");
+        const size_t new_size = nbobs_allocd * sizeof(ptr);
+        bobs = static_cast<BASIC_OBJ **>(grow(bobs, new_size, "Allocating basic object index memory"));
     }
 
     // Add us to the chain if neccesary
-    if (nbobs)
+    if (nbobs > 0)
         bobs[nbobs - 1]->next = ptr;
 
     // Initialise all the various parameters
@@ -141,7 +140,7 @@ add_basic_obj(BASIC_OBJ *ptr, char type, flag_t flags)
 
 // Write the basic object set to disk
 void
-save_basic_objs(void)
+save_basic_objs()
 {
     int fd;
 
@@ -153,7 +152,8 @@ save_basic_objs(void)
         add_container(temp_player.bob, temp_player.bob);
     }
 
-    fd = open(datafile(bobfn), O_WRONLY | O_CREAT | O_TRUNC, 0664);
+    const int permissions = 0664;
+    fd = open(datafile(bobfn), O_WRONLY | O_CREAT | O_TRUNC, permissions);
     if (fd == -1)
         Err("write", datafile(bobfn));
     // Write the indexes first
@@ -170,7 +170,7 @@ save_basic_objs(void)
 
 // Locate a basic obj by name
 basic_obj
-is_bob(char *name, char type /*=-1*/)
+is_bob(const char *name, char type /*=-1*/)
 {
     vocid_t id = is_word(name);
     if (id == -1)
@@ -185,7 +185,7 @@ is_bob(char *name, char type /*=-1*/)
 
 // Locate a basic object that can be a container, by name
 basic_obj
-is_container(char *name)
+is_container(const char *name)
 {
     vocid_t id = is_word(name);
     if (id == -1)

@@ -29,7 +29,7 @@ Rank::describe(Gender sex)
 }
 
 void
-Rank::detail(void)
+Rank::detail()
 {
     txprintf("Rank#%d\n male=%s\n female=%s\n strength=%d\n stamina=%d",
              number(),

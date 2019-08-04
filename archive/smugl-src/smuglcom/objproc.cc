@@ -1,8 +1,7 @@
 // objproc.cpp -- process OBJECTS.txt
 
-static const char rcsid[] = "$Id: objproc.cc,v 1.10 1999/06/08 15:36:54 oliver Exp $";
-
 #include "smuglcom.hpp"
+#include "errors.hpp"
 
 #include <cctype>
 #include <cstring>
@@ -23,10 +22,9 @@ object(const char *s)
 **** is currently in 'Word' */
 
 static inline void
-set_art(void)
+set_art()
 { /* Set the article of an object */
-    int i;
-    for (i = 0; i < NART; i++) {
+    for (int i = 0; i < NART; i++) {
         if (!strcmp(article[i], Word)) {
             obj->article = i;
             return;
@@ -36,7 +34,7 @@ set_art(void)
 }
 
 static inline void
-set_start(void)
+set_start()
 { /* Set start state of an object */
     if (!isdigit(Word[0]))
         object("start state");
@@ -46,7 +44,7 @@ set_start(void)
 }
 
 static inline void
-set_holds(void)
+set_holds()
 { /* Set container capacity for an object */
     if (!isdigit(Word[0]))
         object("holds= value");
@@ -56,11 +54,9 @@ set_holds(void)
 }
 
 static inline void
-set_put(void)
+set_put()
 { /* Set container type for an object */
-    int i;
-
-    for (i = 0; i < NPUTS; i++)
+    for (int i = 0; i < NPUTS; i++)
         if (!strcmp(obputs[i], Word)) {
             obj->putto = i;
             return;
@@ -68,7 +64,7 @@ set_put(void)
     object("put= flag");
 }
 
-static inline void set_mob(void) /* Set mobile character for an object */
+static inline void set_mob() /* Set mobile character for an object */
 {
     int i;
     vocid_t wordno;
@@ -219,7 +215,7 @@ write:
 }
 
 void
-objs_proc(void)
+objs_proc()
 { /* Process the objects file */
     char *s;
 
@@ -363,7 +359,7 @@ int isoflag1(const char *s) /* Is it a FIXED object flag? */
     return -1;
 }
 
-int isoparm(void) /* Is it an object parameter? */
+int isoparm() /* Is it an object parameter? */
 {
     int i;
     char *p;

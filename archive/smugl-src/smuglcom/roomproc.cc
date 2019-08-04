@@ -1,10 +1,10 @@
 // Rooms Table processor
-static const char rcsid[] = "$Id: roomproc.cc,v 1.11 1999/06/08 15:36:54 oliver Exp $";
 
 #include <cassert>
 #include <cctype>
 #include <cstring>
 
+#include "errors.hpp"
 #include "fileio.hpp"
 #include "smuglcom.hpp"
 
@@ -54,22 +54,24 @@ is_room_param(char *&s)
 }
 
 void
-room_proc(void)
+room_proc()
 { /* Process the rooms file */
-    ROOM *rmp;
     char *bufmem;
     char *p;
     vocid_t rid;
 
     rdalloc = ROOMDSC_GROW_RATE;
     bufmem = (char *) grow(NULL, rdalloc + 2, "Room description buffer");
+    if (bufmem == nullptr) {
+        quit("Out of memory");
+    }
 
     rooms = 0;
     nextc(1); /* Skip to first character */
 
-    for (rmp = NULL; rmp == NULL || nextc(0) == 0; rooms++) {
+    for ( ; nextc(0) ; rooms++) {
         // Create a new object
-        rmp = new ROOM;
+        ROOM *rmp = new ROOM;
         if (!roomtab)
             roomtab = rmp;
 
@@ -139,7 +141,7 @@ room_proc(void)
         fgets(bufmem, rdalloc, ifp); /* Get short desc */
         if (bufmem[0] != '\n' && bufmem[0] != '\r') {
             char *q = NULL;
-            offset_t mem_off = 0;
+            size_t mem_off = 0;
 
             int len = strlen(bufmem);
             rmp->s_descrip = add_msg(NULL);
@@ -160,7 +162,7 @@ room_proc(void)
                 while ((q = strrchr(base, '\n')) == NULL) {
                     /* Grow some more memory */
                     mem_off += strlen(base);
-                    if ((size_t)(mem_off + ROOMDSC_GROW_RATE) >= rdalloc) {
+                    if (mem_off + ROOMDSC_GROW_RATE >= rdalloc) {
                         rdalloc += ROOMDSC_GROW_RATE;
                         bufmem = (char *) grow(bufmem, rdalloc + 2, "Extending RDesc Line");
                     }
@@ -179,7 +181,7 @@ room_proc(void)
                     *(q + 1) = 0;
                 /* Grow the memory buffer */
                 mem_off += strlen(base);
-                if ((size_t)(mem_off + ROOMDSC_GROW_RATE) >= rdalloc) {
+                if (mem_off + ROOMDSC_GROW_RATE >= rdalloc) {
                     rdalloc += ROOMDSC_GROW_RATE;
                     bufmem = (char *) grow(bufmem, rdalloc + 2, "Extra Memory for Room Descrip");
                 }
@@ -187,7 +189,7 @@ room_proc(void)
 
             if (bufmem && *bufmem != 0 && *bufmem != '\n') {
                 rmp->l_descrip = add_msg(NULL);
-                fwrite(bufmem, (size_t)(mem_off + 1), 1, msgfp);
+                fwrite(bufmem, mem_off + 1, 1, msgfp);
             }
         }
     }
@@ -206,7 +208,7 @@ room_proc(void)
 // Example: room which contains a swamp, if you die in the room,
 // all your objects end up in the swamp.
 void
-finish_rooms(void)
+finish_rooms()
 {
     /* Process the dmove tables */
     /* The DMOVE flag specifies that when a player dies in a given room,
