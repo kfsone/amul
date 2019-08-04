@@ -38,7 +38,7 @@ int parse_failed = FALSE;
 // sanitise_input()
 // Removes excess whitespace from an input string
 void
-sanitise_input(void)
+sanitise_input()
 {
     char *start = input;
     while (isspace(*start))  // Remove leading spaces
@@ -116,7 +116,7 @@ parse(char *str)
             // Capture the beginning of this token
             char *tokenStart = dest;
 
-            while (*str && strchr(",.!?; ", *str) == 0)
+            while (*str && strchr(",.!?; ", *str) == nullptr)
                 *(dest++) = *(str++);
             *dest = 0;
 

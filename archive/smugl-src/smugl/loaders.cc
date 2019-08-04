@@ -288,7 +288,7 @@ mention(const char *s)
 
 // Read the primary game file
 static void
-read_in_advfn(void)
+read_in_advfn()
 {
     FILE *fp = fopen(datafile(advfn), "r");
     if (fp == NULL) {

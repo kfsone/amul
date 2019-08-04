@@ -47,15 +47,13 @@
  *
  */
 
-static const char rcsid[] = "$Id: cleanup.cc,v 1.4 1997/05/22 02:21:34 oliver Exp $";
-
 #include "smuglcom.hpp"
 
-#define fQ -1 /* Handle quotes */
-#define fC -2 /* Handle a comma */
-#define fM -3 /* Handle a comment */
-#define fS -4 /* Handle a line extension (usually 'slash') */
-#define fR -5 /* Handle \r */
+#define fQ (-1) /* Handle quotes */
+#define fC (-2) /* Handle a comma */
+#define fM (-3) /* Handle a comment */
+#define fS (-4) /* Handle a line extension (usually 'slash') */
+#define fR (-5) /* Handle \r */
 
 /* List of replacement characters. For each possible character,
 ** the entry in this table specifies the replacement character.

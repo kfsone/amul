@@ -1,6 +1,6 @@
-// This may look like C, but it's really -*- C++ -*-
-// $Id: cl_basicobj.hpp,v 1.1 1999/06/08 15:36:45 oliver Exp $
-//
+#ifndef BASIC_OBJ_H
+#define BASIC_OBJ_H 1
+
 ////////////////////////////// BASIC OBJECT STRUCTURE
 //
 // "AMUL" treated all objects seperately, all of them having to be
@@ -8,10 +8,9 @@
 // operations across all object types, but still provide the control
 // over specifics (e.g. you can still say "this must be a noun")
 
-#ifndef BASIC_OBJ_H
-#define BASIC_OBJ_H 1
-
 #include <cstdio>  // For FILE*
+
+#include "typedefs.hpp"
 
 class BASIC_OBJ
 {

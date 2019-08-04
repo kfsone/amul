@@ -70,7 +70,7 @@ read_file(const char *file, void *&base, int it_matters)
     return fi->size;
 }
 
-void pressret(void)  // Prompt the user to press return
+void pressret()  // Prompt the user to press return
 {
     char c;
     tx(message(RETURN));

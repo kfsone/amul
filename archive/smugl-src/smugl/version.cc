@@ -13,7 +13,7 @@ static const char rcsid[] = "$Id: version.cc,v 1.2 1997/04/25 01:13:37 oliver Ex
 char vername[81];  // Version string
 
 void
-set_version_string(void)
+set_version_string()
 {
     sprintf(vername, "SMUGL %s - Simple Multi-User Games Language", SMUGL_BUILD);
 }

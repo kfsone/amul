@@ -14,7 +14,7 @@ static const char rcsid[] = "$Id: travel.cc,v 1.4 1997/05/22 02:21:32 oliver Exp
 class TTIdx TTIdx;
 
 int
-TTEnt::describe(void)
+TTEnt::describe()
 {
     tx("Why are you calling TTEnt::describe? Duffer.\n");
     return FALSE;

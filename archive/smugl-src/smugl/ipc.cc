@@ -57,8 +57,8 @@ int forced = FALSE;  // True when we get 'forced'
 char sems[num_SEMS];  // Which semaphores we're holding
 
 // Protos
-static void tidy_ipc(void);
-void ipc_init(void);
+static void tidy_ipc();
+void ipc_init();
 void sem_lock(int n), sem_unlock(int n);
 static void *shmalloc(size_t memory);
 
@@ -66,7 +66,7 @@ static void *shmalloc(size_t memory);
 // We need the arguments because we're also a signal handler, and
 // in many compiler environments, signal handlers need these arguments
 static void
-tidy_ipc(void)
+tidy_ipc()
 {
     if (!manager)  // Client - close the handles down
         tx("\n\nNO CARRIER\n\n");
@@ -263,7 +263,7 @@ setup_socket(short port, long addr, SOCK *sock, int listen_to)
 
 // Setup the listen sockets - wrapper for setup_socket
 void
-init_sockets(void)
+init_sockets()
 {
     bzero(&conn_sock, sizeof(SOCK));
 
@@ -274,7 +274,7 @@ init_sockets(void)
 
 // receive an incoming socket connection
 int
-accept_connection(void)
+accept_connection()
 {
     static unsigned int addrlen = sizeof(listen_sock);
     bzero(&conn_sock, addrlen);
@@ -298,7 +298,7 @@ accept_connection(void)
 // XXX: will be data there immediately - instead it should
 // XXX: add it to the fd's it select()s on
 int
-accept_command(void)
+accept_command()
 {
     char cmd_buf[201];
     int bytes;
@@ -344,7 +344,7 @@ ipcMsg::ipcMsg(char Type, long Data, short Pri)
 }
 
 // Destructor
-ipcMsg::~ipcMsg(void)
+ipcMsg::~ipcMsg()
 {
     if (ptr)  // Undo any mallocs
         free(ptr);
@@ -410,7 +410,7 @@ ipcMsg::send(flag_t To, char Type, long Data, char Pri, short Len, void *Extra)
 // NOTE: BLOCKING; don't call this to test for data. Test first,
 // and if you think there is something to receive, call receive.
 char
-ipcMsg::receive(void)
+ipcMsg::receive()
 {
     int bytes_read;
 
@@ -449,7 +449,7 @@ ipcMsg::receive(void)
 
 // Check for any incoming ipc
 void
-check_for_ipc(void)
+check_for_ipc()
 {
     for (;;) {
         pollfd fds{ ipc_fd, POLLIN | POLLRDHUP | POLLPRI, 0 };
@@ -474,7 +474,7 @@ check_for_ipc(void)
 // dealt with; this routine assumes there is something interesting
 // on the ipc fd. If there isn't, it'll block.
 void
-ipc_proc(void)
+ipc_proc()
 {
     ipcMsg inc;  // Incoming message
 

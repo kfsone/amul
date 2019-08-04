@@ -29,7 +29,7 @@ char manager = 1;
 struct DATA *data;
 long roomCount, nounCount;
 
-static inline void incoming_connection(void);
+static inline void incoming_connection();
 
 // Return filesize optimized for memory allocations
 static size_t
@@ -49,7 +49,7 @@ memsize(const char *file)
 // Evaluate and return the amount of memory required to load the
 // complete game into memory
 long
-memory_required(void)
+memory_required()
 {
     long mem = 0L;
     FILE *fp;
@@ -111,7 +111,7 @@ child_reaper(int)
 //  . command_sock_fd -- connections from command-line tools
 //  * ipc_pipe_fd     -- [will be] IPC from clients
 void
-run_the_game(void)
+run_the_game()
 {
     int n = 0;
     fd_set fds, rd_fds;
@@ -202,7 +202,7 @@ run_the_game(void)
 
 // Accept an incoming IP connection.
 static inline void
-incoming_connection(void)
+incoming_connection()
 {
     int id = -1;
     int assigned_slot = 0;  // slot we get assigned as a client

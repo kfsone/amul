@@ -2,6 +2,7 @@
 #define SMUGL_BOBIDX_H 1
 
 #include "defines.hpp"
+#include "typedefs.hpp"
 
 class BobIdx
 {

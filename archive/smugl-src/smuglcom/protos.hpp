@@ -16,8 +16,6 @@ void checksys(void);
 int iscond(const char *s);
 int isact(const char *s);
 void section(int i);
-void error(const char *s, ...);
-void warne(const char *s, ...);
 void errabort(void);
 /*
 int higerhalph(char *s1, char *s2);
@@ -25,7 +23,6 @@ void sort_objs(void);
 */
 void close_ofps(void);
 int nextc(int);
-void quit(const char *s, ...);
 void fopenw(const char *s);
 void fopena(const char *s);
 void fopenr(const char *s);
@@ -76,9 +73,9 @@ container_t add_container(basic_obj self, basic_obj container);
 int is_inside(basic_obj item, basic_obj container);
 basic_obj add_basic_obj(struct BASIC_OBJ *ptr, char type, flag_t flags);
 void save_basic_objs(void);
-basic_obj is_bob(char *s, char type = -1);
-basic_obj is_container(char *s);
-signed int handle_std_flag(const char *s, flag_t &flags, flag_t filter);
+basic_obj is_bob(const char *name, char type = -1);
+basic_obj is_container(const char *name);
+signed int handle_std_flag(const char *phrase, flag_t &flags, flag_t filter);
 
 static inline char *
 skipspc(char *s)
