@@ -23,6 +23,13 @@ IF (AMUL_CLANG_TIDY)
     SET(CMAKE_CXX_CLANG_TIDY clang-tidy --checks= --format-style=file ${CLANG_TIDY_FIX_ERRORS} -p=${CMAKE_BINARY_DIR})
 ENDIF()
 
+OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
+IF (AMUL_INCLUDE_TESTS AND NOT AMUL_CLANG_TIDY)
+	MESSAGE(STATUS "Testing enabled")
+	enable_testing()
+	ADD_SUBDIRECTORY(test)
+ENDIF()
+
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}")
 
 IF (MSVC)
@@ -65,13 +72,6 @@ IF (AMUL_CPPCHECK)
 ENDIF ()
 
 ADD_SUBDIRECTORY(src)
-
-OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
-IF (AMUL_INCLUDE_TESTS)
-	MESSAGE(STATUS "Testing enabled")
-	enable_testing()
-	ADD_SUBDIRECTORY(test)
-ENDIF()
 
 # all:
 #   ninja -j4
