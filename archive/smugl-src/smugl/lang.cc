@@ -26,7 +26,7 @@ Verb *VerbIdx::locate(char *s)  // Locate a verb by it's name
     long w;
     w = is_word(s);
     if (w == -1)
-        return NULL;
+        return nullptr;
     return locate(w);
 }
 
@@ -41,5 +41,5 @@ Verb *VerbIdx::locate(long id)  // Locate a verb by it's vocab id
     long alias = Alias::locate(id);
     if (alias != -1 && (alias = Alias::meaning(alias)) != -1)
         return locate(alias);
-    return NULL;
+    return nullptr;
 }

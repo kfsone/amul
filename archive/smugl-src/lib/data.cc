@@ -17,17 +17,17 @@ char logname[130]; /* Name of log file */
 
 const char *std_flag[] = {  // basic object std_flags
     "inplay", "scenery", "counter", "death",     "light",  "shines",   "flamable", "lit",
-    "silent", "hidecre", "hideobj", "sanctuary", "nolook", "peaceful", "scaled",   NULL
+    "silent", "hidecre", "hideobj", "sanctuary", "nolook", "peaceful", "scaled",   nullptr
 };
 
 const char *rflag[] = {  // Room FLAGS
-    "startloc", "randobjs", "small", "noexits", "anteroom", "nogo", NULL
+    "startloc", "randobjs", "small", "noexits", "anteroom", "nogo", nullptr
 };
 
 const char *rparam[] = {  // Room PARAMETERS
     "dark",
     "dmove=",
-    NULL
+    nullptr
 };
 
 const char *obflags1[] = {  // Object flags
@@ -35,15 +35,15 @@ const char *obflags1[] = {  // Object flags
     "fire",
     "invis",
     "smell",
-    NULL
+    nullptr
 };
 
 const char *obparms[] = {  // Object parameters
-    "adj=", "start=", "holds=", "put=", "mobile=", "art=", NULL
+    "adj=", "start=", "holds=", "put=", "mobile=", "art=", nullptr
 };
 
 const char *obflags2[] = {  // Object state flags
-    "open", "closed", "weapon", "opaque", "alive", NULL
+    "open", "closed", "weapon", "opaque", "alive", nullptr
 };
 
 const char *syntax[NSYNTS] = {  // Syntax "types"

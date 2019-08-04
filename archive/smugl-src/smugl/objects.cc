@@ -41,7 +41,7 @@ class Object *ObjectIdx::locate(char *s)  // Locate an object by it's name
 {
     long w = is_word(s);
     if (w == -1)  // We don't know that word
-        return NULL;
+        return nullptr;
     return locate(w);
 }
 
@@ -55,7 +55,7 @@ class Object *ObjectIdx::locate(long id)  // Locate an object by it's vocab id
             return ptr;
     }
     // No match
-    return NULL;
+    return nullptr;
 }
 
 // Locate an object, or all objects, in a given room
@@ -78,5 +78,5 @@ ObjectIdx::locate_in(basic_obj in, class Object *from, long want_id)
         if ((want_id == -1 || want_id == curnt->id) && curnt->is_in(in))
             return curnt;
     }
-    return NULL;
+    return nullptr;
 }

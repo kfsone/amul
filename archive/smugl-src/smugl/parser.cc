@@ -294,7 +294,7 @@ slot_process(SLOTTAB *slotp)
     bool lastCond = FALSE;
     VBTAB *vt;
 
-    assert(slotp->ptr != NULL);
+    assert(slotp->ptr != nullptr);
 
     for (ent = 0, vt = slotp->ptr; ent < slotp->ents; ent++, vt++) {
         if (debug)
@@ -373,7 +373,7 @@ parse_phrase()
                     return slotFailed;
                 }
 
-                assert(maybe.Vb->ents == 0 || maybe.Vb->ptr != NULL);
+                assert(maybe.Vb->ents == 0 || maybe.Vb->ptr != nullptr);
 
                 for (i = 0; i < maybe.Vb->ents; i++) {
                     slotResult srResult;

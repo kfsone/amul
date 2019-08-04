@@ -19,4 +19,10 @@ $(EXES): $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $(RANLIBFLAGS) $@
 
+tidy: $(SRCS)
+	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
+
+fix-tidy: $(SRCS)
+	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
+
 include Makefile.dep

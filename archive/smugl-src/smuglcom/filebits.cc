@@ -28,7 +28,7 @@ close_ofps()
         fclose(ofp5);
     if (afp)
         fclose(afp);
-    ofp1 = ofp2 = ofp3 = ofp4 = ofp5 = afp = NULL;
+    ofp1 = ofp2 = ofp3 = ofp4 = ofp5 = afp = nullptr;
 }
 
 /* Find the next "real data" in 'ifp'.
@@ -190,7 +190,7 @@ func_get(offset_t off)
         errabort();
     }
     size = (((filesize() + off) / 4096) + 1) * 4096;
-    p = (char *) grow(NULL, size, "Reading file to memory");
+    p = (char *) grow(nullptr, size, "Reading file to memory");
     memset(p, 0, size);
     fread(p + off, 1, size - off, ifp);
     return p;
@@ -274,7 +274,7 @@ opentxt(const char *s)
     /* Write to 'block' because some external callers want it there */
     sprintf(block, "%s%s.txt", dir, s);
     ifp = fopen(block, "rb");
-    if (ifp == NULL)
+    if (ifp == nullptr)
         quit("## Missing file: %s!\n", block);
 }
 

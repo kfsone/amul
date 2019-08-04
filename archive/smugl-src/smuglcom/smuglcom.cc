@@ -34,13 +34,13 @@ voidfunc tf_func[TXTFILES] = {
 VOCAB VC;
 
 int
-main(int argc, char *argv[])
+main(int argc, const char *argv[])
 { /* Main program - entry point */
     int i;
 
     set_version_string();
 
-    ofp1 = ofp2 = ofp3 = NULL;
+    ofp1 = ofp2 = ofp3 = nullptr;
     dir[0] = 0;
     warn = 1;
     vc = &VC;
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
             proc = 0;
         if (ifp)
             fclose(ifp);
-        ifp = NULL;
+        ifp = nullptr;
     }
 
     /* Write miscellaneous stuff to disk */
@@ -173,7 +173,7 @@ checkf(const char *s)
         fclose(ifp);
     else
         error("Missing: file %s!\n", block);
-    ifp = NULL;
+    ifp = nullptr;
 }
 
 /* Test 's' is a condition name */

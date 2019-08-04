@@ -16,3 +16,9 @@ release:
 dep depend:
 	for d in $(SUBDIRS) ; do :>$$d/Makefile.dep ; done
 	for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done
+
+tidy:
+	for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done
+
+fix-tidy:
+	for d in $(SUBDIRS) ; do $(MAKE) -C $$d $@ ; done

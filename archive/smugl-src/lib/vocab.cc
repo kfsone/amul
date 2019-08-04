@@ -138,7 +138,7 @@ read_in_vocab(void *membase)
         membase = (void *) ((char *) membase + mem);
     } else {
         vc->index = (offset_t *) malloc(mem);
-        if (vc->index == NULL) {
+        if (vc->index == nullptr) {
             printf(">> Out of memory for vocab reverse index\n");
             exit(2);
         }
@@ -158,7 +158,7 @@ read_in_vocab(void *membase)
             membase = (void *) ((char *) membase + mem);
         } else {
             vc->hash[i] = (vocid_t *) malloc(mem);
-            if (vc->hash[i] == NULL) {
+            if (vc->hash[i] == nullptr) {
                 printf(">> Out of memory for vocab hash index\n");
                 exit(2);
             }
@@ -180,7 +180,7 @@ read_in_vocab(void *membase)
         membase = (void *) (vc->vocab + vc->vocab_alloc);
     } else {
         vc->vocab = (char *) malloc(vc->vocab_alloc);
-        if (vc->vocab == NULL) {
+        if (vc->vocab == nullptr) {
             printf(">> Out of memory for vocab data.\n");
             exit(2);
         }

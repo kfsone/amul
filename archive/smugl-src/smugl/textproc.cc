@@ -327,7 +327,7 @@ ioproc(const char *str)
         char thisc = *(str++);
         char *advance;
         /* Escape code: Process it, and find the end of the output */
-        if (thisc == '@' && (advance = esc(str, p)) != NULL) {
+        if (thisc == '@' && (advance = esc(str, p)) != nullptr) {
             p = advance;  // Move to end of string
             str += 2;     // Skip the escape code (2 characters)
             continue;

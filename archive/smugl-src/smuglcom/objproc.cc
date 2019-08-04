@@ -177,7 +177,7 @@ state_proc(const char *s)
             *(p++) = ' '; /* Otherwise remove this character */
         while (*(p - 1) == SPC)
             p--; /* Remove trailing spaces */
-        state.descrip = add_msg(NULL);
+        state.descrip = add_msg(nullptr);
         fwrite(quote, (size_t)(p - quote), 1, msgfp);
         fputc(0, msgfp); /* Add end of string */
         strcpy(block, skipspc(p));

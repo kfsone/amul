@@ -60,13 +60,13 @@ main(int argc, char *argv[])
     if (msgs < NSMSGS)
         printf("** Incomplete System Message file\n");
     umsgip = (long *) mem;
-    mem = NULL;
+    mem = nullptr;
     read_in(umsgfn, CHUNKS);
     umsgp = mem;
-    mem = NULL;
+    mem = nullptr;
 
     /* Next we're gonna need the vocab table */
-    read_in_vocab(NULL);
+    read_in_vocab(nullptr);
 
     /* Always read the rooms file in */
     rooms = read_in(roomsfn, sizeof(ROOM));
@@ -75,7 +75,7 @@ main(int argc, char *argv[])
         exit(1);
     }
     roomtab = (ROOM *) mem;
-    mem = NULL;
+    mem = nullptr;
 
     /* Always read in the object table */
     nouns = read_in(objsfn, sizeof(OBJ));
@@ -84,7 +84,7 @@ main(int argc, char *argv[])
         exit(1);
     }
     obtab = (OBJ *) mem;
-    mem = NULL;
+    mem = nullptr;
 
     /* Next, load in the containers and bobs index */
     if (read_in(bobfn, CHUNKS) <= 0) {
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
     bobs = (BASIC_OBJ **) mem;
     mem += sizeof(BASIC_OBJ *) * nbobs;
     containers = (CONTAINER *) mem;
-    mem = NULL;
+    mem = nullptr;
 
     /* Finally, knock up the bobs index based on what we know */
     for (i = 0; i < rooms; i++)  // Index rooms
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
     for (i = 1; i < rooms + nouns; i++)  // Linked list
     {
         bobs[i - 1]->next = bobs[i];
-        bobs[i]->next = NULL;
+        bobs[i]->next = nullptr;
     }
 
     for (i = 1; i < argc; i++) {
@@ -234,7 +234,7 @@ Lranks()
         printf(" prompt:     %s\n", umsg(ranktab->prompt));
     }
     free(mem);
-    mem = NULL;
+    mem = nullptr;
 }
 
 void
@@ -285,7 +285,7 @@ Lmobs()
         printf(" death = %s\n", umsg(mobp->death));
     }
     free(mem);
-    mem = NULL;
+    mem = nullptr;
 }
 
 void
@@ -340,7 +340,7 @@ read_in(const char *s, size_t sized)
     mem = nullptr;
     sprintf(tmp, "Data" PATH_SEP "%s", s);
     fp = fopen(tmp, "rb");
-    if (fp == NULL) {
+    if (fp == nullptr) {
         printf("Can't read file '%s'\n", tmp);
         exit(1);
     }
@@ -353,6 +353,6 @@ read_in(const char *s, size_t sized)
         cnt++;
     }
     fclose(fp);
-    fp = NULL;
+    fp = nullptr;
     return cnt;
 }

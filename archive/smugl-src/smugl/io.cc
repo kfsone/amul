@@ -83,7 +83,7 @@ tx(const char *s, char c)
 {
     char tstr[OBLIM * 2];  // YEUCH! on the stack!?!
     char *p = tstr;
-    char *old_out_buf = NULL;
+    char *old_out_buf = nullptr;
     long old_out_bufsz = 0;
     const char *working_ptr;
     char *out;
@@ -129,14 +129,14 @@ tx(const char *s, char c)
     {
         *(p = tstr) = 0;
         // Now copy from 'out' to 'p', looking for end-of-lines;
-        char *last_break = NULL;
+        char *last_break = nullptr;
         do {
             while (*out && *out != 12 && (!llen || cur_x < llen)) {
                 trailing_ws = FALSE;
                 if (*out == '\n') {
                     out++;
                     cur_x = llen;
-                    last_break = NULL;
+                    last_break = nullptr;
                     break;
                 }
                 if (*out == 8) {
@@ -198,7 +198,7 @@ tx(const char *s, char c)
                     p += bytes;
                     cur_x += bytes;
                     out = end;
-                    last_break = NULL;
+                    last_break = nullptr;
                     continue;
                 }
                 // Does this word, of it's own accord, wrap?
@@ -215,7 +215,7 @@ tx(const char *s, char c)
                     p += bytes;
                     out += bytes;
                     cur_x = llen;
-                    last_break = NULL;
+                    last_break = nullptr;
                     break;
                 }
                 // Otherwise, wrap...
@@ -231,7 +231,7 @@ tx(const char *s, char c)
                 }
                 cur_x = 0;
                 cur_y++;
-                last_break = NULL;
+                last_break = nullptr;
             }
         } while (*out && *out != 12 && (slen && cur_y < (slen - 1)));
 
@@ -391,7 +391,7 @@ fetch_input(char *to, int length)
         // Because we have to listen to the 'ipc_fd' as well as the
         // users input, so we use a select wrapper
         rd_fds = fds;
-        while ((ret = select(max + 1, &rd_fds, NULL, NULL, NULL)) == -1 &&
+        while ((ret = select(max + 1, &rd_fds, nullptr, nullptr, nullptr)) == -1 &&
                (errno == EINTR || errno == EAGAIN))
             ;
         if (ret == -1) {
