@@ -2,12 +2,9 @@
 #define H_LIB_LOGGING_H 1
 
 #include <cstdlib>
-#include <inttypes.h>
+#include <cinttypes>
 
-#ifndef HAVE_ERROR_T
-typedef int error_t;
-#    define HAVE_ERROR_T
-#endif
+#include <h/amul.type.h>
 
 #ifndef __has_builtin
 #    define __has_builtin(x) 0
