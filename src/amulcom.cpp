@@ -12,6 +12,7 @@ amulcom.cpp :: AMUL Compiler. Copyright (C) KingFisher Software 1990-2019.
 */
 
 #include "amulcom.h"
+#include "amulcom.fileprocessing.h"
 #include "amulcom.strings.h"
 
 #include "filesystem.h"
@@ -34,21 +35,17 @@ amulcom.cpp :: AMUL Compiler. Copyright (C) KingFisher Software 1990-2019.
 #include <h/amul.xtra.h>
 #include <h/amulcom.h>
 
-#include <assert.h>
+#include <cassert>
 #include <fcntl.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/stat.h>
-#include <time.h>
-#ifndef _MSC_VER
-#    include <alloca.h>
-#else
-#    include <malloc.h>
-#endif
+#include <ctime>
+#include <string>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Variables
 
-static char compilerVersion[128];
+std::string compilerVersion { VERS " (" DATE ")" };
 
 /* Compiler specific variables... */
 
@@ -471,64 +468,6 @@ isprep(const char *s)
         if (strcmp(s, prep[i]) == 0)
             return i;
     return -1;
-}
-
-static int
-getNo(const char *prefix, const char *from)
-{
-    int result = 0;
-    if (sscanf(from, "%d", &result) != 1) {
-        afatal("Invalid '%s' entry: %s", prefix, from);
-    }
-    return result;
-}
-
-void
-stripNewline(char *text)
-{
-    size_t len = strlen(text);
-    while (len-- > 0 && isEol(text[len])) {
-        text[len] = 0;
-    }
-}
-
-static void
-getBlock(const char *linetype, void (*callback)(const char *, const char *))
-{
-    for (;;) {
-        if (!fgets(block, sizeof(block), ifp)) {
-            afatal("Invalid title.txt: Missing '%s' line", linetype);
-        }
-
-        repspc(block);
-        stripNewline(block);
-        char *p = skipspc(block);
-        if (!*p || isCommentChar(*p))
-            continue;
-
-        if (!canSkipLead(linetype, &p)) {
-            afatal("Invalid title.txt: Expected '%s' got: %s", linetype, p);
-        }
-
-        callback(linetype, p);
-        break;
-    }
-}
-
-static int blockValue;
-
-void
-blockNoTrampoline(const char *prefix, const char *value)
-{
-    blockValue = getNo(prefix, value);
-}
-
-void
-getBlockNo(const char *prefix, int *into)
-{
-    // TODO: This is awful, use a context.
-    getBlock(prefix, blockNoTrampoline);
-    *into = blockValue;
 }
 
 bool
@@ -1175,142 +1114,7 @@ getmobmsg(const char *s)
     }
 }
 
-error_t
-consumeMessageFile(FILE *fp, const char *prefix, bool (*checkerFn)(const char *))
-{
-    if (!nextc(false))
-        return ENOENT;
-
-    while (!feof(fp) && nextc(false)) {
-        checkErrorCount();
-
-        char *p = getTidyBlock(fp);
-        if (!p)
-            continue;
-
-        p = getWordAfter(prefix, p);
-        alog(AL_DEBUG, "%s%s", prefix, Word);
-        if (strlen(Word) < 2 || strlen(Word) > IDL) {
-            alog(AL_ERROR, "Invalid %s ID: %s", prefix, Word);
-            skipblock();
-        } else if (checkerFn && !checkerFn(Word)) {
-            skipblock();
-        } else if (!checkerFn && Word[0] == '$') {
-            alog(AL_ERROR, "Invalid ID (can't begin with '$'): %s", Word);
-            skipblock();
-        }
-
-        TextStringFromFile(Word, fp, nullptr);
-    }
-
-    return 0;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
-
-void
-_getAdventureName(const char *prefix, const char *value)
-{
-    strncpy(g_gameConfig.gameName, value, sizeof(g_gameConfig.gameName));
-    if (strlen(value) > sizeof(g_gameConfig.gameName) - 1)
-        alog(AL_WARN, "Game name too long, truncated to: %s", g_gameConfig.gameName);
-}
-
-void
-title_proc()
-{
-    nextc(true);
-
-    getBlock("name=", _getAdventureName);
-    getBlockNo("resettime=", &g_gameConfig.gameDuration_m);
-    if (g_gameConfig.gameDuration_m < 15) {
-        g_gameConfig.gameDuration_m = 15;
-        alog(AL_WARN, "resettime= too short: falling back to %" PRIu64 " minutes",
-             g_gameConfig.gameDuration_m);
-    }
-
-    getBlockNo("seeinvis=", &g_gameConfig.seeInvisRank);
-    getBlockNo("seesuperinvis=", &g_gameConfig.seeSuperInvisRank);
-
-    getBlockNo("sgorank=", &g_gameConfig.superGoRank);
-
-    getBlockNo("rankscale=", &g_gameConfig.rankScale);
-    getBlockNo("timescale=", &g_gameConfig.timeScale);
-
-    while (nextc(false)) {
-        char *p = getTidyBlock(ifp);
-        if (!p || strncmp(p, "[title]", 7) != 0)
-            continue;
-        if (TextStringFromFile("$title", ifp, nullptr, true) != 0) {
-            afatal("Could not write splash text to message file");
-        }
-        return;
-    }
-
-    alog(AL_WARN, "Missing [title] in Title.Txt");
-    snprintf(block, sizeof(block), "%s\n\n", compilerVersion);
-    RegisterTextString("$title", block, block+strlen(block), true, nullptr);
-}
-
-/*
-     System Message processing routines for AMUL, (C) KingFisher Software
-     --------------------------------------------------------------------
-
- Notes:
-
-    System messages MUST be listed in order, and MUST all exist! These
-      should be supplied with the package, so the user has a set of defaults.
-      We could write all the default system messages into AMULCOM, but this
-      would simply be a waste of space!
-
-*/
-
-int currentSysMessage = 0;
-
-bool
-check_smsg(const char *token)
-{
-    if (*token != '$') {
-        alog(AL_ERROR, "Invalid system message ID (must start with '$'): %s", token);
-        return false;
-    }
-    int messageID = atoi(token + 1);
-    if (messageID != currentSysMessage + 1) {
-        alog(AL_ERROR, "Out-of-order system message ID: %s (expected $%d)", token,
-             currentSysMessage);
-        return false;
-    }
-    ++currentSysMessage;
-    return true;
-}
-
-void
-smsg_proc()
-{
-    (void)consumeMessageFile(ifp, "msgid=", check_smsg);
-    if (currentSysMessage != NSMSGS)
-        alog(AL_ERROR, "sysmsg.txt is incomplete.");
-}
-
-void
-umsg_proc()
-{
-    error_t err = consumeMessageFile(ifp, "msgid=", nullptr);
-    if (err == ENOENT) {
-        /// TODO: Tell the user
-        return;
-    }
-}
-
-void
-obds_proc()
-{
-    error_t err = consumeMessageFile(ifp, "desc=", nullptr);
-    if (err == ENOENT) {
-        alog(AL_INFO, "No long object descriptions");
-        return;
-    }
-}
 
 void
 saveRoomDmove(const char *dmove)
@@ -2753,6 +2557,8 @@ NewContext(const char *filename)
 }
 */
 
+extern void title_proc(), smsg_proc(), umsg_proc(), obds_proc();
+
 struct CompilePhase {
     const char *name;
     bool        isText;
@@ -2812,9 +2618,6 @@ compileGame()
 error_t
 compilerModuleInit(Module *module)
 {
-    snprintf(
-            compilerVersion, sizeof(compilerVersion), "AMULCom v%d.%03d (%8s)", VERSION, REVISION,
-            DATE);
     return 0;
 }
 
@@ -2837,8 +2640,8 @@ setProcessTitle(const char *title)
 error_t
 compilerModuleStart(Module *module)
 {
-    setProcessTitle(compilerVersion);
-    alog(AL_INFO, "AMUL Compiler %s", compilerVersion);
+    setProcessTitle(compilerVersion.c_str());
+    alog(AL_INFO, "AMUL Compiler %s", compilerVersion.c_str());
 
     alog(AL_DEBUG, "Game Directory: %s", gameDir);
     alog(AL_DEBUG, "Log Verbosity : %s", alogGetLevelName());

@@ -5,8 +5,6 @@
  ****         system message #defines!         ****
  */
 
-#define NSMSGS 75 /* No. of system messages */
-
 #define RESETTING 0    /* Reset in progress */
 #define NOSLOTS 1      /* No free slots */
 #define RETURN 2       /* '[Press RETURN] ' */
