@@ -103,7 +103,7 @@ Room::leave(vocid_t wordno)
 {  // Called with a word ID
     HEAVYDEBUG("Room::leave");
     class Verb *vb = VerbIdx::locate(wordno);
-    if (vb == NULL)  // word must be a verb
+    if (vb == nullptr)  // word must be a verb
         return FALSE;
     return leave(vb);
 }
@@ -165,7 +165,7 @@ Room::depart(const char *how)
     HEAVYDEBUG("Room::depart");
     sem_lock(sem_MOTION);
     from_container(me->conLocation);  // Move to nowhere
-    cur_loc = NULL;
+    cur_loc = nullptr;
     if (bob != me->bob)           // If it's not inside itself
         announce_into(bob, how);  // Tell players back there
     sem_unlock(sem_MOTION);
@@ -219,7 +219,7 @@ Room *
 RoomIdx::current()
 {
     if (cur_no >= data->rooms)
-        return NULL;
+        return nullptr;
     return data->roombase + cur_no;
 }
 
@@ -228,7 +228,7 @@ RoomIdx::next()
 {
     if (++cur_no >= data->rooms) {
         cur_no = data->rooms;
-        return NULL;
+        return nullptr;
     }
     return data->roombase + cur_no;
 }
@@ -240,7 +240,7 @@ RoomIdx::locate(const char *s)
     vocid_t id = is_word(s);
     // Is this a valid word?
     if (id == -1)
-        return NULL;
+        return nullptr;
     return locate(id);
 }
 
@@ -258,5 +258,5 @@ RoomIdx::locate(vocid_t id)
     }
 
     // We didn't find a match, return a NULL pointer
-    return NULL;
+    return nullptr;
 }

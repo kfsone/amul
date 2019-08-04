@@ -11,9 +11,9 @@ grow(void *ptr, size_t size, const char *msg)
 {
     void *p;
 
-    if (ptr == NULL) {
+    if (ptr == nullptr) {
         p = malloc(size);
-        if (p == NULL) {
+        if (p == nullptr) {
             error("Out of memory: %s\n", msg);
             errabort();
         }
@@ -21,7 +21,7 @@ grow(void *ptr, size_t size, const char *msg)
     }
 
     p = realloc(ptr, size);
-    if (p == NULL) {
+    if (p == nullptr) {
         error("Can't extend memory: %s\n", msg);
         errabort();
     }

@@ -31,3 +31,10 @@ include Makefile.dep
 
 cleanup:
 	@ipcs | @PERL@ -ne '$$type = $$1 if /^(shm|sem)id/; `ipcrm $$type $$1` if /^(\d+)/'
+
+tidy: $(SRCS)
+	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
+
+fix-tidy: $(SRCS)
+	clang-tidy-8 --config= *.cc -- -DHAVE_CONFIG_H -I../h -I.
+

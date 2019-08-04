@@ -44,7 +44,7 @@ smsg_proc()
             p = skipdata(p);
             continue;
         }
-        add_msg(NULL);
+        add_msg(nullptr);
         p = text_proc(p, msgfp);
         smsgs++;
     } while (*p && smsgs < NSMSGS);

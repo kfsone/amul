@@ -50,7 +50,7 @@ chkp(char *p, arg_t type, int c, int z)
               word((proc == 1) ? verb.id : bobs[cur_room]->id),
               (z == 1) ? "condition" : "action",
               (z == 1) ? cond[c].name : action[c].name);
-        return NULL;
+        return nullptr;
     }
 
     /* Extract this value and null-terminate it for easy manipulation */
@@ -78,7 +78,7 @@ chkp(char *p, arg_t type, int c, int z)
                   p2,
                   (z == 1) ? "condition" : "action",
                   (z == 1) ? cond[c].name : action[c].name);
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -166,7 +166,7 @@ chkp(char *p, arg_t type, int c, int z)
                           word((proc == 1) ? verb.id : bobs[cur_room]->id),
                           type,
                           p2);
-                    return NULL;
+                    return nullptr;
                 }
         }
 
@@ -180,7 +180,7 @@ chkp(char *p, arg_t type, int c, int z)
                   p2,
                   (z == 1) ? "condition" : "action",
                   (z == 1) ? cond[c].name : action[c].name);
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -188,7 +188,7 @@ chkp(char *p, arg_t type, int c, int z)
     if (!z && c == ATREATAS && value == (IWORD + IVERB)) {
         error("%s: Action 'treatas verb' is illegal.\n",
               word((proc == 1) ? (verb.id) : bobs[cur_room]->id));
-        return NULL;
+        return nullptr;
     }
 
     /* Grow the argument-list memory area as neccesary */
@@ -211,7 +211,7 @@ chkaparms(char *p, int c)
     int i;
     for (i = 0; i < action[c].argc; i++) {
         if (!(p = chkp(p, action[c].argv[i], c, 0)))
-            return NULL;
+            return nullptr;
     }
     return p;
 }
@@ -223,7 +223,7 @@ chkcparms(char *p, int c)
     int i;
     for (i = 0; i < cond[c].argc; i++)
         if (!(p = chkp(p, cond[c].argv[i], c, 1)))
-            return NULL;
+            return nullptr;
     return p;
 }
 

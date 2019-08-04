@@ -56,7 +56,7 @@ Mobile *MobileIdx::locate(char *s)  // Locate a mobile by name
     long w;
     w = is_word(s);
     if (w == -1)
-        return NULL;
+        return nullptr;
     return locate(w);
 }
 
@@ -68,5 +68,5 @@ Mobile *MobileIdx::locate(long id)  // Locate a mobile by vocab id
         if (ptr->id == id)
             return ptr;
     }
-    return NULL;
+    return nullptr;
 }

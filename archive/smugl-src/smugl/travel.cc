@@ -29,7 +29,7 @@ TTIdx::locate(char *s)
     long id = is_word(s);
     // Is this a valid word?
     if (id == -1)
-        return NULL;
+        return nullptr;
     return locate(id);
 }
 
@@ -47,5 +47,5 @@ TTIdx::locate(long id)
     }
 
     // We didn't find a match, return a NULL pointer
-    return NULL;
+    return nullptr;
 }

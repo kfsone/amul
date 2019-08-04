@@ -410,7 +410,7 @@ void lang_proc() /* Process language table */
     free(vttab);
     free(argtab);
     arg_alloc = 0;
-    argtab = argptr = NULL;
+    argtab = argptr = nullptr;
     errabort();
 }
 

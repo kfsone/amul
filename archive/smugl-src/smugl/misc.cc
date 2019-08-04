@@ -34,7 +34,7 @@ locate_file(const char *file, int it_matters)
     else
         fi.name = textfile(file);
     fi.size = filesize(fi.name);
-    if (fi.size == -1 && (it_matters || ENOENT)) {
+    if (fi.size == -1 && (it_matters | ENOENT)) {
         error(LOG_ERR, "can't access file '%s': %s", file, strerror(errno));
         exit(1);
     }
@@ -60,7 +60,7 @@ read_file(const char *file, void *&base, int it_matters)
         }
         return -1;
     }
-    if (base == NULL) {
+    if (base == nullptr) {
         base = malloc(fi->size + 2);
         bzero(base, fi->size + 2);
     }
@@ -80,7 +80,7 @@ void pressret()  // Prompt the user to press return
 
 void ShowFile(const char *file)  // Display a file
 {
-    void *text = NULL;
+    void *text = nullptr;
     long size;
 
     size = read_file(file, text, FALSE);

@@ -92,12 +92,12 @@ tidy_ipc()
         }
 
         shmdt((char *) data);  // Detatch from the data segment
-        data = NULL;
+        data = nullptr;
     }
 
     // Delete the shared memory segment if it exists and we're the parent
     if (manager && fork_on_load != -1 && shmid != -1)
-        shmctl(shmid, IPC_RMID, NULL);
+        shmctl(shmid, IPC_RMID, nullptr);
 
     shmid = -1;
 }
@@ -158,7 +158,7 @@ shmalloc(size_t memory)
     memory = (memory + sizeof(uintptr_t) * 2 + 4095) & ~4095;
     shmid = shmget(IPC_PRIVATE, memory, (IPC_CREAT | IPC_EXCL | 0666));
     if (shmid != -1)
-        new_shm = shmat(shmid, NULL, 0);
+        new_shm = shmat(shmid, nullptr, 0);
     if (shmid == -1 || new_shm == (char *) -1) {
         error(LOG_ERR, "can't initialise shared memory: %s", strerror(errno));
         exit(1);
@@ -340,7 +340,7 @@ ipcMsg::ipcMsg(char Type, long Data, short Pri)
     from = slot;
     len = 0;
     to = 0;
-    ptr = NULL;
+    ptr = nullptr;
 }
 
 // Destructor
@@ -348,7 +348,7 @@ ipcMsg::~ipcMsg()
 {
     if (ptr)  // Undo any mallocs
         free(ptr);
-    ptr = NULL;
+    ptr = nullptr;
 }
 
 // Manager's copy of 'send', which writes the data to a specific
@@ -430,7 +430,7 @@ ipcMsg::receive()
         while (read(ipc_fd, ptr, len) == -1 && (errno == EAGAIN || errno == EINTR))
             ;
     } else
-        ptr = NULL;
+        ptr = nullptr;
     if (manager)  // We're the server
     {
         if (!to)  // It's intended for us
