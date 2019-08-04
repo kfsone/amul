@@ -1,7 +1,5 @@
 // base IO routines
 
-static const char rcsid[] = "$Id: io.cc,v 1.12 1999/05/26 11:42:07 oliver Exp $";
-
 #include <cctype>
 #include <cerrno>
 #include <cstdarg>

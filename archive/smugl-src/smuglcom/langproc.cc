@@ -3,8 +3,8 @@
  */
 
 #include "actuals.hpp"
-#include "smuglcom.hpp"
 #include "errors.hpp"
+#include "smuglcom.hpp"
 
 #include <cctype>
 #include <cstring>
@@ -290,7 +290,7 @@ void lang_proc() /* Process language table */
 
     cmdloop:
         /* Reset the basic details */
-        vt.not_condition = 0;
+        vt.not_condition = false;
         vt.condition = -1;
         vt.action_type = ACT_DO;
         vt.action = -1;
@@ -315,10 +315,10 @@ void lang_proc() /* Process language table */
         s = precon(s);
         /* Negations */
         if (*s == '!') {
-            vt.not_condition = 1;
+            vt.not_condition = true;
             s++;
         } else if (strncmp(s, "not ", 4) == 0) {
-            vt.not_condition = 1;
+            vt.not_condition = true;
             s += 4; /* skip the phrase  'not ' */
         }
 

@@ -2,8 +2,6 @@
  * actions.cpp -- Defines the action table
  */
 
-static const char rcsid[] = "$Id: actions.cc,v 1.4 1997/05/22 02:21:13 oliver Exp $";
-
 #include "includes.hpp"
 #include "structs.hpp"
 
@@ -124,7 +122,7 @@ static const char rcsid[] = "$Id: actions.cc,v 1.4 1997/05/22 02:21:13 oliver Ex
  *
  * Note: <umsg> can be replaced by a text string in quotes.
  */
-struct ARGS action[ACTIONS] = {
+ARGS action[ACTIONS] = {
     { "quit", 0, { NONE } },
     { "save", 0, { NONE } },
     { "score", 1, { -5, 0, 0 } },

@@ -1,7 +1,5 @@
 // Definition of rank classes and functions
 
-static const char rcsid[] = "$Id: ranks.cc,v 1.7 1999/06/08 15:36:50 oliver Exp $";
-
 #define RANKS_C 1
 
 #include "data.hpp"

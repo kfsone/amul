@@ -2,8 +2,6 @@
  * misc.cpp -- miscellaneous routines
  */
 
-static const char rcsid[] = "$Id: misc.cc,v 1.4 1997/05/22 02:21:16 oliver Exp $";
-
 #include "includes.hpp"
 #include "libprotos.hpp"
 #include "variables.hpp"

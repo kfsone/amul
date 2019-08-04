@@ -1,7 +1,5 @@
 // Client-specific routines, etc.
 
-static const char rcsid[] = "$Id: client.cc,v 1.3 1997/05/22 02:21:20 oliver Exp $";
-
 #include "client.hpp"
 #include "io.hpp"
 #include "ipc.hpp"

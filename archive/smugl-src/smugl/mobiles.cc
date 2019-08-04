@@ -1,7 +1,5 @@
 // Definition of mobile classes and functions
 
-static const char rcsid[] = "$Id: mobiles.cc,v 1.4 1997/05/22 02:21:26 oliver Exp $";
-
 #define MOBILES_C 1
 
 #include "smugl.hpp"

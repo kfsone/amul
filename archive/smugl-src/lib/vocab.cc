@@ -3,8 +3,6 @@
  * Common to both the compiler and the frame
  */
 
-static const char rcsid[] = "$Id: vocab.cc,v 1.7 1999/05/25 13:07:47 oliver Exp $";
-
 #include "vocab.hpp"
 #include "defines.hpp"
 #include "fileio.hpp"
