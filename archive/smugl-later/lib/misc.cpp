@@ -13,14 +13,14 @@ static char filename[202];
 
 char *
 datafile(const char *s)
-    {
+{
     sprintf(filename, "%sData/%s", g_dir, s);
     return filename;
-    }
+}
 
 char *
 textfile(const char *s)
-    {
+{
     sprintf(filename, "%s%s", g_dir, s);
     return filename;
-    }
+}

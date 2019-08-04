@@ -2,29 +2,29 @@
  * filebits -- various file manipulation functions
  */
 
-#include "smuglcom/smuglcom.hpp"
-#include "include/libprotos.hpp"
 #include "include/fperror.hpp"
+#include "include/libprotos.hpp"
+#include "smuglcom/smuglcom.hpp"
 
 static char *func_get(off_t off);
 static size_t filesize(void);
 
 void
 close_ofps(void)
-{								/* Close the common file handles */
-	if (ofp1)
-		fclose(ofp1);
-	if (ofp2)
-		fclose(ofp2);
-	if (ofp3)
-		fclose(ofp3);
-	if (ofp4)
-		fclose(ofp4);
-	if (ofp5)
-		fclose(ofp5);
-	if (afp)
-		fclose(afp);
-	ofp1 = ofp2 = ofp3 = ofp4 = ofp5 = afp = NULL;
+{ /* Close the common file handles */
+    if (ofp1)
+        fclose(ofp1);
+    if (ofp2)
+        fclose(ofp2);
+    if (ofp3)
+        fclose(ofp3);
+    if (ofp4)
+        fclose(ofp4);
+    if (ofp5)
+        fclose(ofp5);
+    if (afp)
+        fclose(afp);
+    ofp1 = ofp2 = ofp3 = ofp4 = ofp5 = afp = NULL;
 }
 
 /* Find the next "real data" in 'ifp'.
@@ -32,77 +32,74 @@ close_ofps(void)
 int
 nextc(int required)
 {
-	char    c;
+    char c;
 
-	do
-	{
-		while ((c = fgetc(ifp)) != EOF && isspace(c)) ;
-		if (c == ';')
-		{
-			if ( fgets(g_block, 1024, ifp) == NULL )
-				c = EOF ;
-		}
-	}
-	while (c != EOF && (c == ';' || isspace(c)));
-	if (required == 1 && c == EOF)
-		quit("File contains NO data!\n");
-	if (c == EOF)
-		return -1;
-	fseek(ifp, -1, 1);			/* Move back 1 char */
-	return 0;
+    do {
+        while ((c = fgetc(ifp)) != EOF && isspace(c))
+            ;
+        if (c == ';') {
+            if (fgets(g_block, 1024, ifp) == NULL)
+                c = EOF;
+        }
+    } while (c != EOF && (c == ';' || isspace(c)));
+    if (required == 1 && c == EOF)
+        quit("File contains NO data!\n");
+    if (c == EOF)
+        return -1;
+    fseek(ifp, -1, 1); /* Move back 1 char */
+    return 0;
 }
 
 void
 fopenw(const char *s)
-{								/* Open the next free 'ofp' for writing */
-	FILE   *tfp;
-	char   *file = datafile(s);
+{ /* Open the next free 'ofp' for writing */
+    FILE *tfp;
+    char *file = datafile(s);
 
-	if (!(tfp = fopen(file, "wb")))
-		Err("write", file);
-	if (!ofp1)
-		ofp1 = tfp;
-	else if (!ofp2)
-		ofp2 = tfp;
-	else if (!ofp3)
-		ofp3 = tfp;
-	else if (!ofp4)
-		ofp4 = tfp;
-	else
-		ofp5 = tfp;
+    if (!(tfp = fopen(file, "wb")))
+        Err("write", file);
+    if (!ofp1)
+        ofp1 = tfp;
+    else if (!ofp2)
+        ofp2 = tfp;
+    else if (!ofp3)
+        ofp3 = tfp;
+    else if (!ofp4)
+        ofp4 = tfp;
+    else
+        ofp5 = tfp;
 }
 
 void
 fopena(const char *s)
-{								/* Open file for appending */
-	char   *file = datafile(s);
+{ /* Open file for appending */
+    char *file = datafile(s);
 
-	if (afp)
-		fclose(afp);
-	if (!(afp = fopen(file, "rb+")))
-		Err("create", file);
+    if (afp)
+        fclose(afp);
+    if (!(afp = fopen(file, "rb+")))
+        Err("create", file);
 }
 
 void
 fopenr(const char *s)
-{								/* Open file for reading */
-	char   *file = datafile(s);
+{ /* Open file for reading */
+    char *file = datafile(s);
 
-	if (ifp)
-		fclose(ifp);
-	if (!(ifp = fopen(file, "rb")))
-		Err("open", file);
+    if (ifp)
+        fclose(ifp);
+    if (!(ifp = fopen(file, "rb")))
+        Err("open", file);
 }
 
-FILE   *
-rfopen(const char *s)			/* Open file for reading */
+FILE *rfopen(const char *s) /* Open file for reading */
 {
-	FILE   *fp;
-	char   *file = datafile(s);
+    FILE *fp;
+    char *file = datafile(s);
 
-	if (!(fp = fopen(file, "rb")))
-		Err("open", file);
-	return fp;
+    if (!(fp = fopen(file, "rb")))
+        Err("open", file);
+    return fp;
 }
 
 /* Skip the current 'block' of text on 'ifp'. That is, search for
@@ -110,27 +107,26 @@ rfopen(const char *s)			/* Open file for reading */
 void
 skipblock(void)
 {
-	char    c, lc;
+    char c, lc;
 
-	lc = 0;
-	c = '\n';
-	while (c != EOF && !(lc == '\n' && c == lc))
-	{
-		lc = c;
-		c = fgetc(ifp);
-	}
+    lc = 0;
+    c = '\n';
+    while (c != EOF && !(lc == '\n' && c == lc)) {
+        lc = c;
+        c = fgetc(ifp);
+    }
 }
 
 /* The string-based equivalent of skipblock */
-char   *
+char *
 skipdata(char *p)
 {
-	char   *s;
+    char *s;
 
-	do
-		p = skipline(s = p);
-	while (*s && *s != 10);
-	return p;
+    do
+        p = skipline(s = p);
+    while (*s && *s != 10);
+    return p;
 }
 
 /* Reformat a block of text: Remove leading, multiple and trailing spaces,
@@ -139,18 +135,17 @@ skipdata(char *p)
 void
 tidy(char *s)
 {
-	char   *p = s;
+    char *p = s;
 
-	repspc(s);					/* Clean up whitespace */
-	s = skipspc(s);
-	if (s != p)
-	{
-		strcpy(p, s);			/* Remove that annoying leading whitespace */
-		s = p;
-	}
-	s = s + strlen(s) - 1;
-	while (isspace(*s))
-		*(s--) = 0;
+    repspc(s); /* Clean up whitespace */
+    s = skipspc(s);
+    if (s != p) {
+        strcpy(p, s); /* Remove that annoying leading whitespace */
+        s = p;
+    }
+    s = s + strlen(s) - 1;
+    while (isspace(*s))
+        *(s--) = 0;
 }
 
 /* get_line(file, into)
@@ -158,20 +153,19 @@ tidy(char *s)
  * ('+' or '\' at EOL) and then calls 'clean_trim' on the text
  */
 void
-get_line(FILE* fp, char* into, int limit)
+get_line(FILE *fp, char *into, int limit)
 {
-	char* base = into;
+    char *base = into;
 
-	while (fgets(into, limit, fp))
-	{
-		int     l = strlen(into);
+    while (fgets(into, limit, fp)) {
+        int l = strlen(into);
 
-		into += (l - 2);		/* Move to possible last char */
-		limit -= l;
-		if (*into != '\\' && *into != '+')
-			break;
-	}
-	clean_trim(base);
+        into += (l - 2); /* Move to possible last char */
+        limit -= l;
+        if (*into != '\\' && *into != '+')
+            break;
+    }
+    clean_trim(base);
 }
 
 /* clean_trim(string)
@@ -180,10 +174,10 @@ get_line(FILE* fp, char* into, int limit)
 void
 clean_trim(char *s)
 {
-	clean_up(s);
-	s = s + strlen(s) - 1;
-	while (isspace(*s))
-		*(s--) = 0;
+    clean_up(s);
+    s = s + strlen(s) - 1;
+    while (isspace(*s))
+        *(s--) = 0;
 }
 
 /* Allocate memory (with surplus) for reading a given file,
@@ -193,180 +187,171 @@ clean_trim(char *s)
 inline static char *
 func_get(off_t off)
 {
-	if (!ifp)
-	{
-		error(">> no input file open for reading!\n");
-		errabort();
-	}
-	const size_t fileSize = filesize() ;
-	const size_t size = (((fileSize + off) / 4096) + 1) * 4096;
-	char* const p = (char *) grow(NULL, size, "Reading file to memory");
-	bzero(p, size);
-	size_t bytesRead = fread(p + off, 1, fileSize, ifp) ;
-	if ( bytesRead < fileSize )
-		throw Smugl::FPReadError("file", errno, ifp) ;
-	return p;
+    if (!ifp) {
+        error(">> no input file open for reading!\n");
+        errabort();
+    }
+    const size_t fileSize = filesize();
+    const size_t size = (((fileSize + off) / 4096) + 1) * 4096;
+    char *const p = (char *) grow(NULL, size, "Reading file to memory");
+    bzero(p, size);
+    size_t bytesRead = fread(p + off, 1, fileSize, ifp);
+    if (bytesRead < fileSize)
+        throw Smugl::FPReadError("file", errno, ifp);
+    return p;
 }
 
 /* Wrapper for 'func_get', which tidies up the end-of-line characters
 ** afterwards. Used for reading files that operate text blocks such
 ** as the rooms file */
-char*
+char *
 blkget()
 {
-	char* const p = func_get(0L);
-	char* s = p;
-	char c ;
-	while ((c = *(s++)))
-	{
-		if (c == 13)
-			*(s - 1) = EOL;
-	}
-	return p;
+    char *const p = func_get(0L);
+    char *s = p;
+    char c;
+    while ((c = *(s++))) {
+        if (c == 13)
+            *(s - 1) = EOL;
+    }
+    return p;
 }
 
 /* Wrapper for func_get, which tidies up the text using 'clean_up'.
 ** Used for reading any files which don't have text-blocks
 */
-char*
-cleanget(off_t off /*=0*/ )
+char *
+cleanget(off_t off /*=0*/)
 {
-	char   *p;
+    char *p;
 
-	p = func_get(off);
-	clean_up(p + off);
-	return p;
+    p = func_get(off);
+    clean_up(p + off);
+    return p;
 }
 
-static size_t
-filesize()						/* Return size of current file (ifp) */
+static size_t filesize() /* Return size of current file (ifp) */
 {
-	const off_t now = ftell(ifp);
-	fseek(ifp, 0, 2L);
-	const size_t s = ftell(ifp) - now;
-	fseek(ifp, now, 0L);
-	return s;
+    const off_t now = ftell(ifp);
+    fseek(ifp, 0, 2L);
+    const size_t s = ftell(ifp) - now;
+    fseek(ifp, now, 0L);
+    return s;
 }
 
 /* Take a text block (p), process and output to desftp. Used for
 ** processing large text areas, e.g. room descriptions or umsgs */
-char*
-text_proc(char *p, FILE * destfp)
+char *
+text_proc(char *p, FILE *destfp)
 {
-	char    overflow = 0;
-	long    LEN;
-	char*   s;
+    char overflow = 0;
+    long LEN;
+    char *s;
 
-	do
-	{
-		s = p ;
-		p = skipline(s);	    /* Next line */
-		if (!*s)				/* Blank-line == end of block */
-			break;
-		if (overflow)
-		{						/* We have an overflow character */
-			fputc(overflow, destfp);
-			overflow = 0;
-		}
-		if (*s == 9 && !*(s + 1))
-			*s = '\n';
-		else if (*s == 9)
-			s++;
-		LEN = p - s - 1;
-		if (*(p - 2) == '{')
-			LEN--;				/* {<EOL> = don't add CRLF */
-		else
-			overflow = '\n';
-		fwrite(s, sizeof(*s), (size_t) LEN, destfp);
-	}
-	while (*s);
-	fputc(0, destfp);			/* Null terminate for easy handling */
-	return p;
+    do {
+        s = p;
+        p = skipline(s); /* Next line */
+        if (!*s)         /* Blank-line == end of block */
+            break;
+        if (overflow) { /* We have an overflow character */
+            fputc(overflow, destfp);
+            overflow = 0;
+        }
+        if (*s == 9 && !*(s + 1))
+            *s = '\n';
+        else if (*s == 9)
+            s++;
+        LEN = p - s - 1;
+        if (*(p - 2) == '{')
+            LEN--; /* {<EOL> = don't add CRLF */
+        else
+            overflow = '\n';
+        fwrite(s, sizeof(*s), (size_t) LEN, destfp);
+    } while (*s);
+    fputc(0, destfp); /* Null terminate for easy handling */
+    return p;
 }
 
 void
-opentxt(const char* s)
-{								/* Open a game '.txt' file for reading. */
-	/* Write to 'block' because some external callers want it there */
-	sprintf(g_block, "%s%s.smg", g_dir, s);
-	ifp = fopen(g_block, "rb");
-	if (ifp == NULL)
-		quit("## Missing file: %s!\n", g_block);
+opentxt(const char *s)
+{ /* Open a game '.txt' file for reading. */
+    /* Write to 'block' because some external callers want it there */
+    sprintf(g_block, "%s%s.smg", g_dir, s);
+    ifp = fopen(g_block, "rb");
+    if (ifp == NULL)
+        quit("## Missing file: %s!\n", g_block);
 }
 
 /* get_word fetches the next 'word' from 's' into the static buffer
  * 'Word', upto 62 characters
  */
-char*
-getword(char* s)
+char *
+getword(char *s)
 {
-	char*   dst;
-	int     bytes;
+    char *dst;
+    int bytes;
 
-	*(dst = Word) = 0;			/* Clear Word */
-	bytes = 62;
+    *(dst = Word) = 0; /* Clear Word */
+    bytes = 62;
 
-	s = skipspc(s);
-	for (s = skipspc(s); *s && *s != SPC && *s != EOL && *s != CMT; bytes--)
-	{
-		if (bytes > 0)
-			*(dst++) = *(s++);
-	}
-	if (*s == CMT)
-		*s = 0;
-	else
-		s = skipspc(s);
-	*dst = 0;
+    s = skipspc(s);
+    for (s = skipspc(s); *s && *s != SPC && *s != EOL && *s != CMT; bytes--) {
+        if (bytes > 0)
+            *(dst++) = *(s++);
+    }
+    if (*s == CMT)
+        *s = 0;
+    else
+        s = skipspc(s);
+    *dst = 0;
 
-	return s;
+    return s;
 }
 
 /* skiplead - look for a matching string and return a pointer beyond it,
 ** if we find a match...
 **  e.g. skiplead("goto=", "goto=daytime") returns "daytime" */
-char*
-skiplead(const char* skip, char* in)
+char *
+skiplead(const char *skip, char *in)
 {
-	char* p;
+    char *p;
 
-	/* Ignore any leading white space */
-	if (*in == SPC)
-		p = skipspc(in);
-	else
-		p = in;
-	while (*skip && *skip == *(p++))
-		skip++;
-	/* In case of a match, *skip will be 0 */
-	if (*skip == 0)
-		return p;
-	return in;
+    /* Ignore any leading white space */
+    if (*in == SPC)
+        p = skipspc(in);
+    else
+        p = in;
+    while (*skip && *skip == *(p++))
+        skip++;
+    /* In case of a match, *skip will be 0 */
+    if (*skip == 0)
+        return p;
+    return in;
 }
 
 /* skipline -- returns a pointer to the beginning of the next line */
-char   *
+char *
 skipline(char *s)
 {
-	while (*s)
-	{
-		if (*s == EOL)			/* End of line */
-		{
-			*s = 0;
-			return (s + 1);		/* Return beginning of *next* line */
-		}
-		s++;
-	}
-	return s;
+    while (*s) {
+        if (*s == EOL) /* End of line */
+        {
+            *s = 0;
+            return (s + 1); /* Return beginning of *next* line */
+        }
+        s++;
+    }
+    return s;
 }
 
 /* repspc -- tidy up the white space in a text block */
 void
 repspc(char *s)
 {
-	while (*s)
-	{
-		if (*s == '\t')
-			*s = SPC;
-		if (*s == '\r')
-			*s = EOL;
-	}
+    while (*s) {
+        if (*s == '\t')
+            *s = SPC;
+        if (*s == '\r')
+            *s = EOL;
+    }
 }

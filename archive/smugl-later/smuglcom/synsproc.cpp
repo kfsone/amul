@@ -18,51 +18,44 @@
 void
 syn_proc(void)
 {
-	char   *p, *s;
-	vocid_t real_word;
-	vocid_t alias_word;
+    char *p, *s;
+    vocid_t real_word;
+    vocid_t alias_word;
 
-	if (nextc(0) == -1)
-	{
-		tx("<No Entries>");
-		errabort();
-		return;
-	}
-	fopena(synsifn);
-	fseek(afp, 0, SEEK_END);
+    if (nextc(0) == -1) {
+        tx("<No Entries>");
+        errabort();
+        return;
+    }
+    fopena(synsifn);
+    fseek(afp, 0, SEEK_END);
 
-	data = cleanget();
-	p = skipspc(data);
+    data = cleanget();
+    p = skipspc(data);
 
-	do
-	{
-		p = skipline(s = p);
-		s = getword(s);
-		if (!*Word)
-			continue;
+    do {
+        p = skipline(s = p);
+        s = getword(s);
+        if (!*Word)
+            continue;
 
-		if ((real_word = is_word(Word)) == -1)
-		{
-			error("Invalid verb/noun: \"%s\".\n", Word);
-			continue;
-		}
+        if ((real_word = is_word(Word)) == -1) {
+            error("Invalid verb/noun: \"%s\".\n", Word);
+            continue;
+        }
 
-		do
-		{
-			s = getword(s);
-			if (!*Word)
-				break;
-			if ((alias_word = new_word(Word, false)) == -1)
-			{
-				error("Invalid synonym, '%s'\n", Word);
-				continue;
-			}
-			fwrite(&alias_word, sizeof(vocid_t), 1, afp);
-			fwrite(&real_word, sizeof(vocid_t), 1, afp);
-			syns++;
-		}
-		while (*s);
-	}
-	while (*p);
-	errabort();
+        do {
+            s = getword(s);
+            if (!*Word)
+                break;
+            if ((alias_word = new_word(Word, false)) == -1) {
+                error("Invalid synonym, '%s'\n", Word);
+                continue;
+            }
+            fwrite(&alias_word, sizeof(vocid_t), 1, afp);
+            fwrite(&real_word, sizeof(vocid_t), 1, afp);
+            syns++;
+        } while (*s);
+    } while (*p);
+    errabort();
 }
