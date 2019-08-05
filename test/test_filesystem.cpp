@@ -11,13 +11,13 @@
 TEST(FilesystemTest, PathCopy)
 {
     char into[64] = {0};
-    EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "abcdefg"));
+    EXPECT_SUCCESS(PathCopy(into, sizeof(into), nullptr, "abcdefg"));
     EXPECT_STREQ("abcdefg", into);
-    EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "/abcdefg"));
+    EXPECT_SUCCESS(PathCopy(into, sizeof(into), nullptr, "/abcdefg"));
     EXPECT_STREQ("/abcdefg", into);
-    EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "\\abcdefg"));
+    EXPECT_SUCCESS(PathCopy(into, sizeof(into), nullptr, "\\abcdefg"));
     EXPECT_STREQ("/abcdefg", into);
-    EXPECT_SUCCESS(PathCopy(into, sizeof(into), NULL, "///\\\\abcdefg"));
+    EXPECT_SUCCESS(PathCopy(into, sizeof(into), nullptr, "///\\\\abcdefg"));
     EXPECT_STREQ("/abcdefg", into);
 }
 
@@ -51,9 +51,9 @@ TEST(FilesystemTest, PathJoinConstraints)
     char into[64];
 
     // simple constraints: bad parameters
-    EXPECT_ERROR(EINVAL, PathJoin(NULL, 0, NULL, NULL));
-    EXPECT_ERROR(EINVAL, PathJoin(into, 0, NULL, NULL));
-    EXPECT_ERROR(EINVAL, PathJoin(into, sizeof(into), ".", NULL));
+    EXPECT_ERROR(EINVAL, PathJoin(nullptr, 0, nullptr, nullptr));
+    EXPECT_ERROR(EINVAL, PathJoin(into, 0, nullptr, nullptr));
+    EXPECT_ERROR(EINVAL, PathJoin(into, sizeof(into), ".", nullptr));
     EXPECT_ERROR(EINVAL, PathJoin(into, 2, ".", "a"));
     EXPECT_ERROR(EINVAL, PathJoin(into, 3, ".", "a"));
 
@@ -85,10 +85,10 @@ TEST(FilesystemTest, PathJoiner)
 TEST(FilesystemTest, GetFileSizeChecks)
 {
     const char *datafile = "getfilesize_test_file1.txt";
-    EXPECT_ERROR(EINVAL, GetFilesSize(NULL, NULL));
-    EXPECT_ERROR(EINVAL, GetFilesSize(datafile, NULL));
+    EXPECT_ERROR(EINVAL, GetFilesSize(nullptr, nullptr));
+    EXPECT_ERROR(EINVAL, GetFilesSize(datafile, nullptr));
     size_t size = 0;
-    EXPECT_ERROR(EINVAL, GetFilesSize(NULL, &size));
+    EXPECT_ERROR(EINVAL, GetFilesSize(nullptr, &size));
     EXPECT_EQ(size, 0);
 }
 
@@ -119,10 +119,10 @@ TEST(FilesystemTest, GetFileSizeNewFile)
 TEST(FilesystemTest, FileMappingChecks)
 {
     // all of these should produce contract failures
-    void *data = NULL;
-    EXPECT_ERROR(EINVAL, NewFileMapping(NULL, NULL, 1));
-    EXPECT_ERROR(EINVAL, NewFileMapping("", NULL, 1));
-    EXPECT_ERROR(EINVAL, NewFileMapping("a", NULL, 1));
+    void *data = nullptr;
+    EXPECT_ERROR(EINVAL, NewFileMapping(nullptr, nullptr, 1));
+    EXPECT_ERROR(EINVAL, NewFileMapping("", nullptr, 1));
+    EXPECT_ERROR(EINVAL, NewFileMapping("a", nullptr, 1));
     EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 0));
     data = (void *)(uintptr_t)0xdeadbeef;
     EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 1));
@@ -145,7 +145,7 @@ TEST(FilesystemTest, FileMapping)
     EXPECT_EQ(expectedSize, size);
 
     // with everything ready, make sure passing a 0 size fails.
-    void *data = NULL;
+    void *data = nullptr;
     EXPECT_ERROR(EINVAL, NewFileMapping(datafile, &data, 0));
     EXPECT_NULL(data);
 
@@ -207,8 +207,8 @@ TEST(FilesystemTest, SourceFileChecks)
 
     EXPECT_FALSE(s_sourceFileInUse);
 
-    EXPECT_ERROR(EINVAL, NewSourceFile(NULL, &sourcefile));
-    EXPECT_ERROR(EINVAL, NewSourceFile("a", NULL));
+    EXPECT_ERROR(EINVAL, NewSourceFile(nullptr, &sourcefile));
+    EXPECT_ERROR(EINVAL, NewSourceFile("a", nullptr));
 
     s_sourceFileInUse = true;
     EXPECT_ERROR(ENFILE, NewSourceFile("a", &sourcefile));

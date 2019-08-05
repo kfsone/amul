@@ -1,3 +1,4 @@
+#include "amulcom.ctxlog.h"
 #include "amulcom.fileprocessing.h"
 #include "amulcom.strings.h"
 
@@ -77,6 +78,8 @@ _getAdventureName(const char *prefix, const char *value)
 void
 title_proc()
 {
+    ScopeContext ctx{"config"};
+
     nextc(true);
 
     getBlock("name=", _getAdventureName);
@@ -99,8 +102,9 @@ title_proc()
         char *p = getTidyBlock(ifp);
         if (!p || strncmp(p, "[title]", 7) != 0)
             continue;
+        ScopeContext titleCtx{"title"};
         if (TextStringFromFile("$title", ifp, nullptr, true) != 0) {
-            afatal("Could not write splash text to message file");
+            ctxLog(AL_FATAL, "Could not write splash text to message file");
         }
         return;
     }

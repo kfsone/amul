@@ -1,7 +1,7 @@
 ---
 Checks:          '-*,clang-diagnostic-*,portability-*,performance-*,modernize-redundant-void-arg,hicpp-use-nullptr,modernize-use-override,modernize-use-using,bugprone-parent-virtual-call,bugprone-*,-bugprone-narrowing-*,modernize-use-nullptr,-modernize-avoid-c-arrays,-modernize-loop-convert,clang-analyzer-*,-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-valist.Uninitialized,-clang-analyzer-deadcode.DeadStores,-modernize-use-nodiscard,-clang-analyzer-core.NullDereference,-clang-analyzer-unix.Malloc'
 WarningsAsErrors: ''
-HeaderFilterRegex: '.'
+HeaderFilterRegex: '.*'
 AnalyzeTemporaryDtors: true
 FormatStyle:     file
 CheckOptions:    

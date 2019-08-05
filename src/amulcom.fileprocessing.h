@@ -6,6 +6,7 @@ extern FILE *ifp;
 
 extern char Word[64];    ///TODO: Pass
 
+void fopenr(const char *filename);
 bool nextc(bool required);
 char *getTidyBlock(FILE *fp);
 void tidy(char *ptr);

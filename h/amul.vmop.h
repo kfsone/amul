@@ -21,4 +21,18 @@ struct VMOP {
 extern const struct VMOP conditions[NCONDS];
 extern const struct VMOP actions[NACTS];
 
+// Virtual machine instruction
+struct VMIns {
+    enum Class : vmins_t {
+        VIC_INVALID,
+        VIC_DESTINATION,
+        VIC_CONDITION,
+        VIC_NOT_CONDITION,
+        VIC_ACTION,
+    };
+
+    vmins_t   insClass : 3;
+    vmins_t   instruction : 29;
+};
+
 #endif  // AMUL_H_AMUL_VMOP_H

@@ -50,8 +50,8 @@ enum VolumeLevel {
 
 // IO Support types
 #define CLIWINDOW 0              // Def */   /* Use CLI window
-#define CUSSCREEN CLIWINDOW + 1  // Provide Custm Screen
-#define SERIO CUSSCREEN + 1      // Serial IO
+#define CUSSCREEN (CLIWINDOW + 1)  // Provide Custm Screen
+#define SERIO (CUSSCREEN + 1)      // Serial IO
 #define LOGFILE 99               // Output ONLY to log
 
 // Room bit-flags
@@ -281,7 +281,7 @@ enum ConditionID {
 };
 
 // Parameter types
-#define PREAL -70   // Noun or slot label
+constexpr int PREAL = -70;  // Noun or slot label
 #define PNOUN 1     // Must be a noun
 #define PADJ 2      // Must be an adj
 #define PPLAYER 4   // Must be a player
@@ -364,18 +364,20 @@ enum AnnounceType {
 #define MEXTEND 24    // Extend game
 #define MGDSTART 25   // Start global daemon
 
-#define WNONE -1    // None!
-#define WANY 0      // Anything!
-#define WNOUN 1     // Word is a noun
-#define WADJ 2      // Word is an adjective
-#define WPREP 3     // Its a prep
-#define WPLAYER 4   // Its a player
-#define WROOM 5     // Its a room ID
-#define WSYN 6      // Its a synonym
-#define WTEXT 7     // Its text
-#define WVERB 8     // Its a verb!
-#define WCLASS 9    // Class name
-#define WNUMBER 10  // A number
+enum {
+    WNONE = -1,  // None
+    WANY = 0,    // Anything including WNONE
+    WNOUN,
+    WADJ,
+    WPREP,
+    WPLAYER,
+    WROOM,
+    WSYN,
+    WTEXT,
+    WVERB,
+    WCLASS,
+    WNUMBER
+};
 
 // -- Player flags --
 #define PFINVIS 0x00001     // Player invisible
@@ -440,12 +442,12 @@ enum AnnounceType {
 
 // -- Useful defines --
 
-#define isOINVIS(x) ((obtab + x)->flags & OF_INVIS)
-#define isPINVIS(x) ((linestat + x)->flags & PFINVIS)
+#define isOINVIS(x) ((obtab + (x))->flags & OF_INVIS)
+#define isPINVIS(x) ((linestat + (x))->flags & PFINVIS)
 #define IamINVIS (me2->flags & PFINVIS)
 #define IamSINVIS (me2->flags & PFSINVIS)
-#define pROOM(x) ((linestat + x)->room)
-#define pRANK(x) ((usr + x)->rank)
+#define pROOM(x) ((linestat + (x))->room)
+#define pRANK(x) ((usr + (x))->rank)
 #define myRANK me->rank
 #define mySCORE me->score
 #define myROOM me2->room
@@ -467,10 +469,10 @@ enum AnnounceType {
 #define AP3 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 2))
 #define AP4 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 3))
 #define STATE (objtab->states + (long)objtab->state)
-#define State(i) ((obtab + i)->states + (long)(obtab + i)->state)
+#define State(i) ((obtab + (i))->states + (long)(obtab + (i))->state)
 #define ItsState (it->states + (long)it->state)
-#define xLIGHT(x) (linestat + x)->light
-#define xHADLIGHT(x) (linestat + x)->hadlight
+#define xLIGHT(x) (linestat + (x))->light
+#define xHADLIGHT(x) (linestat + (x))->hadlight
 
 #define acp (char *)actptr
 

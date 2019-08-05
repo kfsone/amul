@@ -6,6 +6,9 @@
  */
 
 #include <h/amul.stct.h>
+#include <h/lang_struct.h>
+#include <h/room_struct.h>
+#include <h/obj_struct.h>
 
 #ifdef PORTS
 #    include <h/amigastubs.h>
@@ -24,22 +27,9 @@ struct Aport *  amul;
 /* Structures: */
 struct _PLAYER *    usr, *me, him, *you;
 struct LS *         linestat, *me2, *you2;
-struct _ROOM_STRUCT room, *roomtab, *rmtab; /* ptr->table, ptr->a room */
-struct _VERB_STRUCT g_verb, *vbtab, *vbptr;
-struct _SLOTTAB     vbslot, *slottab, *stptr;
-struct _VBTAB       vt, *vtp, *vtabp;
 struct _RANK_STRUCT rank, *rktab, *ranktab;
-struct _NTAB_STRUCT nountab, *ntab, *ntabp;
 struct _OBJ_STRUCT  obj, *obtab, *objtab;
 struct _OBJ_STATE   state, *statab, *statep;
-struct _TT_ENT      tt, *ttp, *ttabp;
 struct _MOB_ENT     mob, *mobp, *mobile;
-
-#ifdef COMPILER
-struct _OBJECT_DESCRIPTIONS {
-    char id[IDL + 1];
-    long descrip; /* ptr to descrp in file */
-} objdes, *obdesp;
-#endif
 
 #endif

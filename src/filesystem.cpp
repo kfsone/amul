@@ -122,7 +122,7 @@ CloseFile(FILE **fp)
 {
     if (fp && *fp) {
         fclose(*fp);
-        *fp = NULL;
+        *fp = nullptr;
     }
 }
 
@@ -153,7 +153,7 @@ error_t
 NewFileMapping(const char *filepath, void **datap, size_t size)
 {
     REQUIRE(filepath && datap && size);
-    REQUIRE(*datap == NULL);
+    REQUIRE(*datap == nullptr);
 
     int fd = open(filepath, O_RDONLY);
     if (fd < 0)
@@ -169,7 +169,7 @@ NewFileMapping(const char *filepath, void **datap, size_t size)
     void *data = MapViewOfFile(maph, FILE_MAP_READ, 0, 0, 0);
     CloseHandle(maph);
 #else
-    void *data = mmap(NULL, size, PROT_READ, MMAP_FLAGS, fd, 0);
+    void *data = mmap(nullptr, size, PROT_READ, MMAP_FLAGS, fd, 0);
     if (data == MAP_FAILED) {
         afatal("Failed to load file %s: %d: %s", filepath, errno, strerror(errno));
     }
@@ -197,7 +197,7 @@ CloseFileMapping(void **datap, size_t length)
 #endif
     }
     if (datap)
-        *datap = NULL;
+        *datap = nullptr;
 }
 
 SourceFile s_sourceFile{};
@@ -263,7 +263,7 @@ CloseSourceFile(SourceFile **sourcefilep)
     if (sourcefilep && *sourcefilep) {
         (*sourcefilep)->buffer.Close();
         CloseFileMapping(&(*sourcefilep)->mapping, (*sourcefilep)->size);
-        *sourcefilep = NULL;
+        *sourcefilep = nullptr;
         s_sourceFileInUse = false;
     }
 }

@@ -47,7 +47,7 @@ registerStringLabel(std::string label)
     do {                                                                                           \
         if (fwrite(buffer, 1, (length), fp) != (length))                                           \
             afatal("Unable to write %s", op);                                                      \
-		stringBytes += length;                                                                     \
+		stringBytes += (length);                                                                     \
     } while (0)
 
 error_t
@@ -95,7 +95,7 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
     // Consume lines from the file until we reach a paragraph break
     while (!feof(fp)) {
         char *p = fgets(line, sizeof(line), fp);
-        if (p == NULL)
+        if (p == nullptr)
             continue;
         if (isEol(*p) && !toEof)
             break;
@@ -183,7 +183,7 @@ StrCopy(char *into, size_t intoSize, const char *start, const char *end)
 {
     const size_t copylen = end - start;
     if (copylen + 1 > intoSize) {
-        return NULL;
+        return nullptr;
     }
     memcpy(into, start, copylen);
     into[copylen] = 0;
@@ -195,7 +195,7 @@ WordCopy(char *into, size_t intoSize, const char *start, const char *end)
 {
     const size_t copylen = end - start;
     if (copylen + 1 > intoSize) {
-        return NULL;
+        return nullptr;
     }
     const char *intoEnd = into + copylen;
     while (into < intoEnd) {
@@ -245,6 +245,6 @@ closeStringModule(Module *module, error_t err)
 error_t
 InitStrings()
 {
-    NewModule(MOD_STRINGS, NULL, startStringModule, closeStringModule, NULL, NULL);
+    NewModule(MOD_STRINGS, nullptr, startStringModule, closeStringModule, nullptr, nullptr);
     return 0;
 }

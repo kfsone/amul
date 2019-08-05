@@ -22,8 +22,8 @@
 #define TRQ timerequest
 
 #define UINFO                                                                                      \
-    ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) +       \
-            (sizeof(mob) * g_gameData.numMobs)
+    (((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) +       \
+            (sizeof(mob) * g_gameData.numMobs))
 
 #include <cassert>
 #include <cctype>
@@ -98,32 +98,30 @@ givebackmemory()
 {
     ReleaseMem(&obtab);
     ReleaseMem(&rktab);
-    ReleaseMem(&rmtab);
     ReleaseMem(&slottab);
     ReleaseMem(&synp);
-    ReleaseMem(&ttp);
     ReleaseMem(&ttpp);
     ReleaseMem(&usr);
     ReleaseMem(&vbtab);
 
-    adtab = NULL;
-    linestat = NULL;
-    ormtab = NULL;
-    rctab = NULL;
-    statab = NULL;
-    synip = NULL;
-    vtp = NULL;
-    vtpp = NULL;
+    adtab = nullptr;
+    linestat = nullptr;
+    ormtab = nullptr;
+    rctab = nullptr;
+    statab = nullptr;
+    synip = nullptr;
+    vtp = nullptr;
+    vtpp = nullptr;
 }
 
 [[noreturn]] void
 quit()
 {
-    if (ifp != NULL)
+    if (ifp != nullptr)
         fclose(ifp);
-    if (reply != NULL)
+    if (reply != nullptr)
         DeletePort(reply);
-    if (port != NULL)
+    if (port != nullptr)
         DeletePort(port);
 #if defined(__AMIGA__)
     if (TDBase != NULL) {
@@ -131,7 +129,7 @@ quit()
         CloseDevice((IORequest *)&ResReq);
     }
 #endif
-    if (trport != NULL)
+    if (trport != nullptr)
         DeletePort(trport);
     givebackmemory();
     exit(0);
@@ -180,7 +178,7 @@ xread(const char *s, size_t *countInto, const char *t)
     *countInto = ftell(ifp);
     fseek(ifp, 0, 0L);
     if (*countInto != 0) {
-        if ((p = (char *)AllocateMem(*countInto)) == NULL)
+        if ((p = (char *) AllocateMem(*countInto)) == nullptr)
             memfail(t);
         if (int i = fread(p, 1, *countInto, ifp); i != *countInto)
             readfail(t, i, *countInto);
@@ -194,7 +192,7 @@ readf(const char *s, char *p)
     fopenr(s);
     fread(p, 32767, 32767, ifp);
     fclose(ifp);
-    ifp = NULL;
+    ifp = nullptr;
     return p;
 }
 
@@ -359,10 +357,8 @@ cnct()
 void
 dkill(short int d)
 {
-    int i;
-
     nextdaem = g_gameData.gameDuration_m * 60;
-    for (i = 1; i < daemons; i++) {
+    for (long i = 1; i < daemons; i++) {
         if (((d != -1 && globflg[i]) || own[i] == Af) && (num[i] == d || d == -1))
             pack(i);
         if (i != daemons && count[i] < nextdaem)
@@ -407,10 +403,9 @@ pstart()
 void
 check(int d)
 {
-    int i;
     Ad = -1;
     Ap1 = -1;
-    for (i = 1; i < daemons; i++)
+    for (long i = 1; i < daemons; i++)
         if ((own[i] == Af || globflg[i]) && num[i] == d) {
             Ad = i;
             Ap1 = count[i];
@@ -475,7 +470,7 @@ login()
 static void
 asend(int type, int data)
 {
-    if ((reply = CreatePort("Killer!")) == NULL) {
+    if ((reply = CreatePort("Killer!")) == nullptr) {
         printf("Unable to create killer port!\n");
         return;
     }
@@ -614,7 +609,7 @@ setup()
     long *pt;
     char *p;
 
-    if ((p = (char *)AllocateMem(UINFO)) == NULL)
+    if ((p = (char *) AllocateMem(UINFO)) == nullptr)
         memfail("User tables");
     usr = (_PLAYER *)p;
     p += sizeof(*usr) * MAXNODE;
@@ -623,19 +618,16 @@ setup()
     rctab = (short *)p;
 
     fopenr(roomDataFile);  // 1: Open room block file
-    if ((rmtab = (_ROOM_STRUCT *)AllocateMem(g_gameData.numRooms * sizeof(room))) == NULL)
-        memfail("room table");  // Allocate memory
-    if ((i = fread((char *)rmtab, sizeof(room), g_gameData.numRooms, ifp)) != g_gameData.numRooms)
-        readfail("room table", i, g_gameData.numRooms);
 
     fopenr(rankDataFile);  // 2: Read player g_gameData.numRanks
-    if ((rktab = (_RANK_STRUCT *)AllocateMem(g_gameData.numRanks * sizeof(rank))) == NULL)
+    if ((rktab = (_RANK_STRUCT *) AllocateMem(g_gameData.numRanks * sizeof(rank))) == nullptr)
         memfail("player g_gameData.numRanks");  // Allocate memory
     if ((i = fread((char *)rktab, sizeof(rank), g_gameData.numRanks, ifp)) != g_gameData.numRanks)
         readfail("player g_gameData.numRanks", i, g_gameData.numRanks);
 
     fopenr(verbDataFile);  // 4: Read the g_gameData.numVerbs in
-    if ((vbtab = (_VERB_STRUCT *)AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) == NULL)
+    if ((vbtab = (_VERB_STRUCT *) AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) ==
+        nullptr)
         memfail("verb table");
     if ((i = fread(vbtab->id, sizeof(_VERB_STRUCT), g_gameData.numVerbs, ifp)) !=
         g_gameData.numVerbs)
@@ -656,7 +648,7 @@ setup()
     GetFilesSize(synonymIndexFile, &synilen, true);
     GetFilesSize(adjectiveDataFile, &adtablen, true);
 
-    if ((p = (char *)AllocateMem(obtlen + ormtablen + statablen)) == NULL)
+    if ((p = (char *) AllocateMem(obtlen + ormtablen + statablen)) == nullptr)
         memfail("object data");
     obtab = (_OBJ_STRUCT *)readf(objectDataFile, p);
     ormtab = (roomid_t *)readf(objectRoomFile, (p = p + obtlen));
@@ -672,42 +664,10 @@ setup()
         statep = statep + (long)objtab->nstates;
     }
 
-    // 9: Read the travel table
-    size_t ttlen{0};
-    ttp = (_TT_ENT *)xread(travelTableFile, &ttlen, "travel table");
-    assert(ttlen / sizeof(_TT_ENT) == g_gameData.numTTEnts);
-
-    // 12: Read parameters
-    size_t ttplen{0};
-    ttpp = (long *)xread(travelParamFile, &ttplen, "TT parameter table");
-    ttabp = ttp;
-    pt = ttpp;
-    for (i = 0; i < g_gameData.numTTEnts; i++) {
-        ttabp = ttp + i;
-        k = (long)ttabp->pptr;
-        ttabp->pptr = (int *)pt;
-        if (k == -2)
-            continue;
-        act = ttabp->condition;
-        if (act < 0)
-            act = -1 - act;
-        pt += conditions[act].parameterCount;
-        act = ttabp->action;
-        if (act < 0) {
-            act = -1 - act;
-            pt += actions[act].parameterCount;
-        }
-    }
-
     // 14: Load Slot table
-    if ((p = (char *)AllocateMem(stlen + vtlen + vtplen)) == NULL)
-        memfail("language data");
-    slottab = (_SLOTTAB *)readf(verbSlotFile, p);
-    vtp = (_VBTAB *)readf(verbTableFile, p + stlen);
-    vtpp = (long *)readf(verbParamFile, p + stlen + vtlen);
 
     // 17: Get the Synonym data & adjectives
-    if ((p = (char *)AllocateMem(synlen + synilen + adtablen)) == NULL)
+    if ((p = (char *) AllocateMem(synlen + synilen + adtablen)) == nullptr)
         memfail("synonym data");
     synp = (char *)readf(synonymDataFile, p);
     synip = (short int *)readf(synonymIndexFile, (p = p + synlen));
@@ -747,9 +707,9 @@ setup()
         if (*(objtab->rmlist) <= -INS)
             (obtab + (-(INS + *(objtab->rmlist))))->inside++;
     }
-    if (ifp != NULL)
+    if (ifp != nullptr)
         fclose(ifp);
-    ifp = NULL;
+    ifp = nullptr;
 }
 
 void
@@ -1019,19 +979,19 @@ main(int argc, const char *argv[])
         afatal("Failed to load game data");
 
     port = FindPort(managerPortName);  // Check for existing port
-    if (port != NULL) {
+    if (port != nullptr) {
         printf("AMAN %s running!\n", "already");
         exit(0);
     }
-    if ((port = CreatePort(managerPortName)) == NULL) {
+    if ((port = CreatePort(managerPortName)) == nullptr) {
         printf("Unable to create %s port!\n", "AMUL Manager");
         quit();
     }
-    if ((reply = CreatePort(nullptr)) == NULL) {
+    if ((reply = CreatePort(nullptr)) == nullptr) {
         printf("Unable to create %s port!\n", "Returns");
         quit();
     }
-    if ((trport = CreatePort(nullptr)) == NULL) {
+    if ((trport = CreatePort(nullptr)) == nullptr) {
         printf("Unable to create %s port!\n", "Timer");
         quit();
     }

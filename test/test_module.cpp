@@ -55,11 +55,11 @@ TEST(ModuleTest, InitModules)
 
 TEST(ModuleTest, RegisterContextModuleChecks)
 {
-    EXPECT_ERROR(EINVAL, RegisterContextModule((ModuleID)0, NULL));
-    EXPECT_ERROR(EINVAL, RegisterContextModule(MAX_MODULE_ID, NULL));
+    EXPECT_ERROR(EINVAL, RegisterContextModule((ModuleID) 0, nullptr));
+    EXPECT_ERROR(EINVAL, RegisterContextModule(MAX_MODULE_ID, nullptr));
 
     // Context modules *must* have a context
-    EXPECT_ERROR(EINVAL, RegisterContextModule(MOD_CMDLINE, NULL));
+    EXPECT_ERROR(EINVAL, RegisterContextModule(MOD_CMDLINE, nullptr));
 }
 
 TEST(ModuleTest, RegisterContextModule)
@@ -99,7 +99,7 @@ TEST(ModuleTest, GetModule)
 
 TEST(ModuleTest, CloseModuleChecks)
 {
-    EXPECT_ERROR(EINVAL, CloseModule(NULL, 0));
+    EXPECT_ERROR(EINVAL, CloseModule(nullptr, 0));
     EXPECT_ERROR(EFAULT, CloseModule(reinterpret_cast<Module *>(this), 0));
 }
 
@@ -131,7 +131,7 @@ TEST(ModuleTest, MultipleModules)
     EXPECT_EQ(MOD_CMDLINE, module1->id);
 
     ModuleState ms2{};
-    Module *    module2 = NULL;
+    Module *module2 = nullptr;
     EXPECT_SUCCESS(NewModule(MOD_COMPILER, modInit, modStart, modClose, &ms2, &module2));
     EXPECT_NOT_NULL(module2);
     EXPECT_EQ(s_modulesTail, module2);  // FILO order
@@ -148,7 +148,7 @@ TEST(ModuleTest, MultipleModules)
     EXPECT_NULL(s_modulesTail->links.next);
 
     ModuleState ms3 = {false, false, false};
-    Module *    module3 = NULL;
+    Module *module3 = nullptr;
     EXPECT_SUCCESS(NewModule(MOD_STRINGS, modInit, modStart, modClose, &ms3, &module3));
     EXPECT_NOT_NULL(module3);
     EXPECT_EQ(s_modulesTail, module3);  // FILO order

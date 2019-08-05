@@ -4,8 +4,9 @@
 #include <h/amul.type.h>
 #include <h/amul.xtra.h>
 
-#include "amulcom.strings.h"
+#include "amulcom.ctxlog.h"
 #include "amulcom.fileprocessing.h"
+#include "amulcom.strings.h"
 
 #include <stdexcept>
 #include <string>
@@ -26,7 +27,9 @@ consumeMessageFile(FILE *fp, const char *prefix, IDCheckFn checkerFn) noexcept
             continue;
 
         p = getWordAfter(prefix, p);
-        alog(AL_DEBUG, "%s%s", prefix, Word);
+
+        ScopeContext ctx { Word };
+
         std::string word { Word };
         if (word.length() < 2 || word.length() > IDL) {
             alog(AL_ERROR, "Invalid %s ID: %s", prefix, Word);
@@ -70,6 +73,8 @@ check_smsg(std::string& token)
 void
 smsg_proc()
 {
+    ScopeContext ctx{"smsg"};
+
     (void)consumeMessageFile(ifp, "msgid=", check_smsg);
     for (size_t i = 1; i <= NSMSGS; ++i) {
         std::string msgId = "$" + std::to_string(i);
@@ -83,6 +88,8 @@ smsg_proc()
 void
 umsg_proc()
 {
+    ScopeContext ctx{"umsg"};
+
     error_t err = consumeMessageFile(ifp, "msgid=", nullptr);
     if (err == ENOENT) {
         /// TODO: Tell the user
@@ -93,6 +100,8 @@ umsg_proc()
 void
 obds_proc()
 {
+    ScopeContext ctx{"objdesc"};
+
     error_t err = consumeMessageFile(ifp, "desc=", nullptr);
     if (err == ENOENT) {
         alog(AL_INFO, "No long object descriptions");

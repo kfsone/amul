@@ -28,4 +28,6 @@ void Terminate(error_t err);
 extern FILE *OpenGameFile(const char *filename, const char *mode);
 extern void  CloseFile(FILE **fpp);
 
+extern int isRoomFlag(const char* token);
+
 #endif

@@ -14,22 +14,6 @@ FILE(GLOB AMUL_SRC_HEADERS ${PROJECT_SOURCE_DIR}/src/*.h)
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-OPTION(AMUL_CLANG_TIDY "Use clang-tidy on AMUL source code" ON)
-OPTION(AMUL_CLANG_TIDY_FIX "Use -fix-errors with clang-tidy" OFF)
-IF (AMUL_CLANG_TIDY)
-    IF (AMUL_CLANG_TIDY_FIX)
-        SET(CLANG_TIDY_FIX_ERRORS -fix-errors)
-    ENDIF ()
-    SET(CMAKE_CXX_CLANG_TIDY clang-tidy --checks= --format-style=file ${CLANG_TIDY_FIX_ERRORS} -p=${CMAKE_BINARY_DIR})
-ENDIF()
-
-OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
-IF (AMUL_INCLUDE_TESTS AND NOT AMUL_CLANG_TIDY)
-	MESSAGE(STATUS "Testing enabled")
-	enable_testing()
-	ADD_SUBDIRECTORY(test)
-ENDIF()
-
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}")
 
 IF (MSVC)
@@ -62,6 +46,15 @@ ELSE ()
     STRING(APPEND CMAKE_CXX_FLAGS " ${AMUL_FLAGS}")
 ENDIF ()
 
+OPTION(AMUL_CLANG_TIDY "Use clang-tidy on AMUL source code" ON)
+OPTION(AMUL_CLANG_TIDY_FIX "Use -fix-errors with clang-tidy" OFF)
+IF (AMUL_CLANG_TIDY)
+    IF (AMUL_CLANG_TIDY_FIX)
+        SET(CLANG_TIDY_FIX_ERRORS -fix-errors)
+    ENDIF ()
+    SET(CMAKE_CXX_CLANG_TIDY clang-tidy --checks= --format-style=file ${CLANG_TIDY_FIX_ERRORS} -p=${CMAKE_BINARY_DIR})
+ENDIF()
+
 OPTION(AMUL_CPPCHECK "Use CPP Check to validate code (if available)" OFF)
 IF (AMUL_CPPCHECK)
     FIND_PROGRAM(CPPCHECK_EXE NAMES cppcheck)
@@ -72,6 +65,13 @@ IF (AMUL_CPPCHECK)
 ENDIF ()
 
 ADD_SUBDIRECTORY(src)
+
+OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
+IF (AMUL_INCLUDE_TESTS AND NOT AMUL_CLANG_TIDY)
+	MESSAGE(STATUS "Testing enabled")
+	enable_testing()
+	ADD_SUBDIRECTORY(test)
+ENDIF()
 
 # all:
 #   ninja -j4

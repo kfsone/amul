@@ -28,12 +28,11 @@ extern struct LS *         linestat, *me2, *you2;
 extern struct _ROOM_STRUCT room, *roomtab, *rmtab; /* ptr->table, ptr->a room */
 extern struct _VERB_STRUCT verb, *vbtab, *vbptr;
 extern struct _SLOTTAB     vbslot, *slottab, *stptr;
-extern struct _VBTAB       vt, *vtp, *vtabp;
+extern struct VMCnA        vt, *vtp, *vtabp;
 extern struct _RANK_STRUCT rank, *rktab, *ranktab;
 extern struct _OBJ_STRUCT  obj, *obtab, *objtab;
 extern struct _NTAB_STRUCT nountab, *ntab, *ntabp;
 extern struct _OBJ_STATE   state, *statab, *statep;
-extern struct _TT_ENT      tt, *ttp, *ttabp;
 
 extern struct Screen *  OpenScreen(), *sC;
 extern struct Window *  OpenWindow(), *wG;

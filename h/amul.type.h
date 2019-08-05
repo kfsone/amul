@@ -10,15 +10,17 @@
 
 // The string id is actually its offset in the strings file
 using stringid_t = uint32_t;
-
 using roomid_t = int32_t;
-
 using adjid_t = int32_t;
-
 using verbid_t = int32_t;
+using error_t = int;
+using flag_t = uint32_t;
+using exflag_t = uint64_t;
 
+// Virtual machine instructions
 using opparam_t = int32_t;
 
-using error_t = int;
+// Instructions can only be positive.
+using vmins_t = uint32_t;
 
 #endif

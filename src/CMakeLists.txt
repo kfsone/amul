@@ -34,17 +34,23 @@ SET(AMULCOM_SOURCES
 
 		amulcom.msgfile.cpp
 		amulcom.titlefile.cpp
+		amulcom.roomsfile.cpp
 
 		tokenstream.cpp
 )
 
 SET(AMULCOM_HEADERS
         amulcom.h
+        amulcom.fileprocessing.h
 		amulcom.strings.h
 		atomtype.h
 		char-to-atom.h
 		token.h
 		tokentype.h
+
+        lang_struct.h
+        obj_struct.h
+        room_struct.h
 
         ${AMUL_HEADERS}
 )

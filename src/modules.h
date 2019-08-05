@@ -5,9 +5,9 @@
 #include <h/amul.type.h>
 
 struct Module;
-typedef error_t (*moduleinit_fn)(struct Module *);
-typedef error_t (*modulestart_fn)(struct Module *);
-typedef error_t (*moduleclose_fn)(struct Module *, error_t);
+using moduleinit_fn = error_t (*)(struct Module *);
+using modulestart_fn = error_t (*)(struct Module *);
+using moduleclose_fn = error_t (*)(struct Module *, error_t);
 
 enum ModuleID {
     MOD_LOGGING = 1,

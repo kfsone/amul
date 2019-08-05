@@ -41,29 +41,4 @@ struct GameConfig {
     size_t numMobPersonas;  // Size of mobile persona table
 };
 
-struct GameData final : public GameConfig {
-    void *m_dataPtr;  // raw pointer to the data
-    /// TODO: Game Info and Game Config
-    //
-    const char *m_strings;
-    const char *m_adjectives;
-
-    struct _RANK_STRUCT *m_ranks;
-
-    struct _ROOM_STRUCT *m_rooms;
-    struct _TT_ENT *     m_travel;
-
-    struct _OBJ_STRUCT *m_objects;
-    struct _OBJ_STATE * m_objStates;
-
-    struct _VERB_STRUCT *m_verbs;
-    struct _SLOTTAB *    m_verbSlots;
-    struct _VBTAB *      m_verbOps;
-
-    ~GameData() {}
-
-    error_t Load();
-    error_t Save() const { return 0; }
-};
-
 #endif
