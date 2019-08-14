@@ -1,6 +1,0 @@
-NOTES for installing this revision...
-
-1)	"opentxt" function from com/FileBits.C replaced in extras.txt
-2)	log functions in AMan.C
-3)	AMan Daemons now work in a queued fashion - more processor friendly
-
