@@ -32,8 +32,6 @@ enum {
     USER_VOCAB = 8,  // Extra vocab entries to assign for users
 };
 
-#define USER_VOCAB 8  // Extra vocab entries to add
-
 // Size of the string indexes in lib/data.c -- YEUCH
 #define NSYNTS 11  // Number of 'syntax' types
 #define NPUTS 4    // Number of 'put' locations

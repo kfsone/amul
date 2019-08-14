@@ -157,7 +157,7 @@ argue(int argc, const char *argv[])
             inc_hash_stats = 1;
             continue;
         }
-        strcpy(g_dir, argv[n - 1]);
+        strncpy(dir, argv[n - 1], sizeof(dir));
         c = g_dir[strlen(g_dir) - 1];
         if (c != PATH_SEP_CHAR && c != ':')
             strcat(g_dir, PATH_SEP);

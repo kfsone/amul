@@ -10,8 +10,8 @@ class ROOM : public BASIC_OBJ
   public:
     ~ROOM() override = default;
     //// Room::FUNCTIONS
-    bool describe() override { return false; };
-    bool describe_verbose() override { return false; };
+    bool describe() override { return false; }
+    bool describe_verbose() override { return false; }
     int Write(FILE *) override;
     int Read(FILE *) override;
 

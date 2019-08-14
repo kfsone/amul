@@ -205,7 +205,8 @@ clean_up(char *p)
                         *(++s) = *(p++);
                     if (*p == qt)  // If we ended on a quote char, skip it
                         *(++s) = *(p++);
-                } break;
+                    break;
+                }
 
                 case fC:  // Handle a comma
                     if (repl[(int) *p] == EOL)

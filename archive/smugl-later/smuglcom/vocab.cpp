@@ -37,14 +37,12 @@ extern struct VOCAB VC;
 vocid_t
 new_word(const char *p, bool need_new)
 {
-    vocid_t i;
-
     // Make sure there's something to look at
     if (!p || !*p)
         return -1;
 
     // Is this word already in the vocab table?
-    i = is_word(p);
+    vocid_t i = is_word(p);
     if (need_new && i != -1)
         return -1;
     else if (i != -1)

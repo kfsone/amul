@@ -15,7 +15,7 @@
 #include <cctype>
 #include <cstring>
 
-struct VOCAB *vc;   // Vocabulary index data
+VOCAB *vc;          // Vocabulary index data
 uint32_t hash;      // Last hash number we used
 uint32_t hash_len;  // Length of last hashed key
 
