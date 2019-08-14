@@ -20,7 +20,8 @@ using PortMap   = std::map<MsgPort*, std::unique_ptr<MsgPort>>;
 PortTable s_portTable;
 PortMap s_portMap;
 
-MsgPort *FindPort(const char *portName)
+MsgPort *
+FindPort(const char *portName)
 {
     auto it = s_portTable.find(portName);
     return (it != s_portTable.end()) ? it->second.get() : nullptr;
@@ -131,7 +132,8 @@ ReplyMsg(MessagePtr&& msg)
 	msg->mn_ReplyPort->Put(std::move(msg));
 }
 
-void MsgPort::Clear()
+void
+MsgPort::Clear()
 {
 	SpinGuard guard{m_spinLock};
 	m_msgList.clear();
