@@ -7,9 +7,42 @@
 #include <h/amigastubs.h>
 #include <memory>
 
-struct MsgPort;
+#ifndef FRIEND_TEST
+#define FRIEND_TEST(...)
+#endif
 
-struct Message : public Node {
+using MessagePtr = std::unique_ptr<class Message>;
+
+class MsgPort {
+    using MsgList = std::deque<MessagePtr>;
+
+    const char *m_name;
+    MsgList     m_msgList;
+    /// TODO: Just using simple spinlocks for now
+    SpinLock m_spinLock;
+
+    FRIEND_TEST(MsgPortTest, Test04_Clear);
+    FRIEND_TEST(MsgPortTest, Test05_Put);
+    FRIEND_TEST(MsgPortTest, Test07_IsLocked);
+    FRIEND_TEST(MsgPortTest, Test09_Wait);
+
+  public:
+    MsgPort(const char *name)
+        : m_name(name)
+    {
+    }
+
+    void Put(MessagePtr &&ptr);
+    bool IsReady() noexcept;
+    bool IsLocked() const noexcept { return m_spinLock.IsLocked(); }
+
+    MessagePtr Get();   // non-blocking
+    MessagePtr Wait();  // blocking
+    void       Clear();
+};
+
+
+class Message : public Node {
     constexpr Message(MsgPort *replyPort, size_t size)
         : Node(NT_MESSAGE)
         , mn_ReplyPort(replyPort)
@@ -25,31 +58,6 @@ struct Message : public Node {
     size_t   mn_Length;     // total message length, in bytes
                             // (include the size of the Message
                             // structure in the length)
-};
-
-using MessagePtr = std::unique_ptr<Message>;
-
-struct MsgPort {
-    using MsgList = std::deque<MessagePtr>;
-
-    const char *m_name;
-    MsgList     m_msgList;
-    /// TODO: Just using simple spinlocks for now
-    SpinLock m_spinLock;
-
-  public:
-    MsgPort(const char *name)
-        : m_name(name)
-    {
-    }
-
-    void Put(MessagePtr &&ptr);
-    bool IsReady() noexcept;
-    bool IsLocked() const noexcept { return m_spinLock.IsLocked(); }
-
-    MessagePtr Get();   // non-blocking
-    MessagePtr Wait();  // blocking
-    void       Clear();
 };
 
 struct Aport : public Message {

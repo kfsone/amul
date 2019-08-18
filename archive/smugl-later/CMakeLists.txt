@@ -1,12 +1,16 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10)
-PROJECT( SMUGL )
+PROJECT(SMUGL CXX)
 
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+IF (!MSVC)
 SET(CMAKE_CXX_CLANG_TIDY clang-tidy --checks= --format-style=file -p=${CMAKE_BINARY_DIR})
+ENDIF()
 
 INCLUDE(include/PlatformChecks.cmake)
+
+SET(CMAKE_CXX_CLANG_TIDY clang-tidy --checks= --format-style=file -p=${CMAKE_BINARY_DIR})
 
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/include/config.h.in ${SMUGL_BINARY_DIR}/config.h)
 

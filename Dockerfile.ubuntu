@@ -32,6 +32,8 @@ RUN if ! getent hosts wafer.lan >/dev/null ; then \
 					clang-8 clang-8-doc lldb-8 libfuzzer-8-dev clang-tidy-8 && \
 	update-alternatives --install /usr/bin/cc cc /usr/bin/clang-8 100 && \
 	update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-8 100 && \
+	update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-8 100 && \
+	update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-8 100 && \
 	rm -rf /var/cache/apt
 
 # Build our version of CMake
