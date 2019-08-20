@@ -43,11 +43,11 @@ registerStringLabel(std::string label)
 	return true;
 }
 
-#define check_write_str(op, buffer, length, fp)                                                    \
-    do {                                                                                           \
-        if (fwrite(buffer, 1, (length), fp) != (length))                                           \
-            afatal("Unable to write %s", op);                                                      \
-		stringBytes += length;                                                                     \
+#define check_write_str(op, buffer, length, fp)                                                   \
+    do {                                                                                          \
+        if (fwrite((buffer), 1, (length), fp) != (length))                                        \
+            afatal("Unable to write %s", (op));                                                   \
+		stringBytes += (length);                                                                  \
     } while (0)
 
 error_t

@@ -22,8 +22,8 @@
 #define TRQ timerequest
 
 #define UINFO                                                                                      \
-    ((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) +       \
-            (sizeof(mob) * g_gameData.numMobs)
+    (((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) +       \
+            (sizeof(mob) * g_gameData.numMobs))
 
 #include <cassert>
 #include <cctype>
@@ -356,10 +356,8 @@ cnct()
 void
 dkill(short int d)
 {
-    int i;
-
     nextdaem = g_gameData.gameDuration_m * 60;
-    for (i = 1; i < daemons; i++) {
+    for (long i = 1; i < daemons; i++) {
         if (((d != -1 && globflg[i]) || own[i] == Af) && (num[i] == d || d == -1))
             pack(i);
         if (i != daemons && count[i] < nextdaem)
@@ -404,15 +402,15 @@ pstart()
 void
 check(int d)
 {
-    int i;
     Ad = -1;
     Ap1 = -1;
-    for (i = 1; i < daemons; i++)
+    for (long i = 1; i < daemons; i++) {
         if ((own[i] == Af || globflg[i]) && num[i] == d) {
             Ad = i;
             Ap1 = count[i];
             break;
         }
+    }
 }
 
 // User disconnection
@@ -607,7 +605,7 @@ static void
 setup()
 {
     long  rc = 0;
-    long  i, l, act, j, k;
+    long  l, act, j, k;
     long *pt;
     char *p;
 
@@ -622,21 +620,20 @@ setup()
     fopenr(roomDataFile);  // 1: Open room block file
     if ((rmtab = (_ROOM_STRUCT *) AllocateMem(g_gameData.numRooms * sizeof(room))) == nullptr)
         memfail("room table");  // Allocate memory
-    if ((i = fread((char *)rmtab, sizeof(room), g_gameData.numRooms, ifp)) != g_gameData.numRooms)
+    if (size_t i = fread((char *)rmtab, sizeof(room), g_gameData.numRooms, ifp); i != g_gameData.numRooms)
         readfail("room table", i, g_gameData.numRooms);
 
     fopenr(rankDataFile);  // 2: Read player g_gameData.numRanks
     if ((rktab = (_RANK_STRUCT *) AllocateMem(g_gameData.numRanks * sizeof(rank))) == nullptr)
         memfail("player g_gameData.numRanks");  // Allocate memory
-    if ((i = fread((char *)rktab, sizeof(rank), g_gameData.numRanks, ifp)) != g_gameData.numRanks)
+    if (size_t i = fread((char *)rktab, sizeof(rank), g_gameData.numRanks, ifp); i != g_gameData.numRanks)
         readfail("player g_gameData.numRanks", i, g_gameData.numRanks);
 
     fopenr(verbDataFile);  // 4: Read the g_gameData.numVerbs in
     if ((vbtab = (_VERB_STRUCT *) AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) ==
         nullptr)
         memfail("verb table");
-    if ((i = fread(vbtab->id, sizeof(_VERB_STRUCT), g_gameData.numVerbs, ifp)) !=
-        g_gameData.numVerbs)
+    if (size_t i = fread(vbtab->id, sizeof(_VERB_STRUCT), g_gameData.numVerbs, ifp); i != g_gameData.numVerbs)
         readfail("verb table", i, g_gameData.numVerbs);
 
     // 3, 5, 6 & 7: Read objects
@@ -662,7 +659,7 @@ setup()
 
     // Update the object room list ptrs and the state ptrs
     statep = statab;
-    for (i = 0; i < g_gameData.numObjects; i++) {
+    for (size_t i = 0; i < g_gameData.numObjects; i++) {
         objtab = obtab + i;
         objtab->rmlist = ormtab + rc;
         rc += objtab->nrooms;
@@ -680,7 +677,7 @@ setup()
     ttpp = (long *)xread(travelParamFile, &ttplen, "TT parameter table");
     ttabp = ttp;
     pt = ttpp;
-    for (i = 0; i < g_gameData.numTTEnts; i++) {
+    for (size_t i = 0; i < g_gameData.numTTEnts; i++) {
         ttabp = ttp + i;
         k = (long)ttabp->pptr;
         ttabp->pptr = (int *)pt;
@@ -720,7 +717,7 @@ setup()
     stptr = slottab;
     vtabp = vtp;
     l = 0;
-    for (i = 0; i < g_gameData.numVerbs; i++, vbptr++) {
+    for (size_t i = 0; i < g_gameData.numVerbs; i++, vbptr++) {
         vbptr->ptr = stptr;
         for (j = 0; j < vbptr->ents; j++, stptr++) {
             stptr->ptr = vtabp;
@@ -741,7 +738,7 @@ setup()
 
     // Fix the object 'inside' flags
     objtab = obtab;
-    for (i = 0; i < g_gameData.numObjects; i++, objtab++) {
+    for (size_t i = 0; i < g_gameData.numObjects; i++, objtab++) {
         if (*(objtab->rmlist) <= -INS)
             (obtab + (-(INS + *(objtab->rmlist))))->inside++;
     }

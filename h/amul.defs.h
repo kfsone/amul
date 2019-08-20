@@ -293,20 +293,22 @@ enum ConditionID {
 };
 
 // Parameter types
-#define PREAL -70   // Noun or slot label
-#define PNOUN 1     // Must be a noun
-#define PADJ 2      // Must be an adj
-#define PPLAYER 4   // Must be a player
-#define PROOM 5     // Must be a room
-#define PUMSG 7     // Must be text
-#define PVERB 8     // Must be a verb
-#define PCLASS 9    // Must be a class
-#define PNUM 10     // Must be a number
-#define PRFLAG 11   // Must be a room flag
-#define POFLAG 12   // Must be an obj flag
-#define PSFLAG 13   // Must be a stat flag
-#define PSEX 14     // Must be a gender
-#define PDAEMON 15  // Must be a daemon ID
+enum {
+    PREAL = -70,   // Noun or slot label
+    PNOUN = 1,     // Must be a noun
+    PADJ = 2,      // Must be an adj
+    PPLAYER = 4,   // Must be a player
+    PROOM = 5,     // Must be a room
+    PUMSG = 7,     // Must be text
+    PVERB = 8,     // Must be a verb
+    PCLASS = 9,    // Must be a class
+    PNUM = 10,     // Must be a number
+    PRFLAG = 11,   // Must be a room flag
+    POFLAG = 12,   // Must be an obj flag
+    PSFLAG = 13,   // Must be a stat flag
+    PSEX = 14,     // Must be a gender
+    PDAEMON = 15,  // Must be a daemon ID
+};
 
 // Really the built-in magic should be limited to
 // things that have effects you can't implement with
@@ -376,18 +378,20 @@ enum AnnounceType {
 #define MEXTEND 24    // Extend game
 #define MGDSTART 25   // Start global daemon
 
-#define WNONE -1    // None!
-#define WANY 0      // Anything!
-#define WNOUN 1     // Word is a noun
-#define WADJ 2      // Word is an adjective
-#define WPREP 3     // Its a prep
-#define WPLAYER 4   // Its a player
-#define WROOM 5     // Its a room ID
-#define WSYN 6      // Its a synonym
-#define WTEXT 7     // Its text
-#define WVERB 8     // Its a verb!
-#define WCLASS 9    // Class name
-#define WNUMBER 10  // A number
+enum {
+    WNONE = -1,  // None!
+    WANY,        // Anything!
+    WNOUN,       // Word is a noun
+    WADJ,        // Word is an adjective
+    WPREP,       // Its a prep
+    WPLAYER,     // Its a player
+    WROOM,       // Its a room ID
+    WSYN,        // Its a synonym
+    WTEXT,       // Its text
+    WVERB,       // Its a verb!
+    WCLASS,      // Class name
+    WNUMBER,     // A number
+};
 
 // -- Player flags --
 #define PFINVIS 0x00001     // Player invisible
@@ -413,15 +417,15 @@ enum AnnounceType {
 #define TYPEV 0  // Brief mode
 #define TYPEB 1  // Verbose mode
 
-#define At amul->type
-#define Am amul->msg
-#define Af amul->from
-#define Ad amul->data
-#define Ap amul->ptr
-#define Ap1 amul->p1
-#define Ap2 amul->p2
-#define Ap3 amul->p3
-#define Ap4 amul->p4
+#define At (amul->type)
+#define Am (amul->msg)
+#define Af (amul->from)
+#define Ad (amul->data)
+#define Ap (amul->ptr)
+#define Ap1 (amul->p1)
+#define Ap2 (amul->p2)
+#define Ap3 (amul->p3)
+#define Ap4 (amul->p4)
 
 #define AMt amanp->type
 #define AMm amanp->msg
@@ -452,12 +456,12 @@ enum AnnounceType {
 
 // -- Useful defines --
 
-#define isOINVIS(x) ((obtab + x)->flags & OF_INVIS)
-#define isPINVIS(x) ((linestat + x)->flags & PFINVIS)
+#define isOINVIS(x) ((obtab + (x))->flags & OF_INVIS)
+#define isPINVIS(x) ((linestat + (x))->flags & PFINVIS)
 #define IamINVIS (me2->flags & PFINVIS)
 #define IamSINVIS (me2->flags & PFSINVIS)
-#define pROOM(x) ((linestat + x)->room)
-#define pRANK(x) ((usr + x)->rank)
+#define pROOM(x) ((linestat + (x))->room)
+#define pRANK(x) ((usr + (x))->rank)
 #define myRANK me->rank
 #define mySCORE me->score
 #define myROOM me2->room
@@ -478,10 +482,10 @@ enum AnnounceType {
 #define AP3 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 2))
 #define AP4 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 3))
 #define STATE (objtab->states + (long)objtab->state)
-#define State(i) ((obtab + i)->states + (long)(obtab + i)->state)
+#define State(i) ((obtab + (i))->states + (long)(obtab + (i))->state)
 #define ItsState (it->states + (long)it->state)
-#define xLIGHT(x) (linestat + x)->light
-#define xHADLIGHT(x) (linestat + x)->hadlight
+#define xLIGHT(x) (linestat + (x))->light
+#define xHADLIGHT(x) (linestat + (x))->hadlight
 
 #define acp (char *)actptr
 
