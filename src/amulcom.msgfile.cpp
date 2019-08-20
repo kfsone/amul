@@ -1,102 +1,114 @@
-#include <h/amul.alog.h>
-#include <h/amul.defs.h>
-#include <h/amul.enum.h>
-#include <h/amul.type.h>
-#include <h/amul.xtra.h>
-
-#include "amulcom.strings.h"
-#include "amulcom.fileprocessing.h"
-
 #include <stdexcept>
 #include <string>
 
-using IDCheckFn = bool(*)(std::string&);
+#include "amul.defs.h"
+#include "amul.enum.h"
+#include "typedefs.h"
+#include "amul.xtra.h"
+#include "amulcom.fileprocessing.h"
+#include "amulcom.strings.h"
+#include "filesystem.h"
+#include "filesystem.inl.h"
+#include "logging.h"
+#include "sourcefile.h"
+#include "svparse.h"
+
+using IDCheckFn = bool (*)(string_view);
 
 static error_t
-consumeMessageFile(FILE *fp, const char *prefix, IDCheckFn checkerFn) noexcept
+consumeMessageFile(const std::string &filepath, string_view prefix, IDCheckFn checkerFn) noexcept
 {
-    if (!nextc(false))
-        return ENOENT;
+    SourceFile src{ filepath };
+    if (error_t err = src.Open(); err != 0) {
+        LogFatal("Aborting due to file error: ", filepath);
+    }
 
-    while (!feof(fp) && nextc(false)) {
-        checkErrorCount();
+    std::string text{};
+    text.reserve(4096);
 
-        char *p = getTidyBlock(fp);
-        if (!p)
+    while (!src.Eof()) {
+        CheckErrorCount();
+
+        if (!src.GetIDLine(prefix))
             continue;
 
-        p = getWordAfter(prefix, p);
-        alog(AL_DEBUG, "%s%s", prefix, Word);
-        std::string word { Word };
-        if (word.length() < 2 || word.length() > IDL) {
-            alog(AL_ERROR, "Invalid %s ID: %s", prefix, Word);
-            skipblock();
-        } else if (checkerFn && !checkerFn(word)) {
-            skipblock();
-        } else if (!checkerFn && Word[0] == '$') {
-            alog(AL_ERROR, "Invalid ID (can't begin with '$'): %s", Word);
-            skipblock();
+        // first line of each message block is the identifier/label, which may have
+        // an optional prefix, e.g. msgid=somelabel
+        auto label = src.line.front();
+
+        if (checkerFn && !checkerFn(label)) {
+            /*nothing*/
+        } else if (!checkerFn && label[0] == '$') {
+            LogError(filepath, ":", src.lineNo, ": Invalid ID (can't begin with '$'): ", label);
+        } else if (src.line.size() > 1) {
+            LogError(filepath, ":", src.lineNo, ": Expected end-of-line, got: ", src.line[1]);
+        } else if (LookupTextString(label) != ENOENT) {
+            LogError(filepath, ":", src.lineNo, ": Message ID already in use: ", label);
+        } else {
+            text.clear();
+            src.GetLines(text);
+            RegisterTextString(label, text, false, nullptr);
+            continue;
         }
 
-        if (error_t err = TextStringFromFile(Word, fp, nullptr); err != 0) {
-            return err;
-        }
+        src.SkipBlock();
     }
 
     return 0;
 }
 
 static bool
-check_smsg(std::string& token)
+check_smsg(string_view token)
 {
     if (token[0] != '$') {
-        alog(AL_ERROR, "Invalid system message ID (must start with '$'): %s", token.c_str());
+        LogError("Invalid system message ID (must start with '$'): ", token);
         return false;
     }
     int messageID = [&]() {
         try {
-           return std::stoi(token.substr(1));
-        } catch (const std::invalid_argument& e) {
+            return std::stoi(token.data() + 1);
+        } catch (const std::invalid_argument &) {
             return 0;
         }
-    } ();
-    if (messageID < 1 || messageID > NSMSGS){
-        alog(AL_ERROR, "Invalid sysmsg ID (expected $1-$%d): %s", NSMSGS, token.c_str());
+    }();
+    if (messageID < 1 || messageID > NSMSGS) {
+        LogError("Invalid sysmsg ID (expected $1-$", NSMSGS, "): ", token);
         return false;
     }
     return true;
 }
 
 void
-smsg_proc()
+smsg_proc(const std::string &filepath)
 {
-    (void)consumeMessageFile(ifp, "msgid=", check_smsg);
+    /// TODO: Name should be constexpr
+    (void) consumeMessageFile(filepath, "msgid=", check_smsg);
     for (size_t i = 1; i <= NSMSGS; ++i) {
         std::string msgId = "$" + std::to_string(i);
         if (LookupTextString(msgId.c_str()) != 0) {
-            alog(AL_ERROR, "System Message %s is missing.", msgId.c_str());
-            checkErrorCount();
+            LogError("System Message ", msgId, " is missing.");
+            CheckErrorCount();
         }
     }
 }
 
 void
-umsg_proc()
+umsg_proc(const std::string &filepath)
 {
-    error_t err = consumeMessageFile(ifp, "msgid=", nullptr);
+    /// TODO: Name should be constexpr
+    error_t err = consumeMessageFile(filepath, "msgid=", nullptr);
     if (err == ENOENT) {
-        /// TODO: Tell the user
+        LogInfo("No user defined messages");
         return;
     }
 }
 
 void
-obds_proc()
+obds_proc(const std::string &filepath)
 {
-    error_t err = consumeMessageFile(ifp, "desc=", nullptr);
+    error_t err = consumeMessageFile(filepath, "desc=", nullptr);
     if (err == ENOENT) {
-        alog(AL_INFO, "No long object descriptions");
+        LogInfo("No long object descriptions");
         return;
     }
 }
-

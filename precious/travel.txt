@@ -1,0 +1,1369 @@
+; Travel.Txt for Precious Days
+
+; Again, the use of 'room=' is optional, but I tend to find it helpful to
+; use it. Remove it for _SLIGHTLY_ faster compile time!
+
+; Entry for room 'START'...
+
+room=start	; Players cannot get back here.
+verbs=west out
+	active .starthint cancel .starthint
+	landing
+
+room=landing
+verbs=east
+	reply "There is a !FLASH! of bright octarine light, and a Mardjak's Politest Forcefield activates itself just long enough to make you give up."
+verbs=down southeast out
+	stairs1
+verbs=up in northwest
+	stairs2
+verbs=west
+	bathroom
+verbs=north
+	soundroom
+verbs=south
+	tvroom
+
+room=bathroom
+verbs=east out
+	landing
+
+room=soundroom
+verbs=south out
+	landing
+
+room=tvroom
+verbs=north out
+	landing
+
+room=stairs1
+verbs=up in northwest
+	landing
+verbs=out down southeast
+	hallway
+
+room=stairs2
+verbs=down out southeast
+	landing
+verbs=up in southwest
+	landing2
+
+room=landing2
+verbs=down out northeast
+	stairs2
+verbs=southwest
+	bedrm1
+verbs=south
+	bedrm2 in
+verbs=southeast
+	bedrm3
+
+room=bedrm1
+verbs=out northeast
+	landing2
+
+room=bedrm2
+verbs=out north
+	landing2
+
+room=bedrm3
+verbs=out northwest
+	landing2
+
+room=hallway
+verbs=east in
+	reception
+verbs=up northwest
+	stairs1
+verbs=south out
+	state door 0 drive1
+	else error doorclosed
+
+room=drive1
+verbs=north in
+	state door 0 hallway
+	else error doorclosed
+verb=south out
+	drive2
+verb=west southwest southeast east
+	error FenceDrive
+
+room=drive2
+verb=northwest west southwest southeast east northeast
+	error FenceDrive
+verb=north in
+	drive1
+verb=south out
+	drive3
+
+room=drive3
+verb=north in
+	drive2
+verb=northwest northeast east
+	error FenceDrive
+verb=south out
+	state gates 1 error GatesClosed
+	else wlane2
+verb=west
+	dghouse
+
+room=dghouse
+verb=east out
+	drive3
+
+room=wlane1
+verb=west in
+	wlane2
+
+room=wlane2
+verb=east
+	wlane1
+verb=west
+	wlane3
+verb=north in
+	state gates 1 error GatesClosed
+	else drive3
+
+room=wlane3
+verb=east in
+	wlane2
+
+room=reception
+verbs=west out
+	hallway
+verbs=north in
+	junk1
+
+room=junk1
+verbs=south out
+	reception
+verbs=north in
+	dining
+verb=east
+	gueste
+verb=west
+	guestw
+
+room=dining
+verbs=south out
+	junk1
+verbs=northeast in
+	kitchen
+verb=west
+	patio
+
+room=kitchen
+verbs=southwest out
+	dining
+
+room=patio
+verbs=east in
+	dining
+verbs=west out
+	gardens
+verb=north
+	beergarden
+verb=northwest
+	bwlgreen
+verbs=northeast southeast south southwest
+	error TTHotel
+
+room=gardens
+verbs=east in
+	patio
+verb=northeast
+	beergarden
+verb=north
+	bwlgreen
+verb=northwest out
+	lawn
+verb=west
+	gardwell
+verbs=southeast south southwest
+	error TTHotel
+
+room=beergarden
+verb=west out
+	bwlgreen
+verb=south in
+	patio
+verb=southwest
+	gardens
+
+room=bwlgreen
+verb=east
+	beergarden
+verb=southeast in
+	patio
+verb=south
+	gardens
+verb=west out
+	lawn
+
+room=gardwell
+verb=east out in
+	gardens
+verb=west
+	gardorchd
+verb=down
+	ladmid
+verb=southeast south southwest
+	error TTHotel
+verb=north northwest northeast
+	error "The hedgerow makes it impossible to go that way."
+
+room=gardorchd
+verbs=east out in
+	gardwell
+verbs=northwest northeast
+	error TTTrees
+verbs=west southwest south southeast
+	error TTHotel
+verb=north
+	gwoods
+
+room=gwoods
+verb=south out
+	gardorchd
+verb=north in
+	gwoodn
+verb=east
+	gwoode
+verb=west northwest northeast southeast southwest
+	error TTTrees
+
+room=gwoodn
+verb=south out
+	gwoods
+verb=northwest in
+	gglade
+verb=southeast
+	gwoode
+verb=north northeast east southwest west
+	error TTTrees
+
+room=gwoode
+verb=west in
+	gwoods
+verb=northwest
+	gwoodn
+verb=north southwest south
+	error TTTrees
+verb=east out
+	lawn
+
+room=gglade
+verb=southeast out
+	gwoodn
+verb=north northeast east south southwest west northwest
+	error TTTrees
+
+room=lawn
+verb=east in
+	bwlgreen
+verb=southeast
+	gardens
+verb=west
+	gwoode
+
+room=guestw
+verbs=east out in
+	junk1
+verbs=northwest
+	hroom1
+verb=west
+	hroom2
+verb=southwest
+	hroom3
+
+room=hroom1
+verbs=southeast out
+	guestw
+
+room=hroom2
+verbs=east out
+	guestw
+
+room=hroom3
+verbs=northeast out
+	guestw
+
+room=gueste
+verb=west out in
+	junk1
+verb=northeast
+	hroom4
+verb=east
+	hroom5
+verb=southeast
+	hroom6
+
+room=hroom4
+verbs=southwest out
+	gueste
+
+room=hroom5
+verbs=west out
+	gueste
+
+room=hroom6
+verbs=northwest out
+	gueste
+
+room=shute
+verbs=north northeast east southeast south southwest west northwest in
+	respond "The only direction you can go in is down, and gravity is seeing to that..."
+verb=up
+	respond "Objection over-ruled! Continue, Mr. Gravity!"
+verbs=out down
+	respond "You don't get any option; you're going down and out, regardless!"
+
+room=botshute
+verbs=north up
+	respond "The shute is too slippery and steep to climb, so after a few pointless attempts you give up."
+verbs=west out in
+	cavee
+verb=up
+	respond ClimbCWall
+
+; Underground caverns...
+
+room=cavee	; east wall of cave
+verbs=east in
+	botshute
+verb=northwest out
+	caven1		; north-east corner
+verb=southwest
+	caves1		; South-east corner
+verb=west in
+	cavec1		; Centre part
+verbs=north south northeast southeast
+	error CWallBlock
+verbs=up
+	respond ClimbCWall
+
+room=caven1
+verb=southeast
+	cavee
+verb=south
+	cavec1
+verb=southwest in
+	cavec2
+verb=west
+	caven2
+verb=north out
+	slopetun1
+verbs=northeast northwest east
+	error CWallBlock
+verbs=up
+	respond ClimbCWall
+
+room=caven2
+verb=east out
+	caven1
+verb=southeast
+	cavec1
+verb=south
+	cavec2
+verb=southwest in
+	cavew
+verbs=north northeast northwest west
+	error CWallBlock
+verb=up
+	respond ClimbCWall
+
+room=cavec1
+verb=north out
+	caven1
+verb=east
+	cavee
+verb=south
+	caves1
+verb=southwest
+	caves2
+verb=west in
+	cavec2
+verb=northwest
+	caven2
+verbs=northeast southeast
+	error CWallBlock
+
+room=cavec2
+verb=north
+	caven2
+verb=northeast out
+	caven1
+verb=east
+	cavec1
+verb=southeast
+	caves1
+verb=south
+	caves2
+verb=southwest
+	caves3
+verb=west in
+	cavew
+verb=northwest
+	error CWallBlock
+
+room=caves1
+verb=northeast
+	cavee
+verb=north
+	cavec1
+verb=northwest out in
+	cavec2
+verb=west
+	caves2
+verbs=east southeast south southwest
+	error CWallBlock
+verbs=up
+	respond ClimbCWall
+
+room=caves2
+verb=north out
+	cavec2
+verb=northeast
+	cavec1
+verb=east
+	caves1
+verb=south
+	caves4
+verb=west
+	caves3
+verb=northwest in
+	cavew
+verbs=southeast southwest
+	error CWallBlock
+verbs=up
+	respond ClimbCWall
+
+room=caves3
+verb=north in
+	cavew
+verb=northeast out
+	cavec1
+verb=east
+	caves2
+verbs=northwest west southwest south southeast
+	error CWallBlock
+verbs=up
+	respond ClimbCWall
+
+room=caves4
+verb=north out
+	caves2
+verbs=west southwest southeast east northeast northwest
+	error CWallBlock
+verb=south in
+	cpass1
+verbs=up
+	respond ClimbCWall
+
+room=cavew
+verb=northeast out
+	caven2
+verb=east
+	cavec2
+verb=southeast
+	caves2
+verb=south
+	caves3
+verbs=southwest northwest north
+	error CWallBlock
+verbs=west up in
+	gstairs1
+
+room=cpass1
+verbs=north out up
+	caves4
+verbs=southwest in down
+	cpass2
+
+room=cpass2
+verbs=northeast out up
+	cpass1
+verbs=east in down
+	cpass3
+
+room=cpass3
+verbs=west out up
+	cpass2
+verbs=southeast in down
+	cpass4
+
+room=cpass4
+verbs=northwest out up
+	cpass3
+verbs=west
+	cpass4w1
+verbs=east
+	cpass4e1
+verbs=southwest in down
+	cpass5
+
+room=cpass4w1
+verbs=east out up
+	cpass4
+verbs=west down in
+	cpass4w2
+
+room=cpass4w2
+verbs=east out up
+	cpass4w1
+
+room=cpass4e1
+verbs=west out up
+	cpass4
+
+room=cpass5
+verbs=northeast out
+	cpass4
+verb=up
+	confess
+verbs=south in down
+	prayroom
+
+room=confess
+verbs=out down
+	cpass5
+
+room=prayroom
+verbs=north out up
+	cpass5
+
+; ------------------ Link Between Underground & Garden -----------------------;
+
+room=slopetun1
+verb=south in down
+	caven1
+verb=northeast up out
+	slopetun2
+
+room=slopetun2
+verb=southwest in down
+	slopetun1
+verb=north up out
+	slopetun3
+
+room=slopetun3
+verb=north up out
+	slopetun4
+verb=south in down
+	slopetun2
+
+room=slopetun4
+verb=south in down
+	slopetun3
+verb=north out up
+	slopetun5
+
+room=slopetun5
+verb=south in down
+	slopetun4
+verb=west out up
+	slopetun6
+
+room=slopetun6
+verb=east in down
+	slopetun5
+verb=west up out
+	ladbot
+
+room=ladbot
+verb=east in down
+	slopetun6
+verb=up out
+	ladmid
+
+room=ladmid
+verb=up out
+	gardwell
+verb=down in
+	ladbot
+
+; -------------------------- Underground World ------------------------------ ; 
+
+room=gstairs1
+verbs=northwest up in
+	gstairs2
+verbs=east out down
+	cavew
+
+room=gstairs2
+verbs=southeast down out
+	gstairs1
+verbs=north up in
+	ugpath0
+
+room=yard1
+verbs=south out
+	uglane1
+
+room=fallow1
+verb=east in
+	ugwood11
+verb=southeast out
+	ugwood21
+verb=south
+	fallow2
+
+room=ugwood11
+verb=east in
+	ugwood12
+verb=southeast out
+	spring1
+verb=south
+	ugwood21
+verb=southwest
+	fallow2
+verb=west
+	fallow1
+
+room=ugwood12
+verb=east in
+	uglane1
+verb=southeast
+	ugwood22
+verb=south out
+	spring1
+verb=southwest
+	ugwood21
+verb=west
+	ugwood11
+
+room=uglane1
+verb=north in
+	yard1
+verb=east
+	uglane2
+verb=southeast
+	outsidebarn
+verb=south out
+	ugwood22
+verb=southwest
+	spring1
+verb=west
+	ugwood22
+
+room=uglane2
+verb=southeast
+	uglane3
+verb=south
+	outsidebarn
+verb=southwest out
+	ugwood22
+verb=west
+	uglane1
+
+room=fallow2
+verb=north
+	fallow1
+verb=northeast in
+	ugwood11
+verb=east
+	ugwood21
+verb=southeast out
+	ugwood31
+verb=south
+	outsidehut
+verb=southwest
+	ughilln
+
+room=ugwood21
+verb=north
+	ugwood11
+verb=northeast
+	ugwood12
+verb=east in
+	spring1
+verb=southeast out
+	ugwood32
+verb=south
+	ugwood31
+verb=southwest
+	outsidehut
+verb=west
+	fallow2
+verb=northwest
+	fallow1
+
+room=spring1
+verb=north
+	ugwood12
+verb=northeast in
+	uglane1
+verb=east
+	ugwood22
+verb=southeast
+	ugwood33
+verb=south out
+	ugwood32
+verb=southwest
+	ugwood31
+verb=west
+	ugwood21
+verb=northwest
+	ugwood11
+
+room=ugwood22
+verb=north in
+	uglane1
+verb=northeast
+	uglane2
+verb=east
+	outsidebarn
+verb=southeast
+	ugwood34
+verb=south
+	ugwood33
+verb=southwest out
+	ugwood32
+verb=west
+	spring1
+verb=northwest
+	ugwood12
+
+room=outsidebarn
+verb=in
+	insidebarn
+verb=north
+	uglane2
+verb=east
+	uglane3
+verb=southeast
+	uglane4
+verb=south
+	ugwood34
+verb=southwest out
+	ugwood33
+verb=west
+	ugwood22
+verb=northwest
+	uglane1
+
+room=insidebarn
+verb=out down
+	outsidebarn
+verb=up in
+	bhayloft
+
+room=bhayloft
+verb=down out
+	insidebarn
+verb=jump
+	action cansee "@me jumps out of the loft and lands, with a thud, below."
+	move insidebarn
+	action cansee "@me suddenly drops from the hayloft and lands nearby."
+
+room=uglane3
+verb=south
+	uglane4
+verb=southwest out
+	ugwood34
+verb=west
+	outsidebarn
+verb=northwest in
+	uglane2
+
+room=ughilln
+verb=northeast
+	fallow2
+verb=east in down
+	outsidehut
+verb=southeast out
+	ughille
+verb=south up
+	ughilltop
+verb=southwest
+	ughillw
+
+room=outsidehut
+verb=in
+	insidehut
+verb=north
+	fallow2
+verb=northeast
+	ugwood21
+verb=east
+	ugwood31
+verb=southeast out
+	ugnpast
+verb=south
+	ughille
+verb=southwest up
+	ughilltop
+verb=west
+	ughilln
+
+room=insidehut
+verb=out down
+	outsidehut
+
+room=ugwood31
+verb=north
+	ugwood21
+verb=northeast in
+	spring1
+verb=east
+	ugwood32
+verb=southeast out
+	ugwheat
+verb=south
+	ugnpast
+verb=southwest up
+	ughille
+verb=west
+	outsidehut
+verb=northwest
+	fallow2
+
+room=ugwood32
+verb=north in
+	spring1
+verb=northeast
+	ugwood22
+verb=east
+	ugwood33
+verb=southeast
+	ugwood41
+verb=south out
+	ugwheat
+verb=southwest
+	ugnpast
+verb=west
+	ugwood31
+verb=northwest
+	ugwood21
+
+room=ugwood33
+verb=north in
+	ugwood22
+verb=northeast
+	outsidebarn
+verb=east
+	ugwood34
+verb=southeast
+	ugavenue1
+verb=south
+	ugwood41
+verb=southwest out
+	ugwheat
+verb=west
+	ugwood32
+verb=northwest
+	spring1
+
+room=ugwood34
+verb=north in
+	outsidebarn
+verb=northeast
+	uglane3
+verb=east
+	uglane4
+verb=southeast
+	ugmeadow
+verb=south
+	ugavenue1
+verb=southwest out
+	ugwood41
+verb=west
+	ugwood33
+verb=northwest
+	ugwood22
+
+room=uglane4
+verb=north
+	uglane3
+verb=southeast
+	uggrass
+verb=south
+	ugmeadow
+verb=southwest out
+	ugavenue1
+verb=west
+	ugwood34
+verb=northwest in
+	outsidebarn
+
+room=ughillw
+verb=northeast in
+	ughilln
+verb=east up
+	ughilltop
+verb=southeast out
+	ughills
+verb=south
+	ughillsw
+
+room=ughilltop
+verb=north
+	ughilln
+verb=northeast in
+	outsidehut
+verb=east
+	ughille
+verb=southeast
+	ugwpast
+verb=south down out
+	ughills
+verb=southwest
+	ughillsw
+verb=west
+	ughillw
+
+room=ughille
+verb=north in
+	outsidehut
+verb=northeast
+	ugwood31
+verb=east down
+	ugnpast
+verb=southeast out
+	ugfring
+verb=south
+	ugwpast
+verb=southwest
+	ughills
+verb=west up
+	ughilltop
+verb=northwest
+	ughilln
+
+room=ugnpast
+verb=north
+	ugwood31
+verb=northeast in
+	ugwood32
+verb=east
+	ugwheat
+verb=southeast out
+	ugepast
+verb=south
+	ugfring
+verb=southwest
+	ugwpast
+verb=west up
+	ughille
+verb=northwest
+	outsidehut
+
+room=ugwheat
+verb=north in
+	ugwood32
+verb=northeast
+	ugwood33
+verb=east
+	ugwood41
+verb=southeast
+	ugavenue3
+verb=south out
+	ugepast
+verb=southwest
+	ugfring
+verb=west
+	ugnpast
+verb=northwest
+	ugwood31
+
+room=ugwood41
+verb=north in
+	ugwood33
+verb=northeast
+	ugwood34
+verb=east
+	ugavenue1
+verb=southeast
+	ugavenue2
+verb=south
+	ugavenue3
+verb=southwest out
+	ugepast
+verb=west
+	ugwheat
+verb=northwest
+	ugwood32
+
+room=ugavenue1
+verb=north
+	ugwood34
+verb=northeast
+	uglane4
+verb=east
+	ugmeadow
+verb=southeast
+	ugorchd1
+verb=south out
+	ugavenue2
+verb=southwest
+	ugavenue3
+verb=west
+	ugwood41
+verb=northwest in
+	ugwood33 
+
+room=ugmeadow
+verb=north
+	uglane4
+verb=east
+	uggrass
+verb=south
+	ugorchd1
+verb=southwest out
+	ugavenue2
+verb=west
+	ugavenue1
+verb=northwest in
+	ugwood34
+
+room=uggrass
+verb=northwest in
+	uglane4
+verb=west
+	ugmeadow
+verb=southwest
+	ugorchd1
+
+room=ughillsw
+verb=north
+	ughillw
+verb=northeast up in
+	ughilltop
+verb=east out
+	ughills
+verb=southeast
+	ugglade1
+
+room=ughills
+verb=north up in
+	ughilltop
+verb=northeast
+	ughille
+verb=east
+	ugwpast
+verb=southeast out down
+	ugpath1
+verb=south
+	ugglade1
+verb=west
+	ughillsw
+verb=northwest
+	ughillw
+
+room=ugwpast
+verb=north in
+	ughille
+verb=northeast
+	ugnpast
+verb=east down
+	ugfring
+verb=southeast
+	ugspast
+verb=south out
+	ugpath1
+verb=southwest
+	ugglade1
+verb=west
+	ughills
+verb=northwest up
+	ughilltop
+
+room=ugfring
+verb=north up in
+	ugnpast
+verb=northeast
+	ugwheat
+verb=east
+	ugepast
+verb=southeast out
+	ugpath3
+verb=south
+	ugspast
+verb=southwest
+	ugpath1
+verb=west
+	ugwpast
+verb=northwest
+	ughille
+
+room=ugepast
+verb=north
+	ugwheat
+verb=northeast
+	ugwood41
+verb=east
+	ugavenue3
+verb=southeast
+	ugtmead1
+verb=south out
+	ugpath3
+verb=southwest
+	ugspast
+verb=west in
+	ugfring
+verb=northwest
+	ugnpast
+
+room=ugavenue3
+verb=north in
+	ugwood41
+verb=northeast
+	ugavenue1
+verb=east
+	ugavenue2
+verb=southeast
+	ugtmead2
+verb=south
+	ugtmead1
+verb=southwest out
+	ugpath3
+verb=west
+	ugepast
+
+room=ugavenue2
+verb=north
+	ugavenue1
+verb=northeast
+	ugmeadow
+verb=east
+	ugorchd1
+verb=southeast
+	ugorchd2
+verb=south
+	ugtmead2
+verb=southwest
+	ugtmead1
+verb=west out
+	ugavenue3
+verb=northwest in
+	ugwood41
+
+room=ugorchd1
+verb=north
+	ugmeadow
+verb=northeast
+	uggrass
+verb=south
+	ugorchd2
+verb=southwest
+	ugtmead2
+verb=west out
+	ugavenue2
+verb=northwest in
+	ugavenue1
+
+room=ugglade1
+verb=north up
+	ughills
+verb=northeast in
+	ugwpast
+verb=east out
+	ugpath1
+verb=southeast
+	ugglade3
+verb=south
+	ugglade2
+
+room=ugpath1
+verb=north
+	ugwpast
+verb=northeast in
+	ugfring
+verb=east
+	ugspast
+verb=southeast out
+	ugpath2
+verb=south
+	ugglade3
+verb=southwest
+	ugglade2
+verb=west
+	ugglade1
+verb=northwest up
+	ughills
+
+room=ugspast
+verb=north in down
+	ugfring
+verb=northeast
+	ugepast
+verb=east
+	ugpath3
+verb=southeast out
+	ugpath0
+verb=south
+	ugpath2
+verb=southwest
+	ugglade3
+verb=west
+	ugpath1
+verb=northwest
+	ugwpast
+
+room=ugpath3
+verb=north
+	ugepast
+verb=northeast in
+	ugavenue3
+verb=east
+	ugtmead1
+verb=southeast
+	ugmarsh1
+verb=south out
+	ugpath0
+verb=southwest
+	ugpath2
+verb=west
+	ugspast
+verb=northwest down
+	ugfring
+
+room=ugtmead1
+verb=north in
+	ugavenue3
+verb=northeast
+	ugavenue2
+verb=east
+	ugtmead2
+verb=southeast
+	ugmarsh2
+verb=south
+	ugmarsh1
+verb=southwest out
+	ugpath0
+verb=west
+	ugpath3
+verb=northwest
+	ugepast
+
+room=ugtmead2
+verb=north in
+	ugavenue2
+verb=northeast
+	ugorchd1
+verb=east
+	ugorchd2
+verb=southeast
+	ugorchd3
+verb=south
+	ugmarsh2
+verb=southwest
+	ugmarsh1
+verb=west out
+	ugtmead1
+verb=northwest
+	ugavenue3
+
+room=ugorchd2
+verb=north
+	ugorchd1
+verb=south
+	ugorchd3
+verb=southwest
+	ugmarsh2
+verb=west out
+	ugtmead2
+verb=northwest in
+	ugavenue2
+
+room=ugglade2
+verb=north up in
+	ugglade1
+verb=northeast
+	ugpath1
+verb=east out
+	ugglade3
+
+room=ugglade3
+verb=north
+	ugpath1
+verb=northeast in
+	ugspast
+verb=east out
+	ugpath2
+verb=west
+	ugglade2
+verb=northwest
+	ugglade1
+
+room=ugpath2
+verb=north in
+	ugspast
+verb=northeast out
+	ugpath3
+verb=west
+	ugglade1
+verb=northwest up
+	ugpath1
+
+room=ugpath0
+verb=north in
+	ugpath3
+verb=northeast
+	ugtmead1
+verb=east
+	ugmarsh1
+verb=south out down
+	gstairs2
+
+room=ugmarsh1
+verb=north in
+	ugtmead1
+verb=northeast
+	ugtmead2
+verb=east
+	ugmarsh2
+verb=west
+	ugpath0
+verb=northwest
+	ugpath3
+
+room=ugmarsh2
+verb=north
+	ugtmead2
+verb=northeast
+	ugorchd2
+verb=east
+	ugorchd3
+verb=west out
+	ugmarsh1
+verb=northwest in
+	ugtmead1
+
+room=ugorchd3
+verb=north
+	ugorchd2
+verb=west out
+	ugmarsh2
+verb=northwest in
+	ugtmead2
+
+; ------------------------- Miscellaneous Rooms ----------------------------- ; 
+
+; Limbo: it's nowhere, so you can't go anywhere unless you're a master!
+
+room=limbo
+verbs=north northeast east southeast south southwest west northwest up down in out left right
+	if i am toprank then go to start
+	& endparse
+	-> limbo	; Send them back to nowhere!
+
+; The Masters store. All exits lead to various places allowing the rulers to
+; drop out to a convenient spot.
+
+room=store
+verbs=north south up
+	limbo
+verbs=east west down
+	start
+
+room=heaven
+verbs=north
+	store
+verbs=south
+	botshute
+verbs=west
+	junk1
+verbs=east
+	landing
+

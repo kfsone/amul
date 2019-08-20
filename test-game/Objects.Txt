@@ -6,18 +6,18 @@
 
 ; ---------------------------- Main Objects -------------------------------- ;
 
-noun=dummy scenery counter
+object=dummy scenery counter
   cubby
-	0 0 0 0 none
+	none
 
 ; You can have more than one instance of an object:
-noun=stick flammable fire
+object=stick flammable fire
 	startroom
 	    2 2 0 0 "There is a stick burning on the floor."
 		2 1 0 0 "There is a stick on the floor."
 		2 0 0 0 "A badly charred stick lies on the floor."
 
-noun=stick flammable fire
+object=stick flammable fire
 	endroom
 	    2 2 0 0 "There is a stick burning on the floor."
 		2 1 0 0 "There is a stick on the floor."
@@ -28,13 +28,13 @@ noun=stick flammable fire
 ; message in each room this is present.
 ; The 'scenery' flag causes the description (It is raining) to merge into
 ; the room description rather than being listed separately as an object.
-noun=rain scenery
+object=rain scenery
   startroom hall endroom
-	0 0 0 0 none
-	0 0 0 0 "It is raining."
+	none
+	"It is raining."
 
 ; Example of an NPC
-noun=cat  mobile=cat
+object=cat  npc=cat
   hall
 	700 0 0 0 "A cute little cat sits contentedly nearby." alive
 	700 0 0 0 "The battered and bleeding remains of a small cat lie at your feet."

@@ -1,3 +1,38 @@
+HIGH PRIORITY:
+
+- Finish MsgPort make-over
+
+	- Finish converting old enum-based messages to struct::dispatch
+		(see messagedefs.h)
+	- Find a way to eliminate ReplyPorts
+	- Add a WaitTimeout function
+	- Track MsgPorts with shared_ptrs so we don't have race conditions
+		if a message port goes away while senders are still refing it.
+
+- Eliminate file operations from the worker threads:
+
+	- Manage the user database in-memory or in the server,
+	- MMap or pre-load the various .txt files,
+
+- Reorganize files
+
+	- rename those "amul.xxxx.h" files - can afford the space now.
+	- better distribute things between various cpp and headers
+	- headers for things like t_slotId
+
+- Reorganize globals
+
+	- things need marshalling into structures, like the parser
+	context variables (iverb, overb, inoun, etc)
+
+- Replace strcpy/sprintf etc with strncpy, snprintf or better a template.
+
+- Replace tx (Print) functions with type safe variants:
+
+	template<typename Args> void Print(...);
+
+Mid pri:
+
 Game Code Features:
 - allow users to name states and then test for them:
 	template=torch flammable

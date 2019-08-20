@@ -1,30 +1,24 @@
-#include "amulcom.strings.h"
-#include "amulcom.h"
-#include "modules.h"
-
-#include <h/amul.alog.h>
-#include <h/amul.cons.h>
-#include <h/amul.test.h>
-#include <h/amul.xtra.h>
-
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
+#include "amul.cons.h"
+#include "game.h"
+#include "amul.test.h"
+#include "amul.xtra.h"
+#include "amulcom.h"
+#include "amulcom.strings.h"
+#include "logging.h"
+#include "modules.h"
+#include "stringmanip.h"
+
+// Offsets of strings by string id.
 using StringMap = std::unordered_map<std::string, stringid_t>;
 
-static FILE *     stringFP;
-static stringid_t stringBytes;
-static StringMap  stringMap;
-
-const std::string &
-StringLower(std::string &str)
-{
-	std::transform(str.cbegin(), str.cend(), str.begin(),
-			[](unsigned char c) { return std::tolower(c); });
-	return str;
-}
+static StringMap stringMap;
 
 static inline bool
 isNewlineSuppressor(char c)
@@ -32,45 +26,45 @@ isNewlineSuppressor(char c)
     return c == '{';
 }
 
-static bool /*ok*/
-registerStringLabel(std::string label)
+static stringid_t
+nextStringId() noexcept
 {
-	StringLower(label);
-	auto [it, ins] = stringMap.insert(std::make_pair(label, stringBytes));
-	if (!ins)
-		return false;
-	alog(AL_DEBUG, "registered %s as %u", label.c_str(), stringBytes);
-	return true;
+    return stringid_t(g_game.m_stringIndex.size());
 }
 
-#define check_write_str(op, buffer, length, fp)                                                    \
-    do {                                                                                           \
-        if (fwrite(buffer, 1, (length), fp) != (length))                                           \
-            afatal("Unable to write %s", op);                                                      \
-		stringBytes += length;                                                                     \
-    } while (0)
+static bool /*ok*/
+registerStringLabel(string_view label_)
+{
+    std::string label{ label_ };
+    StringLower(label);
+    auto [it, ins] = stringMap.insert(make_pair(label, nextStringId()));
+    if (!ins)
+        return false;
+    LogDebug("registered ", label, " as ", nextStringId());
+    return true;
+}
 
 error_t
-AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
+AddTextString(string_view text, bool isLine, stringid_t *idp)
 {
-    REQUIRE(start && end && idp);
+    REQUIRE(idp);
 
-    while (end > start && isEol(*(end - 1)))
-        --end;
+    while (!text.empty() && isEol(text.back()))
+        text.remove_suffix(1);
 
-    if (end > start && isNewlineSuppressor(*(end - 1))) {
-        --end;
+    if (!text.empty() && isNewlineSuppressor(text.back())) {
+        text.remove_suffix(1);
         isLine = false;
     }
 
-	*idp = stringBytes;
+    *idp = nextStringId();
 
-    check_write_str("text string", start, end - start, stringFP);
-    if (isLine) {
-        check_write_str("newline", "\n", 2, stringFP);
-    } else {
-        check_write_str("eos", "", 1, stringFP);
-    }
+    g_game.m_stringIndex.push_back(GetStringBytes());
+
+    g_game.m_strings.insert(g_game.m_strings.end(), text.cbegin(), text.cend());
+    if (isLine)
+        g_game.m_strings.push_back('\n');
+    g_game.m_strings.push_back('\0');
 
     return 0;
 }
@@ -83,23 +77,25 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
     REQUIRE(!label || *label);
 
     // string's id will be the current position, so snag it now.
-    stringid_t id { stringBytes };
+    stringid_t id{ nextStringId() };
 
     if (label && !registerStringLabel(label)) {
-		return EEXIST;
-	}
+        return EEXIST;
+    }
 
     char indent = 0;
     char line[2048];
 
     // Consume lines from the file until we reach a paragraph break
+    static std::string text;
+    text.clear();
     while (!feof(fp)) {
         char *p = fgets(line, sizeof(line), fp);
-        if (p == NULL)
+        if (p == nullptr)
             continue;
         if (isEol(*p) && !toEof)
             break;
-        const char *end = p;
+        char *end = p;
         if (!isEol(*p)) {
             if (!indent && *p) {
                 indent = *p;
@@ -113,12 +109,15 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
             if (end > p && *(end - 1) == '{')
                 --end;
         }
-        check_write_str("text line", p, end - p, stringFP);
-        if (isEol(*p)) {
-            check_write_str("eol", "\n", 1, stringFP);
+        text += string_view(p, end - p);
+        if (isEol(*end)) {
+            text += '\n';
         }
     }
-    check_write_str("eos", "", 1, stringFP);
+    text += '\0';
+
+    g_game.m_stringIndex.push_back(GetStringBytes());
+    g_game.m_strings.insert(g_game.m_strings.end(), text.cbegin(), text.cend());
 
     if (idp)
         *idp = id;
@@ -127,55 +126,50 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
 }
 
 error_t
-RegisterTextString(
-        const char *label, const char *start, const char *end, bool isLine, stringid_t *idp)
+RegisterTextString(string_view label, string_view text, bool isLine, stringid_t *idp)
 {
-    REQUIRE(start && end);
-    REQUIRE(stringFP);
-	REQUIRE(label && *label);
+    REQUIRE(!label.empty());
 
-    stringid_t id { 0 };
+    stringid_t id{ 0 };
     if (!idp) {
         idp = &id;
     }
-	*idp = stringBytes;
-	if (!registerStringLabel(label)) {
-		return EEXIST;
-	}
+    *idp = nextStringId();
+    if (!registerStringLabel(label)) {
+        return EEXIST;
+    }
 
-    error_t err = AddTextString(start, end, isLine, idp);
+    error_t err = AddTextString(text, isLine, idp);
     if (err != 0)
         return err;
-
-    alog(AL_DEBUG, "register %s as %u", label, *idp);
 
     return 0;
 }
 
 error_t
-LookupTextString(const char *label, stringid_t *idp)
+LookupTextString(string_view label, stringid_t *idp)
 {
-    REQUIRE(label);
-    std::string labelId { label };
+    REQUIRE(!label.empty());
+    std::string labelId{ label };
     StringLower(labelId);
-	auto it = stringMap.find(labelId);
-	if (it == stringMap.end())
-		return ENOENT;
+    auto it = stringMap.find(labelId);
+    if (it == stringMap.end())
+        return ENOENT;
     if (idp)
-	    *idp = it->second;
-	return 0;
+        *idp = it->second;
+    return 0;
 }
 
 size_t
-GetStringCount()
+GetStringCount() noexcept
 {
-    return stringMap.size();
+    return g_game.m_stringIndex.size();
 }
 
 size_t
-GetStringBytes()
+GetStringBytes() noexcept
 {
-    return stringBytes;
+    return g_game.m_strings.size();
 }
 
 char *
@@ -183,7 +177,7 @@ StrCopy(char *into, size_t intoSize, const char *start, const char *end)
 {
     const size_t copylen = end - start;
     if (copylen + 1 > intoSize) {
-        return NULL;
+        return nullptr;
     }
     memcpy(into, start, copylen);
     into[copylen] = 0;
@@ -195,7 +189,7 @@ WordCopy(char *into, size_t intoSize, const char *start, const char *end)
 {
     const size_t copylen = end - start;
     if (copylen + 1 > intoSize) {
-        return NULL;
+        return nullptr;
     }
     const char *intoEnd = into + copylen;
     while (into < intoEnd) {
@@ -216,35 +210,30 @@ ZeroPad(char *string, size_t stringSize)
 }
 
 error_t
-initStringModule(Module *module)
+initStringModule(Module * /*module*/)
 {
-    REQUIRE(!stringFP);
     return 0;
 }
 
 error_t
-startStringModule(Module *module)
+startStringModule(Module * /*module*/)
 {
-	REQUIRE(stringMap.empty());
-    stringFP = OpenGameFile(stringTextFile, "w");  // Note: text mode, translate \r please
-    REQUIRE(stringFP);
-
-    return 0;
-}
-
-error_t
-closeStringModule(Module *module, error_t err)
-{
-	alog(AL_DEBUG, "Strings: %zu, Bytes: %u", stringMap.size(), stringBytes);
-    CloseFile(&stringFP);
-	stringMap.clear();
+    REQUIRE(stringMap.empty());
 
     return 0;
 }
 
 error_t
-InitStrings()
+closeStringModule(Module * /*module*/, error_t /*err*/)
 {
-    NewModule(MOD_STRINGS, NULL, startStringModule, closeStringModule, NULL, NULL);
+    LogDebug("Strings: ", GetStringCount(), ", Bytes: ", GetStringBytes());
+
+    return 0;
+}
+
+error_t
+InitStrings() noexcept
+{
+    NewModule(MOD_STRINGS, nullptr, startStringModule, closeStringModule, nullptr, nullptr);
     return 0;
 }

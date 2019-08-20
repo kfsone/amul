@@ -11,64 +11,85 @@
 amulcom.cpp :: AMUL Compiler. Copyright (C) KingFisher Software 1990-2019.
 */
 
-#include "amulcom.h"
-#include "amulcom.fileprocessing.h"
-#include "amulcom.strings.h"
+#include <cassert>
+#include <charconv>
+#include <cstdlib>
+#include <ctime>
+#include <fcntl.h>
+#include <map>
+#include <set>
+#include <string>
+#include <sys/stat.h>
+#include <vector>
 
+#include "amigastubs.h"
+#include "amul.acts.h"
+#include "amul.cons.h"
+#include "amul.defs.h"
+#include "amul.msgs.h"
+#include "amul.stct.h"
+#include "amul.strs.h"
+#include "amul.test.h"
+#include "amul.vars.h"
+#include "amul.vmop.h"
+#include "amul.xtra.h"
+#include "amulcom.fileparser.h"
+#include "amulcom.fileprocessing.h"
+#include "amulcom.h"
+#include "amulcom.strings.h"
+#include "amulcom.version.h"
+#include "amullib.h"
 #include "filesystem.h"
 #include "filesystem.inl.h"
+#include "game.h"
+#include "logging.h"
 #include "modules.h"
+#include "objflag.h"
+#include "ptype.h"
+#include "roomflag.h"
+#include "sourcefile.h"
+#include "sourcefile.log.h"
+#include "spellid.h"
+#include "statid.h"
+#include "stringmanip.h"
+#include "svparse.h"
 #include "system.h"
-
-#include <h/amigastubs.h>
-#include <h/amul.acts.h>
-#include <h/amul.alog.h>
-#include <h/amul.cons.h>
-#include <h/amul.defs.h>
-#include <h/amul.gcfg.h>
-#include <h/amul.msgs.h>
-#include <h/amul.stct.h>
-#include <h/amul.strs.h>
-#include <h/amul.test.h>
-#include <h/amul.vars.h>
-#include <h/amul.vmop.h>
-#include <h/amul.xtra.h>
-#include <h/amulcom.h>
-
-#include <cassert>
-#include <fcntl.h>
-#include <cstdlib>
-#include <sys/stat.h>
-#include <ctime>
-#include <string>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Variables
 
-std::string compilerVersion { VERS " (" DATE ")" };
+constexpr string_view compilerVersion{ AMULCOM_VSTRING };
 
 /* Compiler specific variables... */
 
-int    dmoves = 0; /* How many DMOVEs to check?	*/
-int    rmn = 0;    /* Current room no.		*/
-size_t FPos;       /* Used during TT/Lang writes	*/
-char   Word[64];   /* For internal use only <grin>	*/
-int    proc;       /* What we are processing	*/
-char * syntab;     /* Synonym table, re-read	*/
-long   wizstr;     /* Wizards strength		*/
+char Word[64]; /* For internal use only <grin>	*/
+int proc;      /* What we are processing	*/
+long wizstr;   /* Wizards strength		*/
+NPCClass npc, *npcp;
 
-char block[1024];  // scratch pad
+char scratch[4096];  // scratch pad
 
-_OBJ_STRUCT *obtab2, obj2;
+static Syntax vbslot;
 
 // counters
-GameConfig g_gameConfig;
+Game g_game;
 
-FILE *ifp, *ofp1, *ofp2, *ofp3, *ofp4, *ofp5, *afp;
+thread_local FILE *ifp, *ofp1;
 
 bool exiting;
-bool reuseRoomData;
-bool checkDmoves;
+
+std::map<std::string, std::string> s_dmoveLookups;
+std::map<std::string, roomid_t> s_roomIdx;
+std::map<std::string, adjid_t> s_adjectiveIdx;
+
+Room *c_room;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+// Stubs for g_game members etc that we don't use.
+
+Avatar::Avatar() {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -77,26 +98,20 @@ void
 CloseOutFiles()
 {
     CloseFile(&ofp1);
-    CloseFile(&ofp2);
-    CloseFile(&ofp3);
-    CloseFile(&ofp4);
-    CloseFile(&ofp5);
-    CloseFile(&afp);
 }
 
 void
-checkErrorCount()
+CheckErrorCount()
 {
-    if (al_errorCount > 30) {
-        afatal("Terminating due to %u errors", al_errorCount);
-    }
+    if (GetLogErrorCount() > 30)
+        LogFatal("Terminating due to ", GetLogErrorCount(), " errors");
 }
 
 bool
 consumeComment(const char *text)
 {
     if (*text == '*')
-        alog(AL_INFO, "%s", text);
+        LogInfo(text);
     return isCommentChar(*text);
 }
 
@@ -118,13 +133,13 @@ getword(char *from)
     *to = 0;
     for (;;) {
         switch (*from) {
-        case 0:
-        case ';':
-        case ' ':
-        case '\t':
-            goto broke;
-        default:
-            ++from;
+            case 0:
+            case ';':
+            case ' ':
+            case '\t':
+                goto broke;
+            default:
+                ++from;
         }
     }
 
@@ -141,31 +156,31 @@ nextc(bool required)
         while ((c = fgetc(ifp)) != EOF && isspace(c))
             ;
         if (c == ';' || c == '*')
-            fgets(block, sizeof(block), ifp);
+            fgets(scratch, sizeof(scratch), ifp);
         if (c == '*')
-            alog(AL_NOTE, "%s", block);
+            LogNote(scratch);
     } while (c != EOF && (c == '*' || c == ';' || isspace(c)));
     if (c == EOF && required) {
-        afatal("File contained no data");
+        LogFatal("File contained no data");
     }
     if (c == EOF)
         return false;
-    fseek(ifp, -1, 1); /* Move back 1 char */
+    ungetc(c, ifp);
     return true;
 }
 
 void
-fatalOp(const char *verb, const char *noun)
+fatalOp(string_view verb, string_view noun)
 {
-    alog(AL_ERROR, "Can't %s %s", verb, noun);
+    LogError("Can't ", verb, " ", noun);
 }
 
 FILE *
 OpenGameFile(const char *filename, const char *mode)
 {
-    char filepath[MAX_PATH_LENGTH];
+    std::string filepath{};
     safe_gamedir_joiner(filename);
-    FILE *fp = fopen(filepath, mode);
+    FILE *fp = fopen(filepath.c_str(), mode);
     if (!fp)
         fatalOp("open", filepath);
     return fp;
@@ -175,70 +190,41 @@ OpenGameFile(const char *filename, const char *mode)
 void
 fopenw(const char *filename)
 {
-    FILE **fpp = NULL;
+    FILE **fpp = nullptr;
     if (!ofp1)
         fpp = &ofp1;
-    else if (!ofp2)
-        fpp = &ofp2;
-    else if (!ofp3)
-        fpp = &ofp3;
-    else if (!ofp4)
-        fpp = &ofp4;
-    else if (!ofp5)
-        fpp = &ofp5;
     else
         fatalOp("select", "file descriptor");
     *fpp = OpenGameFile(filename, "wb");
-}
-
-/* Open file for appending */
-void
-fopena(const char *filename)
-{
-    if (afp != NULL)
-        fclose(afp);
-    afp = OpenGameFile(filename, "ab+");
 }
 
 /* Open file for reading */
 void
 fopenr(const char *filename)
 {
-    if (ifp != NULL)
+    if (ifp != nullptr)
         fclose(ifp);
     ifp = OpenGameFile(filename, "rb");
 }
 
-int
-checkedfread(void *data, size_t objSize, size_t objCount, FILE *fp)
-{
-    size_t read = fread(data, objSize, objCount, fp);
-    if (read != objCount) {
-        afatal("Wrong write count: expected %d, got %d", objCount, read);
+constexpr auto checkedfread = [](FILE *fp, auto *data, size_t count) {
+    ssize_t gotCount = fread(data, sizeof(*data), count, fp);
+    if (size_t(gotCount) != count) {
+        LogFatal("Wrong write count: expected ", count, ", got ", gotCount);
     }
-    return read;
-}
+    return sizeof(*data) * count;
+};
 
-int
-checkedfwrite(void *data, size_t objSize, size_t objCount, FILE *fp)
-{
-    size_t written = fwrite(data, objSize, objCount, fp);
-    if (written != objCount) {
-        afatal("Wrong write count: expected %d, got %d", objCount, written);
+constexpr auto checkedfwrite = [](FILE *fp, auto *data, size_t count) {
+    auto gotCount = fwrite(data, sizeof(*data), count, fp);
+    if (size_t(gotCount) != count) {
+        LogFatal("Wrong write count: expected ", count, ", got ", gotCount);
     }
-    return written;
-}
-
-/* Update room entries after TT */
-void
-ttroomupdate()
-{
-    fseek(afp, 0, 0L);
-    checkedfwrite(rmtab, sizeof(room), g_gameConfig.numRooms, afp);
-}
+    return sizeof(*data) * count;
+};
 
 void
-skipblock()
+skipParagraph()
 {
     char c, lc;
 
@@ -253,7 +239,7 @@ skipblock()
 void
 tidy(char *ptr)
 {
-    char *lastNonSpace = NULL;
+    char *lastNonSpace = nullptr;
     while (*ptr) {
         if (*ptr == '\t' || *ptr == '\r')
             *ptr = ' ';
@@ -266,37 +252,18 @@ tidy(char *ptr)
 }
 
 char *
-getTidyBlock(FILE *fp)
+getTidiedLineToScratch(FILE *fp)
 {
     for (;;) {
-        if (!fgets(block, sizeof(block), fp))
-            return NULL;
+        if (!fgets(scratch, sizeof(scratch), fp))
+            return nullptr;
 
-        tidy(block);
+        tidy(scratch);
 
-        char *p = skipspc(block);
+        char *p = skipspc(scratch);
         if (!consumeComment(p) && *p)
             return p;
     }
-}
-
-int
-is_verb(const char *s)
-{
-    if (strlen(s) > IDL) {
-        printf("Invalid verb ID (too long): %s", s);
-        return -1;
-    }
-
-    vbptr = vbtab;
-    for (size_t i = 0; i < g_gameConfig.numVerbs; i++, vbptr++) {
-        if (stricmp(vbptr->id, s) == 0)
-            return i;
-    }
-    if (stricmp(g_verb.id, s) == 0)
-        return g_gameConfig.numVerbs + 1;
-
-    return -1;
 }
 
 /* Return size of current file */
@@ -314,158 +281,71 @@ filesize()
 
 /* Check to see if s is a room flag */
 int
-isrflag(const char *s)
+isRoomFlag(string_view name)
 {
     for (int i = 0; i < NRFLAGS; i++) {
-        if (strcmp(s, rflag[i]) == 0)
+        if (name == rflag[i])
             return i;
-	}
-    return -1;
+    }
+    return WNONE;
 }
 
-int
-isroom(const char *s)
+roomid_t
+isRoomName(string_view token)
 {
-    for (int r = 0; r < g_gameConfig.numRooms; r++) {
-        if (strcmp(rmtab[r].id, s) == 0)
-            return r;
+    std::string rmname{ token };
+    StringLower(rmname);
+    if (auto it = s_roomIdx.find(rmname); it != s_roomIdx.end()) {
+        return it->second;
     }
-    return -1;
+    return WNONE;
 }
 
 /* Is it a FIXED object flag? */
 int
-isoflag1(const char *token)
+IsObjectFlag(string_view token)
 {
     for (int i = 0; i < NOFLAGS; i++)
-        if (strcmp(obflags1[i], token) == 0)
+        if (obflags1[i] == token)
             return i;
-    return -1;
+    return WNONE;
 }
 
-/* Is it an object parameter? */
-int
-isoparm(char *token)
+ObjectParameter
+GetObjectParam(string_view &param)
 {
-    for (int i = 0; i < NOPARMS; i++)
-        if (striplead(obparms[i], token))
-            return i;
-    return -1;
+    for (int i = 0; i < NOPARMS; i++) {
+        if (RemovePrefix(param, obparms[i]))
+            return ObjectParameter(i);
+    }
+    return OP_NONE;
 }
 
 /* Is it a state flag? */
 int
-isoflag2(const char *token)
+IsObjectStateFlag(string_view token)
 {
     for (int i = 0; i < NSFLAGS; i++)
-        if (strcmp(obflags2[i], token) == 0)
+        if (obflags2[i] == token)
             return i;
-    return -1;
-}
-
-void
-set_adj()
-{
-    if (strlen(Word) > IDL || strlen(Word) < 3) {
-        afatal("Invalid adjective (length): %s", Word);
-    }
-    if (g_gameConfig.numAdjectives == 0) {
-        ZeroPad(Word, sizeof(Word));
-        checkedfwrite(Word, IDL + 1, 1, afp);
-        obj2.adj = 0;
-        g_gameConfig.numAdjectives++;
-        return;
-    }
-    fseek(afp, 0L, 0); /* Move to beginning */
-    int i = 0;
-    do {
-        char id[IDL + 1];
-        if (fread(id, IDL + 1, 1, afp) != 1)
-            break;
-        if (strcmp(Word, id) == 0) {
-            obj2.adj = i;
-            return;
-        }
-        i++;
-    } while (!feof(afp));
-
-    fseek(afp, 0L, 2); /* Move to end! */
-    ZeroPad(Word, sizeof(Word));
-    checkedfwrite(Word, IDL + 1, 1, afp); /* Add this adjective */
-    obj2.adj = g_gameConfig.numAdjectives++;
-}
-
-[[noreturn]] void
-objectInvalid(const char *s)
-{
-    afatal("Object #%d: %s: invalid %s: %s", g_gameConfig.numObjects + 1, obj2.id, s, Word);
-}
-
-void
-set_start()
-{
-    if (!isdigit(Word[0]))
-        objectInvalid("start state");
-    obj2.state = atoi(Word);
-    if (obj2.state < 0 || obj2.state > 100)
-        objectInvalid("start state");
-}
-
-void
-set_holds()
-{
-    if (!isdigit(Word[0]))
-        objectInvalid("holds= value");
-    obj2.contains = atoi(Word);
-    if (obj2.contains < 0 || obj2.contains > 1000000)
-        objectInvalid("holds= state");
-}
-
-void
-set_put()
-{
-    for (int i = 0; i < NPUTS; i++)
-        if (stricmp(obputs[i], Word) == 0) {
-            obj2.putto = i;
-            return;
-        }
-    objectInvalid("put= flag");
-}
-
-void
-set_mob()
-{
-    for (int i = 0; i < g_gameConfig.numMobPersonas; i++)
-        if (stricmp(mobp[i].id, Word) == 0) {
-            obj2.mobile = i;
-            return;
-        }
-    objectInvalid("mobile= flag");
+    return WNONE;
 }
 
 int
-iscond(const char *s)
+iscond(string_view condition)
 {
-    for (int i = 0; i < NCONDS; i++)
-        if (strcmp(conditions[i].name, s) == 0)
+    for (int i = 0; i < NCONDS; i++) {
+        if (condition == conditions[i].name)
             return i;
+    }
     return -1;
 }
 
 int
-isact(const char *s)
+isact(string_view action)
 {
     for (int i = 0; i < NACTS; i++)
-        if (strcmp(actions[i].name, s) == 0)
-            return i;
-    return -1;
-}
-
-int
-isprep(const char *s)
-{
-    for (int i = 0; i < NPREP; i++)
-        if (strcmp(s, prep[i]) == 0)
+        if (action == actions[i].name)
             return i;
     return -1;
 }
@@ -474,17 +354,23 @@ bool
 checkRankLine(const char *p)
 {
     if (*p == 0) {
-        alog(AL_ERROR, "Rank line %" PRIu64 " incomplete", g_gameConfig.numRanks);
+        LogError("Rank line ", g_game.numRanks, " incomplete");
         return false;
     }
     return true;
 }
 
 [[noreturn]] void
-stateInvalid(const char *s)
+stateInvalid(const Object &obj, const char *s)
 {
-    afatal("Object #%" PRIu64 ": %s: invalid %s state line: %s", g_gameConfig.numObjects + 1,
-           obj2.id, s, block);
+    LogFatal("Object #",
+             g_game.numObjects + 1,
+             ": ",
+             obj.id,
+             ": invalid ",
+             s,
+             " state line: ",
+             scratch);
 }
 
 int
@@ -498,45 +384,51 @@ getObjectDescriptionID(const char *text)
     return id;
 }
 
-int
-isnoun(const char *s)
+objid_t
+isNoun(string_view noun)
 {
     /// TODO: This should check the noun table...
-    if (stricmp(s, "none") == 0)
+    if (noun == "none")
         return -2;
-    for (int i = 0; i < g_gameConfig.numObjects; i++)
-        if (stricmp(s, obtab2[i].id) == 0)
-            return i;
-    return -1;
+    std::string word{ noun };
+    StringLower(word);
+    for (objid_t objId = 0; objId < objid_t(g_game.m_objects.size()); ++objId) {
+        if (g_game.m_objects[objId].id == noun)
+            return objId;
+    }
+    return WNONE;
 }
 
-int
-iscont(const char *s)
+objid_t
+isContainer(string_view name)
 {
-    for (int i = 0; i < g_gameConfig.numObjects; i++)
-        if (stricmp(s, obtab2[i].id) == 0 && obtab2[i].contains > 0)
-            return i;
-    return -1;
+    for (size_t i = 0; i < g_game.m_objects.size(); ++i) {
+        if (g_game.m_objects[i].contains > 0 && name == g_game.m_objects[i].id)
+            return objid_t(i);
+    }
+    return WNONE;
 }
 
 /* Room or container */
 int
-isloc(const char *s)
+isloc(const Object &obj, const char *s)
 {
     int i;
 
-    if ((i = isroom(s)) != -1)
+    if ((i = isRoomName(s)) != -1)
         return i;
-    if ((i = iscont(s)) == -1) {
-        if (isnoun(s) == -1)
-            alog(AL_ERROR, "Invalid object start location: %s", s);
+    if ((i = isContainer(s)) == -1) {
+        if (isNoun(s) == -1)
+            LogError("Invalid object start location: ", s);
         else
-            alog(AL_ERROR, "Tried to start '%s' in non-container '%s'", obj2.id, s);
-        return -1;
+            LogError("Tried to start '", obj.id, "' in non-container: ", s);
+        return WNONE;
     }
 
     return -(INS + i);
 }
+
+static std::set<string_view> PreConditionWords = { "if", "the", "i", "am", "is" };
 
 char *
 precon(char *s)
@@ -555,6 +447,8 @@ precon(char *s)
     }
     return s;
 }
+
+static std::set<string_view> PreActionWords = { "then", "go", "to", "goto", "set" };
 
 char *
 preact(char *s)
@@ -590,21 +484,21 @@ chknum(const char *s)
     else
         n = atoi(s);
     if (n >= 1000000) {
-        alog(AL_ERROR, "Number too large: %s", s);
+        LogError("Number too large: ", s);
         return -1000001;
     }
     if (*s == '-')
-        return (long)-n;
+        return (long) -n;
     if (*s == '>')
-        return (long)(n | LESS);
+        return (long) (n | LESS);
     if (*s == '<')
-        return (long)(n | MORE);
+        return (long) (n | MORE);
     return n;
 }
 
-static const char *optionalPrefixes[] = {  // noise we can skip
-        "the ",  "of ",  "are ", "is ",  "has ", "next ", "with ", "to ", "set ",
-        "from ", "for ", "by ",  "and ", "was ", "i ",    "am ",   "as ", NULL};
+static const std::set<string_view> OptionalPrefixes = { "the",  "of",  "are", "is",   "has", "next",
+                                                        "with", "to",  "set", "from", "for", "by",
+                                                        "and",  "was", "i",   "am",   "as" };
 
 char *
 skipOptionalPrefixes(char *p)
@@ -612,10 +506,13 @@ skipOptionalPrefixes(char *p)
     while (*p) {
         p = skipspc(p);
         bool match = false;
-        for (int i = 0; optionalPrefixes[i]; ++i) {
-            if (canSkipLead(optionalPrefixes[i], &p)) {
-                match = true;
-                break;
+        for (auto &prefix : OptionalPrefixes) {
+            if (strncmp(p, prefix.data(), prefix.length()) == 0) {
+                if (isspace(p[prefix.length()])) {
+                    p += prefix.length() + 1;
+                    match = true;
+                    break;
+                }
             }
         }
         if (!match)
@@ -634,50 +531,19 @@ isgen(char c)
     return -1;
 }
 
-static const char *announceTypes[MAX_ANNOUNCE_TYPE] = {"global", "everyone", "outside", "here",
-                                                       "others", "all",      "cansee",  "notsee"};
+constexpr std::array<string_view, MAX_ANNOUNCE_TYPE> announceTypes{ "global", "everyone", "outside",
+                                                                    "here",   "others",   "all",
+                                                                    "cansee", "notsee" };
+
 int
-announceType(const char *s)
+announceType(string_view typeName)
 {
-    for (int i = 0; i < MAX_ANNOUNCE_TYPE; ++i) {
-        if (stricmp(s, announceTypes[i]))
-            return i;
+    auto it = std::find(announceTypes.begin(), announceTypes.end(), typeName);
+    if (it != announceTypes.end()) {
+        return std::distance(announceTypes.begin(), it);
     }
-    alog(AL_ERROR, "Invalid announcement target: %s", s);
-    return -1;
-}
-
-/* Test noun state, checking rooms */
-int
-isnounh(const char *s)
-{
-    int  i, l, j;
-    long orm;
-
-    if (stricmp(s, "none") == 0)
-        return -2;
-    FILE *fp = OpenGameFile(objectRoomFile, "rb");
-    l = -1;
-
-    for (i = 0; i < g_gameConfig.numObjects; i++) {
-        const _OBJ_STRUCT &object = obtab2[i];
-        if (stricmp(s, object.id) != 0)
-            continue;
-        fseek(fp, (uintptr_t)object.rmlist, 0L);  /// TODO: Dispose
-        for (j = 0; j < object.nrooms; j++) {
-            fread(&orm, 4, 1, fp);
-            if (orm == rmn) {
-                l = i;
-                i = g_gameConfig.numObjects + 1;
-                j = obj2.nrooms;
-                break;
-            }
-        }
-        if (i < g_gameConfig.numObjects)
-            l = i;
-    }
-    fclose(fp);
-    return l;
+    LogError("Invalid announcement target: ", typeName);
+    return WNONE;
 }
 
 int
@@ -689,53 +555,53 @@ rdmode(char c)
         return RDVB;
     if (c == 'B')
         return RDBF;
-    return -1;
+    return WNONE;
 }
 
 int
-spell(const char *s)
+spell(string_view spellName)
 {
-    if (strcmp(s, "glow") == 0)
+    if (spellName == "glow")
         return SGLOW;
-    if (strcmp(s, "invis") == 0)
+    if (spellName == "invis")
         return SINVIS;
-    if (strcmp(s, "deaf") == 0)
+    if (spellName == "deaf")
         return SDEAF;
-    if (strcmp(s, "dumb") == 0)
+    if (spellName == "dumb")
         return SDUMB;
-    if (strcmp(s, "blind") == 0)
+    if (spellName == "blind")
         return SBLIND;
-    if (strcmp(s, "cripple") == 0)
+    if (spellName == "cripple")
         return SCRIPPLE;
-    if (strcmp(s, "sleep") == 0)
+    if (spellName == "sleep")
         return SSLEEP;
-    if (strcmp(s, "sinvis") == 0)
+    if (spellName == "sinvis")
         return SSINVIS;
-    return -1;
+    return WNONE;
 }
 
 int
-is_stat(const char *s)
+is_stat(string_view statName)
 {
-    if (strcmp(s, "sctg") == 0)
+    if (statName == "sctg")
         return STSCTG;
-    if (strncmp(s, "sc", 2) == 0)
+    if (statName == "score")
         return STSCORE;
-    if (strncmp(s, "poi", 3) == 0)
+    if (statName == "poi" || statName == "points")
         return STSCORE;
-    if (strncmp(s, "str", 3) == 0)
+    if (statName == "str" || statName == "strength")
         return STSTR;
-    if (strncmp(s, "stam", 4) == 0)
+    if (statName == "sta" || statName == "stamina")
         return STSTAM;
-    if (strncmp(s, "dext", 4) == 0)
+    if (statName == "dex" || statName == "dexterity")
         return STDEX;
-    if (strncmp(s, "wis", 3) == 0)
+    if (statName == "wis" || statName == "wisdom")
         return STWIS;
-    if (strncmp(s, "exp", 3) == 0)
+    if (statName == "exp" || statName == "experience")
         return STEXP;
-    if (strcmp(s, "magic") == 0)
+    if (statName == "mag" || statName == "magic")
         return STMAGIC;
-    return -1;
+    return WNONE;
 }
 
 int
@@ -749,37 +615,54 @@ bvmode(char c)
 }
 
 stringid_t
+getTextString(string_view string)
+{
+    stringid_t id = WNONE;
+    if (!string.empty() && (string.front() == '"' || string.front() == '\'')) {
+        string.remove_prefix(1);
+        error_t err = AddTextString(string, true, &id);
+        if (err != 0)
+            LogFatal("Unable to add string literal: ", err);
+    } else {
+        RemovePrefix(string, "msg=");
+        RemovePrefix(string, "msgid=");
+        error_t err = LookupTextString(string, &id);
+        if (err != 0 && err != ENOENT)
+            LogFatal("Error looking up string '", string, "': ", err);
+    }
+    return id;
+}
+
+stringid_t
 getTextString(char *s, bool prefixed)
 {
     if (prefixed) {
         s = skipspc(s);
         s = skiplead("msgid=", s);
-        s = skiplead("msgtext=", s);
     }
 
     stringid_t id = -1;
     if (*s == '\"' || *s == '\'') {
-        char *  start = s + 1;
-        char *  end = strstop(start, *s);
-        error_t err = AddTextString(start, end, true, &id);
+        char *start = s + 1;
+        char *end = strstop(start, *s);
+        string_view text{ start, size_t(end - start) };
+        error_t err = AddTextString(text, true, &id);
         if (err != 0)
-            afatal("Unable to add string literal: %d", err);
+            LogFatal("Unable to add string literal: ", err);
     } else {
         getword(s);
         error_t err = LookupTextString(Word, &id);
         if (err != 0 && err != ENOENT)
-            afatal("Error looking up string (%d): %s", err, s);
+            LogFatal("Error looking up string (", err, "): ", s);
     }
 
     return id;
 }
 
-int
-onoff(const char *p)
+bool
+onoff(string_view p)
 {
-    if (stricmp(p, "on") == 0 || stricmp(p, "yes") == 0)
-        return 1;
-    return 0;
+    return (p == "on" || p == "yes");
 }
 
 /* Note about matching actuals...
@@ -790,15 +673,15 @@ Variable N is a wtype... If the phrases 'noun', 'noun1' or 'noun2' are used,
 instead of matching the phrases WTYPE with n, match the relevant SLOT with
 n...
 
-So, if the syntax line is 'verb text player' the command 'tell noun2 text'
+So, if the syntaxes line is 'verb text player' the command 'tell noun2 text'
 will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
 structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
 the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
 user is referring too.							     */
 
 /* Get actual value! */
-int
-actualval(const char *s, int n)
+amulid_t
+actualval(string_view token, amulid_t n)
 {
     int i;
 
@@ -806,232 +689,353 @@ actualval(const char *s, int n)
     // resulting value, e.g. choosing a random number based on your rank.
     /// TODO: replace with something akin to SQL aggregate functions.
     /// TODO: rand(myrank)
-    if (n != PREAL && strchr("?%^~`*#", *s)) {
+    char front = token.front();
+    if (n != PREAL && strchr("?%^~`*#", front)) {
         // These can only be applied to numbers except '*' which can be applied to rooms
-        if (n != WNUMBER && !(n == WROOM && *s == '*'))
+        if (n != WNUMBER && !(n == WROOM && front == '*'))
             return -1;
         // calculate random numbers based on the parameter
-        if (*s == '~')
-            return RAND0 + atoi(s + 1);
-        if (*s == '`')
-            return RAND1 + atoi(s + 1);
+        if (front == '~')
+            return RAND0 + atoi(token.data() + 1);
+        if (front == '`')
+            return RAND1 + atoi(token.data() + 1);
         // then it's a modifier: recurse and add our flags.
-        i = actualval(s + 1, PREAL);
-        if (i == -1)
-            return -1;
+        i = actualval(token.substr(1), PREAL);
+        if (i == WNONE)
+            return WNONE;
         // The remaining prefixes can only be attached to properties of the player.
-        if (*s == '#' && (i & IWORD || (i & MEPRM && i & (SELF | FRIEND | HELPER | ENEMY))))
+        if (front == '#' && (i & IWORD || (i & MEPRM && i & (SELF | FRIEND | HELPER | ENEMY))))
             return PRANK + i;
-        if ((i & IWORD) == 0)
-            return -1;
-        if (*s == '?')
+        if (!(i & IWORD))
+            return WNONE;
+        if (front == '?')
             return OBVAL + i;
-        if (*s == '%')
+        if (front == '%')
             return OBDAM + i;
-        if (*s == '^')
+        if (front == '^')
             return OBWHT + i;
-        if (*s == '*')
+        if (front == '*')
             return OBLOC + i;
-        if (*s == '#')
+        if (front == '#')
             return PRANK + i;
-        return -1;
+        return WNONE;
     }
-    if (!isalpha(*s))
+    if (!isalpha(front))
         return -2;
     for (i = 0; i < NACTUALS; i++) {
-        if (stricmp(s, actual[i].name) != 0)
+        auto &cur = actual[i];
+        if (cur.m_name != token)
             continue;
         /* If its not a slot label, and the wtypes match, we's okay! */
-        if (!(actual[i].value & IWORD))
-            return (actual[i].wtype == n || n == PREAL) ? actual[i].value : -1;
+        if (!(cur.m_value & IWORD))
+            return (cur.m_wtype == n || n == PREAL) ? cur.m_value : -1;
 
         /* Now we know its a slot label... check which: */
-        switch (actual[i].value - IWORD) {
-        case IVERB: /* Verb */
-            if (n == PVERB || n == PREAL)
-                return actual[i].value;
-            return -1;
-        case IADJ1: /* Adjective #1 */
-            if (vbslot.wtype[0] == n)
-                return actual[i].value;
-            if (*(s + strlen(s) - 1) != '1' && vbslot.wtype[3] == n)
-                return IWORD + IADJ2;
-            if (n == PREAL)
-                return actual[i].value;
-            return -1;
-        case INOUN1: /* noun 1 */
-            if (vbslot.wtype[1] == n)
-                return actual[i].value;
-            if (*(s + strlen(s) - 1) != '1' && vbslot.wtype[4] == n)
-                return IWORD + INOUN2;
-            if (n == PREAL)
-                return actual[i].value;
-            return -1;
-        case IADJ2:
-            return (vbslot.wtype[3] == n || n == PREAL) ? actual[i].value : -1;
-        case INOUN2:
-            return (vbslot.wtype[4] == n || n == PREAL) ? actual[i].value : -1;
-        default:
-            return -1; /* Nah... Guru instead 8-) */
+        switch (cur.m_value - IWORD) {
+            case IVERB: /* Verb */
+                if (n == PVERB || n == PREAL)
+                    return cur.m_value;
+                return WNONE;
+
+            case IADJ1: /* Adjective #1 */
+                if (vbslot.wtype[0] == n)
+                    return cur.m_value;
+                if (token.back() != '1' && vbslot.wtype[3] == n)
+                    return IWORD + IADJ2;
+                if (n == PREAL)
+                    return cur.m_value;
+                return WNONE;
+
+            case INOUN1: /* noun 1 */
+                if (vbslot.wtype[1] == n)
+                    return cur.m_value;
+                if (token.back() != '1' && vbslot.wtype[4] == n)
+                    return IWORD + INOUN2;
+                if (n == PREAL)
+                    return cur.m_value;
+                return WNONE;
+            case IADJ2:
+                return (vbslot.wtype[3] == n || n == PREAL) ? cur.m_value : WNONE;
+
+            case INOUN2:
+                return (vbslot.wtype[4] == n || n == PREAL) ? cur.m_value : WNONE;
+
+            default:
+                return WNONE;
         }
     }
-    return -2; /* It was no actual! */
+    // We didn't recognize the thing at all
+    return WINVALID;
 }
 
-[[noreturn]] void
-badParameter(
-        const VMOP *op, size_t paramNo, const char *category, const char *issue, const char *token)
+void
+badParameter(string_view srcId,
+             const VMOP *op,
+             size_t paramNo,
+             const char *category,
+             const char *issue,
+             string_view token,
+             SourceFile *src = nullptr)
 {
     char msg[256];
-    if (token) {
-        snprintf(msg, sizeof(msg), "%s: '%s'", issue, token);
+    if (!token.empty()) {
+        snprintf(msg, sizeof(msg), "%s: '%s'", issue, std::string{ token }.c_str());
         issue = msg;
     }
-    afatal("%s=%s: %s=%s: parameter#%" PRIu64 ": %s", proc ? "verb" : "room",
-           proc ? g_verb.id : roomtab->id, category, op->name, paramNo + 1, issue);
+    if (!src) {
+        LogError(proc ? "verb" : "room",
+                 "=",
+                 srcId,
+                 ": ",
+                 category,
+                 "=",
+                 op->name,
+                 ": parameter#",
+                 paramNo + 1,
+                 ": ",
+                 issue);
+    } else {
+        src->Error(proc ? "verb" : "room",
+                   "=",
+                   srcId,
+                   ": ",
+                   category,
+                   "=",
+                   op->name,
+                   ": parameter#",
+                   paramNo + 1,
+                   ": ",
+                   issue);
+    }
 }
 
 // Check the parameters accompanying a vmop
-char *
-checkParameter(char *p, const VMOP *op, size_t paramNo, const char *category, FILE *fp)
+bool
+checkParameter(string_view srcId,
+               string_view token,
+               const VMOP *op,
+               VMOper *oper,
+               size_t paramNo,
+               const char *category,
+               SourceFile *src = nullptr)
 {
-    int32_t      value = -1;
+    amulid_t value = WNONE;
     const int8_t parameterType = op->parameters[paramNo];
-
-    p = skipOptionalPrefixes(p);
-    if (*p == 0) {
-        badParameter(op, paramNo, category, "Unexpected end of arguments", NULL);
-    }
-    static char token[4096];
-    char *      end = NULL;
-    if (*p != '\"' && *p != '\'') {
-        end = strstop(p, ' ');
-        WordCopier(token, p, end);
-    } else {
-        // Subsequent parsing will want to see the opening quote character
-        char quote = *p;
-        if (!*p || isEol(*p))
-            badParameter(
-                    op, paramNo, category, "Unexpected end of string (missing close quote?)", NULL);
-        end = strstop(p + 1, quote);
-        StrCopier(token, p, end);
-        if (*end == quote)
-            ++end;
-    }
-    p = end;
 
     /* Processing lang tab? */
     if ((parameterType >= 0 && parameterType <= 10) || parameterType == PREAL) {
         value = actualval(token, parameterType);
-        if (value == -1) {
+        if (value == WNONE) {
             /* it was an actual, but wrong type */
-            badParameter(op, paramNo, category, "Invalid syntax slot label", token);
+            badParameter(srcId, op, paramNo, category, "Invalid syntax slot label", token, src);
+            return false;
         }
-        if (value != -2)
-            goto write;
+        if (value != -2) {
+            oper->m_args[paramNo] = value;
+            return true;
+        }
     }
     switch (parameterType) {
-    case -6:
-        value = onoff(token);
-        break;
-    case -5:
-        value = bvmode(toupper(*token));
-        break;
-    case -4:
-        value = is_stat(token);
-        break;
-    case -3:
-        value = spell(token);
-        break;
-    case -2:
-        value = rdmode(toupper(*token));
-        break;
-    case -1:
-        value = announceType(token);
-        break;
-    case PROOM:
-        value = isroom(token);
-        break;
-    case PVERB:
-        value = is_verb(token);
-        break;
-    case PADJ:
-        break;
-    case PREAL:
-    case PNOUN:
-        value = isnounh(token);
-        break;
-    case PUMSG:
-        value = getTextString(token, true);
-        break;
-    case PNUM:
-        value = chknum(token);
-        break;
-    case PRFLAG:
-        value = isrflag(token);
-        break;
-    case POFLAG:
-        value = isoflag1(token);
-        break;
-    case PSFLAG:
-        value = isoflag2(token);
-        break;
-    case PSEX:
-        value = isgen(toupper(*token));
-        break;
-    case PDAEMON:
-        if ((value = is_verb(token)) == -1 || *token != '.')
-            value = -1;
-        break;
-    default: {
-        if (!(proc == 1 && parameterType >= 0 && parameterType <= 10)) {
-            char param[32];
-            snprintf(param, sizeof(param), "%d", parameterType);
-            badParameter(op, paramNo, category, "INTERNAL ERROR: Unhandled parameter type", param);
+        case -6:
+            value = onoff(token) ? 1 : 0;
+            break;
+        case -5:
+            value = bvmode(toupper(token.front()));
+            break;
+        case -4:
+            value = is_stat(token);
+            break;
+        case -3:
+            value = spell(token);
+            break;
+        case -2:
+            value = rdmode(toupper(token.front()));
+            break;
+        case -1:
+            value = announceType(token);
+            break;
+        case PROOM:
+            value = isRoomName(token);
+            break;
+        case PVERB:
+            value = IsVerb(token);
+            break;
+        case PADJ:
+            break;
+        case PREAL:
+        case PNOUN:
+            value = isNoun(token);
+            break;
+        case PUMSG:
+            value = getTextString(token);
+            break;
+        case PNUM:
+            value = chknum(token.data());
+            break;
+        case PRFLAG:
+            value = isRoomFlag(token);
+            break;
+        case POFLAG:
+            value = IsObjectFlag(token);
+            break;
+        case PSFLAG:
+            value = IsObjectStateFlag(token);
+            break;
+        case PSEX:
+            value = isgen(toupper(token.front()));
+            break;
+        case PDAEMON:
+            if ((value = IsVerb(token)) == -1 || token.front() != '.')
+                value = -1;
+            break;
+        default: {
+            if (!(proc == 1 && parameterType >= 0 && parameterType <= 10)) {
+                char param[32];
+                snprintf(param, sizeof(param), "%d", parameterType);
+                badParameter(srcId,
+                             op,
+                             paramNo,
+                             category,
+                             "INTERNAL ERROR: Unhandled parameter type",
+                             param,
+                             src);
+                return false;
+            }
         }
-    }
     }
     if (parameterType == PREAL && value == -2)
         value = -1;
     else if (((value == -1 || value == -2) && parameterType != PNUM) || value == -1000001) {
-        badParameter(op, paramNo, category, "Invalid/unrecognized value for position", token);
+        badParameter(srcId,
+                     op,
+                     paramNo,
+                     category,
+                     "Invalid/unrecognized value for position",
+                     token,
+                     src);
+        return false;
     }
-write:
-    FPos += checkedfwrite(&value, sizeof(value), 1, fp);
-    return *p ? skipspc(p + 1) : p;
+
+    oper->m_args[paramNo] = value;
+    return true;
+}
+
+string_view
+selectToken(string_view srcId, const VMOP *op, size_t paramNo, const char *category, char *&p)
+{
+    p = skipOptionalPrefixes(p);
+    if (!p || *p == '\0') {
+        badParameter(srcId, op, paramNo, category, "Unexpected end of arguments", nullptr);
+        return "";
+    }
+
+    char *begin = p;
+    char *end = nullptr;
+    if (*p != '\"' && *p != '\'') {
+        end = strstop(p, ' ');
+        p = end;
+    } else {
+        // Subsequent parsing will want to see the opening quote character
+        char quote = *(p++);
+        if (!*p || isEol(*p))
+            badParameter(srcId,
+                         op,
+                         paramNo,
+                         category,
+                         "Unexpected end of string (missing close quote?)",
+                         nullptr);
+        end = strstop(p, quote);
+        if (*end == quote)
+            p = end + 1;
+    }
+    return string_view{ begin, size_t(end - begin) };
 }
 
 char *
-checkParameters(char *p, const VMOP *op, FILE *fp, const char *category)
+checkParameters(string_view srcId, char *p, const VMOP *op, VMOper *ins, const char *category)
 {
     for (size_t i = 0; i < op->parameterCount; i++) {
-        if (!(p = checkParameter(p, op, i, category, fp)))
-            return NULL;
+        string_view token = selectToken(srcId, op, i, category, p);
+        if (!p || !checkParameter(srcId, token, op, ins, i, category))
+            return nullptr;
     }
     return p;
 }
 
-char *
-checkActionParameters(char *p, const VMOP *op, FILE *fp)
+ssize_t
+checkParameters(string_view srcId,
+                SourceFile::iterator begin,
+                SourceFile::iterator end,
+                const VMOP *op,
+                VMOper *ins,
+                const char *category,
+                SourceFile &src)
 {
-    return checkParameters(p, op, fp, "action");
+    auto it = begin;
+    for (size_t i = 0; i < op->parameterCount; ++i, ++it) {
+        for (;;) {
+            if (it == end) {
+                src.Error("Unexpected end of ", category, "parameters");
+                return -1;
+            }
+            if (OptionalPrefixes.find(*it) == OptionalPrefixes.end())
+                break;
+            ++it;
+        }
+        if (!checkParameter(srcId, *it, op, ins, i, category))
+            return -1;
+    }
+    return std::distance(begin, it);
 }
 
 char *
-checkConditionParameters(char *p, const VMOP *op, FILE *fp)
+checkActionParameters(string_view srcId, char *p, const VMOP *op, VMLine *line)
 {
-    return checkParameters(p, op, fp, "condition");
+    return checkParameters(srcId, p, op, &(line->action), "action");
 }
 
-void
-chae_err()
+auto
+checkActionParameters(string_view srcId,
+                      SourceFile::iterator begin,
+                      SourceFile::iterator end,
+                      VMLine *line,
+                      SourceFile &src)
 {
-    alog(AL_ERROR, "Verb: %s: Invalid '#CHAE' flag: %s", g_verb.id, Word);
+    return checkParameters(
+            srcId, begin, end, &actions[line->action.m_op], &line->action, "action", src);
+}
+
+char *
+checkConditionParameters(const char *srcId, char *p, const VMOP *op, VMLine *line)
+{
+    return checkParameters(srcId, p, op, &(line->condition), "condition");
+}
+
+auto
+checkConditionParameters(string_view srcId,
+                         SourceFile::iterator begin,
+                         SourceFile::iterator end,
+                         VMLine *line,
+                         SourceFile &src)
+{
+    return checkParameters(srcId,
+                           begin,
+                           end,
+                           &conditions[line->condition.m_op],
+                           &line->condition,
+                           "condition",
+                           src);
+}
+
+static void
+chae_err(const Verb &verb, string_view word)
+{
+    LogError("Verb: ", verb.id, ": Invalid '#CHAE' flag: ", word);
 }
 
 /* Set the VT slots */
 void
-setslots(unsigned char i)
+setslots(const WType i)
 {
     vbslot.wtype[0] = WANY;
     vbslot.wtype[1] = i;
@@ -1042,63 +1046,63 @@ setslots(unsigned char i)
 }
 
 /* Is 'text' a ptype */
-int
+WType
 iswtype(char *s)
 {
-    for (int i = 0; i < NSYNTS; i++) {
+    for (WType i = WType(0); i < WType(NSYNTS); i = WType(int(i) + 1)) {
         char *end = s;
-        if (!canSkipLead(syntax[i], &end))
+        if (!canSkipLead(syntaxes[i], &end))
             continue;
         switch (*end) {
-        // exact match
-        case 0:
-            *s = 0;
-            break;
-        // x=y
-        case '=':
-            memmove(s, end + 1, strlen(end));
-            break;
-        // partial match, ignore
-        default:
-            continue;
+            // exact match
+            case 0:
+                *s = 0;
+                break;
+            // x=y
+            case '=':
+                memmove(s, end + 1, strlen(end));
+                break;
+            // partial match, ignore
+            default:
+                continue;
         }
         // this makes 'WNONE' become -1 and 'WANY' become 0. Ick.
-        return i - 1;
+        return WType(int(i) + int(WNONE));
     }
-    return -3;  /// TODO: INVALID_WTYPE
+    return WINVALID;
 }
 
 /* Declare a PROBLEM, and which verb its in! */
-[[noreturn]] void
-vbprob(const char *s, const char *s2)
+static void
+vbprob(const Verb &verb, const char *s, const char *s2)
 {
-    afatal("Verb: %s line: '%s': %s", g_verb.id, s2, s);
+    LogError("Verb: ", verb.id, " line: '", s2, "': ", s);
 }
 
 void
-mobmis(const char *s)
+npcMissing(const char *s)
 {
-    alog(AL_ERROR, "Mobile: %s: missing field: %s", mob.id, s);
-    skipblock();
+    LogError("npc: ", npc.id, ": missing field: ", s);
+    skipParagraph();
 }
 
-/* Fetch mobile message line */
+/* Fetch npc message line */
 stringid_t
-getmobmsg(const char *s)
+getNpcMessage(const char *s)
 {
     for (;;) {
-        char *p = getTidyBlock(ifp);
+        char *p = getTidiedLineToScratch(ifp);
         if (feof(ifp))
-            afatal("Mobile:%s: Unexpected end of file", mob.id);
+            LogFatal("npc:", npc.id, ": Unexpected end of file");
         if (*p == 0 || isEol(*p)) {
-            afatal("Mobile: %s: unexpected end of definition", mob.id);
+            LogFatal("npc:", npc.id, ": Unexpected end of definition");
         }
         p = skipspc(p);
         if (*p == 0 || isEol(*p) || isCommentChar(*p))
             continue;
 
         if (!canSkipLead(s, &p)) {
-            mobmis(s);
+            npcMissing(s);
             return -1;
         }
         if (toupper(*p) == 'N') {
@@ -1108,7 +1112,7 @@ getmobmsg(const char *s)
         stringid_t n = getTextString(p, true);
         p = skipline(p);
         if (n == -1) {
-            alog(AL_ERROR, "Mobile: %s: Invalid '%s' line", mob.id, s);
+            LogError("npc:", npc.id, ": Invalid '", s, "' line");
         }
         return n;
     }
@@ -1116,146 +1120,128 @@ getmobmsg(const char *s)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void
-saveRoomDmove(const char *dmove)
-{
-    /// TODO: Implement
-}
-
-void
-load_rooms()
-{
-    fopenr(roomDataFile);  // load rooms
-    if (reuseRoomData) {
-        fseek(ifp, 0, SEEK_END);
-        g_gameConfig.numRooms = ftell(ifp) / sizeof(*rmtab);
-        fseek(ifp, 0, SEEK_SET);
-        rewind(ifp);
-    }
-    rmtab = (_ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameConfig.numRooms);
-    if (rmtab == NULL) {
-        afatal("Out of memory for room id table");
-    }
-    size_t roomsInFile = fread(rmtab, sizeof(*rmtab), g_gameConfig.numRooms, ifp);
-    if (roomsInFile != g_gameConfig.numRooms) {
-        afatal("Room table appears to be corrupted. Recompile.");
-    }
-}
-
 // Process ROOMS.TXT
 void
-room_proc()
+room_proc(const std::string &filepath)
 {
-    if (reuseRoomData)
-        return;
+    SourceFile src{ filepath };
+    if (error_t err = src.Open(); err != 0) {
+        LogFatal("Aborting due to file error: ", filepath, ": ", err);
+    }
 
-    // Seek to the next non-whitespace, non-comment character. The 'true' will
-    // make it an error not to find one.
-    nextc(true);
+    std::string text{};
+    text.reserve(4096);
 
-    // Open the output file as ofp1
-    fopenw(roomDataFile);
+    g_game.m_rooms.reserve(512);
 
-    do {
+    while (!src.Eof()) {
         // Terminate if we've reached the error limit.
-        checkErrorCount();
+        CheckErrorCount();
 
-        // Seek to the next useful character (we'll already be there first time)
-        if (!nextc(false))
-            break;
-
-        // Fetch all the text from here to the next double-eol (end of paragraph),
-        // convert tabs in it to spaces, etc.
-        char *p = getTidyBlock(ifp);
-        if (!p)
-            continue;
-
-        // Copy the text at 'p' into 'Word', unless it is prefixed with "room=",
-        // in which case first skip the prefix.
-        p = getWordAfter("room=", p);
-        if (strlen(Word) < 3 || strlen(Word) > IDL) {
-            *p = 0;
-            alog(AL_ERROR, "Invalid ID (length): %s", p);
-            skipblock();
+        // Try and consume some non-whitespace tokens
+        if (!src.GetIDLine("room=")) {
             continue;
         }
-		alog(AL_DEBUG, "room=%s", Word);
 
         // Because 'room' is a global, we have to clear it out.
-        memset(&room, 0, sizeof(room));
-        strncpy(room.id, Word, sizeof(room.id));
+        std::string rmname{ src.line.front() };
+        StringLower(rmname);
+
+        Room room{};
+        strncpy(room.id, rmname.c_str(), sizeof(room.id));
 
         // If there are additional words on the line, they are room flags.
-        room.flags = 0;
-        room.tabptr = -1;
-        for (;;) {
-            p = skipspc(p);
-            if (!*p)
-                break;
-            p = getword(p);
-            char *dmove = Word;
-            if (canSkipLead("dmove", &dmove)) {
-                if (room.dmove[0] != 0)
-                    alog(AL_ERROR, "room:%s: duplicate dmove flag", room.id);
-                else
-                    WordCopier(room.dmove, dmove, strstop(dmove, ' '));
+
+        for (auto it = src.line.begin() + 1; it != src.line.end(); ++it) {
+            auto token = *it;
+            if (RemovePrefix(token, "dmove=")) {
+                if (token.empty()) {
+                    LogError(src, "room:", rmname, ": dmove= without a destination name");
+                    continue;
+                }
+                if (s_dmoveLookups.find(rmname) != s_dmoveLookups.end()) {
+                    LogError(src, "room:", rmname, ": multiple 'dmove's");
+                    break;
+                }
+                std::string dmove{ token };
+                StringLower(dmove);
+                s_dmoveLookups[rmname] = dmove;
                 continue;
             }
-            int no = isrflag(Word);
+
+            std::string flag{ *it };
+            StringLower(flag);
+            int no = isRoomFlag(flag);
             if (no == -1) {
-                alog(AL_ERROR, "room:%s: Invalid room flag: %s", room.id, Word);
+                LogError(src, "room:", rmname, ": invalid room flag: ", *it);
                 continue;
             }
-            if (room.flags & bitset(no)) {
-                alog(AL_WARN, "room:%s: Duplicate room flag: %s", room.id, Word);
+            if (no == 0)
+                continue;
+            auto bit = bitset(no - 1);
+            if (room.flags & bit) {
+                LogWarn(src, "room:", rmname, ": duplicate room flag: ", *it);
             }
-            room.flags |= bitset(no);
+            room.flags |= bit;
         }
 
-        // Everything else in the current block is the room description.
-        error_t err = TextStringFromFile(NULL, ifp, &room.descid);
-        if (err != 0) {
-            alog(AL_ERROR, "room:%s: Unable to write description", room.id);
-            skipblock();
+        if (src.GetLine() && !src.line.empty() && !src.line.front().empty()) {
+            if (src.line.front().front() == '\t')
+                src.line.front().remove_prefix(1);
+            // Short description.
+            AddTextString(src.line.front(), false, &room.shortDesc);
+
+            // Check for a long description.
+            text.clear();
+            src.GetLines(text);
+            if (!text.empty())
+                AddTextString(text, false, &room.longDesc);
+        }
+
+        s_roomIdx[rmname] = g_game.m_rooms.size();
+        g_game.m_rooms.push_back(room);
+
+        ++g_game.numRooms;
+    }
+
+    for (auto &it : s_dmoveLookups) {
+        CheckErrorCount();
+        const auto &rmname = it.first, &dmoveName = it.second;
+        auto dmoveIt = s_roomIdx.find(dmoveName);
+        if (dmoveIt == s_roomIdx.end()) {
+            LogError("room:", rmname, ": could not resolve 'dmove': ", dmoveName);
             continue;
         }
-        checkedfwrite(room.id, sizeof(room), 1, ofp1);
-
-        ++g_gameConfig.numRooms;
-    } while (!feof(ifp));
-}
-
-void
-checkdmoves()
-{
-    if (!checkDmoves || dmoves == 0)
-        return;
-    /// TODO: Check dmoves
+        auto roomIt = s_roomIdx.find(rmname);
+        if (roomIt == s_roomIdx.end())
+            LogFatal("room:", rmname, ": internal error: room not present in index");
+        g_game.m_rooms[roomIt->second].dmove = dmoveIt->second;
+    }
 }
 
 /* Process RANKS.TXT */
 void
-rank_proc()
+rank_proc(const std::string & /*filepath*/)
 {
     nextc(true);
-
-    fopenw(rankDataFile);
 
     while (!feof(ifp)) {
         if (!nextc(false))
             break;
 
-        char *p = getTidyBlock(ifp);
+        char *p = getTidiedLineToScratch(ifp);
         if (!p)
             continue;
 
-        p = getword(block);
+        p = getword(scratch);
         if (!checkRankLine(p))
             continue;
 
-        if (strlen(Word) < 3 || p - block > RANKL) {
-            afatal("Rank %" PRIu64 ": Invalid male rank: %s", g_gameConfig.numRanks + 1, Word);
+        if (strlen(Word) < 3 || p - scratch > RANKL) {
+            LogFatal("Rank ", g_game.numRanks + 1, ": Invalid male rank: ", Word);
         }
+
+        Rank rank{};
         int n = 0;
         do {
             if (Word[n] == '_')
@@ -1268,7 +1254,7 @@ rank_proc()
         if (!checkRankLine(p))
             continue;
         if (strcmp(Word, "=") != 0 && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
-            afatal("Rank %d: Invalid female rank: %s", g_gameConfig.numRanks + 1, Word);
+            LogFatal("Rank ", g_game.numRanks + 1, ": Invalid female rank: ", Word);
         }
         if (Word[0] != '=') {
             n = 0;
@@ -1284,77 +1270,77 @@ rank_proc()
         if (!checkRankLine(p))
             continue;
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid score value: %s", Word);
+            LogError("Invalid score value: ", Word);
             continue;
         }
         rank.score = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid strength value: %s", Word);
+            LogError("Invalid strength value: ", Word);
             continue;
         }
         rank.strength = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid stamina value: %s", Word);
+            LogError("Invalid stamina value: ", Word);
             continue;
         }
         rank.stamina = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid dexterity value: %s", Word);
+            LogError("Invalid dexterity value: ", Word);
             continue;
         }
         rank.dext = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid wisdom value: %s", Word);
+            LogError("Invalid wisdom value: ", Word);
             continue;
         }
         rank.wisdom = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid experience value: %s", Word);
+            LogError("Invalid experience value: ", Word);
             continue;
         }
         rank.experience = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid magic points value: %s", Word);
+            LogError("Invalid magic points value: ", Word);
             continue;
         }
         rank.magicpts = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid max weight value: %s", Word);
+            LogError("Invalid max weight value: ", Word);
             continue;
         }
         rank.maxweight = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid max inventory value: %s", Word);
+            LogError("Invalid max inventory value: ", Word);
             continue;
         }
         rank.numobj = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid kill points value: %s", Word);
+            LogError("Invalid kill points value: ", Word);
             continue;
         }
         rank.minpksl = atoi(Word);
 
         p = getword(p);
         if (!isdigit(Word[0])) {
-            alog(AL_ERROR, "Invalid task number: %s", Word);
+            LogError("Invalid task number: ", Word);
             continue;
         }
         rank.tasks = atoi(Word);
@@ -1362,316 +1348,383 @@ rank_proc()
         p = skipspc(p);
         if (*p == '\"')
             p++;
-        strcpy(block, p);
-        p = block;
+        strcpy(scratch, p);
+        p = scratch;
         while (*p != 0 && *p != '\"')
             p++;
         /* Greater than prompt length? */
-        if (p - block > 10) {
-            alog(AL_ERROR, "Rank %" PRIu64 " prompt too long: %s", g_gameConfig.numRanks + 1,
-                 block);
+        if (p - scratch > 10) {
+            LogError("Rank #", g_game.numRanks + 1, ": prompt too long: ", scratch);
             continue;
         }
-        if (block[0] == 0)
+        if (scratch[0] == 0)
             strcpy(rank.prompt, "$ ");
         else
-            WordCopier(rank.prompt, block, p);
+            WordCopier(rank.prompt, scratch, p);
 
         wizstr = rank.strength;
-        checkedfwrite(rank.male, sizeof(rank), 1, ofp1);
-        g_gameConfig.numRanks++;
+        g_game.m_ranks.push_back(rank);
+        g_game.numRanks++;
     }
 }
 
-// void
-// sort_objs()
-//{
-//    int   i, j, k, nts;
-//    long *rmtab, *rmptr;
-//
-//    if (ifp != NULL)
-//        fclose(ifp);
-//    ifp = NULL;
-//    closeOutFiles();
-//    fopenr(objectStateFile);
-//    blkget(&datal, &data, NULL);
-//    fclose(ifp);
-//    ifp = NULL;
-//    closeOutFiles();
-//    fopenr(objrmsfn);
-//    blkget(&datal2, &data2, NULL);
-//    fclose(ifp);
-//    ifp = NULL;
-//    closeOutFiles();
-//    fopenw(objsfn);
-//    fopenw(objectStateFile);
-//    fopenw(objrmsfn);
-//    fopenw(ntabfn);
-//    ifp = NULL;
-//
-//    printf("Sorting Objects...:\r");
-//    objtab2 = obtab2;
-//    nts = 0;
-//    k = 0;
-//
-//    statab = (_OBJ_STATE *)data;
-//    rmtab = (long *)data2;
-//    for (i = 0; i < nouns; i++) {
-//        if (*(objtab2 = (obtab2 + i))->id == 0) {
-//            printf("@! skipping %ld states, %ld rooms.\n", objtab2->nstates, objtab2->nrooms);
-//            statab += objtab2->nstates;
-//            rmtab += objtab2->nrooms;
-//            continue;
-//        }
-//        strcpy(nountab.id, objtab2->id);
-//        nts++;
-//        nountab.num_of = 0;
-//        osrch = objtab2;
-//        statep = statab;
-//        rmptr = rmtab;
-//        for (j = i; j < nouns; j++, osrch++) {
-//            if (*(osrch->id) != 0 && stricmp(nountab.id, osrch->id) == 0) {
-//                fwrite((char *)osrch, sizeof(obj), 1, ofp1);
-//                fwrite((char *)statep, sizeof(state), osrch->nstates, ofp2);
-//                fwrite((char *)rmptr, sizeof(long), osrch->nrooms, ofp3);
-//                nountab.num_of++;
-//                *osrch->id = 0;
-//                if (osrch != objtab)
-//                    k++;
-//                statep += osrch->nstates;
-//                rmptr += osrch->nrooms;
-//                if (osrch == objtab2) {
-//                    statab = statep;
-//                    rmtab = rmptr;
-//                    objtab2++;
-//                    i++;
-//                }
-//            } else
-//                statep += osrch->nstates;
-//            rmptr += osrch->nrooms;
-//        }
-//
-//        fwrite((char *)&nountab, sizeof(nountab), 1, ofp4);
-//    }
-//    printf("%20s\r%ld objects moved.\n", " ", k);
-//    ReleaseMem(datal);
-//    ReleaseMem(datal2);
-//    data = data2 = NULL;
-//    fopenr(objsfn);
-//    fread((char *)obtab2, sizeof(obj), nouns, ifp);
-//}
+constexpr auto StateError = [](const SourceFile &src, const Object &obj, const auto &... args) {
+    LogError(src.filepath,
+             ":",
+             src.lineNo,
+             ":",
+             obj.id,
+             ":state#",
+             uint32_t(obj.nstates),
+             ": ",
+             args...);
+    return false;
+};
 
-void
-state_proc()
+constexpr auto parseObjectStateAttribute =
+        []<typename T>(SourceFile & src, Object &obj, string_view prefix, T *into)
 {
-    state.weight = state.value = state.flags = 0;
-    state.description = -1;
+    if (src.Eol()) {
+        return StateError(src, obj, "Premature end of state line (expected ", prefix, " value)");
+    }
+    auto cur = src.PopFront();
+    int64_t value{ 0 };
+    auto result = std::from_chars(cur.data(), cur.data() + cur.size(), value);
+    if (value > std::numeric_limits<T>::max()) {
+        return StateError(src,
+                          obj,
+                          "Invalid attribute value: ",
+                          cur,
+                          " (expected a positive numeric ",
+                          prefix,
+                          " value)");
+    }
+    if constexpr (std::numeric_limits<T>::min() == 0) {
+        if (value < 0) {
+            return StateError(
+                    src, obj, "Invalid ", prefix, " value (expected a positive value): ", value);
+        }
+    }
+    *into = static_cast<T>(value);
+    return true;
+};
 
-    /* Get the weight of the object */
-    char *p = getWordAfter("weight=", block);
-    if (Word[0] == 0)
-        stateInvalid("incomplete");
-    if (!isdigit(Word[0]) && Word[0] != '-')
-        stateInvalid("weight value on");
-    state.weight = atoi(Word);
-    if (obj2.flags & OF_SCENERY)
-        state.weight = wizstr + 1;
+bool
+parseObjectStateAttributes(SourceFile &src, Object &obj, ObjState &state)
+{
+    if (!parseObjectStateAttribute(src, obj, "weight=", &state.weight))
+        return false;
+    if (!parseObjectStateAttribute(src, obj, "value=", &state.value))
+        return false;
+    if (!src.Eol())
+        RemovePrefix(src.line.front(), "str=");
+    if (!parseObjectStateAttribute(src, obj, "health=", &state.value))
+        return false;
+    if (!parseObjectStateAttribute(src, obj, "dmg=", &state.damage))
+        return false;
 
-    /* Get the value of it */
-    p = getWordAfter("value=", p);
-    if (Word[0] == 0)
-        stateInvalid("incomplete");
-    if (!isdigit(Word[0]) && Word[0] != '-')
-        stateInvalid("value entry on");
-    state.value = atoi(Word);
+    return true;
+}
 
-    /* Get the strength of it (hit points)*/
-    p = getWordAfter("str=", p);
-    if (Word[0] == 0)
-        stateInvalid("incomplete");
-    if (!isdigit(Word[0]) && Word[0] != '-')
-        stateInvalid("strength entry on");
-    state.strength = atoi(Word);
+bool
+parseObjectState(SourceFile &src, Object &obj)
+{
+    ObjState state{};
+    // scenery objects don't have stat attributes
+    if (!(obj.flags & OF_SCENERY)) {
 
-    /* Get the damage it does as a weapon*/
-    p = getWordAfter("dmg=", p);
-    if (Word[0] == 0)
-        stateInvalid("incomplete");
-    if (!isdigit(Word[0]) && Word[0] != '-')
-        stateInvalid("damage entry on");
-    state.damage = atoi(Word);
-
-    /* Description */
-    p = skiplead("desc=", skipspc(p));
-    if (*p == 0)
-        stateInvalid("incomplete");
-    if (*p == '\"' || *p == '\'') {
-        state.description = getTextString(p, false);
-        char quote = *p;
-        p = strstop(p + 1, *p);
-        if (*p == quote)
-            ++p;
+        if (!parseObjectStateAttributes(src, obj, state))
+            return false;
     } else {
-        p = getword(p);
-        state.description = getObjectDescriptionID(Word);
+        state.weight = ~0U;
     }
-    if (state.description == -1) {
-        char tmp[128];
-        snprintf(tmp, sizeof(tmp), "desc= ID (%s) on", &Word[0]);
-        stateInvalid(tmp);
+
+    if (src.Eol())
+        return StateError(src, obj, "Expected state description id/string");
+
+    auto cur = src.PopFront();
+    RemovePrefix(cur, "desc=");
+    state.description = getTextString(cur);
+
+    while (!src.Eol()) {
+        std::string cur = std::string{ src.PopFront() };
+        StringLower(cur);
+        if (int flag = IsObjectStateFlag(cur); flag != WNONE) {
+            state.flags |= bitset(flag);
+        } else {
+            StateError(src, obj, "Unrecognized object state flag: ", cur);
+            return false;
+        }
     }
-    while (*(p = skipspc(p)) != 0) {
-        p = getword(p);
-        if (Word[0] == 0)
-            break;
-        int flag = isoflag2(Word);
-        if (flag == -1)
-            stateInvalid("flag on");
-        state.flags |= bitset(flag);
+
+    g_game.m_objectStates.push_back(state);
+    obj.nstates++;
+    g_game.numObjStates++;
+
+    return true;
+}
+
+bool
+processObjectStates(SourceFile &src, Object &obj)
+{
+    while (src.GetLineTerms()) {
+        CheckErrorCount();
+        parseObjectState(src, obj);
     }
-    checkedfwrite(&state.weight, sizeof(state), 1, ofp2);
-    obj2.nstates++;
-    g_gameConfig.numObjStates++;
+    return true;
+}
+
+constexpr auto ObjectError = [](const SourceFile &src, const Object &obj, const auto &... args) {
+    LogError(src.filepath, ":", src.lineNo, ":", obj.id, ": ", args...);
+    return false;
+};
+
+bool
+processObjectAdj(const SourceFile &src, Object &obj, string_view cur)
+{
+    if (cur.length() < 3 || cur.length() > IDL) {
+        return ObjectError(src, obj, "Invalid adjective (length): ", cur);
+    }
+
+    if (auto it = s_adjectiveIdx.find(Word); it != s_adjectiveIdx.cend()) {
+        obj.adj = it->second;
+        return true;
+    }
+
+    Adjective adj{};
+    strncpy(adj.word, cur.data(), std::min(sizeof(adj.word), cur.length()));
+    adjid_t id = s_adjectiveIdx[std::string{ cur }] = adjid_t(g_game.m_adjectives.size());
+    g_game.m_adjectives.push_back(adj);
+    g_game.numAdjectives++;
+
+    return true;
+}
+
+bool
+processObjectStartState(const SourceFile &src, Object &obj, string_view cur)
+{
+    int stateNo{ 0 };
+    auto result = std::from_chars(cur.data(), cur.data() + cur.size(), stateNo);
+    if (result.ec == std::errc::invalid_argument) {
+        return ObjectError(src, obj, "Invalid start state (expected a numeric value): ", cur);
+    }
+    if (stateNo < 0) {
+        return ObjectError(src, obj, "Invalid start state (expected a positive value): ", cur);
+    }
+    obj.state = stateNo;
+    return true;
+}
+
+bool
+processObjectHolds(const SourceFile &src, Object &obj, string_view cur)
+{
+    int holds{ 0 };
+    auto result = std::from_chars(cur.data(), cur.data() + cur.size(), holds);
+    if (result.ec == std::errc::invalid_argument) {
+        return ObjectError(src, obj, "Invalid holds= value (expected a numeric value): ", cur);
+    }
+    if (holds < 0) {
+        return ObjectError(src, obj, "Invalid holds= value (expected a positive value): ", cur);
+    }
+    if (holds > 1000000) {
+        return ObjectError(
+                src, obj, "Invalid holds= value (expected 0 <= value <= 1000000): ", holds);
+    }
+    obj.contains = holds;
+    return true;
+}
+
+bool
+processObjectPrep(const SourceFile &src, Object &obj, string_view cur)
+{
+    for (int i = 0; i < NPUTS; i++) {
+        if (cur == obputs[i]) {
+            obj.putto = i;
+            return true;
+        }
+    }
+    return ObjectError(src, obj, "Unrecognized object put= preposition type: ", cur);
+}
+
+bool
+processObjectMob(const SourceFile &src, Object &obj, string_view cur)
+{
+    for (int i = 0; i < int(g_game.numNPCClasses); i++) {
+        if (cur == npcp[i].id) {
+            obj.npc = i;
+            return true;
+        }
+    }
+    return ObjectError(src, obj, "Unrecognized npc= identity: ", cur);
 }
 
 void
-objs_proc()
+processObjectParam(const SourceFile &src, Object &obj, ObjectParameter paramNo, string_view cur)
 {
-    /* Clear files */
-    fopenw(objectDataFile);
-    fopenw(objectStateFile);
-    fopenw(objectRoomFile);
-    fopena(adjectiveDataFile);
-
-    obtab2 = (_OBJ_STRUCT *)AllocateMem(filesize() + 128 * sizeof(obj2));
-    if (obtab2 == NULL)
-        afatal("Out of memory");
-
-    if (!nextc(false)) {
-        return;
-    } /* Nothing to process: ///TODO: Warning */
-
-    while (!feof(ifp)) {
-        checkErrorCount();
-
-        if (!nextc(false))
+    switch (paramNo) {
+        case OP_NONE:
             break;
+        case OP_ADJ:
+            processObjectAdj(src, obj, cur);
+            break;
+        case OP_START:
+            processObjectStartState(src, obj, cur);
+            break;
+        case OP_HOLDS:
+            processObjectHolds(src, obj, cur);
+            break;
+        case OP_PUT:
+            processObjectPrep(src, obj, cur);
+            break;
+        case OP_MOB:
+            if (processObjectMob(src, obj, cur))
+                g_game.numNPCs++;
+            break;
+        default:
+            ObjectError(src,
+                        obj,
+                        "Internal Error: object-parameter ",
+                        obparms[paramNo],
+                        " not supported");
+    }
+}
 
-        char *cur = getTidyBlock(ifp);
-        if (!cur)
+bool
+processObjectFlags(SourceFile &src, Object &obj)
+{
+    while (!src.Eol()) {
+        auto cur = src.PopFront();
+
+        if (auto flagbit = IsObjectFlag(cur); flagbit != WNONE) {
+            obj.flags |= bitset(flagbit);
+            continue;
+        }
+        if (auto paramNo = GetObjectParam(cur); paramNo != OP_NONE) {
+            processObjectParam(src, obj, paramNo, cur);
+            continue;
+        }
+        return ObjectError(src, obj, "Invalid parameter: ", cur);
+    }
+    return true;
+}
+
+bool
+processObjectRooms(SourceFile &src, Object &obj)
+{
+    static std::set<roomid_t> locations{};
+    locations.clear();
+
+    if (!src.GetLineTerms()) {
+        return ObjectError(src, obj, "Unexpected end of object (expected object locations)");
+    }
+
+    // Allow the line to start with "rooms=" or "room="
+    if (!RemovePrefix(src.line.front(), "rooms="))
+        RemovePrefix(src.line.front(), "room=");
+
+    bool valid = true;
+    while (!src.Eol()) {
+        auto cur = src.PopFront();
+        if (roomid_t roomNo = isRoomName(cur); roomNo != WNONE) {
+            locations.insert(roomNo);
+            continue;
+        }
+        if (objid_t objId = isContainer(cur); objId != WNONE) {
+            locations.insert(-(INS + objId));
+            continue;
+        }
+        ObjectError(src, obj, "Unrecognized start room/container: ", cur);
+        valid = false;
+    }
+
+    if (locations.empty()) {
+        ObjectError(src, obj, "No start locations.");
+        valid = false;
+    } else if (valid) {
+        g_game.m_objectLocations.insert(
+                g_game.m_objectLocations.end(), locations.begin(), locations.end());
+        obj.nrooms = uint16_t(locations.size());
+        g_game.numObjLocations += obj.nrooms;
+    }
+
+    return valid;
+}
+
+void
+objs_proc(const std::string &filepath)
+{
+    SourceFile src{ filepath };
+    if (error_t err = src.Open(); err != 0) {
+        LogFatal("Aborting due to file error: ", filepath, ": ", err);
+    }
+
+    g_game.m_rooms.reserve(512);
+
+    while (!src.Eof()) {
+        // Terminate if we've reached the error limit.
+        CheckErrorCount();
+
+        if (!src.GetIDLine("object="))
             continue;
 
-        cur = getWordAfter("noun=", cur);
-        if (Word[0] == 0) {
-            alog(AL_ERROR, "noun= line with no noun");
-            skipblock();
+        std::string id{ src.PopFront() };
+        StringLower(id);
+
+        Object obj{};
+        obj.adj = obj.npc = WNONE;
+        obj.idno = g_game.numObjects;
+        obj.state = 0;
+        obj.nrooms = 0;
+        obj.nstates = 0;
+        obj.contains = 0;
+        obj.flags = 0;
+        obj.putto = 0;
+        obj.roomsOffset = g_game.m_objectLocations.size();
+        strncpy(obj.id, id.c_str(), sizeof(obj.id));
+
+        if (!processObjectFlags(src, obj)) {
+            src.SkipBlock();
             continue;
         }
-		alog(AL_DEBUG, "noun=%s", Word);
-        if (strlen(Word) < 3 || strlen(Word) > IDL) {
-            alog(AL_ERROR, "Invalid object name (length): %s", cur);
-            skipblock();
+
+        if (!processObjectRooms(src, obj)) {
+            src.SkipBlock();
+            continue;
+        }
+        if (!processObjectStates(src, obj)) {
+
+            src.SkipBlock();
             continue;
         }
 
-        obj2.adj = obj2.mobile = -1;
-        obj2.idno = g_gameConfig.numObjects;
-        obj2.state = 0;
-        obj2.nrooms = 0;
-        obj2.contains = 0;
-        obj2.flags = 0;
-        obj2.putto = 0;
-        obj2.rmlist = (roomid_t *)ftell(ofp3);
-        strncpy(obj2.id, Word, sizeof(obj2.id));
-        /// TODO: Register noun
-
-        while (*cur) {
-            cur = getword(cur);
-            if (!Word[0])
-                break;
-
-            int idNo = isoflag1(Word);
-            if (idNo != -1)
-                obj2.flags |= idNo;
-            else {
-                idNo = isoparm(Word);
-                if (idNo == -1) {
-                    alog(AL_ERROR, "object:%s: Invalid parameter: %s", obj2.id, Word);
-                    continue;
-                }
-                switch (bitset(idNo)) {
-                case OP_ADJ:
-                    set_adj();
-                    break;
-                case OP_START:
-                    set_start();
-                    break;
-                case OP_HOLDS:
-                    set_holds();
-                    break;
-                case OP_PUT:
-                    set_put();
-                    break;
-                case OP_MOB:
-                    set_mob();
-                    g_gameConfig.numMobs++;
-                    break;
-                default:
-                    afatal("Internal Error: Code for object-parameter '%s' missing", obparms[idNo]);
-                }
-            }
+        if (obj.nstates == 0) {
+            ObjectError(src, obj, "No states defined");
+        } else if (obj.state > obj.nstates) {
+            ObjectError(src,
+                        obj,
+                        "Invalid start state (",
+                        obj.state,
+                        "): Object has ",
+                        obj.nstates,
+                        " state(s)");
+        } else if (obj.state == obj.nstates) {
+            ObjectError(src,
+                        obj,
+                        "Invalid start state (",
+                        obj.state,
+                        "). States are 0-indexed. Did you mean ",
+                        obj.state - 1,
+                        "?");
+        } else {
+            g_game.m_objects.push_back(obj);
+            g_game.numObjects++;
         }
-
-        /* Get the room list */
-
-        bool continuation = true;
-        while (continuation) {
-            char *p = getTidyBlock(ifp);
-            if (!p)
-                afatal("object:%s: unexpected end of file", obj2.id);
-
-            while (*p) {
-                continuation = false;
-                p = getword(p);
-                if (strcmp(Word, "+") == 0) {
-                    continuation = true;
-                    continue;
-                }
-                int roomNo = isloc(Word);
-                if (roomNo == -1) {
-                    alog(AL_ERROR, "object:%s: invalid room: %s", obj2.id, Word);
-                }
-                checkedfwrite(&roomNo, 1, sizeof(roomNo), ofp3);
-                obj2.nrooms++;
-            }
-        }
-
-        if (obj2.nrooms == 0)
-            alog(AL_ERROR, "object:%s: no location given", obj2.id);
-
-        obj2.nstates = 0;
-        for (;;) {
-            char *p = getTidyBlock(ifp);
-            if (!p)
-				break;
-            if (!*p || isEol(*p))
-                break;
-            state_proc();
-        }
-
-        if (obj2.nstates == 0)
-            alog(AL_ERROR, "object:%s: no states defined");
-        if (obj2.nstates > 100)
-            alog(AL_ERROR, "object:%s: too many states defined (%d)", obj2.nstates);
-
-        *(obtab2 + (g_gameConfig.numObjects++)) = obj2;
     }
 
     /*
     closeOutFiles();
     sort_objs();
     */
-    checkedfwrite(obtab2, sizeof(obj2), g_gameConfig.numObjects, ofp1);
 }
 
 /*
@@ -1680,211 +1733,248 @@ objs_proc()
   Warning! All source code in this file is copyright (C) KingFisher Software
 */
 
-/* Process TRAVEL.TXT */
+template<typename... Args>
 void
-trav_proc()
+RoomError(SourceFile src, Args &&... args)
 {
-    int strip, i;
-    proc = 0;
+    LogError(src.filepath, ":", src.lineNo, ":", c_room->id, ": ", forward<Args>(args)...);
+}
 
-    nextc(true); /* Move to first text */
-    fopenw(travelTableFile);
-    fopenw(travelParamFile);
-    fopena(roomDataFile);
-
-    assert(g_gameConfig.numTTEnts == 0);
-    int ntt = 0, t = 0, r = 0;
-    int ttNumVerbs = 0;
-
-    verbid_t verbsUsed[200];
-
-    while (!feof(ifp)) {
-        checkErrorCount();
-
-        if (!nextc(false))
-            break;
-
-        char *p = getTidyBlock(ifp);
-        if (!p)
-            continue;
-
-        p = getWordAfter("room=", p);
-        if (Word[0] == 0) {
-            alog(AL_ERROR, "travel: empty room= line");
-            skipblock();
-            continue;
-        }
-		alog(AL_DEBUG, "room=%s", Word);
-
-        rmn = isroom(Word);
-        if (rmn == -1) {
-            alog(AL_ERROR, "No such room: %s", Word);
-            skipblock();
-            continue;
-        }
-        roomtab = rmtab + rmn;
-        if (roomtab->tabptr != -1) {
-            alog(AL_ERROR, "Multiple tt entries for room: %s", roomtab->id);
-            skipblock();
-            continue;
-        }
-
-    vbloop:
-        do
-            fgets(block, sizeof(block), ifp);
-        while (block[0] != 0 && consumeComment(block));
-        if (block[0] == 0 || isEol(block[0])) {
-            /* Only complain if room is not a death room */
-            if ((roomtab->flags & DEATH) != DEATH) {
-                alog(AL_INFO, "No tt entries for room: %s", roomtab->id);
-                roomtab->tabptr = -2;
-                ntt++;
-                continue;
-            }
-        }
-        tidy(block);
-        if (!striplead("verb=", block) && !striplead("verbs=", block)) {
-            alog(AL_ERROR, "Missing verb[s]= entry for room: %s", roomtab->id);
-            goto vbloop;
-        }
-        g_verb.id[0] = 0;
-        roomtab->tabptr = t;
-        roomtab->ttlines = 0;
-    vbproc: /* Process verb list */
-        tt.pptr = (opparam_t *)-1;
-        p = block;
-        ttNumVerbs = 0;  // number of verbs in this tt entry
-        /* Break verb list down to verb no.s */
-        do {
-            p = getword(p);
-            if (Word[0] == 0)
-                break;
-            verbsUsed[ttNumVerbs] = is_verb(Word);
-            if (verbsUsed[ttNumVerbs] == -1) {
-                alog(AL_ERROR, "Room: %s: Invalid verb: %s", roomtab->id, Word);
-            }
-            ttNumVerbs++;
-
-        } while (Word[0] != 0);
-        if (!ttNumVerbs) {
-            afatal("Room has empty verb[s]= line: %s", roomtab->id);
-        }
-        /* Now process each instruction line */
-        do {
-        xloop:
-            strip = 0;
-            r = -1;
-            block[0] = 0;
-            fgets(block, sizeof(block), ifp);
-            if (feof(ifp))
-                break;
-            if (block[0] == 0 || isEol(block[0])) {
-                strip = -1;
-                continue;
-            }
-            tidy(block);
-            if (block[0] == 0 || consumeComment(block))
-                goto xloop;
-            if (striplead("verb=", block) || striplead("verbs=", block)) {
-                strip = 1;
-                break;
-            }
-            p = precon(block); /* Strip pre-condition opts */
-        notloop:
-            p = getword(p);
-            if (strcmp(Word, ALWAYSEP) == 0) {
-                tt.condition = CALWAYS;
-                tt.action = -(1 + AENDPARSE);
-                goto write;
-            }
-            if (strcmp(Word, "not") == 0 || strcmp(Word, "!") == 0) {
-                r = -1 * r;
-                goto notloop;
-            }
-        notlp2:
-            if (Word[0] == '!') {
-                strcpy(Word, Word + 1);
-                r = -1 * r;
-                goto notlp2;
-            }
-            if ((tt.condition = iscond(Word)) == -1) {
-                tt.condition = CALWAYS;
-                if ((tt.action = isroom(Word)) != -1)
-                    goto write;
-                if ((tt.action = isact(Word)) == -1) {
-                    alog(AL_ERROR, "Room: %s: invalid tt condition: %s", Word, roomtab->id);
-                    goto xloop;
-                }
-                goto gotohere;
-            }
-            p = skipspc(p);
-            if ((p = checkConditionParameters(p, &conditions[tt.condition], ofp2)) == NULL) {
-                goto next;
-            }
-            if (r == 1)
-                tt.condition = -1 - tt.condition;
-            if (*p == 0) {
-                alog(AL_ERROR, "Room's tt entry is missing an action", roomtab->id);
-                goto xloop;
-            }
-            p = preact(p);
-            p = getword(p);
-            if ((tt.action = isroom(Word)) != -1)
-                goto write;
-            if ((tt.action = isact(Word)) == -1) {
-                alog(AL_ERROR, "Room %s has unrecognized tt action: %s", Word, roomtab->id);
-                goto xloop;
-            }
-        gotohere:
-            if (tt.action == ATRAVEL) {
-                alog(AL_ERROR, "Room %s: Tried to call action 'travel' from travel table",
-                     roomtab->id);
-                goto xloop;
-            }
-            p = skipspc(p);
-            if ((p = checkActionParameters(p, &actions[tt.action], ofp2)) == NULL) {
-                goto next;
-            }
-            tt.action = 0 - (tt.action + 1);
-        write:
-            roomtab = rmtab + rmn;
-
-            // this is some weird-ass kind of encoding where -1 means "more", and "-2" means "last"
-            for (int verbNo = 0; verbNo < ttNumVerbs; ++verbNo) {
-                opparam_t paramid = (verbNo + 1 < ttNumVerbs) ? -1 : -2;
-                tt.pptr = (opparam_t *)(uintptr_t)paramid;
-                tt.verb = verbsUsed[verbNo];
-                checkedfwrite(&tt.verb, sizeof(tt), 1, ofp1);
-                roomtab->ttlines++;
-                g_gameConfig.numTTEnts++;
-            }
-        next:
-            strip = 0;
-        } while (strip == 0 && !feof(ifp));
-        if (strip == 1 && !feof(ifp))
-            goto vbproc;
-        ntt++;
-    }
-
-    if (al_errorCount == 0 && ntt != g_gameConfig.numRooms) {
-        roomtab = rmtab;
-        for (i = 0; i < g_gameConfig.numRooms; i++, roomtab++) {
-            if (roomtab->tabptr == -1 && (roomtab->flags & DEATH) != DEATH) {
-                alog(AL_WARN, "No TT entry for room: %s", roomtab->id);
-            }
+bool
+getTravelVerbs(SourceFile &src, std::set<verbid_t> &verbs)
+{
+    verbs.clear();
+    for (auto it : src.line) {
+        if (verbid_t verb = IsVerb(it); verb != WNONE) {
+            if (!(GetVerb(verb).flags & VB_TRAVEL))
+                RoomError(src, "Verb is not a TRAVEL verb: ", it);
+            verbs.insert(verb);
+        } else {
+            RoomError(src, "Unrecognized verb: ", it);
+            return false;
         }
     }
-    ttroomupdate();
+    if (verbs.empty()) {
+        RoomError(src, "Empty verb[s]= line");
+        return false;
+    }
+    return true;
+}
+
+bool
+processTravelCnALine(SourceFile &src, TravelLine &tt)
+{
+    auto it = src.line.begin(), end = src.line.end();
+    bool truthiness = true;
+    while (it != end) {
+        while (!it->empty() && it->front() == '!') {
+            truthiness = !truthiness;
+            it->remove_prefix(1);
+        }
+        if (it->empty())
+            ++it;
+        if (PreConditionWords.find(*it) != PreConditionWords.end()) {
+            ++it;
+            continue;
+        }
+        if (*it == "not") {
+            ++it;
+            truthiness = !truthiness;
+            continue;
+        }
+        break;
+    }
+
+    if (it == end) {
+        RoomError(src, "No condition or action present on line");
+        return false;
+    }
+
+    std::string word{ *(it) };
+    StringLower(word);
+    if (word == ALWAYSEP) {
+        tt.condition.m_op = CALWAYS;
+        tt.action.m_op = AENDPARSE;
+        return true;
+    }
+
+    tt.condition.m_op = iscond(word);
+    if (tt.condition.m_op != WNONE) {
+        ++it;
+        auto consumed = checkConditionParameters(c_room->id, it, end, &tt, src);
+        if (consumed < 0)
+            return false;
+        it += consumed;
+    } else {
+        tt.condition.m_op = CALWAYS;
+        if (roomid_t roomId = isRoomName(word); roomId != WNONE) {
+            tt.action.m_op = AGOTO_ROOM;
+            tt.action.m_args[0] = roomId;
+            return true;
+        }
+    }
+
+    while (it != end && PreActionWords.find(*it) != PreActionWords.end()) {
+        ++it;
+    }
+
+    if (it == end) {
+        RoomError(src, "Missing action/room.");
+        return false;
+    }
+
+    word = *(it++);
+    StringLower(word);
+
+    if (roomid_t roomId = isRoomName(word); roomId != WNONE) {
+        tt.action.m_op = AGOTO_ROOM;
+        tt.action.m_args[0] = roomId;
+        return true;
+    }
+    tt.action.m_op = isact(word);
+    if (tt.action.m_op == WNONE) {
+        RoomError(src, "Unrecognized action/room: ", word);
+        return false;
+    }
+
+    if (tt.action.m_op == ATRAVEL) {
+        RoomError(src, "Tried to call action 'travel' from travel table");
+        return false;
+    }
+
+    auto consumed = checkActionParameters(c_room->id, it, end, &tt, src);
+    if (consumed < 0)
+        return false;
+    it += consumed;
+
+    if (it != end) {
+        RoomError(src, "Unexpected additional words after end of condition: ", *it);
+        return false;
+    }
+
+    return true;
+}
+
+bool
+processTravelRoom(SourceFile &src, std::string roomName)
+{
+    const roomid_t rmn = isRoomName(roomName);
+    if (rmn == WNONE) {
+        src.Error("Unrecognized room name: ", roomName);
+        return false;
+    }
+
+    c_room = &g_game.m_rooms[rmn];
+    if (c_room->ttlines != 0) {
+        src.Error("Travel table for room ", roomName, " already defined.");
+        return false;
+    }
+
+    if (c_room->flags & DEATH) {
+        RoomError(src, "DEATH rooms can't have a travel table.");
+        return false;
+    }
+
+    c_room->ttOffset = g_game.m_travel.size();
+
+    std::set<verbid_t> verbs{};
+    while (src.GetLineTerms()) {
+        if (RemovePrefix(src.line.front(), "verb=") || RemovePrefix(src.line.front(), "verbs=")) {
+            if (!getTravelVerbs(src, verbs))
+                return false;
+            continue;
+        }
+        if (verbs.empty()) {
+            RoomError(src, "Missing verb[s]= line before first condition/action line.");
+            return false;
+        }
+
+        TravelLine tt{};
+        if (!processTravelCnALine(src, tt))
+            return false;
+
+        for (auto verb : verbs) {
+            tt.verb = verb;
+            g_game.m_travel.push_back(tt);
+            c_room->ttlines++;
+            g_game.numTTEnts++;
+        }
+    }
+
+    return true;
+}
+
+// travel.txt: Describes connections or obstacles between rooms.
+// Players move around the game using "travel" commands, typically "north", "up",
+// etc. Because rooms don't have coordinates or dimensions, there's no way the game
+// could tell what those links are.
+//
+// The travel table is relatively simple:
+//
+//    room=<room name>
+//    verb=<verb>        # or 'verbs='
+//          <room name>
+//        | <action <action params>>
+//        | <condition <condition params>> <room name>
+//        | <condition <condition params>> <action <aciton params>>
+//
+// e.g.
+//
+//    room=northroom
+//    verb=north
+//        error "You can't go further north."
+//    verb=south
+//        if got umbrella in state 1 then error "Can't get the umbrella thru the door."
+//		  goto southroom
+//
+//    room=southroom
+//    verbs=north out
+//        if got umbrella in state 1 then error "Can't get the umbrella thru the door."
+//		  goto northroom
+
+void
+trav_proc(const std::string &filepath)
+{
+    SourceFile src{ filepath };
+    if (error_t err = src.Open(); err != 0) {
+        LogFatal("Aborting due to file error: ", filepath);
+    }
+
+    std::set<verbid_t> currentVerbs{};
+
+    size_t roomsProcessed{ 0 };
+    while (!src.Eof()) {
+
+        CheckErrorCount();
+
+        if (!src.GetIDLine("room="))
+            continue;
+        if (!processTravelRoom(src, std::string{ src.line.front() })) {
+            src.SkipBlock();
+        }
+
+        ++roomsProcessed;
+    }
+
+    c_room = nullptr;
+
+    if (GetLogErrorCount() == 0 && roomsProcessed != g_game.numRooms) {
+        for (auto &room : g_game.m_rooms) {
+            if (room.ttlines == 0 && (room.flags & DEATH) != DEATH) {
+                LogWarn("room:", room.id, ": no travel entry");
+            }
+        }
+    }
 }
 
 /* From and To */
 int
-chae_proc(const char *f, char *t)
+chae_proc(const Verb &verb, const char *f, char *t)
 {
     int n;
 
     if ((*f < '0' || *f > '9') && *f != '?') {
-        chae_err();
+        chae_err(verb, Word);
         return -1;
     }
 
@@ -1896,10 +1986,10 @@ chae_proc(const char *f, char *t)
         while (isdigit(*f) && *f != 0)
             f++;
         if (*f == 0) {
-            chae_err();
+            chae_err(verb, Word);
             return -1;
         }
-        *(t++) = (char)n;
+        *(t++) = (char) n;
     }
 
     for (n = 1; n < 5; n++) {
@@ -1907,7 +1997,7 @@ chae_proc(const char *f, char *t)
             *(t++) = toupper(*f);
             f++;
         } else {
-            chae_err();
+            chae_err(verb, Word);
             return -1;
         }
     }
@@ -1916,9 +2006,9 @@ chae_proc(const char *f, char *t)
 }
 
 void
-getVerbFlags(_VERB_STRUCT *verbp, char *p)
+getVerbFlags(Verb *verbp, char *p)
 {
-    static char defaultChae[] = {-1, 'C', 'H', 'A', 'E', -1, 'C', 'H', 'A', 'E'};
+    static char defaultChae[] = { -1, 'C', 'H', 'A', 'E', -1, 'C', 'H', 'A', 'E' };
     memcpy(verbp->precedences, defaultChae, sizeof(verbp->precedences));
 
     verbp->flags = VB_TRAVEL;
@@ -1935,13 +2025,13 @@ getVerbFlags(_VERB_STRUCT *verbp, char *p)
         }
         // So we expect it to be a precedence specifier
         if (precedence < 2) {
-            if (chae_proc(Word, verbp->precedence[precedence]) == -1)
+            if (chae_proc(*verbp, Word, verbp->precedence[precedence]) == -1)
                 return;
             ++precedence;
             continue;
         }
 
-        alog(AL_ERROR, "Expected verb flag/precedence, got: %s", Word);
+        LogError("Expected verb flag/precedence, got: ", Word);
     }
 }
 
@@ -1953,119 +2043,140 @@ registerTravelVerbs(char *p)
         p = getword(p);
         if (Word[0] == 0)
             break;
-        int extant = is_verb(Word);
+        int extant = IsVerb(Word);
         if (extant != -1) {
-            if (vbptr[extant].flags | VB_TRAVEL) {
-                alog(AL_ERROR, "Redefinition of travel verb: %s", Word);
+            std::cout << "found " << Word << " it's " << extant << " with "
+                      << g_game.m_verbs[extant].flags << "\n";
+            if (g_game.m_verbs[extant].flags | VB_TRAVEL) {
+                LogError("Redefinition of travel verb: ", Word);
                 continue;
             }
-            vbptr[extant].flags |= VB_TRAVEL;
-            alog(AL_DEBUG, "Added TRAVEL to existing verb %s", Word);
+            g_game.m_verbs[extant].flags |= VB_TRAVEL;
+            LogDebug("Added TRAVEL to existing verb: ", Word);
             continue;
         }
         /// TODO: size check
-        strncpy(g_verb.id, Word, sizeof(g_verb.id));
-        checkedfwrite(&g_verb, sizeof(g_verb), 1, ofp1);
+        Verb verb{};
+        strncpy(verb.id, Word, sizeof(verb.id));
+        verb.flags |= VB_TRAVEL;
         proc = 0;
-        *(vbtab + (g_gameConfig.numVerbs++)) = g_verb;
-        alog(AL_DEBUG, "Added TRAVEL verb: %s", Word);
+        g_game.m_verbs.push_back(verb);
+        ++g_game.numVerbs;
+        LogDebug("Added TRAVEL verb: ", Word);
     }
+}
+
+pair<char *, verbid_t>
+getLangVerb(FILE *fp)
+{
+    char *p = getTidiedLineToScratch(fp);
+    if (!p)
+        return make_pair(nullptr, WNONE);
+
+    // check for 'travel' line which allows specification of travel verbs
+
+    if (canSkipLead("travel=", &p)) {
+        registerTravelVerbs(p);
+        return make_pair(nullptr, WNONE);
+    }
+
+    p = getWordAfter("verb=", p);
+    if (!Word[0]) {
+        LogError("verb= line without a verb?");
+        return make_pair(nullptr, WINVALID);
+    }
+
+    if (strlen(Word) > IDL) {
+        LogError("Invalid verb ID (too long): ", Word);
+        return make_pair(nullptr, WINVALID);
+    }
+
+    auto verbId = IsVerb(Word);
+    if (verbId != WNONE) {
+        auto &verb = g_game.m_verbs[verbId];
+        if (!(verb.flags & VB_TRAVEL) || verb.ents != 0) {
+            vbprob(verb, "Redefinition of verb", scratch);
+            return make_pair(nullptr, WINVALID);
+        }
+    } else {
+        verbId = g_game.m_verbs.size();
+        g_game.m_verbs.push_back(Verb{});
+    }
+
+    auto &verb = g_game.m_verbs[verbId];
+    strncpy(verb.id, Word, sizeof(verb.id));
+    verb.slotOffset = g_game.m_verbSlots.size();
+
+    LogDebug("verb#", verbId, "/", g_game.m_verbs.size(), ":", verb.id);
+
+    return make_pair(p, verbId);
 }
 
 /* Process LANG.TXT */
 void
-lang_proc()
+lang_proc(const std::string & /*filepath*/)
 {
     char lastc;
     /* n=general, cs=Current Slot, s=slot, of2p=ftell(ofp2) */
-    int n, cs, s, r;
+    WType n{ WNONE };  /// TODO: This has some -ve wtype values.
+    int cs, s;
 
     nextc(true);
-    fopenw(verbDataFile);
-    CloseOutFiles();
-    fopena(verbDataFile);
-    ofp1 = afp;
-    afp = NULL;
-    fopenw(verbSlotFile);
-    fopenw(verbTableFile);
-    fopenw(verbParamFile);
 
-    vbtab = (_VERB_STRUCT *)AllocateMem(filesize() + 128 * sizeof(g_verb));
-    vbptr = vbtab;
-
-    size_t of2p = ftell(ofp2);
-    size_t of3p = ftell(ofp3);
-    FPos = ftell(ofp4);
+    VMLine vmline{};
 
     while (!feof(ifp) && nextc(false)) {
-        checkErrorCount();
+        CheckErrorCount();
 
-        char *p = getTidyBlock(ifp);
+        auto [p, verbId] = getLangVerb(ifp);
+        if (!p) {
+            if (verbId != WNONE)
+                skipParagraph();
+            continue;
+        }
+
+        auto &verb = g_game.m_verbs[verbId];
+
+        getVerbFlags(&verb, p);
+
+        p = getTidiedLineToScratch(ifp);
         if (!p)
-            continue;
-
-        // check for 'travel' line which allows specification of travel verbs
-
-        if (canSkipLead("travel=", &p)) {
-            registerTravelVerbs(p);
-            continue;
-        }
-
-        p = getWordAfter("verb=", p);
-        if (!Word[0]) {
-            alog(AL_ERROR, "verb= line without a verb?");
-            skipblock();
-            continue;
-        }
-
-        if (strlen(Word) > IDL) {
-            alog(AL_ERROR, "Invalid verb ID (too long): %s", Word);
-            skipblock();
-            continue;
-        }
-
-        memset(&g_verb, 0, sizeof(g_verb));
-        strncpy(g_verb.id, Word, sizeof(g_verb.id));
-
-        ++g_gameConfig.numVerbs;
-        alog(AL_DEBUG, "verb#%04d:%s", g_gameConfig.numVerbs, g_verb.id);
-
-        getVerbFlags(&g_verb, p);
-
-        p = getTidyBlock(ifp);
-        if (!p)
-            alog(AL_ERROR, "Unexpected end of file during verb: %s", g_verb.id);
+            LogError("Unexpected end of file during verb: ", verb.id);
         if (!*p || isEol(*p)) {
-            if (g_verb.ents == 0 && (g_verb.flags & VB_TRAVEL)) {
-                alog(AL_WARN, "Verb has no entries: %s", g_verb.id);
+            if (verb.ents == 0 && (verb.flags & VB_TRAVEL)) {
+                LogWarn("Verb has no entries: ", verb.id);
             }
             goto write;
         }
 
         if (!canSkipLead("syntax=", &p)) {
-            vbprob("no syntax= line", block);
-            skipblock();
+            vbprob(verb, "no syntax= line", scratch);
+            skipParagraph();
             continue;
         }
 
         /* Syntax line loop */
-    synloop : {
+    synloop:
+        vbslot = Syntax{};
+        vbslot.lineOffset = g_game.m_vmLines.size();
         setslots(WNONE);
-        g_verb.ents++;
+        verb.ents++;
         p = skiplead("verb", p);
-        char *qualifier = getword(p);
-        qualifier = skipspc(qualifier);
 
-        /* If syntax line is 'syntax=verb any' or 'syntax=none' */
-        if (*qualifier == 0 && strcmp("any", Word) == 0) {
-            setslots(WANY);
-            goto endsynt;
+        {
+            char *qualifier = getword(p);
+            qualifier = skipspc(qualifier);
+
+            /* If syntaxes line is 'syntaxes=verb any' or 'syntaxes=none' */
+            if (*qualifier == 0 && strcmp("any", Word) == 0) {
+                setslots(WANY);
+                goto endsynt;
+            }
+            if (*qualifier == 0 && strcmp("none", Word) == 0) {
+                setslots(WNONE);
+                goto endsynt;
+            }
         }
-        if (*qualifier == 0 && strcmp("none", Word) == 0) {
-            setslots(WNONE);
-            goto endsynt;
-        }
-    }
 
     sp2: /* Syntax line processing */
         p = skipspc(p);
@@ -2076,10 +2187,10 @@ lang_proc()
         if (Word[0] == 0)
             goto endsynt;
 
-        if ((n = iswtype(Word)) == -3) {
+        if ((n = iswtype(Word)) == WType(WINVALID)) {
             char tmp[128];
             snprintf(tmp, sizeof(tmp), "Invalid phrase on syntax line: %s", Word);
-            vbprob(tmp, block);
+            vbprob(verb, tmp, scratch);
             goto commands;
         }
         if (Word[0] == 0) {
@@ -2090,64 +2201,67 @@ lang_proc()
         /* First of all, eliminate illegal combinations */
         if (n == WNONE || n == WANY) { /* you cannot say none=fred any=fred etc */
             char tmp[128];
-            snprintf(tmp, sizeof(tmp), "Tried to define %s on syntax line", syntax[n]);
-            vbprob(tmp, block);
+            snprintf(tmp, sizeof(tmp), "Tried to define %s on syntax line", syntaxes[n]);
+            vbprob(verb, tmp, scratch);
             goto endsynt;
         }
         if (n == WPLAYER && strcmp(Word, "me") != 0 && strcmp(Word, "myself") != 0) {
-            vbprob("Tried to specify player other than self", block);
+            vbprob(verb, "Tried to specify player other than self", scratch);
             goto endsynt;
         }
 
         /* Now check that the 'tag' is the correct type of word */
 
-        s = -1;
+        s = WNONE;
         switch (n) {
-        case WADJ:
-        /* Need ISADJ() - do TT entry too */
-        case WNOUN:
-            s = isnoun(Word);
-            break;
-        case WPREP:
-            s = isprep(Word);
-            break;
-        case WPLAYER:
-            if (strcmp(Word, "me") == 0 || strcmp(Word, "myself") == 0)
-                s = -3;
-            break;
-        case WROOM:
-            s = isroom(Word);
-            break;
-        case WSYN:
-            alog(AL_WARN, "Synonyms not supported yet");
-            s = WANY;
-            break;
-        case WTEXT:
-            s = getTextString(Word, false);
-            break;
-        case WVERB:
-            s = is_verb(Word);
-            break;
-        case WCLASS:
-            s = WANY;
-        case WNUMBER:
-            if (Word[0] == '-')
-                s = atoi(Word + 1);
-            else
-                s = atoi(Word);
-        default:
-            alog(AL_ERROR, "Internal Error: Invalid w-type");
+            case WADJ:
+                /* Need ISADJ() - do TT entry too */
+                break;
+            case WNOUN:
+                s = isNoun(Word);
+                break;
+            case WPREP:
+                s = IsPreposition(Word);
+                break;
+            case WPLAYER:
+                if (strcmp(Word, "me") == 0 || strcmp(Word, "myself") == 0)
+                    s = -3;
+                break;
+            case WROOM:
+                s = isRoomName(Word);
+                break;
+            case WSYN:
+                LogWarn("Synonyms not supported yet");
+                s = WANY;
+                break;
+            case WTEXT:
+                s = getTextString(Word, false);
+                break;
+            case WVERB:
+                s = IsVerb(Word);
+                break;
+            case WCLASS:
+                s = WANY;
+                break;
+            case WNUMBER:
+                if (Word[0] == '-')
+                    s = atoi(Word + 1);
+                else
+                    s = atoi(Word);
+                break;
+            default:
+                LogError("Internal Error: Invalid w-type");
         }
 
         if (n == WNUMBER && (s > 100000 || -s > 100000)) {
             char tmp[64];
             snprintf(tmp, sizeof(tmp), "Invalid number: %d", s);
-            vbprob(tmp, block);
+            vbprob(verb, tmp, scratch);
         }
-        if (s == -1 && n != WNUMBER) {
+        if (s == WNONE && n != WNUMBER) {
             char tmp[128];
-            snprintf(tmp, sizeof(tmp), "%s=: Invalid setting: %s", syntax[n + 1], Word);
-            vbprob(tmp, block);
+            snprintf(tmp, sizeof(tmp), "%s=: Invalid setting: %s", syntaxes[n + 1], Word);
+            vbprob(verb, tmp, scratch);
         }
         if (s == -3 && n == WNOUN)
             s = -1;
@@ -2156,63 +2270,68 @@ lang_proc()
         /* Now fit this into the correct slot */
         cs = 1; /* Noun1 */
         switch (n) {
-        case WADJ:
-            if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
-                vbprob("Invalid NOUN NOUN ADJ combination", block);
-                n = -5;
+            case WADJ:
+                if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
+                    vbprob(verb, "Invalid NOUN NOUN ADJ combination", scratch);
+                    n = WINVALID;
+                    break;
+                }
+                if (vbslot.wtype[1] != WNONE && vbslot.wtype[3] != WNONE) {
+                    vbprob(verb, "Invalid NOUN ADJ NOUN ADJ combination", scratch);
+                    n = WINVALID;
+                    break;
+                }
+                if (vbslot.wtype[0] != WNONE && vbslot.wtype[3] != WNONE) {
+                    vbprob(verb, "More than two adjectives on a line", scratch);
+                    n = WINVALID;
+                    break;
+                }
+                if (vbslot.wtype[0] != WNONE)
+                    cs = 3;
+                else
+                    cs = 0;
                 break;
-            }
-            if (vbslot.wtype[1] != WNONE && vbslot.wtype[3] != WNONE) {
-                vbprob("Invalid NOUN ADJ NOUN ADJ combination", block);
-                n = -5;
+            case WNOUN:
+                if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
+                    vbprob(verb, "Invalid noun arrangement", scratch);
+                    n = WINVALID;
+                    break;
+                }
+                if (vbslot.wtype[1] != WNONE)
+                    cs = 4;
                 break;
-            }
-            if (vbslot.wtype[0] != WNONE && vbslot.wtype[3] != WNONE) {
-                vbprob("More than two adjectives on a line", block);
-                n = -5;
+            case WPREP:
+                if (vbslot.wtype[2] != WNONE) {
+                    vbprob(verb, "Invalid PREP arrangement", scratch);
+                    n = WINVALID;
+                    break;
+                }
+                cs = 2;
                 break;
-            }
-            if (vbslot.wtype[0] != WNONE)
-                cs = 3;
-            else
-                cs = 0;
-            break;
-        case WNOUN:
-            if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
-                vbprob("Invalid noun arrangement", block);
-                n = -5;
+            case WPLAYER:
+            case WROOM:
+            case WSYN:
+            case WTEXT:
+            case WVERB:
+            case WCLASS:
+            case WNUMBER:
+                if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
+                    char tmp[128];
+                    snprintf(scratch,
+                             sizeof(scratch),
+                             "No free noun slot for %s entry",
+                             syntaxes[n + 1]);
+                    vbprob(verb, tmp, scratch);
+                    n = WINVALID;
+                    break;
+                }
+                if (vbslot.wtype[1] != WNONE)
+                    cs = 4;
                 break;
-            }
-            if (vbslot.wtype[1] != WNONE)
-                cs = 4;
-            break;
-        case WPREP:
-            if (vbslot.wtype[2] != WNONE) {
-                vbprob("Invalid PREP arrangement", block);
-                n = -5;
+            default:
                 break;
-            }
-            cs = 2;
-            break;
-        case WPLAYER:
-        case WROOM:
-        case WSYN:
-        case WTEXT:
-        case WVERB:
-        case WCLASS:
-        case WNUMBER:
-            if (vbslot.wtype[1] != WNONE && vbslot.wtype[4] != WNONE) {
-                char tmp[128];
-                snprintf(block, sizeof(block), "No free noun slot for %s entry", syntax[n + 1]);
-                vbprob(tmp, block);
-                n = -5;
-                break;
-            }
-            if (vbslot.wtype[1] != WNONE)
-                cs = 4;
-            break;
         }
-        if (n == -5)
+        if (n == WINVALID)
             goto sp2;
         /* Put the bits into the slots! */
         vbslot.wtype[cs] = n;
@@ -2221,13 +2340,13 @@ lang_proc()
 
     endsynt:
         vbslot.ents = 0;
-        vbslot.ptr = (_VBTAB *)of3p;
+        vbslot.lineOffset = g_game.m_vmLines.empty() ? 0 : g_game.m_vmLines.size();
 
     commands:
         lastc = 'x';
         proc = 0;
 
-        p = getTidyBlock(ifp);
+        p = getTidiedLineToScratch(ifp);
         if (!p || !*p || isEol(*p)) {
             lastc = 1;
             goto writeslot;
@@ -2238,9 +2357,9 @@ lang_proc()
             goto writeslot;
         }
 
+        // we're committed to this being a c&a line so count it now.
+        vmline = VMLine{};
         vbslot.ents++;
-        r = -1;
-        vt.pptr = (opparam_t *)FPos;
 
         /* Process the condition */
     notloop:
@@ -2249,12 +2368,12 @@ lang_proc()
 
         /* always endparse */
         if (strcmp(Word, ALWAYSEP) == 0) {
-            vt.condition = CALWAYS;
-            vt.action = -(1 + AENDPARSE);
+            vmline.condition.m_op = CALWAYS;
+            vmline.action.m_op = AENDPARSE;
             goto writecna;
         }
         if (strcmp(Word, "not") == 0 || (Word[0] == '!' && Word[1] == 0)) {
-            r = -1 * r;
+            vmline.notCondition = !vmline.notCondition;
             goto notloop;
         }
 
@@ -2263,69 +2382,71 @@ lang_proc()
         if (Word[0] == '!') {
             memmove(Word, Word + 1, sizeof(Word) - 1);
             Word[sizeof(Word) - 1] = 0;
-            r = -1 * r;
+            vmline.notCondition = !vmline.notCondition;
             goto notlp2;
         }
 
-        if ((vt.condition = iscond(Word)) == -1) {
+        if ((vmline.condition.m_op = iscond(Word)) == WNONE) {
             proc = 1;
-            if ((vt.action = isact(Word)) == -1) {
-                if ((vt.action = isroom(Word)) != -1) {
-                    vt.condition = CALWAYS;
+            if ((vmline.action.m_op = isact(Word)) == WNONE) {
+                if (roomid_t roomId = isRoomName(Word); roomId != WNONE) {
+                    vmline.condition.m_op = CALWAYS;
+                    vmline.action.m_op = AGOTO_ROOM;
+                    vmline.action.m_args[0] = roomId;
                     goto writecna;
                 }
                 char tmp[128];
                 snprintf(tmp, sizeof(tmp), "Invalid condition, '%s'", Word);
-                vbprob(tmp, block);
+                vbprob(verb, tmp, scratch);
                 proc = 0;
                 goto commands;
             }
-            vt.condition = CALWAYS;
+            vmline.condition.m_op = CALWAYS;
             goto doaction;
         }
         p = skipspc(p);
         proc = 1;
-        if ((p = checkConditionParameters(p, &conditions[vt.condition], ofp4)) == NULL) {
+        if ((p = checkConditionParameters(
+                     verb.id, p, &conditions[vmline.condition.m_op], &vmline)) == nullptr) {
             goto commands;
         }
         if (*p == 0) {
-            if ((vt.action = isact(conditions[vt.condition].name)) == -1) {
-                vbprob("Missing action", block);
+            if ((vmline.action.m_op = isact(conditions[vmline.condition.m_op].name)) == WNONE) {
+                vbprob(verb, "Missing action", scratch);
                 goto commands;
             }
-            vt.action = 0 - (vt.action + 1);
-            vt.condition = CALWAYS;
+            vmline.condition.m_op = CALWAYS;
             goto writecna;
         }
-        if (r == 1)
-            vt.condition = -1 - vt.condition;
         p = preact(p);
         p = getword(p);
-        if ((vt.action = isact(Word)) == -1) {
-            if ((vt.action = isroom(Word)) != -1)
+        if ((vmline.action.m_op = isact(Word)) == WNONE) {
+            if (roomid_t roomId = isRoomName(Word); roomId != WNONE) {
+                vmline.action.m_op = AGOTO_ROOM;
+                vmline.action.m_args[0] = roomId;
                 goto writecna;
+            }
             char tmp[128];
             snprintf(tmp, sizeof(tmp), "Invalid action, '%s'", Word);
-            vbprob(tmp, block);
+            vbprob(verb, tmp, scratch);
             goto commands;
         }
     doaction:
         p = skipspc(p);
-        if ((p = checkActionParameters(p, &actions[vt.action], ofp4)) == NULL) {
+        if (!(p = checkActionParameters(verb.id, p, &actions[vmline.action.m_op], &vmline))) {
             goto commands;
         }
-        vt.action = 0 - (vt.action + 1);
 
     writecna: /* Write the C & A lines */
-        checkedfwrite((char *)&vt.condition, sizeof(vt), 1, ofp3);
+        g_game.m_vmLines.push_back(vmline);
+        g_game.numVerbOps++;
         proc = 0;
-        of3p += sizeof(vt);
         goto commands;
 
     writeslot:
-        checkedfwrite(vbslot.wtype, sizeof(vbslot), 1, ofp2);
+        g_game.m_verbSlots.push_back(vbslot);
+        g_game.numVerbSlots++;
         proc = 0;
-        of2p += sizeof(vbslot);
         if (lastc > 1)
             goto commands;
         if (lastc == 0)
@@ -2333,84 +2454,99 @@ lang_proc()
 
         lastc = '\n';
     write:
-        checkedfwrite(&g_verb, sizeof(g_verb), 1, ofp1);
+        g_game.numVerbs++;
         proc = 0;
-        *(vbtab + (g_gameConfig.numVerbs - 1)) = g_verb;
     }
 }
 
 /* Routines to process/handle Synonyms */
 
+constexpr auto AliasError = [](const SourceFile &src, string_view actual, const auto &... args) {
+    LogError(src.filepath, ":", src.lineNo, ":", actual, ": ", args...);
+    return false;
+};
+
 void
-syn_proc()
+syn_proc(const std::string &filepath)
 {
-    if (!nextc(false))
-        return;
+    SourceFile src{ filepath };
+    if (error_t err = src.Open(); err != 0) {
+        LogFatal("Aborting due to file error: ", filepath, ": ", err);
+    }
 
-    fopenw(synonymDataFile);
-    fopenw(synonymIndexFile);
+    Synonym syn{};
 
-    while (!feof(ifp) && nextc(false)) {
-        checkErrorCount();
-
-        char *p = getTidyBlock(ifp);
-        if (!p)
+    while (!src.Eof()) {
+        CheckErrorCount();
+        if (!src.GetLineTerms())
             continue;
 
-        /// TODO: Read syns file.
+        std::string token{ src.PopFront() };
+        StringLower(token);
 
-        p = getword(p);
-        if (!*p) {
-            alog(AL_ERROR, "Invalid synonym line: %s", block);
+        if (src.line.empty()) {
+            AliasError(src, token, "expecting one or more alias word");
             continue;
         }
-        int id = isnoun(Word);
-        if (id < 0) {
-            id = is_verb(Word);
-            if (id == -1) {
-                alog(AL_ERROR, "Invalid verb/noun: %s", Word);
+
+        syn.type = SYN_NOUN;
+        syn.aliases = isNoun(token);
+        if (syn.aliases == WNONE) {
+            syn.aliases = IsVerb(token);
+            if (syn.aliases == WNONE) {
+                AliasError(src, token, "expected an existing verb or noun");
                 continue;
             }
-            id = -(2 + id);
+            syn.type = SYN_VERB;
         }
 
-        for (;;) {
-            p = getword(p);
-            if (Word[0] == 0)
-                break;
-            checkedfwrite(&id, 1, sizeof(id), ofp2);
-            fprintf(ofp1, "%s%c", Word, 0);
-            g_gameConfig.numSynonyms++;
+        while (!src.Eol()) {
+            auto alias = src.PopFront();
+            if (alias.length() > IDL) {
+                AliasError(src,
+                           token,
+                           "invlaid length: alias must be under ",
+                           IDL,
+                           " characters long: ",
+                           alias);
+                continue;
+            }
+            std::string word{ alias };
+            StringLower(word);
+            strncpy(syn.word, word.c_str(), sizeof(syn.word));
+            g_game.m_synonyms.push_back(syn);
         }
     }
+
+    g_game.numSynonyms = g_game.m_synonyms.size();
 }
 
 /* Mobiles.Txt Processor */
 
-/* Pass 1: Indexes mobile names */
+/* Pass 1: Indexes npc names */
 
 void
-mob_proc1()
+npc_proc(const std::string & /*filepath*/)
 {
-    fopenw(mobileDataFile);
+    fopenw(npcDataFile);
     if (!nextc(false))
         return;
 
-    // "mob" is the mobile entity
-    // "mobp" is a pointer to the runtime portion
-    _MOB *mobd = &mob.mob;
+    // "npc" is the npc entity
+    // "npcp" is a pointer to the runtime portion
+    NPC *npcd = &npc.npc;
 
     while (!feof(ifp) && nextc(false)) {
-        checkErrorCount();
+        CheckErrorCount();
 
-        char *p = getTidyBlock(ifp);
+        char *p = getTidiedLineToScratch(ifp);
         if (!p || *p != '!')
             continue;
 
         // skip the '!'
         p = getword(p + 1);
-        memset(&mob, 0, sizeof(mob));
-        strcpy(mob.id, Word);
+        new (&npc) NPCClass{};
+        strcpy(npc.id, Word);
 
         for (;;) {
             p = skipspc(p);
@@ -2419,114 +2555,114 @@ mob_proc1()
 
             if (canSkipLead("dead=", &p)) {
                 p = getword(p);
-                mobd->deadstate = atoi(Word);
+                npcd->deadstate = atoi(Word);
                 continue;
             }
             if (canSkipLead("dmove=", &p)) {
                 p = getword(p);
-                mobd->dmove = isroom(Word);
-                if (mobd->dmove == -1) {
-                    alog(AL_ERROR, "Mobile: %s: invalid dmove: %s", mob.id, Word);
+                npcd->dmove = isRoomName(Word);
+                if (npcd->dmove == -1) {
+                    LogError("Mobile:", npc.id, ": invalid dmove: ", Word);
                 }
                 continue;
             }
         }
 
-        p = getTidyBlock(ifp);
+        p = getTidiedLineToScratch(ifp);
         if (!p)
-            afatal("mob: !%s: unexpected end of file", mob.id);
+            LogFatal("npc:!", npc.id, ": unexpected end of file");
 
         if (!canSkipLead("speed=", &p)) {
-            mobmis("speed=");
+            npcMissing("speed=");
             continue;
         }
         p = getword(p);
-        mobd->speed = atoi(Word);
+        npcd->speed = atoi(Word);
 
         if (!canSkipLead("travel=", &p)) {
-            mobmis("travel=");
+            npcMissing("travel=");
             continue;
         }
         p = getword(p);
-        mobd->travel = atoi(Word);
+        npcd->travel = atoi(Word);
 
         if (!canSkipLead("fight=", &p)) {
-            mobmis("speed=");
+            npcMissing("speed=");
             continue;
         }
         p = getword(p);
-        mobd->fight = atoi(Word);
+        npcd->fight = atoi(Word);
 
         if (!canSkipLead("act=", &p)) {
-            mobmis("act=");
+            npcMissing("act=");
             continue;
         }
         p = getword(p);
-        mobd->act = atoi(Word);
+        npcd->act = atoi(Word);
 
         if (!canSkipLead("wait=", &p)) {
-            mobmis("wait=");
+            npcMissing("wait=");
             continue;
         }
         p = getword(p);
-        mobd->wait = atoi(Word);
+        npcd->wait = atoi(Word);
 
-        if (mobd->travel + mobd->fight + mobd->act + mobd->wait != 100) {
-            alog(AL_ERROR, "Mobile: %s: Travel+Fight+Act+Wait values not equal to 100%.", mob.id);
+        if (npcd->travel + npcd->fight + npcd->act + npcd->wait != 100) {
+            LogError("Mobile:", npc.id, ": Travel+Fight+Act+Wait values not equal to 100%.");
         }
 
         if (!canSkipLead("fear=", &p)) {
-            mobmis("fear=");
+            npcMissing("fear=");
             continue;
         }
         p = getword(p);
-        mobd->fear = atoi(Word);
+        npcd->fear = atoi(Word);
 
         if (!canSkipLead("attack=", &p)) {
-            mobmis("attack=");
+            npcMissing("attack=");
             continue;
         }
         p = getword(p);
-        mobd->attack = atoi(Word);
+        npcd->attack = atoi(Word);
 
         if (!canSkipLead("hitpower=", &p)) {
-            mobmis("hitpower=");
+            npcMissing("hitpower=");
             continue;
         }
         p = getword(p);
-        mobd->hitpower = atoi(Word);
+        npcd->hitpower = atoi(Word);
 
-        if ((mobd->arr = getmobmsg("arrive=")) == -1)
+        if ((npcd->arr = getNpcMessage("arrive=")) == -1)
             continue;
-        if ((mobd->dep = getmobmsg("depart=")) == -1)
+        if ((npcd->dep = getNpcMessage("depart=")) == -1)
             continue;
-        if ((mobd->flee = getmobmsg("flee=")) == -1)
+        if ((npcd->flee = getNpcMessage("flee=")) == -1)
             continue;
-        if ((mobd->hit = getmobmsg("strike=")) == -1)
+        if ((npcd->hit = getNpcMessage("strike=")) == -1)
             continue;
-        if ((mobd->miss = getmobmsg("miss=")) == -1)
+        if ((npcd->miss = getNpcMessage("miss=")) == -1)
             continue;
-        if ((mobd->death = getmobmsg("dies=")) == -1)
+        if ((npcd->death = getNpcMessage("dies=")) == -1)
             continue;
 
-        checkedfwrite(&mob, sizeof(mob), 1, ofp1);
-        g_gameConfig.numMobPersonas++;
+        checkedfwrite(ofp1, &npc, 1);
+        g_game.numNPCClasses++;
     }
 
-    if (g_gameConfig.numMobPersonas != 0) {
-        mobp = (_MOB_ENT *)AllocateMem(sizeof(mob) * g_gameConfig.numMobPersonas);
-        if (mobp == NULL) {
-            afatal("Out of memory");
+    if (g_game.numNPCClasses != 0) {
+        npcp = (NPCClass *) AllocateMem(sizeof(npc) * g_game.numNPCClasses);
+        if (npcp == nullptr) {
+            LogFatal("Out of memory");
         }
         CloseOutFiles();
 
-        fopenr(mobileDataFile);
-        checkedfread(mobp, sizeof(mob), g_gameConfig.numMobPersonas, ifp);
+        fopenr(npcDataFile);
+        checkedfread(ifp, npcp, g_game.numNPCClasses);
     }
 }
 
-/* Pass 2: Indexes commands mobiles have access to */
-/*mob_proc2()
+/* Pass 2: Indexes commands npcs have access to */
+/*npc_proc2()
 {*/
 
 /*---------------------------------------------------------*/
@@ -2545,55 +2681,54 @@ Context *
 NewContext(const char *filename)
 {
     Context *context = calloc(sizeof(Context), 1);
-    if (context == NULL) {
-        afatal("Out of memory for context");
+    if (context == nullptr) {
+        LogFatal("Out of memory for context");
     }
 
     if (EINVAL == path_join(context->filename, sizeof(context->filename), gameDir, filename)) {
-        afatal("Path length exceeds limit for %s/%s", gameDir, filename);
+        LogFatal("Path length exceeds limit for %s/%s", gameDir, filename);
     }
 
     return context;
 }
 */
 
-extern void title_proc(), smsg_proc(), umsg_proc(), obds_proc();
+extern void title_proc(const std::string &), smsg_proc(const std::string &),
+        umsg_proc(const std::string &), obds_proc(const std::string &);
 
 struct CompilePhase {
     const char *name;
-    bool        isText;
-    void (*handler)();
+    bool openFile;
+    void (*handler)(const std::string &filename);
 } phases[] = {
-        {"title", true, title_proc},      // game "title" (and config)
-        {"sysmsg", true, smsg_proc},      // system messages
-        {"umsg", true, umsg_proc},        // user-defined string messages
-        {"obdescs", true, obds_proc},     // object description strings
-        {"rooms", true, room_proc},       // room table
-        {"roomread", false, load_rooms},  // re-load room table
-        {"dmoves", false, checkdmoves},   // check cemeteries
-        {"ranks", true, rank_proc},       // rank table
-        {"mobiles", true, mob_proc1},     // npc classes so we can apply to objects
-        {"objects", true, objs_proc},     // objects
-        {"lang", true, lang_proc},        // language
-        {"travel", true, trav_proc},      // travel table
-        {"syns", true, syn_proc},         // synonyms for other things
-        {NULL, false, NULL}               // terminator
+    { "title", true, title_proc },    // game "title" (and config)
+    { "sysmsg", false, smsg_proc },   // system messages
+    { "umsg", false, umsg_proc },     // user-defined string messages
+    { "obdescs", false, obds_proc },  // object description strings
+    { "rooms", true, room_proc },     // room table
+    { "ranks", true, rank_proc },     // rank table
+    { "npcs", true, npc_proc },       // npc classes so we can apply to objects
+    { "objects", true, objs_proc },   // objects
+    { "lang", true, lang_proc },      // language
+    { "travel", false, trav_proc },   // travel table
+    { "syns", true, syn_proc },       // synonyms for other things
+    { nullptr, false, nullptr }       // terminator
 };
 
 void
 compilePhase(const CompilePhase *phase)
 {
-    alog(AL_INFO, "Compiling: %s", phase->name);
-    if (phase->isText) {
-        char filepath[MAX_PATH_LENGTH];
-        MakeTextFileName(phase->name, filepath);
-        FILE *fp = fopen(filepath, "r");
+    LogInfo("Compiling: ", phase->name);
+    std::string filepath{};
+    MakeTextFileName(phase->name, filepath);
+    if (phase->openFile) {
+        FILE *fp = fopen(filepath.c_str(), "r");
         if (!fp)
-            afatal("Could not open %s file: %s", phase->name, filepath);
+            LogFatal("Could not open ", phase->name, " file: ", filepath);
         ifp = fp;
     }
 
-    phase->handler();
+    phase->handler(filepath);
 
     if (ifp) {
         fclose(ifp);
@@ -2602,8 +2737,8 @@ compilePhase(const CompilePhase *phase)
 
     CloseOutFiles();
 
-    if (al_errorCount > 0) {
-        afatal("Terminating due to errors.");
+    if (GetLogErrorCount() > 0) {
+        LogFatal("Terminating due to errors.");
     }
 }
 
@@ -2616,71 +2751,82 @@ compileGame()
 }
 
 error_t
-compilerModuleInit(Module *module)
+compilerModuleInit(Module * /*module*/)
 {
     return 0;
 }
 
 void
-setProcessTitle(const char *title)
+createDataDir()
 {
-#if defined(AMIGA)
-    // set process name
-    mytask = FindTask(0L);
-    mytask->tc_Node.ln_Name = compilerVersion;
-    return;
-#endif
+    std::string filepath{};
+    if (PathJoin(filepath, gameDir, "Data") != 0)
+        LogFatal("Internal error preparing Data directory path");
 #if defined(_MSC_VER)
-    (void)title;  /// TODO: Implement Win32
+    if (mkdir(filepath.c_str()) < 0 && errno != EEXIST)
 #else
-    (void)title;  /// TODO: Implement posix version
+    if (mkdir(filepath.c_str(), 0776) < 0 && errno != EEXIST)
 #endif
+        LogFatal("Unable to create Data directory: ", filepath, ": ", strerror(errno));
+    LogInfo("Created ", filepath);
 }
 
+extern void CreateDefaultFiles();
+
 error_t
-compilerModuleStart(Module *module)
+compilerModuleStart(Module * /*module*/)
 {
-    setProcessTitle(compilerVersion.c_str());
-    alog(AL_INFO, "AMUL Compiler %s", compilerVersion.c_str());
+    LogInfo("AMUL Compiler: ", compilerVersion);
 
-    alog(AL_DEBUG, "Game Directory: %s", gameDir);
-    alog(AL_DEBUG, "Log Verbosity : %s", alogGetLevelName());
-    alog(AL_DEBUG, "Check DMoves  : %s", checkDmoves ? "true" : "false");
-    alog(AL_DEBUG, "Reuse Rooms   : %s", reuseRoomData ? "true" : "false");
+    LogDebug("Game Directory: ", gameDir);
+    LogDebug("Log Verbosity : ", GetLogLevelName(GetLogLevel()));
 
-    struct stat sb {
-        0
-    };
+    CreateDefaultFiles();
+
+    g_game.m_stringIndex.reserve(1024);
+    g_game.m_strings.reserve(256 * 1024);
+    g_game.m_rooms.reserve(1024);
+    g_game.m_ranks.reserve(20);
+    g_game.m_objects.reserve(512);
+    g_game.m_objectLocations.reserve(1024);
+    g_game.m_objectStates.reserve(1024);
+    g_game.m_adjectives.reserve(256);
+    g_game.m_synonyms.reserve(512);
+    g_game.m_verbs.reserve(128);
+    g_game.m_verbSlots.reserve(256);
+    g_game.m_vmLines.reserve(1024);
+    g_game.m_travel.reserve(1024);
+
+    createDataDir();
 
     for (const CompilePhase *phase = &phases[0]; phase->name; ++phase) {
-        if (phase->isText == false)
+        if (phase->openFile == false)
             continue;
 
-        char filepath[MAX_PATH_LENGTH];
+        std::string filepath{};
         MakeTextFileName(phase->name, filepath);
-        int err = stat(filepath, &sb);
+
+        struct stat sb;
+        error_t err = stat(filepath.c_str(), &sb);
         if (err != 0)
-            afatal("Missing file (%d): %s", err, filepath);
+            LogFatal("Missing file (", err, "): ", filepath);
     }
 
     return 0;
 }
 
 error_t
-compilerModuleClose(Module *module, error_t err)
+compilerModuleClose(Module * /*module*/, error_t err)
 {
     CloseOutFiles();
     CloseFile(&ifp);
 
     // If we didn't complete compilation, delete the profile file.
     if (err != 0 || !exiting) {
-        UnlinkGameFile(gameDataFile);
+        UnlinkGameFile(gameFile);
     }
 
-    ReleaseMem((void **)&obtab2);
-    ReleaseMem((void **)&vbtab);
-    ReleaseMem((void **)&mobp);
-    ReleaseMem((void **)&rmtab);
+    ReleaseMem((void **) &npcp);
 
     return 0;
 }
@@ -2688,8 +2834,64 @@ compilerModuleClose(Module *module, error_t err)
 void
 InitCompilerModule()
 {
-    NewModule(
-            MOD_COMPILER, compilerModuleInit, compilerModuleStart, compilerModuleClose, NULL, NULL);
+    NewModule(MOD_COMPILER,
+              compilerModuleInit,
+              compilerModuleStart,
+              compilerModuleClose,
+              nullptr,
+              nullptr);
+}
+
+constexpr auto checkedSave = [](const char *label, const auto &container) {
+    char desc[64];
+    strcpy(desc, label);
+    checkedfwrite(ofp1, desc, sizeof(desc));
+    size_t size = container.size();
+    checkedfwrite(ofp1, &size, 1);
+    auto written = checkedfwrite(ofp1, container.data(), size);
+    LogDebug("wrote ", label, ": ", container.size(), ": ", written, " bytes");
+    assert((written & (sizeof(int) - 1)) == 0);
+};
+
+error_t
+Game::Save()
+{
+    fopenw(gameFile);
+
+    // Round the string table up to pointer alignment.
+    auto stringPadding = sizeof(uintptr_t) - (stringBytes & (sizeof(uintptr_t) - 1));
+    for (size_t i = 0; i < stringPadding; ++i) {
+        m_strings.push_back('\0');
+        stringBytes++;
+    }
+
+    const auto written = checkedfwrite(ofp1, dynamic_cast<GameConfig *>(this), 1);
+    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+
+    assert(m_stringIndex.size() == numStrings);
+    checkedSave("string index", m_stringIndex);
+    checkedSave("string bytes", m_strings);
+
+    checkedSave("ranks", m_ranks);
+
+    checkedSave("rooms", m_rooms);
+    checkedSave("travel", m_travel);
+
+    checkedSave("adjectives", m_adjectives);
+
+    checkedSave("objects", m_objects);
+    checkedSave("object locations", m_objectLocations);
+    checkedSave("object states", m_objectStates);
+
+    checkedSave("synonyms", m_synonyms);
+
+    checkedSave("verbs", m_verbs);
+    checkedSave("syntax lines", m_verbSlots);
+    checkedSave("language code", m_vmLines);
+
+    CloseOutFiles();
+
+    return 0;
 }
 
 /*---------------------------------------------------------*/
@@ -2697,29 +2899,40 @@ InitCompilerModule()
 error_t
 amulcom_main()
 {
-    InitStrings();
-
     InitCompilerModule();
+
+    // Strings is effectively a sub-module of the compiler
+    InitStrings();
 
     StartModules();
 
     compileGame();
 
-    g_gameConfig.numStrings = GetStringCount();
-    g_gameConfig.stringBytes = GetStringBytes();
+    g_game.numStrings = GetStringCount();
+    g_game.stringBytes = GetStringBytes();
 
-    alog(AL_NOTE, "Execution finished normally");
-    alog(AL_INFO, "Statistics for %s:", g_gameConfig.gameName);
-    alog(AL_INFO, "		Rooms: %6" PRIu64 "	Ranks:   %6" PRIu64 " Objects: %6" PRIu64 "",
-         g_gameConfig.numRooms, g_gameConfig.numRanks, g_gameConfig.numObjects);
-    alog(AL_INFO, "		Adj's: %6" PRIu64 "	Verbs:   %6" PRIu64 "    Syns: %6" PRIu64 "",
-         g_gameConfig.numAdjectives, g_gameConfig.numVerbs, g_gameConfig.numSynonyms);
-    alog(AL_INFO, "		T.T's: %6" PRIu64 "	Strings: %6" PRIu64 "    Text: %6" PRIu64 "",
-         g_gameConfig.numTTEnts, g_gameConfig.numStrings, g_gameConfig.stringBytes);
+    LogNote("Execution finished normally");
+    LogInfo("Statistics for ", g_game.gameName, ":");
+    LogInfo("Rooms: ",
+            g_game.numRooms,
+            ", Ranks: ",
+            g_game.numRanks,
+            ", Objects: ",
+            g_game.numObjects,
+            ", Adjs: ",
+            g_game.numAdjectives,
+            ", Verbs: ",
+            g_game.numVerbs,
+            ", Syns: ",
+            g_game.numSynonyms,
+            ", TT Ents: ",
+            g_game.numTTEnts,
+            ", Strings: ",
+            g_game.numStrings,
+            ", Text: ",
+            g_game.stringBytes);
 
-    fopenw(gameDataFile);
-    checkedfwrite(&g_gameConfig, sizeof(g_gameConfig), 1, ofp1);
-    CloseOutFiles();
+    g_game.Save();
 
     exiting = true;
 

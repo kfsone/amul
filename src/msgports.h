@@ -1,47 +1,55 @@
-#ifndef AMUL_SRC_MSGPORTS_H
-#define AMUL_SRC_MSGPORTS_H
+#ifndef AMUL_MSGPORTS_H
+#define AMUL_MSGPORTS_H
 
-#include "spinlock.h"
 #include <atomic>
-#include <deque>
-#include <h/amigastubs.h>
+#include <list>
 #include <memory>
+
+#include "amigastubs.h"
+#include "spinlock.h"
+#include "typedefs.h"
 
 struct MsgPort;
 
-struct Message : public Node {
-    constexpr Message(MsgPort *replyPort, size_t size)
-        : Node(NT_MESSAGE)
-        , mn_ReplyPort(replyPort)
-        , mn_Length(size)
-    {
-    }
-    constexpr Message(size_t size)
-        : Message(nullptr, size)
-    {
-    }
+using MessagePtr = unique_ptr<struct Message>;
+using MsgPortPtr = shared_ptr<struct MsgPort>;
 
-    MsgPort *mn_ReplyPort;  // message reply port
-    size_t   mn_Length;     // total message length, in bytes
-                            // (include the size of the Message
-                            // structure in the length)
+struct Message {
+    Message(slotid_t sender, MsgPortPtr replyPort) noexcept
+        : m_sender(sender), m_replyPort(replyPort)
+    {
+    }
+    virtual ~Message() = default;
+
+    // ReplyPort is only valid in an original message. Do not copy it.
+    constexpr Message(const Message &msg) noexcept : m_sender(msg.m_sender), m_replyPort(nullptr) {}
+
+    virtual void Dispatch() = 0;
+
+    // Identifies the source of the message
+    enum : slotid_t { SLOT_Server = -1 };
+    slotid_t m_sender{ SLOT_Server };
+
+    // If the sender wants a reply, send to this port.
+    /// TODO: We can demote this to a special case; the Amiga needed this because the sender was
+    // responsible for freeing the message.
+    MsgPortPtr m_replyPort{ nullptr };
 };
 
-using MessagePtr = std::unique_ptr<Message>;
-
 struct MsgPort {
-    using MsgList = std::deque<MessagePtr>;
+    using MsgList = std::list<MessagePtr>;
 
-    const char *m_name;
-    MsgList     m_msgList;
+    const string_view m_name{ "" };
+
     /// TODO: Just using simple spinlocks for now
-    SpinLock m_spinLock;
+    SpinLock m_spinLock{};
+    std::atomic_bool m_open{ true };
+    MsgList m_msgList;
 
   public:
-    MsgPort(const char *name)
-        : m_name(name)
-    {
-    }
+    MsgPort() = default;
+    MsgPort(string_view name) : m_name(name) {}
+    ~MsgPort() noexcept { Close(); }
 
     void Put(MessagePtr &&ptr);
     bool IsReady() noexcept;
@@ -49,35 +57,14 @@ struct MsgPort {
 
     MessagePtr Get();   // non-blocking
     MessagePtr Wait();  // blocking
-    void       Clear();
+    void Clear() noexcept;
+    void Close() noexcept;
 };
 
-struct Aport : public Message {
-    Aport(MsgPort *replyPort = nullptr, uint32_t type_ = 0, int32_t from_ = -1, int64_t data_ = 9)
-        : Message(replyPort, sizeof(Aport))
-        , type(type_)
-        , from(from_)
-        , data(data_)
-    {
-    }
-
-    uint32_t type{0};
-    int32_t  from{-1};
-    int64_t  data{0};
-    int64_t  p1{0}, p2{0}, p3{0}, p4{0};
-    void *   opaque{nullptr};
-};
-
-// mp_Flags: Port arrival actions (PutMsg)
-#define PF_ACTION 3   // Mask
-#define PA_SIGNAL 0   // Signal task in mp_SigTask
-#define PA_SOFTINT 1  // Signal SoftInt in mp_SoftInt/mp_SigTask
-#define PA_IGNORE 2   // Ignore arrival
-
-MsgPort *FindPort(const char *portName);
-MsgPort *CreatePort(const char *portName);
-void     DeletePort(MsgPort *);
+MsgPortPtr CreatePort(string_view portName = "");
+MsgPortPtr FindPort(string_view portName) noexcept;
+MsgPortPtr FindPort(slotid_t slotId) noexcept;
 
 void ReplyMsg(MessagePtr &&msg);
 
-#endif  // AMUL_SRC_MSGPORTS_H
+#endif  // AMUL_MSGPORTS_H

@@ -1,0 +1,312 @@
+; Objects.Txt for Precious Days
+
+; Doors:  State 0 = Open,   State 1 = Closed,   State 2 = Locked.
+; Flames: State 0 = Lit,    State 1 = Doused,   State 2 = Exhausted. 
+; NOTE: The 'fire' flag can ALSO be used for burning objects...
+
+; ---------------------------- Main Objects -------------------------------- ;
+
+object=dummy scenery counter
+  store
+	none
+
+object=cup
+  tvroom
+	250 10 0 0 "On the floor lies a small, silver cup." scaled
+
+object=brush
+  bathroom
+	75 6 0 0 "Someone has dropped an little ornate brush nearby." scaled
+
+object=dish
+  bathroom
+	25 6 0 2 "On the floor sits a small glass dish."
+	120 10 0 2 "On the floor is a small glass dish, full of milk!"
+	25 50 0 2 "On the floor is a small glass dish, which looks slightly wet."
+
+object=cat  npc=cat
+  bathroom
+	700 0 0 0 "A cute little cat sits contentedly nearby." alive
+	700 0 0 0 "The battered and bleeding remains of a small cat lie at your feet."
+
+object=dog  npc=dog
+  junk1
+	1200 0 0 0 "A scruffy-looking, flea-infested, dog is wandering around here." alive
+	1200 0 0 0 "Near your feet lies a pile of blood-matted fur which was once presumably a very unpleasant dog."
+
+object=rope	flammable fire
+  soundroom
+	8 1 0 0 "A short length of rope has been thrown to one side."
+	8 1 0 0 "A short length of rope has been tied in a knot and thrown to one side."
+
+object=button adj=brass
+  bedrm3
+	6 15 0 0 "A tiny brass button catches the light near your feet." scaled
+
+object=coin adj=silver
+  hroom6
+	1 40 0 0 "Glistening in the light lies a small, silver coin." scaled
+
+object=nugget adj=golden
+  caves4
+	10 75 0 0 "Lying on the floor is a small, golden nugget." scaled
+
+object=book	fire flammable adj=ornate
+  prayroom
+	60 30 2 2 "Carelessly, someone has dropped an ornate little book nearby." scaled
+
+object=spade	adj=rusty
+  lawn
+	200 20 6 20 "A rusty spade has been left here." scaled
+
+object=stove	flammable opens scenery
+  kitchen
+	"In the middle of the room stands a huge, solitary stove. The door has been opened, revealing a cheery flame within." lit
+	"A huge stove stands in the middle of the room, looking quite undamaged. The door on it's front is closed."
+
+object=whistle
+  bhayloft
+	8 5 0 0 "On the floor nearby gleams a small whistle."
+	10 40 0 0 "On the floor nearby glistens a small, golden whistle."
+
+object=brooch
+  bhayloft
+	25 2 0 0 "Cast aside lies a filthy and neglected brooch."
+	25 50 0 0 "Carelessly dropped nearby is a dazzling brooch." scaled
+
+object=horn
+  dghouse
+	200 6 0 0 "Nearby lies an aged and filthy looking horn." scaled
+	200 30 0 0 "Nearby lies a shiny brass horn." scaled
+	250 80 0 0 "Someone has carelessly dropped a sparkling golden horn here!"
+
+; ---------------------------- Edible Items! ------------------------------- ;
+
+object=potatoe
+  fallow2
+	10 16 0 0 "Nearby lies a neglected potatoe."
+
+object=carrot
+  uggrass
+	10 16 0 0 "Lying on the floor is a tasty-looking carrot."
+
+object=wafer
+  bhayloft
+	2 6 0 0 "Someone has carelessly left a small wafer here."
+
+; --------------------------- Doors & Portals ------------------------------ ;
+
+; Various multi-located objects which are used to 'lead' between various rooms
+; doors being the most common. For ALL portals it is assumed:
+;	state 0 = open, state 1 = closed, state 2 = locked
+
+object=door	opens scenery adj=front start=1 flammable fire
+  hallway drive1
+	doorop
+	doorcl
+	doorlk
+
+object=door	opens scenery adj=patio
+  patio dining
+	none
+
+object=gates	opens scenery flammable start=1 adj=mansions
+  drive3 wlane2
+	"The mansion's gates are open."
+	"The mansion's gates are closed."
+	"Strewn about are the charred remains of the gates."
+
+; --------------------------- Related Objects ------------------------------ ;
+;
+; Any objects which are related to each other in some means... Best to keep
+; birds of a feather nicely stuck together... HEHEHE.
+;
+
+object=phone	scenery
+  caves1
+	phone
+	phone
+	phone
+
+; Allow people outside to hear the phone ring...
+object=phonering	scenery
+  caven1 caven2 cavee cavew cavec1 cavec2 caves2 caves3 caves4 cpass1 cpass2 +
+  cpass3 slopetun1 slopetun2 slopetun3 slopetun4 gstairs1 gstairs2
+	none
+
+; For those in the distance
+object=phonedist scenery
+  shute botshute bedrm2 cpass4w1 cpass4w2 cpass4e1 cpass5 slopetun5 slopetun6 +
+  ladbot ladmid gardwell confess ugpath0 spring1 ughilltop
+	none
+
+; Specifies where to send the 'spook' messages.
+object=transhere scenery
+  botshute confess prayroom ugglade2 ugfring insidehut insidebarn ladbot +
+  cpass4w2 cavec2 bedrm3 hroom4 hroom1
+	none
+
+; ------------------ Unplaced Objects & Master's Toys ---------------------- ;
+;
+; Stuff which hasn't yet found a home, and things for masters to play with...
+;
+
+object=crown	adj=golden
+  store
+	700 500 0 0 "An awe-inspiring, golden crown rests precariously on the floor nearby." scaled
+
+object=glasses
+  store
+	30 10 0 0 "Someone has cast-aside a pair of bifocals, minus lenses." scaled
+	30 -10 0 0 "Someone has cast-aside a pair of badly-damaged, lenseless bifocals."
+
+object=ruby
+  store
+	100 150 0 0 "Light sparkles and shines off a fine ruby lying, neglected, to one side."
+
+object=coin	adj=golden
+  store
+	10 90 0 0 "Glistening in the light lies a small, golden coin." scaled
+
+; --------------------------- Counter Objects ------------------------------ ;
+;
+; These objects are PURELY present for the sake of counting things or acting
+; as flags for other objects/commands.
+
+msgcount	start=4 counter scenery
+  store
+	none
+	none
+	none
+	none
+	none
+
+all		counter scenery
+  store
+	none
+
+; --------------------------- Scenery Objects ------------------------------ ;
+
+; The Doorway: This kind of object (scenery, no description) is used to make
+; up for the fact that users will ALWAYS try to tinker with objects which are
+; described in room descriptions ("You can leave via a doorway to the south")
+; which don't ACTUALLY need to exist. Walls, winds, rivers, trees and etc
+; will need similar treatment. 
+; Notice that the doorway is present in several rooms.
+
+object=doorway	scenery
+  start landing tvroom soundroom landing2 bedrm1 bedrm3 hallway dining kitchen +
+  hroom1 hroom2 hroom3 hroom4 hroom5 hroom6 gueste guestw drive1
+	none
+
+; Another pure-scenery object: the landing describes a faint breeze, so you
+; need to add 'breeze' to the vocabulary.
+
+object=breeze	scenery smell
+  landing ladmid
+	none
+
+; If the player tries to return to the START room, a force field flashes up
+; to prevent it. Doubtlessly people will try to examine it, so you have to
+; tell AMUL that it exists.
+
+object=forcefield	scenery
+  landing
+	none
+
+; The next one is a classic... People ALWAYS seem to want to examine stairs!
+
+object=stairs scenery
+  landing stairs1 stairs2 landing2 cpass5 confess cavew gstairs1 gstairs2 +
+  ugpath0
+	none
+
+object=wallpaper scenery
+  tvroom
+	none
+
+object=button scenery
+  bedrm2
+	none
+
+object=shute scenery
+  shute botshute
+	none
+
+object=wall scenery
+  start landing stairs1 stairs2 bathroom tvroom soundroom landing2 hallway +
+  reception junk1 dining guestw gueste hroom1 hroom2 hroom3 hroom4 hroom5  +
+  hroom6 bedrm1 bedrm2 shute botshute bedrm3 store heaven limbo cavee      +
+  caven1 caven2 caves1 caves2 caves3 caves4 cavec1 cavec2 cavew cpass1     +
+  cpass2 cpass3 cpass4 cpass4w1 cpass4w2 cpass4e1 cpass5 confess prayroom  +
+  gardorchd gardwell gardens patio outsidehut insidehut outsidebarn insidebarn
+	none
+
+object=well scenery
+  gardwell
+	none
+
+object=spring scenery
+  spring1
+	none
+
+object=hut scenery
+  outsidehut insidehut
+	none
+
+object=barn scenery
+  outsidebarn insidebarn
+	none
+
+object=rungs scenery
+  ladbot ladmid
+	none
+
+object=water scenery
+  gardwell spring1 bathroom
+	none
+
+object=marsh scenery
+  ugmarsh1 ugmarsh2
+	none
+
+object=seesaw scenery
+  beergarden
+	none
+
+object=tree scenery
+  beergarden gardorchd ugorchd3 ugglade1 ugglade2 ugglade3 ugorchd2 ugtmead2 +
+  ugtmead1 ugorchd1 ugavenue3 ugavenue2 ugavenue1 ugwood41 ugwood31 ugwood32 +
+  ugwood33 ugwood34 ugwood21 ugwood22 spring1 ugwood11 ugwood12
+	none
+
+object=hedge scenery
+  gardwell gardorchd
+	none
+
+object=wheat scenery
+  ugwheat
+	none
+
+object=hay scenery
+  insidebarn bhayloft
+	none
+
+object=ladder scenery flammable fire
+  insidebarn bhayloft
+	"A wooden ladder runs between the barn and the hayloft."
+
+object=loft scenery
+  insidebarn bhayloft
+	none
+
+object=rain scenery
+  drive1 drive2 drive3 patio gardens gardwell bwlgreen lawn
+	none
+	"It is raining."
+
+object=raintrees scenery
+  beergarden gardorchd gwoods gwoode gwoodn gglade wlane1 wlane2 wlane3
+	none
+
+; <End of file>

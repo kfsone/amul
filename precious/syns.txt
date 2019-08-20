@@ -1,0 +1,96 @@
+; Syns.Txt for Precious Days
+
+; This file simply defines 'synonyms' of verbs and adjectives, that is,
+; eg "vampire" is synonymous for "bat", and "ne" or "northeast".
+;
+; Keep verbs and objects SEPERATE - it makes this file easier to maintain!
+;
+; The layout is simple:
+;	<verb/object>	<synonym(s)>
+
+;* VERB SYNONYMS
+; 'communicating' and 'comms' have the same action as type COMMUNICATE
+north		n
+northeast	ne
+east		e
+southeast	se
+south		s
+southwest	sw
+west		w
+northwest	nw
+up		u
+down		d
+out		o leave
+in		enter
+quit		qq
+who		players others
+look		l
+score		sc
+examine		exa exam
+communicate	communicating comms
+blushe		blush
+itche		itch
+belche		belch
+brief		brief_mode bm
+verbose		verbose_mode vbm vm
+roomcount	room_count rmcount rm_count rc_mode rmc_mode
+exits		ex
+get		g take grab pick_up pick
+drop		dr put_down put
+give		gi
+inventory	i inv invent
+shout		sh yell
+press		push pr
+levels		ranks levs
+bug		report error mistake
+suggest		sug
+reset		res
+open		op
+close		cl shut
+what		wha objects objs
+sleep		sle zzz snooze doze
+wake		wa
+set_pre		spr spre setpre
+set_post	spo spost setpost setpo
+force		fce
+introduce	int
+unauto		auto_exits_off auto_off ua
+autoexits	ae auto_exits auto_on
+use		dial
+value		val worth points
+summon		sum sumon bring teleport tp
+follow		fol trace track spy_on chase
+where		wh locate
+fight		attack att attak kill fi ki kil murder slaughter destroy
+light		li
+douse		dous dou extinguish extingish exting ext unlight put_out
+wield		weeld wi
+invis		invisible
+uninvis		vis visible
+sinvis		sinv sinvisible super_invisible super_invis superinvis
+unsinvis	unsuperinvis unsinv usin usinv unsuperinvis unsuper_invis
+listen		lis
+act		: emote pretend
+
+;* OBJECT SYNONYMS
+doorway		portal
+door		doors dor
+breeze		gust wind draught draft
+forcefield	force_field field
+wallpaper	wall_paper time_table timetable
+rope		string cord knot
+dish		bowl plate
+phone		telephone ph
+glasses		specs
+book		hymn_book hymnbook
+spade		spa
+crown		cr
+glasses		specs glases bifocals bifs bifocls
+stove		oven sto ov
+seesaw		see_saw sea_saw se_saw see-saw
+tree		trees bush bushes
+all		everyone every_one every_thing everything
+loft		hayloft hay_loft
+gates		gate
+
+; <End of file>

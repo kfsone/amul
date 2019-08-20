@@ -3,7 +3,7 @@ BasedOnStyle: Mozilla
 AlignEscapedNewlines: Right
 AlignTrailingComments: 'true'
 AlwaysBreakAfterReturnType: TopLevelDefinitions
-AlwaysBreakTemplateDeclarations: 'Yes'
+AlwaysBreakTemplateDeclarations: 'true'
 BreakBeforeBraces: Linux
 BreakConstructorInitializers: BeforeColon
 ColumnLimit: '100'
@@ -20,11 +20,11 @@ PointerAlignment: Right
 ReflowComments: 'true'
 SpaceAfterCStyleCast: 'true'
 SpaceBeforeAssignmentOperators: 'true'
-SpaceBeforeCtorInitializerColon: 'true'
-SpaceBeforeRangeBasedForLoopColon: 'true'
 SpacesBeforeTrailingComments: '2'
 Standard: Auto
 TabWidth: '4'
 UseTab: Never
 
 ...
+#SpaceBeforeCtorInitializerColon: 'true'
+#SpaceBeforeRangeBasedForLoopColon: 'true'

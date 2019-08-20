@@ -1,11 +1,11 @@
-#include <ctype.h>
-#include <stdio.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
 
 #include "scanner.h"
 
 const char *atoms[MAX_ATOM] = {
-        "A_INVALID", "A_END", "A_SPACE", "A_LETTER", "A_DIGIT", "A_PUNCT",
+    "A_INVALID", "A_END", "A_SPACE", "A_LETTER", "A_DIGIT", "A_PUNCT",
 };
 
 size_t

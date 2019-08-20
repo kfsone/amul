@@ -1,0 +1,531 @@
+; Rooms.Txt for Precious Days
+;
+; MUDs are made up of fixed, discrete locations and players, called Rooms.
+; There's no coordinate system so the relationship between Rooms is entirely
+; up to you and doesn't have to obey any kind of laws of physics; Rooms don't
+; even have to be indoors.
+;
+; There is also no hard rule of scale. You could have a Room that describes
+; an entire planet or universe, or one that describes the corner of a room
+; (lowercase r). A Room could be heaven, hell or a bathroom.
+;
+; Typically, MUDs provide players with directional commands to move between
+; Rooms. A very conventional game would probably use "north", "east", "up",
+; etc. But it's not enforced. The connections between rooms are defined in
+; the "travel table" and are entirely up to you.
+
+; For tidiness sake, indent the text of each room description with ONE
+; leading tab. To do this I usually write the description first and then go
+; back and insert the tabs. This simply splits the rooms up better visually.
+;
+; The parser will remove ONE single tab from infront of every description line.
+; If you need an actual blank line, simply leave a line with only a tab on it.
+
+; Room ID: start
+; Flags  : room has a light source (Use of LIGHT is optional; its the default)
+;          players can start the game from this room.
+;          fighting is forbidden
+; Notes  : The 'room=' is totally optional. You don't HAVE to include it, but
+;          as your Rooms.Txt grows, you'll find it helps tremendously.
+;          The text is indented by a single tab. If you're reading this from
+;          CLI you shouldn't be, and its going to look strange.
+;          If you're wondering how the room links to others, don't. Thats
+;          covered in Travel.Txt.
+
+room=start	startloc peaceful
+	Threadbare room.
+	Try as you might, you find yourself unable to believe that the powers which
+	brought you here couldn't find a more deserving start for such an important
+	galactic figure as yourself. The faint smell of plasmo-neuro-static lingers,
+	indicating that there have been others beamed here, and probably explains
+	the distinct lack of a carpet. The only apparent way out is through a doorway
+	in the western wall.
+
+; Room ID: landing
+; Notes  : A few more exits from this room.
+
+room=landing
+	Upstairs landing.
+	You are standing on the landing. A vaguely musty smell pervades your nostrils
+	as a gentle breeze wanders indiscriminately around the empty chambers of this
+	house. There are rooms in most directions. A worn staircase leads down to the
+	southeast and another leads upwards to the northwest.
+
+; Stairs between the landing and the ground floor.
+
+room=stairs1
+	Flight of stairs.
+	The stairway leads up to the northwest and down to the southeast, where you can see a hallway.
+
+room=stairs2
+	Flight of stairs.
+	You are at a bend in the stairs. Down is to the southeast, whilst up is to the southwest.
+
+room=bathroom
+	Bathroom.
+	Once a centre of hygiene, this room has been abused by vandals and squatters to such an extent that it now presents itself as the very antipody of hygiene. The foul smell which lingers here is faint enough to show that even such as made this room what it now is have not dared use it for some time. The only way out is through an opening to the east.
+
+room=tvroom
+	TV Viewing Room.
+	Although no television or any of the related equipment can be found here, the wallpaper of this room is the give away. A timetable of all 25,000 satelite and cable TV stations receivable has been used to coat (somewhat roughly) the walls around you. The room is very odly shaped; the chimney breast is at a 40 degree angle and seems to occupy more than its fair share of the room. The only exit is via a doorway to the north.
+
+room=soundroom	silent
+	Barren room.
+	Despite being desperately barren, the room has an air of quality and richness which lead you to believe it was once fitted with very high-tech and expensive equipment. The walls appear to be sound proofed and the carpet appears to have gone on vacation. To the south a doorway leads out onto a landing.
+
+room=landing2
+	Landing.
+	You are stood on a narrow landing at the top of a flight of stairs. The stairs lead downwards, to the northeast, whilst there are doorways to the east, west and south of you.
+
+; ----------------------------- The Ground Floor --------------------------- ;
+
+; The hallway on the ground floor.
+room=hallway
+	Hallway.
+	You are standing in a narrow hallway at the foot of a flight of stairs which lead upwards to the northwest. To the east is an opening onto what looks to be a reception, whilst at the southern end of the hallway is a sturdy looking door.
+
+room=drive1
+	Driveway.
+	Before you stands a magnificent work of architecture and design. The vast stately home which stands before you is not only pleasing to the eye, but the added beauty of the surrounding landscape moves something in your spirit. The marr upon all this beauty is the driveway and the huge fence which runs along it, obviously intended to see that visitors don't wander too much. North is a huge doorway which leads into the building whilst the driveway continues to the south.
+
+room=drive2
+	Driveway.
+	To the north the driveway continues towards the mansion, whilst further south you can see a smaller building.
+
+room=drive3
+	Driveway.
+	You are stood at the bottom end of the driveway which connects the huge mansion to the north with the outside world. To your west is the gatehouse, whilst immediately to your south is the gateway itself.
+
+room=dghouse
+	Gatehouse.
+
+room=wlane1
+	Woody lane.
+
+room=wlane2
+	Wooded lane.
+
+room=wlane3
+	Wooded lane.
+
+room=reception
+	Reception.
+	From what little of this now empty hall remains, it would appear to have been used as a reception area, with the desk along the southern and eastern walls, At the northern end of the hall is a doorway, above which is inscribed "Kitchens and Suites", whilst a second and smaller doorway, to the west, is marked "Way Out".
+
+room=junk1
+	Junction.
+	This small room joins the four main areas of the establishment. North are the dining and kitchen facilities, whilst east and west are doorways leading into the guest-suites. A small door, to your south, leads into the reception area.
+
+room=dining
+	Dining room.
+	The vague smell of food lingers here, although all other signs of the rooms purpose have long since vanished. An opening to the northeast presumably leads to the kitchen, and another leads onto a corridor whilst a set of large patio doors to the west lead out into the gardens.
+
+room=kitchen
+	Kitchens.
+	Once a hive of activity, many years of neglect and vandalization have left nothing but a mass of wreckage. Huge chunks of masonry have smashed into the few worksurfaces which had not been stolen, leaving them totally useless. The only doorway which is not completely blocked leads out, to the southwest.
+
+room=patio
+	Patio.
+	This narrow strip of concrete serves as a patio, running along the western side of the building. The picturesque grounds extend someway both north and westards from here, whilst to the east a decayed set of patio doors lead into what looks to be a dining area.
+
+room=gardens
+	Stately garden.
+	This pleasant garden is located within the grounds of the stately-looking building which flanks you to the east and south. Both west and north the gardens continue for some considerable distance.
+
+room=beergarden
+	Beer garden.
+	Once a place for families to bring their children, this part of the otherwise neatly kept gardens has fallen into a shabby dissaray. Years ago there would have been a small playground here, but now only the skeleton of a see-saw remains. Several small trees provide shade making the place the more pleasant. The gardens continue to the south whilst to the west is a bowling green.
+
+room=gardwell
+	Well in garden.
+	This cool, quiet corner of the gardens seems an idylic place to sit and relax on a hot summers day. Presumably the well was built here to refresh those who chose to sojourn hereabouts. To the west is an orchard from which runs a tall hedgerow giving this place a cool, pleasant air. Immediately to your south is the building which this garden surrounds, although the only way in appears to be further along to the east.
+
+room=gardorchd
+	Orchard.
+	You are stood amongst the trees of a delightful orchard. The trees, though sparse, add a delightful colour and shade to these already peaceful grounds. The gardens continue to the east, where you can see a well, and beyond that the entrance to surrounding building. Northwards, however, the trees become denser, eventually becoming a small wood.
+
+room=gwoods
+	Pleasant wood.
+	You are surrounded on all sides by pleasant trees. North and east the wood continues whilst to the south the trees become sparser and further west they become impenetrable.
+
+room=gwoodn silent
+	Pleasant wood.
+	Around you stand the aged trees of a cool and refreshing wood. Only to the northwest and south are the trees spread enough to allow passage.
+
+room=gwoode silent
+	Pleasant wood.
+	All is quiet around you except for the gentle sounds of woodland animals moving about nearby. East, beyond the trees, stretches a beautifully kept lawn, whilst further westwards the wood continues.
+
+room=gglade
+	Glade in woods.
+
+room=bwlgreen
+	Bowling green.
+
+room=lawn
+	Beautiful lawn.
+	Although the lawns stretch someway in most directions, this section seems especially well kept; even the bowling green to the east seems overgrown in comparison. However, it stops to the west, in stark contrast with a seemingly natural wood which covers the horizon running north to south.
+
+; West guest wing
+room=guestw
+	West Lobby.
+	You are in a narrow hallway between the entrance hall and the western wing of the guest suite. To the west are three doorways leading into rooms. To the north are the showers and to the south the toilets. Another doorway to the east leads into another small room.
+
+room=hroom1 dark
+	Room 1.
+	You are in a small, squarish, and very dark room. There are large areas of rough brickwork along two of the walls which would indicate that the windows had been hurriedly bricked up. All the furniture and fittings of the room have been removed, including the carpet. All that remains is the door, which leads out to the southeast.
+
+room=hroom2 dark
+	Room 2.
+	Although the room itself is visibly quite large, the emptiness and dim lighting give it a claustrophobic feel. The only noticable feature of the room is the doorway to the east.
+
+room=hroom3 dark silent
+	Room 3.
+	The very size of this room inspires images of plush hotel suites, but they struggle for a place in your thoughts as the reality is incredibly different. The room has been stripped to such a point that even the wallpaper has been carefully removed. It seems incredibly quiet here.
+
+; East guest wing
+room=gueste
+	East Lobby.
+	This large, eight-sided room acts as a lobby to the guests rooms. To the north are the showers, whilst south are the lavatories. A sign above the western door reads "Way Out and Facilities."
+
+room=hroom4 dark
+	Room 4.
+	This tatty little hole was once a fine hotel room, but all the furnishings and decorations have been removed or destroyed many years ago. The windows have been bricked up and your light gives the room a very eerie feel. The way out is to the southwest.
+
+room=hroom5 dark small
+	Room 5.
+	Unremarkable as it is, this tiny room seems quite cosy. You can almost picture crashing out on the small, single bed that would once have taken up the bulk of the room. However, the bed and all the other fixtures and fittings have long since been removed. The only remarkable point of the room now is the doorway in the western wall.
+
+room=hroom6 dark
+	Room 6.
+	There is nothing noteworthy about this room except that you can leave by means of an open doorway to the northwest.
+
+; -------------------------- Bedrooms & The Shute -------------------------- ;
+
+; First bedroom.
+room=bedrm1
+	Small room.
+	You are in a small chamber, roughly large enough to hold a single bed and possibly a small table or desk of some kind. The window has been bricked up and the door removed. The way out is to the northeast.
+
+room=bedrm2	small
+	Warm room.
+	Although the room is desolate and there is no heating mechanism to be seen, this room is warmed to an idilyc temperature. The only noticeable feature is a small button set into one of the walls.
+
+room=shute	hide hideaway dmove=botshute nolook silent
+	You are sliding rapidly down a narrow, sloping shute.
+
+room=botshute
+	Bottom of shute.
+	Carved, roughly, out of the surrounding rock, this small room serves as an annexe to a larger cave which opens up to the west. In the nothern wall is a narrow opening through which a steep shute leads upwards, too steeply to climb.
+
+room=bedrm3	small
+	Tiny room.
+	No clues remain as to what this room was used for, there is no window or any sign of shelving or any indication as to the rooms original contents. The only exit is through a narrow doorway, to the northwest, which leads out onto a landing a great deal larger than this room.
+
+; ------------------------- Underground Cavern ------------------------------;
+
+room=cavee
+	Eastern corner of cavern.
+	You are stood in the eastern corner of a huge natural cavern. To the east a narrow gap in the cavern walls leads into a smaller, dimly lit cave, whilst westward the cavern widens.
+
+room=caven1
+	Northern wall of cavern.
+	You are in the northeastern corner of the vast cavern. A large crack in the northern wall leads into another, smaller chamber.
+
+room=caven2
+	Northern wall of cavern.
+	You are in the northwestern most corner of the cavern. The walls are nearly vertical, making them impossible to climb. To the southwest, set into the western wall of the cavern you can see a huge doorway.
+
+room=caves1
+	Southeastern corner of cavern.
+	Although the cavern appears mainly natural, you are surprised at the smoothness of the surrounding walls.
+
+room=caves2
+	Cavern.
+	Instead of continuing the near-perfect circle with which nature has shaped the rest of this gigantic cavern, the walls here fall back for some distance to the south, leaving a smallish sub-cavern. The overall effect of this makes the cavern look like natures idea of a theatre.
+
+room=caves3
+	Southwestern corner of cavern.
+	Despite the awe which the cavern as a whole inspires, this section of it is relatively dull.
+
+room=caves4
+	Southern wall of cavern.
+	You are stood along the southern wall of the cavern. The cavern walls are a breath-taking sight as the light sparkles and glistens from the remarkable crystal-formations produced during the process of erosion. However, crudely carved into the wall is a small passageway, leading down, further into the heart of the rock.
+
+room=cavec1
+	Cavern.
+	You are wandering around in the middle of a vast cavern, which continues in all directions.
+
+room=cavec2
+	Cavern.
+	From this central vantage point you can view almost the entire of the cavern, though the sheer size makes this somewhat mind-numbing. The walls tower high above, forming a lofty domed-ceiling. The cavern is almost perfectly round, but a recess in the southern wall gives it more the look of a gigantic gathering place. To the west you can see a huge archway set into the cavern walls, and further east you espy an opening leading into the rock itself.
+
+; See 'gstairs'
+room=cavew
+	Western wall of cavern.
+	You are stood along the western wall of a gigantic, natural cavern, set into which is set a huge archway through which climbs a stairway. The cavern continues to the south and in the easterly directions.
+
+room=cpass1
+	Narrow passageway.
+
+room=cpass2
+	Narrow passageway.
+
+room=cpass3
+	Narrow passageway.
+
+room=cpass4
+	Junction in passageway.
+
+room=cpass4w1
+	Short passageway.
+
+room=cpass4w2	dark
+	End of short passageway.
+
+room=cpass4e1	dark
+	End of short passageway.
+
+room=cpass5
+	Narrow corridor.
+	There is a stillness and peace about this corridor which puzzles you. The corridor opens up into a large room to the south, from which the tranquility seems to originate. A welcoming stairway leads upwards into another, smaller room, whilst to the northeast the corridor is crossed by another, narrower passage.
+
+room=prayroom
+	Prayer Hall.
+
+room=confess
+	Confessional.
+
+; ------------------ Link Between Underground & Garden -----------------------;
+
+room=slopetun1
+	Foot of sloping tunnel.
+	A roughly hewn tunnel climbs steeply upwards to the northeast, while to the south, through a large crack in the rock, you catch a glimpse of a huge cavern.
+
+room=slopetun2
+	Sloping tunnel.
+	To the southwest the tunnel levels off and then ends abruptly, whilst north it continues its ascent through the rock at a near-vertical climb.
+
+room=slopetun3
+	Sloping tunnel.
+	The near vertical climb continues upward, to the north, whilst further down, to the south, it begins to level off.
+
+room=slopetun4
+	Sloping tunnel.
+	You are on the vertical equivalent of a bend in the tunnel. To the north it ascends steeply whilst to the south it becomes almost a sheer drop, though it still looks traversable.
+
+room=slopetun5
+	Sloping tunnel.
+	The tunnel climbs upwards to the west, whilst to the south the downward slope becomes much steeper.
+
+room=slopetun6
+	Sloping tunnel.
+	The tunnel slopes upward from the east towards a small, round chamber at the western end.
+
+room=ladbot
+	Bottom of shaft.
+	The small, rock carved chamber in which you stand is lit by daylight, which enters through a shaft directly above your head. Set into the walls of the shaft are a set of metal rungs which make it possible to climb to the surface. To the east a tunnel leads downwards into the heart of the rock.
+
+room=ladmid
+	Halfway up (or down) shaft.
+	At the bottom of the shaft is a small chamber whilst a few feet further up is the surface.
+
+; -------------------------- Underground World -------------------------------;
+
+room=gstairs1
+	Granite stairway.
+	The stairway leads up to the northwest whilst to the east through a huge archway is a vast cavern.
+
+room=gstairs2
+	Granite stairway.
+	You are near the top of a stairway carved out of the surrounding granite rock which lead further down to the southeast and upward to the north. A gentle breeze of cool, fresh air drifts lazily down the stairway.
+
+room=yard1
+	Bottom of yard.
+
+room=fallow1
+	Northern fallow field.
+
+room=ugwood11
+	Underground wood.
+
+room=ugwood12
+	Underground wood.
+
+room=uglane1
+	Narrow lane.
+
+room=uglane2
+	Dusty lane.
+
+room=fallow2
+	Southern fallow field.
+
+room=ugwood21
+	Underground wood.
+
+room=spring1	sanctuary
+	Spring.
+	Before you bubbles a small, natural spring; however, there is something uncanny about the perfect circle of surrounding trees and the eerie stillness which gives the clearing an almost magical air.
+
+room=ugwood22
+	Undeground wood.
+
+room=outsidebarn
+	Outside barn.
+
+room=insidebarn
+	Barn.
+	The general mess of hay and mud scattered around gives the impression that this place has seen little proper use for a long time.
+
+room=bhayloft
+	Hayloft.
+	Obvious efforts have been made to keep this small den clean and tidy, or atleast compared to the barn below.
+
+room=uglane3
+	Dusty lane.
+
+room=ughilln
+	Northern slopes.
+
+room=outsidehut
+	Outside hut on hill.
+
+room=insidehut
+	Ramshackle hut.
+	Although the weather has taken its toll on this decaying shack, it still holds together well enough to provide shelter from the wind. A general mustiness and dampness in the air make it seem an unhealthy place to say the least!
+
+room=ugwood31
+	Edge of wood.
+
+room=ugwood32
+	Underground wood.
+
+room=ugwood33
+	Underground wood.
+
+room=ugwood34
+	Permiter of wood.
+
+room=uglane4
+	Dusty lane.
+
+room=ughillw
+	Western slopes.
+
+room=ughilltop
+	Top of the hill.
+
+room=ughille
+	Eastern slopes.
+
+room=ugnpast
+	Northern pasture.
+
+room=ugwheat
+	Wheat field.
+
+room=ugwood41
+	Underground wood.
+
+room=ugavenue1
+	Pleasant avenue.
+
+room=ugmeadow
+	Peaceful meadow.
+
+room=uggrass
+	Grassy field.
+
+room=ughillsw
+	Southwestern slopes.
+
+room=ughills
+	Southern slopes.
+
+room=ugwpast
+	Western pasture.
+
+room=ugfring
+	Fairy ring.
+
+room=ugepast
+	Eastern pasture.
+
+room=ugavenue3
+	Quiet avenue.
+
+room=ugavenue2
+	Quiet avenue.
+
+room=ugorchd1
+	Orchard.
+
+room=ugglade1
+	Pleasant glade.
+
+room=ugpath1
+	Winding path.
+
+room=ugspast
+	Southern pasture.
+
+room=ugpath3
+	Winding path.
+
+room=ugtmead1
+	Western end of meadow.
+
+room=ugtmead2
+	Eastern end of meadow.
+
+room=ugorchd2
+	Orchard.
+
+room=ugglade2
+	Pleasant glade.
+
+room=ugglade3
+	Edge of glade.
+
+room=ugpath2
+	Winding pathway.
+
+room=ugpath0
+	Narrow path.
+
+room=ugmarsh1
+	Marsh.
+
+room=ugmarsh2
+	Stinking marsh.
+
+room=ugorchd3
+	Orchard.
+
+
+; ---------------------------- Closet Rooms ---------------------------------;
+;
+; The below this point are mainly for masters to tinker in ... Limbo is a
+; 'detainment' location, players can only leave by being summoned. Store is
+; a place to keep SPECIAL objects (eg valuable ones, or deadly weapons) which
+; from time to time they can choose to bring out and tease lower players with.
+;
+
+; Note: Limbo is no-where! Only masters can get here (using supergo) and there
+;       are no exits for mortals to leave it, making it the ideal 'prison'.
+
+room=limbo	nolook hide dmove=store hideaway silent peaceful
+	Limbo.
+	Indistinct white mists swirl around you and an insensetive breeze blows at you in no actual direction. This place is nowhere.
+
+room=store	hideaway hide
+	Masters' store.
+	You are surrounded by an almighty hord of adventuring goods. You blink in the almost dazzling octarine glow which hangs over the hord. This is the room used by the masters to store things to dump out at random on the poor unsuspecting players to add a bit of spice to the game.
+
+room=heaven	nolook hide hideaway dmove=store silent peaceful
+	Heaven!
+	This is the place where deceased mobiles go, not the residence of the almighty, I'm afraid!
+
+; ---------------------------------------------------------------------------
+; <End of File>

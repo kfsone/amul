@@ -1,5 +1,5 @@
-#ifndef AMUL_SRC_ATOMTYPE_H
-#define AMUL_SRC_ATOMTYPE_H
+#ifndef AMUL_ATOMTYPE_H
+#define AMUL_ATOMTYPE_H
 
 enum AtomType {
     A_INVALID,
@@ -10,4 +10,4 @@ enum AtomType {
     A_PUNCT,   // punctuation
 };
 
-#endif  // AMUL_SRC_ATOMTYPE_H
+#endif  // AMUL_ATOMTYPE_H

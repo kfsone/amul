@@ -4,6 +4,7 @@
 
 #include <cctype>
 #include <iterator>
+#include <optional>
 
 #include "tokenstream.h"
 
@@ -36,36 +37,39 @@
 void
 TokenStream::Atomize()
 {
-    Atom *comment = nullptr;
+    std::optional<size_t> comment {};
+
     do {
         const char *start = buffer.it();
-        AtomType    at{NextAtomType(buffer)};
+        AtomType at{ NextAtomType(buffer) };
         switch (at) {
-        case A_END:
-            if (*start) {
-                atoms.Push(Atom{A_END, "\n", 1});
-            } else {
-                atoms.Push(Atom{A_END, "", 0});
-            }
-            break;
-        case A_SPACE:
-            atoms.Push(Atom{A_SPACE, " ", 1});
-            break;
-        case A_PUNCT:
-            if (*start == ';' && !comment)
-                comment = atoms.m_cur;
-            /*FALLTHROUGH*/
-        default:
-            size_t len = buffer.it() - start;
-            atoms.Push(Atom{at, start, len});
+            case A_END:
+                if (*start) {
+                    atoms.push_back(Atom{ A_END, "\n", 1 });
+                } else {
+                    atoms.push_back(Atom{ A_END, "", 0 });
+                }
+                break;
+            case A_SPACE:
+                atoms.push_back(Atom{ A_SPACE, " ", 1 });
+                break;
+            case A_PUNCT:
+                if (*start == ';' && !comment)
+                    comment = atoms.size();
+                /*FALLTHROUGH*/
+            default:
+                size_t len = buffer.it() - start;
+                atoms.push_back(Atom{ at, start, len });
         }
-    } while (*atoms.Back() != A_END);
+    } while (atoms.back() != A_END);
 
     if (comment) {
         // Consolidate comments into a single A_END token
-        comment->m_end = atoms.Back()->m_end;
-        atoms.Pop(atoms.end() - comment);
-        comment->m_type = A_END;
+        if (comment != atoms.size()) {
+            atoms[comment.value()].m_end = atoms.back().m_end;
+            atoms.erase(atoms.begin() + comment.value()+1, atoms.end());
+        }
+        atoms[comment.value()].m_type = A_END;
     }
 }
 
@@ -78,8 +82,8 @@ TokenStream::ScanLine()
 void
 testme()
 {
-    Buffer      buffer{"r=a b1 \n"};
-    TokenStream ts{buffer};
+    Buffer buffer{ "r=a b1 \n" };
+    TokenStream ts{ buffer };
     ts.SetPattern(nullptr /*tbd*/);
     ts.ScanLine();
 }

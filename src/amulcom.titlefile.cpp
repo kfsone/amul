@@ -1,17 +1,17 @@
-#include "amulcom.fileprocessing.h"
-#include "amulcom.strings.h"
-
-#include <h/amul.alog.h>
-#include <h/amul.type.h>
-#include <h/amul.xtra.h>
-#include <h/amul.gcfg.h>
-
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 #include <string>
 
-extern FILE *ifp;
-extern GameConfig g_gameConfig;
+#include "game.h"
+#include "typedefs.h"
+#include "amul.xtra.h"
+#include "amulcom.fileprocessing.h"
+#include "amulcom.strings.h"
+#include "amulcom.version.h"
+#include "logging.h"
+#include "svparse.h"
+
+extern thread_local FILE *ifp;
 extern std::string compilerVersion;
 
 static int
@@ -19,7 +19,7 @@ getNo(const char *prefix, const char *from)
 {
     int result = 0;
     if (sscanf(from, "%d", &result) != 1) {
-        afatal("Invalid '%s' entry: %s", prefix, from);
+        LogFatal("Invalid '", prefix, "' entry: ", from);
     }
     return result;
 }
@@ -36,20 +36,20 @@ stripNewline(char *text)
 static void
 getBlock(const char *linetype, void (*callback)(const char *, const char *))
 {
-    char block[1024];
+    char scratch[1024];
     for (;;) {
-        if (!fgets(block, sizeof(block), ifp)) {
-            afatal("Invalid title.txt: Missing '%s' line", linetype);
+        if (!fgets(scratch, sizeof(scratch), ifp)) {
+            LogFatal("Invalid title.txt: Missing '", linetype, "' line");
         }
 
-        repspc(block);
-        stripNewline(block);
-        char *p = skipspc(block);
+        repspc(scratch);
+        stripNewline(scratch);
+        char *p = skipspc(scratch);
         if (!*p || isCommentChar(*p))
             continue;
 
         if (!canSkipLead(linetype, &p)) {
-            afatal("Invalid title.txt: Expected '%s' got: %s", linetype, p);
+            LogFatal("Invalid title.txt: Expected '", linetype, "' got: ", p);
         }
 
         callback(linetype, p);
@@ -60,53 +60,55 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
 static void
 getBlockNo(const char *prefix, int *into)
 {
-    static int blockValue { 0 };
+    static int blockValue{ 0 };
     // TODO: This is awful, use a context.
-    getBlock(prefix, [](const char *prefix, const char *value) { blockValue = getNo(prefix, value); });
+    getBlock(prefix, [](const char *pfx, const char *value) { blockValue = getNo(pfx, value); });
     *into = blockValue;
 }
 
 void
-_getAdventureName(const char *prefix, const char *value)
+_getAdventureName(string_view prefix, string_view value)
 {
-    strncpy(g_gameConfig.gameName, value, sizeof(g_gameConfig.gameName));
-    if (strlen(value) > sizeof(g_gameConfig.gameName) - 1)
-        alog(AL_WARN, "Game name too long, truncated to: %s", g_gameConfig.gameName);
+    RemovePrefix(value, prefix);
+    ssize_t overflow = value.size() - (sizeof(g_game.gameName) - 1);
+    if (overflow > 0) {
+        value.remove_suffix(overflow);
+        LogWarn("Game name too long, truncated to: ", value);
+    }
+    strcpy(g_game.gameName, value.data());
 }
 
 void
-title_proc()
+title_proc(const std::string &/*filepath*/)
 {
     nextc(true);
 
-    getBlock("name=", _getAdventureName);
-    getBlockNo("resettime=", &g_gameConfig.gameDuration_m);
-    if (g_gameConfig.gameDuration_m < 15) {
-        g_gameConfig.gameDuration_m = 15;
-        alog(AL_WARN, "resettime= too short: falling back to %" PRIu64 " minutes",
-             g_gameConfig.gameDuration_m);
+    getBlock("name=", [](auto pfx, auto val) { _getAdventureName(pfx, val); });
+    getBlockNo("resettime=", &g_game.gameDuration_m);
+    if (g_game.gameDuration_m < 15) {
+        g_game.gameDuration_m = 15;
+        LogWarn("resettime= too short: falling back to ", g_game.gameDuration_m, " minutes");
     }
 
-    getBlockNo("seeinvis=", &g_gameConfig.seeInvisRank);
-    getBlockNo("seesuperinvis=", &g_gameConfig.seeSuperInvisRank);
+    getBlockNo("seeinvis=", &g_game.seeInvisRank);
+    getBlockNo("seesuperinvis=", &g_game.seeSuperInvisRank);
 
-    getBlockNo("sgorank=", &g_gameConfig.superGoRank);
+    getBlockNo("sgorank=", &g_game.superGoRank);
 
-    getBlockNo("rankscale=", &g_gameConfig.rankScale);
-    getBlockNo("timescale=", &g_gameConfig.timeScale);
+    getBlockNo("rankscale=", &g_game.rankScale);
+    getBlockNo("timescale=", &g_game.timeScale);
 
     while (nextc(false)) {
-        char *p = getTidyBlock(ifp);
+        char *p = getTidiedLineToScratch(ifp);
         if (!p || strncmp(p, "[title]", 7) != 0)
             continue;
         if (TextStringFromFile("$title", ifp, nullptr, true) != 0) {
-            afatal("Could not write splash text to message file");
+            LogFatal("Could not write splash text to message file");
         }
         return;
     }
 
-    alog(AL_WARN, "Missing [title] in Title.Txt");
-    std::string defaultTitle = compilerVersion + "\n\n";
-    RegisterTextString("$title", defaultTitle.c_str(), defaultTitle.length() + 1, true, nullptr);
+    LogWarn("Missing [title] in title.txt");
+    std::string defaultTitle = AMULCOM_VSTRING "\n\n";
+    RegisterTextString("$title", defaultTitle, true, nullptr);
 }
-

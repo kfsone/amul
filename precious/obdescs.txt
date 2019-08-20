@@ -1,0 +1,32 @@
+; ObDescs.Txt for Precious Days
+
+; Named descriptions for objects, because sometimes a description is
+; too long to fit into the object file proper, or because you want to
+; re-use the exact-same description across multiple instances of an
+; object.
+
+
+; -- standard door state descriptions (with adjectives)
+dooraop
+The %s door is open.
+
+dooracl
+The {adj} door is closed.
+
+dooralk
+The {adj} door is locked.
+
+; -- standard door state descriptions (without adjectives)
+doorop
+The door is open.
+
+doorcl
+The door is closed.
+
+doorlk
+The door is locked.
+
+phone
+Firmly attached to the cavern wall is an old-fashioned telephone without dial.
+
+; <End of file>

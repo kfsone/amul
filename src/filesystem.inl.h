@@ -1,19 +1,18 @@
-#ifndef AMUL_SRC_FILESYSTEM_INL_H
-#define AMUL_SRC_FILESYSTEM_INL_H
+#ifndef AMUL_FILESYSTEM_INL_H
+#define AMUL_FILESYSTEM_INL_H
 
 #include <cstdio>
-#include <h/amul.test.h>
+#include <string>
+
+#include "amul.test.h"
 
 // Inline / template functions that would otherwise clutter up filesystem.h
 
-template <size_t Size>
-error_t
-MakeTextFileName(const char *sourceName, char (&into)[Size])
+static inline error_t
+MakeTextFileName(const std::string &name, std::string &into)
 {
-    REQUIRE(sourceName);
-    char txtFilename[MAX_PATH_LENGTH];
-    snprintf(txtFilename, sizeof(txtFilename), "%s.txt", sourceName);
-    return path_joiner(into, gameDir, txtFilename);
+    REQUIRE(!name.empty());
+    return PathJoin(into, gameDir, name + ".txt");
 }
 
-#endif  // AMUL_SRC_FILESYSTEM_INL_H
+#endif  // AMUL_FILESYSTEM_INL_H

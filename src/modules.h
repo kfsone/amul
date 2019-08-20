@@ -1,19 +1,21 @@
-#ifndef AMUL_SRC_MODULES_H
-#define AMUL_SRC_MODULES_H
+#ifndef AMUL_MODULES_H
+#define AMUL_MODULES_H
 
-#include <h/amul.list.h>
-#include <h/amul.type.h>
+#include "amul.list.h"
+#include "typedefs.h"
 
 struct Module;
-typedef error_t (*moduleinit_fn)(struct Module *);
-typedef error_t (*modulestart_fn)(struct Module *);
-typedef error_t (*moduleclose_fn)(struct Module *, error_t);
+using moduleinit_fn = error_t (*)(struct Module *);
+using modulestart_fn = error_t (*)(struct Module *);
+using moduleclose_fn = error_t (*)(struct Module *, error_t);
 
 enum ModuleID {
     MOD_LOGGING = 1,
     MOD_CMDLINE,
     MOD_STRINGS,
     MOD_COMPILER,
+    MOD_SERVER,
+    MOD_CLIENT,
 
     MAX_MODULE_ID,
 };
@@ -23,23 +25,26 @@ struct Module {
 
     enum ModuleID id;
 
-    moduleinit_fn  init;
+    moduleinit_fn init;
     modulestart_fn start;
     moduleclose_fn close;
 
     const char *name;
-    void *      context;
+    void *context;
 };
 
-void    InitModules();
+void InitModules();
 error_t StartModules();
-void    CloseModules(error_t err);
+void CloseModules(error_t err);
 
-error_t NewModule(
-        enum ModuleID id, moduleinit_fn init, modulestart_fn start, moduleclose_fn close,
-        void *context /*opt*/, struct Module **ptr /*opt*/);
+error_t NewModule(enum ModuleID id,
+                  moduleinit_fn init,
+                  modulestart_fn start,
+                  moduleclose_fn close,
+                  void *context /*opt*/,
+                  struct Module **ptr /*opt*/);
 struct Module *GetModule(enum ModuleID id);
-error_t        CloseModule(struct Module *module, error_t err);
+error_t CloseModule(struct Module *module, error_t err);
 
 extern error_t RegisterContextModule(enum ModuleID id, void *context);
 #endif

@@ -1,5 +1,5 @@
-#ifndef AMUL_SRC_TOKENTYPE_H
-#define AMUL_SRC_TOKENTYPE_H
+#ifndef AMUL_TOKENTYPE_H
+#define AMUL_TOKENTYPE_H
 
 // Enumerates the base kinds of token
 enum TokenType {
@@ -23,4 +23,4 @@ enum TokenType {
 // For T_DICTWORD it will be the dictionary id of the word,
 using TokenSubType = uint64_t;
 
-#endif  // AMUL_SRC_TOKENTYPE_H
+#endif  // AMUL_TOKENTYPE_H

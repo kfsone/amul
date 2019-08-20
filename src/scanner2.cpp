@@ -1,11 +1,11 @@
-#include <ctype.h>
+#include <cctype>
 
 #define REF(name) *name[static 0]
 
 struct AtomSet {
-    Atom   REF(atoms);
+    Atom REF(atoms);
     size_t numAtoms;
-    Atom   REF(cur), REF(end);
+    Atom REF(cur), REF(end);
 };
 
 typedef bool (*ASPredicate)(const Atom REF(*cur), const Atom REF(end))
@@ -75,7 +75,7 @@ PREDICATE(aFloat)
         }
         return false;
     }
-    return AtomSetConsume(cur, end, {aDot, aDigit, NULL});
+    return AtomSetConsume(cur, end, { aDot, aDigit, nullptr });
 }
 
 PREDICATE(aNumber)
@@ -128,7 +128,7 @@ aStringLit(const Atom **cur, const Atom *end)
 {
     if (!symbolPredicate(cur, end, '"') && !symbolPredicate(cur, end, '\''))
         return false;
-    const char  quote = **cur;
+    const char quote = **cur;
     const Atom *pos = cur + 1;
     while (pos < end) {
         if (iseol(*pos))
@@ -150,7 +150,7 @@ aStringLit(const Atom **cur, const Atom *end)
 bool
 AtomSetConsume(const Atom REF(*cur), const Atom REF(end), ASPredicate REF(predicates))
 {
-    Atom         REF = *cur;
+    Atom REF = *cur;
     ASPredicate *pred = predicates;
     for (*pred) {
         if (pos >= as->end)

@@ -1,13 +1,13 @@
-#ifndef AMUL_SRC_TOKEN_H
-#define AMUL_SRC_TOKEN_H
+#ifndef AMUL_TOKEN_H
+#define AMUL_TOKEN_H
 
 #include "tokentype.h"
 
 struct Token {
-    TokenType    type;
+    TokenType type;
     TokenSubType subtype;
-    const Atom * start;
-    const Atom * end;
+    const Atom *start;
+    const Atom *end;
 };
 
-#endif  // AMUL_SRC_TOKEN_H
+#endif  // AMUL_TOKEN_H

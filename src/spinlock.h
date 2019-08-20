@@ -1,16 +1,17 @@
-#ifndef AMUL_SRC_SPINLOCK_H
-#define AMUL_SRC_SPINLOCK_H
+#ifndef AMUL_SPINLOCK_H
+#define AMUL_SPINLOCK_H
 
 #include <atomic>
-#include <h/amul.type.h>
+
+#include "typedefs.h"
 
 #ifndef FRIEND_TEST
-#    define FRIEND_TEST(...)
+#define FRIEND_TEST(...)
 #endif
 
 class SpinLock final
 {
-    std::atomic_bool m_lock{false};
+    std::atomic_bool m_lock{ false };
     FRIEND_TEST(SpinLockTest, Lock);
     FRIEND_TEST(SpinLockTest, Unlock);
     FRIEND_TEST(SpinLockTest, SpinLock);
@@ -33,14 +34,31 @@ class SpinLock final
 class SpinGuard
 {
     SpinLock &m_spin;
+    bool m_held{ false };
 
   public:
-    SpinGuard(SpinLock &spin)
-        : m_spin(spin)
+    SpinGuard(SpinLock &spin) noexcept : m_spin(spin) { Acquire(); }
+    ~SpinGuard() noexcept { Release(); }
+    void Acquire() noexcept
     {
-        m_spin.Lock();
+        if (!m_held) {
+            m_spin.Lock();
+            m_held = true;
+        }
     }
-    ~SpinGuard() { m_spin.Unlock(); }
+    void Release() noexcept
+    {
+        if (m_held) {
+            m_spin.Unlock();
+            m_held = false;
+        }
+    }
 };
 
-#endif  // AMUL_SRC_SPINLOCK_H
+class CriticalSection final : public SpinGuard
+{
+  public:
+    CriticalSection() noexcept;
+};
+
+#endif  // AMUL_SPINLOCK_H

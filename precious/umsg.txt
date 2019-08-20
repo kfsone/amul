@@ -1,0 +1,387 @@
+; UMsg.Txt for Precious Days
+
+; All this text can get a bit clumsy, so use a decent text editor like CEd
+; and indent message text using a SINGLE TAB infront of each line. The leading
+; tab will be removed by AMULCom.
+;
+; All UMsg's are word-wrapped as they are outputted. It is best to place
+; paragraphs of text on single lines whenever possible, allowing the user to
+; get most out of their OWN terminal settings!
+;
+; *I always find it tidier to seperate LONG messages with 2 or 3 blank lines
+;
+; * MSGID= isn't REQUIRED, but helps when searching through the larger msgs!
+
+YourBlind		; You can't see when you're blind
+	You can't see anything - you're blinded; remember?
+
+Crippled		; Can't move when you're crippled
+	You can't move an inch - you're crippled; remember?
+
+NoAllYet
+	Sorry - 'ALL' not implemented YET...
+
+CantExam		; Can't examine something like 'breeze'
+	I think you should get yourself examined...
+
+ExamDWay		; Examine a doorway...
+	You'd never guess, but it leads to another room!
+
+IEmote			; I'm performing an emotion
+	OK, @me @vbs.
+
+UEmote			; Tell others of my emotion
+	@xx @vbs.
+
+IEmoteX			; IEmote but add text
+	OK, @me @vbs @n1.
+
+UEmoteX			; UEmote but add text
+	@xx @vbs @n1.
+
+null			; Just a blank line...
+ 
+
+Rofl			; Roll on the floor with laughter
+	@xy rolls on the floor with laughter.
+
+ExamFField		; Examine the forcefield.
+	It's gone - it only lasted long enough to stop you entering the room; the basic idea is that you CAN'T go back in there.
+
+ExamStairs		; 'examine stairs'
+	You've seen stairs before, numbskull. If you want to go UP them, type UP. If you want to go DOWN them; well, can you guess?
+
+ExamWPaper		; Examine the wallpaper
+	You can travel through time and space or the ninety-two dimensions, and in every place, time or plane you visit you will find one thing common to all; the format of a TV timetable. They are universally illegible and a waste of time, except those of yVard!thestron in the 400th era of the 18th dimension, where the native TV timetables (with a little imaginative interpretation) often prove to be invaluable receipe guides. If you do happen to visit yVard!thestron though, never have dinner with a TV producer.
+
+ModeFail		; Tried to re-select current RD Mode
+	'@ve' mode was already selected!
+
+ExamCup			; Examine the cup
+	It's empty, and if you don't believe me, maybe the hole where the bottom will convince you?
+
+verbWhat		; <verb> what?
+	@vb WHAT?
+
+DontBeDaft		; Tried to do something stupid.
+	Don't be silly, you can't do that!
+
+NotGotNoun		; You aren't carrying it.
+	You aren't carrying the @n1!
+
+NotGotTool		; You aren't carrying noun2.
+	You aren't holding the @n2!
+
+PlyrNotHere		; Player isn't here
+	I can't see @n1 here!
+
+Plyr2NotHere		; Player (noun2) isn't here
+	I can't see @n2 here!
+
+NotThatKind		; It's not THAT sort of <noun>
+	No, no, no! It's not THAT kind of @n1, dunderhead!
+
+NoWallEre		; STORE/LIMBO/HEAVEN -- spieling with walls!
+	Be credible, boyo, the only walls HERE are your imagination!
+
+CantGetClose		; Trying to approach cat or for nasty operations!
+	The @n1 won't let you get close enough to @vb it!
+
+SniffDC1		; Sniff Dog/Cat in state 1.
+	YEUCH! If you revived it the SMELL would probably knock it dead again!
+
+BugSug			; Bug/Suggestions
+	All help is appreciated! Logging your name, ID no and phone number along with the @vb report...
+
+ClimbCWall		; Try to climb cave wall - plonkers!
+	Nice idea, but the cave walls here are FAR too steep to climb. Good excercise though...
+
+CWallBlock		; Blocked by the cave wall.
+	The cavern wall prevents you going that way.
+
+CantVbThat
+	You can't @vb that!
+
+UseHands		; Can't open/close things WITH something...
+	If you can't @vb it with your hands, it won't open any other way...
+
+ItsNow
+	The @n1 is now @vb.
+
+TalkSelf
+	Talking to yourself is a sign of madness...
+
+MakeMag
+	@xx makes some magical gestures...
+
+Success
+	Your spell was successful!
+
+PeepsOnly
+	The spell will ONLY work on people.
+
+AnswerPhone
+	You clear your throat, lift the receiver, and ...
+	 @me> "Hello?"
+	 Caller> "Wrfhf Puevfg zrnaf fnyingvba sbe nyy zna-xvaq!"
+	 @me> [Cough] "HELLO???"
+	 Caller> "Oh sorry! It's Joanne... Just wanted to tell you I'm not going to
+	          be coming to prayer meeting tonight. I'd appreciate it if you'd tell
+	          Glady's and Pastor Joseph. Tell Darren that the train times to
+	          Lincoln have changed. Must go now. My mom is going to Sheff and I
+	          don't want to miss a lift... I STILL don't know whether or not I like
+	          Grimsby though! BYE!"
+	<Click> ...
+
+DoorClosed
+	The door is closed!
+
+NoClPatio
+	The patio doors have been open for a LONG time, and the elements have seen to it that they will remain so for ever more...
+
+MoveStove
+	You make a valiant attempt, but for a start it's quite gigantic and secondly its been specially fitted just so it can't be pilfered... I don't know, these would-be-thieves...
+
+GoneSleep
+	@xx has just fallen asleep.
+
+MovePhone
+	PHEW! The description says "Firmly attached" and, boy, DID IT MEAN IT!
+
+MagicFlames
+	Try as you might, something more powerful than you keeps it burning...
+
+NotLit
+	The @n1 isn't alight anyway!
+
+IBidYou
+	@me bids you '@ve'!
+
+YouBid
+	You bid @n1 '@ve'!
+
+YouBidAll
+	And @ve from me, too!
+
+SyntVPT
+	Whoops! Try @vb <player> "<text>"
+
+BadTrans
+	Suddenly a ghostly human figure appears before you; it's face contorted as if in agony. It throws its hands upwards and then vanishes in a brilliant flash of light, leaving you feeling somewhat distressed.
+
+TTHotel
+	Your way is blocked by the building; find the entrance if you want to go inside!
+
+TTTrees
+	The trees soon become too densely packed, so you give up and go back.
+
+StandUp
+	Fool! You can't go anywhere until you stand up... Tsk tsk...
+
+FenceDrive
+	Someone has built a whopping great fence along the sides of the driveway to stop people like you trampling his precious grounds!
+
+GatesClosed
+	Unfortunately the gates are both solid AND closed...
+
+IDidItE
+	@xx has @vbed the @n1.
+
+IDidIt
+	@xx has @vbd the @n1.
+
+HeDidItE
+	@xy has @vbed the @n1.
+
+HeDidIt
+	@xy has @vbd the @n1.
+
+; ----------------------------- Help Texts ---------------------------------;
+
+msgid=hints
+	Precious Days -- Help text No. 1 -- General playing hints
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+HINT  1: Always VALUE an object when you pick it up.
+HINT  2: Look out for objects with 'scaled' values; these are worth MORE nearer
+         to a RESET.
+HINT  3: When moving IN/OUT of a GROUP of locations, use the IN command to work
+         your way to the heart of the group or OUT if you are in a hurry to
+         leave.
+HINT  4: Whilst mapping Precious, turn the AUTOEXITS facility on.
+HINT  5: When in doubt, list EXITS out.
+HINT  6: Look out for short cuts to The Spring.
+HINT  7: Try to be nice to other players; you may need their help some times.
+HINT  8: ALWAYS read room descriptions; if a description pays specific detail
+         to one part of the room, it may be a clue.
+HINT  9: EXAmine things.
+HINT 10: Always TRY and tell Precious what you want in YOUR TERMS. If it
+         doesn't understand, use the BUG or SUGgest commands.
+HINT 11: Being OVER friendly with some players can cost you. 
+HINT 12: It's rude not to answer the phone!
+ 
+
+
+msgid=spells
+	 Precious Days -- Help text No. 2 -- Magical Spells!
+	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Spell               | Rank | MPTS | Purpose
+  --------------------+------+------+----------------------------------------
+  GLOW player         |   4  |   2  | Cause another player to start glowing
+  GLOW [me]           |   4  |   1  | Cause yourself to start glowing
+  SLEEP player        |   6  |   1  | Cause another player to sleep
+  WAKE player         |   2  |   1  | Awaken another player
+  UNGLOW player       |   4  |   1  | Stops a player glowing
+  CHANGE player       |   4  |   1  | Change player's sex
+  SUMMON player       |   6  |   1  | Summons another player
+  FORCE player "text" |   7  |   1  | MAKE someone do something
+  WHERE object        |   5  |   2  | Locate the whereabouts of an object
+  INVIS [me]          |   5  |   1  | Make yourself invisible
+  INVIS player        |   6  |   1  | Make someone invisible
+  UNINVIS [me]        |   5  |   1  | Make yourself visible again
+  UNINVIS player      |   9  |   1  | Make someone visible again
+  SINVIS [me]         |   9  |   1  | Make yourself super-invisible
+  SINVIS player       |  10  |   1  | Make a player super-invisible
+  UNSINVIS [me]       |   7  |   1  | Undo a super-invis spell
+  UNSINVIS player     |  10  |   1  | Undo a super-invis spell
+  --------------------+------+------+----------------------------------------
+	    MPTS = Magical Points used to cast the spell
+ 
+
+
+msgid=levels
+	 Precious Days -- Help text No. 3 -- Levels of experience in Precious
+	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	    ---------------+---------------+---------+--------+------+-----
+	    Male           | Female        |  Score  | PFKSTL | MPTS |Tasks
+	    ---------------+---------------+---------+--------+------+-----
+	    Novice         | Novice        |       0 |     10 |    1 |    0
+	    Hack           | Hack          |     100 |     20 |    2 |    0
+	    Serf           | Serf          |     200 |     40 |    4 |    1
+	    Explorer       | Explorer      |     400 |     80 |    8 |    1
+	    Adventurer     | Adventuress   |     800 |    160 |   16 |    2
+	    Scout          | Guide         |    1600 |    320 |   32 |    3
+	    Challenger     | Challenger    |    3200 |    640 |   64 |    4
+	    Hero           | Heroine       |    6400 |   1280 |  128 |    5
+	    Reader         | Reader        |   12800 |   2560 |  256 |    6
+	    Tasker         | Tasker        |   25600 |   5120 |  512 |    7
+	    Chief          | Lady          |   51200 |  10240 | 1024 |    8
+	    Master         | Mistress      |  102240 |  40960 | 4096 |    9
+	    ---------------+---------------+---------+--------+------+-----
+	    PFKSTL = Points For Killing Someone of this Level
+	    MPTS   = Magical Points
+ 
+
+
+msgid=commands
+	 Precious Days -- Help text No. 4 -- Detailed list of major commands
+	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+	 PRECIOUS understands a great quantity of words and phrases. Unlike a conventional adventure, PRECIOUS regularily allows dozens of approaches to a single action, eg, you can SAY, ASK or TELL somebody something. Try not to spend time worrying about what commands PRECIOUS MIGHT understand. If you want to tell PRECIOUS to do something, and it doesn't know what you mean, then PLEASE use the SUGGEST command to enable us to implement it.
+ 
+	 Most PRECIOUS commands can be abbreviated. Minimum abbreviations are shown in captials (eg: QuickWho = qw, PrEcIoUs = peiu)
+ 
+	North, South, East, West, NorthEast, SouthEast, SouthWest, NorthWest, Up, Down, IN, Out.
+ 
+	Look, who, QuickWho, SCore, QuickScore, GET, DRop, Inventory, GIve, OPen, CLose, VALue, WEIgh, WHAt, FIght, SAVE, Quit, welcome, BUG, SUGgest, RESet, Act, SLEep, WAke, KIll, ForCE, INTroduce, AutoExits, UnAuto, FOLlow, sit, stand, lie, ANSwer, use, ATTack, FLEE, WHEre, LIght, LISten.
+ 
+
+
+msgid=scoring
+	 Precious Days -- Help text No. 5 -- Point scoring tips!
+	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	In PRECIOUS your 'score' indicates your character's level of experience in the land. As your level of experience increases, so will your 'rank'. Obviously, then, it would help to know HOW you can achieve this!
+ 
+	There are THREE ways of scoring points:
+ 
+	  1) Dropping Objects Into The Underground Spring.
+	Whenever you become the owner of an object, you should always 'VALUE' it. Some objects have 'scaled' values, which means that the higher your rank the less they are worth. Also, their values change based on the 'time till reset'. There are several ways to the spring, but you will have to find them.
+ 
+	  2) Performing A 'Task' or 'Operation'.
+	There are various actions in PRECIOUS which, when performed, will reward the player with some points; for example, somewhere in the underground caverns is a telephone. Occasionally this rings, and the first player to answer it gets 50 points. However, PRECIOUS also contains several more complex operations. The more complex they are, usually, the more points they score.
+ 
+	Some of these operations demonstrate that the player has a degree of basic knowledge of PRECIOUS which is required of ALL players. These are known as TASKS. You are required to complete certain of these before you can achieve certain ranks, and all of them before you can become a Master/Mistress. Once you have completed one, it is stored alongside your other details, meaining you only ever HAVE to complete them once. However, since they are worth some points, you are welcome to perform them as many times as you please.
+ 
+	Currently there are NO TASKS - any suggestions for them would be welcomed!
+ 
+	  3) Player interaction.
+	Since PRECIOUS is a multi-user game, naturally you can score points through your interaction with other players. For example, if a higher-ranking player WELCOMEs you, you gain a few points. If you kill another player in combat, or if you flee from a fight, points are gained or lost. Also, there are several operations within the game which can ONLY be performed when two or three players work together.
+ 
+	Currently there are no Multi-Player tasks. Any ideas or suggestions would be welcomed.
+ 
+
+
+msgid=about
+	 Precious Days -- Help text no. 6 -- About Precious Days!
+	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	             PRECIOUS DAYS -- Copyright (C) Oliver Smith, 1991.
+ 
+	"Precious" is an Amiga Based, multi-user, role-playing/adventure game. It is neither a role-playing game OR a computer adventure, but includes many features of both types of games. At the same time it differs greatly from both in many ways too!
+ 
+	The addition of Multi-User interaction and communications makes PRECIOUS much more than just a game. It can be a meeting place and an EXCELLENT way of chatting with other comms users. It is one of many steps down the long road to virtual reality, allowing you to happily communicate with, help, hinder or downright destroy other people within the game.
+ 
+	PRECIOUS is not written in a conventional programming language, but instead using a system called AMUL - THE Amiga Multi-User games Language. AMUL is available as SHAREWARE from *THIS* System!
+ 
+
+
+msgid=acting
+	 Precious Days -- Help text no. 7 -- Acting - the art of role-playing!
+	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 One of the least significant but most essential differences between the old style of computer adventure people are used to and a game such as PRECIOUS is that the characters have the ability to become more- or less- involved with each other and the game.
+ 
+	 PRECIOUS has a fleet of 'emotion' or 'acting' commands which enable you to express emotions, reactions, atmospheres or even to perform the impossible.
+ 
+	* PRECIOUS SHOULD UNDERSTAND ANY BASIC 'EMOTION' YOU TRY TO EXPRESS *
+	If you find one we've missed, PLEASE let us know using SUGGEST "<idea>".
+ 
+	The main emotion commands are:
+ 
+	Blink, Blush, Cheer, Chuckle, Clap, Cower, Duck, Frown, Giggle, Grimace, Grin, Growl, Grunt, Laugh, Moan, Nod, ROFL, Scream, Shout, Sigh, Stagger, Wail, Wave, Wince, Wobble, Yawn, Yell.
+ 
+	 In order to perform an action PRECIOUS doesn't understand (eg long ones) you should use the ACT "<text>" command. Other users nearby will see '@me the @mr <text>' so the text should explain the action you are performing, eg:
+ 
+		act "thinks PRECIOUS is wonderful."
+	 becomes
+		@me the @mr thinks PRECIOUS is wonderful.
+ 
+	 The ACT command can be abreviated to a colon (:) eg:
+ 
+		: "thinks PRECIOUS is wonderful."
+ 
+	 ----------------------------------------------------------------------------
+ 
+	 Note:   It  is  considered common courtesy in PRECIOUS to WAVE when you meet
+	 another  player  wandering  around.   Also,  when asked a Yes or No question
+	 people usually NOD rather than answer "Yes", as you probably would normally.
+ 
+	 ----------------------------------------------------------------------------
+ 
+
+
+msgid=comms
+	 Precious Days -- Help text no. 8 -- Communicating with other people!
+	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 The REAL meat of any Multi-User game is the interaction with other REAL people. In PRECIOUS there are many ways of making yourself heard amongst other people in the Land.
+ 
+	 It is important that you remember that speech must ALWAYS be indicated like other text with a single or double speech mark (' or "). The simplest form of speech is simply putting a quote infront of some text:
+ 
+	        > "Hello everyone.                 (assuming > is the prompt)
+	 Would respond:
+	        OK, @me the @mr says "Hello everyone."
+	 and people nearby would see:
+	        @me the @mr says "Hello everyone."
+ 
+	 However, if you want to talk to people who aren't in the same room, you have to raise your voice and SHOUT or use telepathy and TELL them your message.
+ 
+		> shout "Anyone for tennis?"
+	 would send:
+		A @gn voice in the distance shouts "Anyone for tennis?"
+	 and
+		> tell fred "I didn't know you were telepathic?"
+	 would send:
+		@me tells you "I didn't know you were telepathic?"
+	 to Fred (presuming he was online at the time).
+ 
+
+
+;----------------------------------------------------------------------------
+; <End of file>

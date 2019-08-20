@@ -1,17 +1,17 @@
-#ifndef AMUL_SRC_SYSTEM_H
-#define AMUL_SRC_SYSTEM_H
-
+#ifndef AMUL_SYSTEM_H
+#define AMUL_SYSTEM_H
 // OS portability functions/wrappers
-
-#include <h/amul.type.h>
 
 #include <cstdlib>
 
+#include "typedefs.h"
+#include "platforms.h"
+
 #if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
-#    define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
+#define S_ISREG(m) (((m) &S_IFMT) == S_IFREG)
 #endif
 
-extern void Yield() noexcept;
+extern void YieldCpu() noexcept;
 
 static inline void *
 AllocateMem(size_t bytes)
@@ -28,11 +28,11 @@ ReleaseMem(void **ptr)
     }
 }
 
-template <typename T>
+template<typename T>
 void
 ReleaseMem(T **ptr)
 {
-    ReleaseMem((void **)ptr);
+    ReleaseMem((void **) ptr);
 }
 
 #endif

@@ -1,6 +1,6 @@
 #include "spinlock.h"
 
-extern void Yield();
+extern void YieldCpu();
 
 bool
 SpinLock::TryLock() noexcept
@@ -11,12 +11,12 @@ SpinLock::TryLock() noexcept
 void
 SpinLock::Lock() noexcept
 {
-    for (size_t i = 0; i < 30; ++i) {
+    for (size_t i = 0; i < 64; ++i) {
         if (TryLock())
             return;
     }
     while (!TryLock()) {
-        Yield();
+        YieldCpu();
     }
 }
 

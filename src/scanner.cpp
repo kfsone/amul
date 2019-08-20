@@ -67,9 +67,6 @@ My current thinking is this:
    current state, and specifying which values should thus be captured for the ast
    or equivalent.
 
- 
-
-
 
 -----------------------------------
 Example:
@@ -101,22 +98,22 @@ discard:
 
 state 0:
     TT_LABEL,		["room=",]		state 1
-    TT_IDENTIFIER,	NULL,			state 2
-    TT_WHITESPACE,	NULL,			state 0
-    TT_EOL,			NULL,			state 0
+    TT_IDENTIFIER,	nullptr,			state 2
+    TT_WHITESPACE,	nullptr,			state 0
+    TT_EOL,			nullptr,			state 0
 
 state 1:
-    TT_IDENTIFIER,	NULL,			state 2
+    TT_IDENTIFIER,	nullptr,			state 2
 
 state 2:
-    TT_EOL,			NULL,			state 3
+    TT_EOL,			nullptr,			state 3
     TT_IDENTIFIER,	ROOMFLAGS,		state 2
 
 state 3:
-    LINE_OF_TEXT,	NULL,			state 4
+    LINE_OF_TEXT,	nullptr,			state 4
 
 state 4:
-    LINE_OF_TEXT,	NULL,			state 4
+    LINE_OF_TEXT,	nullptr,			state 4
 
 I'm contemplating using something like overloading operator&:
 
@@ -144,8 +141,112 @@ RoomId = Labeled("room=", Word());
 template<typename LhsT, typename RhsT, typename... Args>
 struct Expression : public Expression<RhsT, Args...>
 {
-    
+
 
 
 }
 */
+using Lexeme = int;
+enum Token { Error = -1, None, Even, Odd };
+using Lexemes = std::vector<Lexeme>;
+using LexCursor = Lexemes::iterator;
+
+struct TokenizerState {
+    Lexemes m_lexemes;
+    LexCursor m_cursor;
+    std::vector<Token> m_tokens;
+
+    TokenizerStae() : m_lexemes{}, m_cursor{ m_lexemes.begin() }, m_tokens{} {}
+
+    bool empty() const { return m_cursor == m_lexemes.end(); }
+    Lexeme Current() const { return *m_cursor; }
+    Token AddToken(t, size_t numLexemes)
+    {
+        m_tokens.push_back(t);
+        m_cursor += numLexemes;
+        return t;
+    }
+};
+
+struct TokenMatcher {
+    TokenMatcher() {}
+
+    virtual Token Match(TokenizerState &ts) { return Error; }
+    Token Match(TokenizerState &ts, TokenMatcher &tm)
+    {
+        if (ts.empty())
+            return None;
+        return tm.Match(ts);
+    }
+
+    Token AddToken(Token t, size_t numLexemes)
+    {
+        ts.m_tokens.push(t);
+        ts.m_cursor += numLexemes;
+        return t;
+    }
+};
+
+struct MatchEven : public TokenMatcher {
+    bool Match(TokenizerState &ts) override
+    {
+        if ((ts.Current() & 1) == 0) {
+            return AddToken(Even, 1);
+        }
+    }
+};
+
+struct MatchOdd : public TokenMatcher {
+    bool Match(TokenizerState &ts) override
+    {
+        if ((ts.Current() & 1) != 0) {
+            return AddToken(Even, 1);
+        }
+    }
+};
+
+struct MatchEither : public TokenMatcher {
+    TokenMatcher &lhs;
+    TokenMatcher &rhs;
+    MatchEither(TokenMatcher &lhs, TokenMatcher &rhs) : lhs(lhs), rhs(rhs) {}
+    bool Match(TokenizerState &ts) override
+    {
+        if (Token matched = Match(ts, lhs); matched != None)
+            return matched;
+        if (Token matched = Match(ts, rhs); matched != None)
+            return matched;
+        return None;
+    }
+}
+
+struct MatchN : public TokenMatcher {
+    TokenMatcher &matcher;
+    size_t n;
+    MatchN(TokenMatcher &matcher, size_t n) : matcher(matcher), n(n) {}
+
+    bool Match(TokenizerState &ts) override
+    {
+        for (size_t i = 0; i < n; ++i) {
+            if (ts.empty())
+                return Error;
+            Token t = Match(ts, matcher);
+            if (t <= None)
+                return Error;
+            ts.AddToken(t, 1);
+        }
+    }
+};
+
+TokenMatcher
+operator|(TokenMatcher &lhs, TokenMatcher &rhs)
+{
+    return MatchEither{ lhs, rhs };
+}
+
+int
+main()
+{
+    auto matcher = TokenizerState ts{};
+    ts.m_lexemes = { 5, 1, 3, 2, 4, 1, 6 };
+    ts.m_cursor = tx.m_lexemes.begin();
+}
