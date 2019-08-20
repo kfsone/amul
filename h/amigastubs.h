@@ -17,16 +17,16 @@
 #        define strnicmp strncasecmp
 #    endif
 
-typedef uint16_t UWORD;
-typedef uint32_t ULONG;
-typedef int16_t  WORD;
-typedef int16_t  SHORT;
-typedef uint16_t USHORT;
-typedef int16_t  COUNT;
-typedef uint8_t  UBYTE;
-typedef int8_t   BYTE;
-typedef void     VOID;
-typedef void *   APTR;
+using UWORD = uint16_t;
+using ULONG = uint32_t;
+using WORD = int16_t;
+using SHORT = int16_t;
+using USHORT = uint16_t;
+using COUNT = int16_t;
+using UBYTE = uint8_t;
+using BYTE = int8_t;
+using VOID = void;
+using APTR = void *;
 
 #    define NT_MESSAGE 0
 #    define NT_TASK 1
