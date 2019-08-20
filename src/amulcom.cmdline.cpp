@@ -83,7 +83,7 @@ ParseCommandLine(const CommandLine *cmdline)
         }
         if (gameDir[0] != 0)
             return misuse(argv, "Unexpected argument", arg, EINVAL);
-        if (PathCopy(gameDir, sizeof(gameDir), NULL, arg) != 0)
+        if (PathCopy(gameDir, sizeof(gameDir), nullptr, arg) != 0)
             return misuse(argv, "Invalid game directory", arg, EINVAL);
         int err = stat(gameDir, &sb);
         if (err != 0)
@@ -118,5 +118,5 @@ initCommandLine(Module *module)
 error_t
 InitCommandLine(const CommandLine *cmdline)
 {
-    return NewModule(MOD_CMDLINE, initCommandLine, NULL, NULL, (void *)cmdline, NULL);
+    return NewModule(MOD_CMDLINE, initCommandLine, nullptr, nullptr, (void *) cmdline, nullptr);
 }

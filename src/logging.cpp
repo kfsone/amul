@@ -48,8 +48,12 @@ loggingModuleClose(Module * /*module*/, error_t /*err*/)
 error_t
 InitLogging()
 {
-    return NewModule(
-            MOD_LOGGING, loggingModuleInit, loggingModuleStart, loggingModuleClose, NULL, NULL);
+    return NewModule(MOD_LOGGING,
+                     loggingModuleInit,
+                     loggingModuleStart,
+                     loggingModuleClose,
+                     nullptr,
+                     nullptr);
 }
 
 void

@@ -175,7 +175,7 @@ OpenGameFile(const char *filename, const char *mode)
 void
 fopenw(const char *filename)
 {
-    FILE **fpp = NULL;
+    FILE **fpp = nullptr;
     if (!ofp1)
         fpp = &ofp1;
     else if (!ofp2)
@@ -195,7 +195,7 @@ fopenw(const char *filename)
 void
 fopena(const char *filename)
 {
-    if (afp != NULL)
+    if (afp != nullptr)
         fclose(afp);
     afp = OpenGameFile(filename, "ab+");
 }
@@ -204,7 +204,7 @@ fopena(const char *filename)
 void
 fopenr(const char *filename)
 {
-    if (ifp != NULL)
+    if (ifp != nullptr)
         fclose(ifp);
     ifp = OpenGameFile(filename, "rb");
 }
@@ -253,7 +253,7 @@ skipblock()
 void
 tidy(char *ptr)
 {
-    char *lastNonSpace = NULL;
+    char *lastNonSpace = nullptr;
     while (*ptr) {
         if (*ptr == '\t' || *ptr == '\r')
             *ptr = ' ';
@@ -270,7 +270,7 @@ getTidyBlock(FILE *fp)
 {
     for (;;) {
         if (!fgets(block, sizeof(block), fp))
-            return NULL;
+            return nullptr;
 
         tidy(block);
 
@@ -603,8 +603,9 @@ chknum(const char *s)
 }
 
 static const char *optionalPrefixes[] = {  // noise we can skip
-        "the ",  "of ",  "are ", "is ",  "has ", "next ", "with ", "to ", "set ",
-        "from ", "for ", "by ",  "and ", "was ", "i ",    "am ",   "as ", NULL};
+    "the ",  "of ",  "are ", "is ",  "has ", "next ", "with ", "to ", "set ",
+    "from ", "for ", "by ",  "and ", "was ", "i ",    "am ",   "as ", nullptr
+};
 
 char *
 skipOptionalPrefixes(char *p)
@@ -900,10 +901,10 @@ checkParameter(char *p, const VMOP *op, size_t paramNo, const char *category, FI
 
     p = skipOptionalPrefixes(p);
     if (*p == 0) {
-        badParameter(op, paramNo, category, "Unexpected end of arguments", NULL);
+        badParameter(op, paramNo, category, "Unexpected end of arguments", nullptr);
     }
     static char token[4096];
-    char *      end = NULL;
+    char *end = nullptr;
     if (*p != '\"' && *p != '\'') {
         end = strstop(p, ' ');
         WordCopier(token, p, end);
@@ -911,8 +912,11 @@ checkParameter(char *p, const VMOP *op, size_t paramNo, const char *category, FI
         // Subsequent parsing will want to see the opening quote character
         char quote = *p;
         if (!*p || isEol(*p))
-            badParameter(
-                    op, paramNo, category, "Unexpected end of string (missing close quote?)", NULL);
+            badParameter(op,
+                         paramNo,
+                         category,
+                         "Unexpected end of string (missing close quote?)",
+                         nullptr);
         end = strstop(p + 1, quote);
         StrCopier(token, p, end);
         if (*end == quote)
@@ -1006,7 +1010,7 @@ checkParameters(char *p, const VMOP *op, FILE *fp, const char *category)
 {
     for (size_t i = 0; i < op->parameterCount; i++) {
         if (!(p = checkParameter(p, op, i, category, fp)))
-            return NULL;
+            return nullptr;
     }
     return p;
 }
@@ -1133,7 +1137,7 @@ load_rooms()
         rewind(ifp);
     }
     rmtab = (_ROOM_STRUCT *)AllocateMem(sizeof(room) * g_gameConfig.numRooms);
-    if (rmtab == NULL) {
+    if (rmtab == nullptr) {
         afatal("Out of memory for room id table");
     }
     size_t roomsInFile = fread(rmtab, sizeof(*rmtab), g_gameConfig.numRooms, ifp);
@@ -1213,7 +1217,7 @@ room_proc()
         }
 
         // Everything else in the current block is the room description.
-        error_t err = TextStringFromFile(NULL, ifp, &room.descid);
+        error_t err = TextStringFromFile(nullptr, ifp, &room.descid);
         if (err != 0) {
             alog(AL_ERROR, "room:%s: Unable to write description", room.id);
             skipblock();
@@ -1389,25 +1393,25 @@ rank_proc()
 //    int   i, j, k, nts;
 //    long *rmtab, *rmptr;
 //
-//    if (ifp != NULL)
+//    if (ifp != nullptr)
 //        fclose(ifp);
-//    ifp = NULL;
+//    ifp = nullptr;
 //    closeOutFiles();
 //    fopenr(objectStateFile);
-//    blkget(&datal, &data, NULL);
+//    blkget(&datal, &data, nullptr);
 //    fclose(ifp);
-//    ifp = NULL;
+//    ifp = nullptr;
 //    closeOutFiles();
 //    fopenr(objrmsfn);
-//    blkget(&datal2, &data2, NULL);
+//    blkget(&datal2, &data2, nullptr);
 //    fclose(ifp);
-//    ifp = NULL;
+//    ifp = nullptr;
 //    closeOutFiles();
 //    fopenw(objsfn);
 //    fopenw(objectStateFile);
 //    fopenw(objrmsfn);
 //    fopenw(ntabfn);
-//    ifp = NULL;
+//    ifp = nullptr;
 //
 //    printf("Sorting Objects...:\r");
 //    objtab2 = obtab2;
@@ -1456,7 +1460,7 @@ rank_proc()
 //    printf("%20s\r%ld objects moved.\n", " ", k);
 //    ReleaseMem(datal);
 //    ReleaseMem(datal2);
-//    data = data2 = NULL;
+//    data = data2 = nullptr;
 //    fopenr(objsfn);
 //    fread((char *)obtab2, sizeof(obj), nouns, ifp);
 //}
@@ -1544,7 +1548,7 @@ objs_proc()
     fopena(adjectiveDataFile);
 
     obtab2 = (_OBJ_STRUCT *)AllocateMem(filesize() + 128 * sizeof(obj2));
-    if (obtab2 == NULL)
+    if (obtab2 == nullptr)
         afatal("Out of memory");
 
     if (!nextc(false)) {
@@ -1818,7 +1822,7 @@ trav_proc()
                 goto gotohere;
             }
             p = skipspc(p);
-            if ((p = checkConditionParameters(p, &conditions[tt.condition], ofp2)) == NULL) {
+            if ((p = checkConditionParameters(p, &conditions[tt.condition], ofp2)) == nullptr) {
                 goto next;
             }
             if (r == 1)
@@ -1842,7 +1846,7 @@ trav_proc()
                 goto xloop;
             }
             p = skipspc(p);
-            if ((p = checkActionParameters(p, &actions[tt.action], ofp2)) == NULL) {
+            if ((p = checkActionParameters(p, &actions[tt.action], ofp2)) == nullptr) {
                 goto next;
             }
             tt.action = 0 - (tt.action + 1);
@@ -1985,7 +1989,7 @@ lang_proc()
     CloseOutFiles();
     fopena(verbDataFile);
     ofp1 = afp;
-    afp = NULL;
+    afp = nullptr;
     fopenw(verbSlotFile);
     fopenw(verbTableFile);
     fopenw(verbParamFile);
@@ -2285,7 +2289,7 @@ lang_proc()
         }
         p = skipspc(p);
         proc = 1;
-        if ((p = checkConditionParameters(p, &conditions[vt.condition], ofp4)) == NULL) {
+        if ((p = checkConditionParameters(p, &conditions[vt.condition], ofp4)) == nullptr) {
             goto commands;
         }
         if (*p == 0) {
@@ -2311,7 +2315,7 @@ lang_proc()
         }
     doaction:
         p = skipspc(p);
-        if ((p = checkActionParameters(p, &actions[vt.action], ofp4)) == NULL) {
+        if ((p = checkActionParameters(p, &actions[vt.action], ofp4)) == nullptr) {
             goto commands;
         }
         vt.action = 0 - (vt.action + 1);
@@ -2515,7 +2519,7 @@ mob_proc1()
 
     if (g_gameConfig.numMobPersonas != 0) {
         mobp = (_MOB_ENT *)AllocateMem(sizeof(mob) * g_gameConfig.numMobPersonas);
-        if (mobp == NULL) {
+        if (mobp == nullptr) {
             afatal("Out of memory");
         }
         CloseOutFiles();
@@ -2545,7 +2549,7 @@ Context *
 NewContext(const char *filename)
 {
     Context *context = calloc(sizeof(Context), 1);
-    if (context == NULL) {
+    if (context == nullptr) {
         afatal("Out of memory for context");
     }
 
@@ -2564,20 +2568,20 @@ struct CompilePhase {
     bool        isText;
     void (*handler)();
 } phases[] = {
-        {"title", true, title_proc},      // game "title" (and config)
-        {"sysmsg", true, smsg_proc},      // system messages
-        {"umsg", true, umsg_proc},        // user-defined string messages
-        {"obdescs", true, obds_proc},     // object description strings
-        {"rooms", true, room_proc},       // room table
-        {"roomread", false, load_rooms},  // re-load room table
-        {"dmoves", false, checkdmoves},   // check cemeteries
-        {"ranks", true, rank_proc},       // rank table
-        {"mobiles", true, mob_proc1},     // npc classes so we can apply to objects
-        {"objects", true, objs_proc},     // objects
-        {"lang", true, lang_proc},        // language
-        {"travel", true, trav_proc},      // travel table
-        {"syns", true, syn_proc},         // synonyms for other things
-        {NULL, false, NULL}               // terminator
+    { "title", true, title_proc },      // game "title" (and config)
+    { "sysmsg", true, smsg_proc },      // system messages
+    { "umsg", true, umsg_proc },        // user-defined string messages
+    { "obdescs", true, obds_proc },     // object description strings
+    { "rooms", true, room_proc },       // room table
+    { "roomread", false, load_rooms },  // re-load room table
+    { "dmoves", false, checkdmoves },   // check cemeteries
+    { "ranks", true, rank_proc },       // rank table
+    { "mobiles", true, mob_proc1 },     // npc classes so we can apply to objects
+    { "objects", true, objs_proc },     // objects
+    { "lang", true, lang_proc },        // language
+    { "travel", true, trav_proc },      // travel table
+    { "syns", true, syn_proc },         // synonyms for other things
+    { nullptr, false, nullptr }         // terminator
 };
 
 void
@@ -2688,8 +2692,12 @@ compilerModuleClose(Module *module, error_t err)
 void
 InitCompilerModule()
 {
-    NewModule(
-            MOD_COMPILER, compilerModuleInit, compilerModuleStart, compilerModuleClose, NULL, NULL);
+    NewModule(MOD_COMPILER,
+              compilerModuleInit,
+              compilerModuleStart,
+              compilerModuleClose,
+              nullptr,
+              nullptr);
 }
 
 /*---------------------------------------------------------*/

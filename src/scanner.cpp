@@ -101,22 +101,22 @@ discard:
 
 state 0:
     TT_LABEL,		["room=",]		state 1
-    TT_IDENTIFIER,	NULL,			state 2
-    TT_WHITESPACE,	NULL,			state 0
-    TT_EOL,			NULL,			state 0
+    TT_IDENTIFIER,	nullptr,			state 2
+    TT_WHITESPACE,	nullptr,			state 0
+    TT_EOL,			nullptr,			state 0
 
 state 1:
-    TT_IDENTIFIER,	NULL,			state 2
+    TT_IDENTIFIER,	nullptr,			state 2
 
 state 2:
-    TT_EOL,			NULL,			state 3
+    TT_EOL,			nullptr,			state 3
     TT_IDENTIFIER,	ROOMFLAGS,		state 2
 
 state 3:
-    LINE_OF_TEXT,	NULL,			state 4
+    LINE_OF_TEXT,	nullptr,			state 4
 
 state 4:
-    LINE_OF_TEXT,	NULL,			state 4
+    LINE_OF_TEXT,	nullptr,			state 4
 
 I'm contemplating using something like overloading operator&:
 

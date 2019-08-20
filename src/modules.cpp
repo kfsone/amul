@@ -79,7 +79,7 @@ NewModule(
     REQUIRE(id && id < MAX_MODULE_ID);
     REQUIRE(context || (init || start || close));
 
-    if (GetModule(id) != NULL) {
+    if (GetModule(id) != nullptr) {
         alog(AL_DEBUG, "Tried to register duplicate module#%d: %s", id, moduleNames[id]);
         return EEXIST;
     }
@@ -92,7 +92,7 @@ NewModule(
     // populate values
     cur->id = id;
     cur->name = moduleNames[id];
-    cur->links.next = NULL;
+    cur->links.next = nullptr;
     cur->links.prev = (DoubleLinkedNode *)s_modulesTail;
     cur->init = init;
     cur->start = start;
@@ -127,7 +127,7 @@ GetModule(ModuleID id)
         if (id == cur->id)
             return cur;
     }
-    return NULL;
+    return nullptr;
 }
 
 error_t
@@ -165,5 +165,5 @@ CloseModule(Module *module, error_t err)
 error_t
 RegisterContextModule(ModuleID id, void *context)
 {
-    return NewModule(id, NULL, NULL, NULL, context, NULL);
+    return NewModule(id, nullptr, nullptr, nullptr, context, nullptr);
 }

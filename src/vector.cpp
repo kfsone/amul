@@ -10,7 +10,7 @@ VectorPushBytes(struct Vector *vector, const void *start, const void *end, size_
 {
     REQUIRE(vector && start);
     REQUIRE(!end || end >= start);
-    if (end == NULL) {
+    if (end == nullptr) {
         while (*(const char *)end) {
             end = (const char *)end + 1;
         }

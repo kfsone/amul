@@ -75,7 +75,7 @@ PREDICATE(aFloat)
         }
         return false;
     }
-    return AtomSetConsume(cur, end, {aDot, aDigit, NULL});
+    return AtomSetConsume(cur, end, {aDot, aDigit, nullptr});
 }
 
 PREDICATE(aNumber)
