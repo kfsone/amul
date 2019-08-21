@@ -1,0 +1,12 @@
+OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
+
+IF (AMUL_INCLUDE_TESTS AND AMUL_CLANG_TIDY)
+	MESSAGE(FATAL_ERROR "Tests and Clang tidy are mututally exclusive")
+ENDIF ()
+
+IF (AMUL_INCLUDE_TESTS)
+	MESSAGE(STATUS "Testing enabled")
+	ENABLE_TESTING()
+	ADD_SUBDIRECTORY(tests)
+ENDIF ()
+

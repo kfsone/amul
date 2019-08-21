@@ -2,6 +2,8 @@
 #define AMUL_H_AMUL_TYPE_H 1
 // AMUL type definitions and includes.
 
+#include "amulconfig.h"
+
 #include <cerrno>     // for error numbers
 #include <cinttypes>  // for PRIu64 etc
 #include <cstdbool>
