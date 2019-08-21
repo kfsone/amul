@@ -1,5 +1,9 @@
 # Some files in etc are linux-orinted and need to be LF not CRLF
 * text eol=lf
+*.c text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
 *.bat text eol=crlf
 *.ps1 text eol=crlf
 
