@@ -133,14 +133,11 @@ struct _RANK_STRUCT {
     uint32_t tasks;    // Bitmask of required tasks to attain rank
 };
 
-// Object: State specific properties
-struct _OBJ_STATE {
-    uint32_t   weight;    // In grammes
-    int32_t    value;     // Base points for dropping in a swamp
-    uint16_t   strength;  // } Unclear: May be health of the item,
-    uint16_t   damage;    // } damage it does or damage done to it
-    stringid_t description;
-    uint16_t   flags;
+// "Noun" is the name of an object so that it can be used as *a noun*.
+struct _NTAB_STRUCT {
+    char                id[IDL + 1];  /// TODO: Dictionary id
+    uint32_t            numInstances;
+    struct _OBJ_STRUCT *first;
 };
 
 // Object: Item or npc in the game world
@@ -160,11 +157,14 @@ struct _OBJ_STRUCT {
     roomid_t *         rmlist; /* List of rooms	 */  /// TODO: rmlist[]
 };
 
-// "Noun" is the name of an object so that it can be used as *a noun*.
-struct _NTAB_STRUCT {
-    char                id[IDL + 1];  /// TODO: Dictionary id
-    uint32_t            numInstances;
-    struct _OBJ_STRUCT *first;
+// Object: State specific properties
+struct _OBJ_STATE {
+    uint32_t   weight;    // In grammes
+    int32_t    value;     // Base points for dropping in a swamp
+    uint16_t   strength;  // } Unclear: May be health of the item,
+    uint16_t   damage;    // } damage it does or damage done to it
+    stringid_t description;
+    uint16_t   flags;
 };
 
 // Travel table entry, which you will note is a verb table entry with a verb.

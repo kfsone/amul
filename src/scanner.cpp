@@ -67,7 +67,7 @@ My current thinking is this:
    current state, and specifying which values should thus be captured for the ast
    or equivalent.
 
- 
+ 
 
 
 
@@ -144,7 +144,6 @@ RoomId = Labeled("room=", Word());
 template<typename LhsT, typename RhsT, typename... Args>
 struct Expression : public Expression<RhsT, Args...>
 {
-    
 
 
 }
