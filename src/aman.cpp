@@ -315,7 +315,7 @@ kill()
         alog(AL_NOTE, "&&%25s: Request denied: %u users on-line", " ", uint32_t(online));
         Ad = At = 'X';
     } else {
-        warn("Game shutdown initiated by administrator.");
+        warn("%s", "Game shutdown initiated by administrator.");
         reset_users();
         Ad = At = 'O';
         resety = -1;
@@ -326,8 +326,6 @@ kill()
 static void
 cnct()
 {
-    int i;
-
     amul->data = (long)linestat;
     amul->opaque = (char *)usr;
     if (Af >= MAXU) {
@@ -341,7 +339,7 @@ cnct()
     }
     Af = -1;
     // Allow for daemons & mobiles
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         if ((linestat + i)->state != 0)
             continue;
         Af = i;

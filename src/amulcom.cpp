@@ -326,7 +326,7 @@ isrflag(const char *s)
 int
 isroom(const char *s)
 {
-    for (int r = 0; r < g_gameConfig.numRooms; r++) {
+    for (size_t r = 0; r < g_gameConfig.numRooms; r++) {
         if (strcmp(rmtab[r].id, s) == 0)
             return r;
     }
@@ -435,7 +435,7 @@ set_put()
 void
 set_mob()
 {
-    for (int i = 0; i < g_gameConfig.numMobPersonas; i++)
+    for (size_t i = 0; i < g_gameConfig.numMobPersonas; i++)
         if (stricmp(mobp[i].id, Word) == 0) {
             obj2.mobile = i;
             return;
@@ -504,7 +504,7 @@ isnoun(const char *s)
     /// TODO: This should check the noun table...
     if (stricmp(s, "none") == 0)
         return -2;
-    for (int i = 0; i < g_gameConfig.numObjects; i++)
+    for (size_t i = 0; i < g_gameConfig.numObjects; i++)
         if (stricmp(s, obtab2[i].id) == 0)
             return i;
     return -1;
@@ -513,7 +513,7 @@ isnoun(const char *s)
 int
 iscont(const char *s)
 {
-    for (int i = 0; i < g_gameConfig.numObjects; i++)
+    for (size_t i = 0; i < g_gameConfig.numObjects; i++)
         if (stricmp(s, obtab2[i].id) == 0 && obtab2[i].contains > 0)
             return i;
     return -1;
@@ -641,7 +641,7 @@ int
 announceType(const char *s)
 {
     for (int i = 0; i < MAX_ANNOUNCE_TYPE; ++i) {
-        if (stricmp(s, announceTypes[i]))
+        if (stricmp(s, announceTypes[i]) == 0)
             return i;
     }
     alog(AL_ERROR, "Invalid announcement target: %s", s);
@@ -652,20 +652,18 @@ announceType(const char *s)
 int
 isnounh(const char *s)
 {
-    int  i, l, j;
-    long orm;
-
     if (stricmp(s, "none") == 0)
         return -2;
     FILE *fp = OpenGameFile(objectRoomFile, "rb");
-    l = -1;
 
-    for (i = 0; i < g_gameConfig.numObjects; i++) {
+    int l = -1;
+    for (size_t i = 0; i < g_gameConfig.numObjects; i++) {
         const _OBJ_STRUCT &object = obtab2[i];
         if (stricmp(s, object.id) != 0)
             continue;
         fseek(fp, (uintptr_t)object.rmlist, 0L);  /// TODO: Dispose
-        for (j = 0; j < object.nrooms; j++) {
+        for (int j = 0; j < object.nrooms; j++) {
+            long orm = 0;
             fread(&orm, 4, 1, fp);
             if (orm == rmn) {
                 l = i;
