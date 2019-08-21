@@ -12,12 +12,6 @@ void UnlinkGameFile(const char *gamefile);
 
 error_t GetFilesSize(const char *filepath, size_t *size, bool required = false);
 
-// Create a memory mapping of a file.
-error_t NewFileMapping(const char *filepath, void **datap, size_t size);
-
-// Close a mapping
-void CloseFileMapping(void **datap, size_t length);
-
 // Copy and normalize a path into another location
 error_t PathCopy(char *into, size_t limit, size_t *offset, const char *path);
 #define path_copier(into, from) PathCopy(into, sizeof(into), 0, from)

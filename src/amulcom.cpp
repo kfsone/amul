@@ -150,7 +150,7 @@ nextc(bool required)
     }
     if (c == EOF)
         return false;
-    fseek(ifp, -1, 1); /* Move back 1 char */
+    ungetc(c, ifp);
     return true;
 }
 

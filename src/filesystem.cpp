@@ -1,27 +1,12 @@
 #include <h/amul.alog.h>
+#include <h/amul.file.h>
 #include <h/amul.test.h>
 
 #include "buffer.h"
 #include "filesystem.h"
 #include "filesystem.inl.h"
+#include "filemapping.h"
 #include "sourcefile.h"
-
-#include <fcntl.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#if !defined(_MSC_VER)
-#    include <sys/mman.h>
-#    include <unistd.h>  // for unlink
-#else
-#    define WIN32_LEAN_AND_MEAN
-#    define NOMINMAX
-#    include <io.h>
-#    include <windows.h>
-#endif
 
 char gameDir[MAX_PATH_LENGTH];
 
@@ -135,71 +120,6 @@ UnlinkGameFile(const char *gamefile)
     }
 }
 
-#ifndef _MSC_VER
-static const int MMAP_FLAGS = MAP_PRIVATE | MAP_FILE |
-#    ifdef MAP_POPULATE
-                              MAP_POPULATE |
-#    endif
-#    ifdef MAP_DENYWRITE
-                              MAP_DENYWRITE |
-#    endif
-#    ifdef MAP_NOCACHE
-                              MAP_NOCACHE |
-#    endif
-                              0;
-#endif
-
-error_t
-NewFileMapping(const char *filepath, void **datap, size_t size)
-{
-    REQUIRE(filepath && datap && size);
-    REQUIRE(*datap == nullptr);
-
-    int fd = open(filepath, O_RDONLY);
-    if (fd < 0)
-        return ENOENT;
-
-#if defined(_MSC_VER)
-    HANDLE osfh = (HANDLE)_get_osfhandle(fd);
-    HANDLE maph = CreateFileMapping(osfh, nullptr, PAGE_READONLY, 0, 0, nullptr);
-    close(fd);
-    if (!maph) {
-        afatal("Unable to map file %s", filepath);
-    }
-    void *data = MapViewOfFile(maph, FILE_MAP_READ, 0, 0, 0);
-    CloseHandle(maph);
-#else
-    void *data = mmap(nullptr, size, PROT_READ, MMAP_FLAGS, fd, 0);
-    if (data == MAP_FAILED) {
-        afatal("Failed to load file %s: %d: %s", filepath, errno, strerror(errno));
-    }
-    close(fd);
-#endif
-
-    if (data == nullptr)
-        afatal("Unable to load file %s", filepath);
-
-    *datap = data;
-
-    return 0;
-}
-
-void
-CloseFileMapping(void **datap, size_t length)
-{
-    if (datap && *datap) {
-#if defined(_MSC_VER)
-        BOOL result = UnmapViewOfFile(*datap);
-        if (!result)
-            afatal("Error closing file mapping");
-#else
-        munmap(*datap, length);
-#endif
-    }
-    if (datap)
-        *datap = nullptr;
-}
-
 SourceFile s_sourceFile{};
 bool       s_sourceFileInUse;
 
@@ -244,7 +164,7 @@ NewSourceFile(const char *filename, SourceFile **sourcefilep)
     if (sourcefile->size == 0)
         return ENODATA;
 
-    err = NewFileMapping(sourcefile->filepath, &sourcefile->mapping, sourcefile->size);
+    err = NewFileMapping(sourcefile->filepath, &sourcefile->mapping, &sourcefile->size);
     if (err != 0) {
         CloseSourceFile(&sourcefile);
         return err;

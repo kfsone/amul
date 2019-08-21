@@ -1,5 +1,6 @@
 SET(AMUL_LIB_SOURCES
 		atom.cpp
+		filemapping.cpp
         filesystem.cpp
 		constants.cpp
         logging.cpp
@@ -12,6 +13,7 @@ SET(AMUL_LIB_HEADERS
 		atom.h
 		atomtype.h
 		buffer.h
+		filemapping.h
 		filesystem.h
 		filesystem.inl.h
 		modules.h
