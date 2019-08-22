@@ -4,17 +4,21 @@
 #include <h/amul.enum.h>
 #include <h/amul.type.h>
 
+#include <string>
+#include <string_view>
+
 #include "buffer.h"
 
 struct SourceFile {
-    char     filepath[MAX_PATH_LENGTH];
+	std::string filepath;
     void *   mapping;
     Buffer   buffer;
     uint16_t lineNo;
     size_t   size;
-};
 
-extern error_t NewSourceFile(const char *filename, struct SourceFile **sourcefilep);
-extern void    CloseSourceFile(struct SourceFile **sourcefilep);
+	SourceFile(std::string_view filepath);
+	error_t Open();
+	void Close();
+};
 
 #endif

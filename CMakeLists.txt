@@ -25,6 +25,7 @@ STRING(APPEND CMAKE_CXX_FLAGS " ${AMUL_FLAGS}")
 INCLUDE(h/ClangTidy.cmake)
 #INCLUDE(h/CPPCheck.cmake)
 INCLUDE(h/Sanitizers.cmake)
+INCLUDE(h/UnitTests.cmake)
 INCLUDE(h/Ctags.cmake)
 
 ADD_SUBDIRECTORY(src)

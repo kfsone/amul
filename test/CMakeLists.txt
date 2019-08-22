@@ -24,6 +24,7 @@ ENDMACRO()
 
 add_gtest(AtomTest ${AMUL_LIB_NAME} test_atom.cpp ../src/atom.h ../src/atomtype.h ../src/buffer.h)
 add_gtest(BufferTest ${AMUL_LIB_NAME} test_buffer.cpp ../src/buffer.h)
+add_gtest(FileMappingTest ${AMUL_LIB_NAME} test_filemapping.cpp ../src/filemapping.h ../src/filesystem.h)
 add_gtest(FilesystemTest ${AMUL_LIB_NAME} test_filesystem.cpp ../src/filesystem.h)
 add_gtest(ModuleTest ${AMUL_LIB_NAME} test_module.cpp ../src/modules.h)
 add_gtest(MsgPortTest ${AMUL_LIB_NAME} test_msgport.cpp ../src/system.h ../src/msgports.h)

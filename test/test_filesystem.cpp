@@ -116,49 +116,6 @@ TEST(FilesystemTest, GetFileSizeNewFile)
     unlink(datafile);
 }
 
-TEST(FilesystemTest, FileMappingChecks)
-{
-    // all of these should produce contract failures
-    void *data = NULL;
-    EXPECT_ERROR(EINVAL, NewFileMapping(NULL, NULL, 1));
-    EXPECT_ERROR(EINVAL, NewFileMapping("", NULL, 1));
-    EXPECT_ERROR(EINVAL, NewFileMapping("a", NULL, 1));
-    EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 0));
-    data = (void *)(uintptr_t)0xdeadbeef;
-    EXPECT_ERROR(EINVAL, NewFileMapping("a", &data, 1));
-}
-
-TEST(FilesystemTest, FileMapping)
-{
-    const char *datafile = "mapping_test_file1.txt";
-    const char *first = "Mapping test.";
-    const char *second = "Second sentence.";
-
-    FILE *fp = fopen(datafile, "w");
-    EXPECT_NOT_NULL(fp);
-    fprintf(fp, "%s %s", first, second);
-    fclose(fp);
-
-    size_t expectedSize = strlen(first) + 1 + strlen(second);
-    size_t size = 0;
-    EXPECT_SUCCESS(GetFilesSize(datafile, &size));
-    EXPECT_EQ(expectedSize, size);
-
-    // with everything ready, make sure passing a 0 size fails.
-    void *data = NULL;
-    EXPECT_ERROR(EINVAL, NewFileMapping(datafile, &data, 0));
-    EXPECT_NULL(data);
-
-    EXPECT_SUCCESS(NewFileMapping(datafile, &data, size));
-    EXPECT_NOT_NULL(data);
-    EXPECT_SUCCESS(strncmp(first, (const char *)data, strlen(first)));
-    unlink(datafile);
-
-    EXPECT_SUCCESS(strncmp(first, (const char *)data, strlen(first)));
-    CloseFileMapping(&data, size);
-    EXPECT_NULL(data);
-}
-
 TEST(FilesystemTest, MakeTestFileNameChecks)
 {
     char filepath[MAX_PATH_LENGTH]{};
@@ -194,67 +151,37 @@ TEST(FilesystemTest, MakeTestFileNameRoot)
     gameDir[0] = 0;
 }
 
-extern SourceFile s_sourceFile;
-extern bool       s_sourceFileInUse;
-
-TEST(FilesystemTest, SourceFileChecks)
+TEST(FilesystemTest, SourceFileCtor)
 {
-    SourceFile *sourcefile{nullptr};
-    size_t      size = 0;
-    const char *filename = "sourcefile_test_file1";
-    const char *txtfile = "./sourcefile_test_file1.txt";
-    unlink(txtfile);
-
-    EXPECT_FALSE(s_sourceFileInUse);
-
-    EXPECT_ERROR(EINVAL, NewSourceFile(NULL, &sourcefile));
-    EXPECT_ERROR(EINVAL, NewSourceFile("a", NULL));
-
-    s_sourceFileInUse = true;
-    EXPECT_ERROR(ENFILE, NewSourceFile("a", &sourcefile));
-    s_sourceFileInUse = false;
-
-    EXPECT_STREQ(gameDir, "");
-    EXPECT_ERROR(EDOM, NewSourceFile(filename, &sourcefile));
-    EXPECT_NULL(s_sourceFile.buffer.begin());
-
-    strcpy(gameDir, ".");
-    EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));
-    EXPECT_ERROR(ENOENT, NewSourceFile(filename, &sourcefile));
-    EXPECT_STREQ(txtfile, s_sourceFile.filepath);
-    EXPECT_NULL(s_sourceFile.buffer.begin());
-    gameDir[0] = 0;
+    SourceFile sf{""};
+    EXPECT_EQ(sf.filepath, "");
+    EXPECT_NULL(sf.mapping);
+    EXPECT_EQ(sf.lineNo, 0);
+    EXPECT_EQ(sf.size, 0);
+    EXPECT_NULL(sf.buffer.begin());
 }
 
-TEST(FilesystemTest, SourceFileNoData)
+TEST(FilesystemTest, SourceFileOpen)
 {
-    SourceFile *sourcefile{nullptr};
-    const char *filename = "sourcefile_test_file1";
-    const char *txtfile = "./sourcefile_test_file1.txt";
+    const char *txtfile = "sourcefile_test_file1.txt";
     unlink(txtfile);
-
-    // Check for an empty file returning ENODATA.
-    strcpy(gameDir, ".");
     FILE *fp = fopen(txtfile, "w");
     EXPECT_NOT_NULL(fp);
     fclose(fp);
-    EXPECT_ERROR(ENODATA, NewSourceFile(filename, &sourcefile));
-    EXPECT_FALSE(s_sourceFileInUse);
-    EXPECT_NULL(s_sourceFile.buffer.begin());
 
+    // Check for an empty file returning ENODATA.
+    SourceFile sf{txtfile};
+    EXPECT_EQ(sf.filepath, txtfile);
+    EXPECT_ERROR(ENODATA, sf.Open());
+    EXPECT_NULL(sf.mapping);
+    EXPECT_NULL(sf.buffer.begin());
     unlink(txtfile);
-    gameDir[0] = 0;
 }
 
 TEST(FilesystemTest, SourceFile)
 {
-    SourceFile *sourcefile{nullptr};
-    size_t      size = 0;
-    const char *filename = "sourcefile_test_file1";
-    const char *txtfile = "./sourcefile_test_file1.txt";
+    const char *txtfile = "sourcefile_test_file1.txt";
     unlink(txtfile);
-
-    // Now make the file bigger and check we get it mapped.
     const char *test1 = "Test 1.";
     const char *test2 = "Test 2.";
     FILE *      fp = fopen(txtfile, "w");
@@ -262,31 +189,23 @@ TEST(FilesystemTest, SourceFile)
     fprintf(fp, "%s %s", test1, test2);
     fclose(fp);
 
-    strcpy(gameDir, ".");
+    SourceFile sf{txtfile};
+    EXPECT_EQ(sf.filepath, txtfile);
+    EXPECT_NOT_NULL(sf.mapping);
+    EXPECT_NOT_NULL(sf.buffer.begin());
+    EXPECT_EQ(0, sf.lineNo);
+    EXPECT_EQ(strlen(test1) + 1 + strlen(test1), sf.size);
+    EXPECT_EQ(sf.buffer.begin(), sf.mapping);
+    EXPECT_EQ(sf.buffer.begin(), sf.buffer.it());
+    EXPECT_EQ(sf.size, sf.buffer.end() - sf.buffer.begin());
 
-    EXPECT_SUCCESS(NewSourceFile(filename, &sourcefile));
-    EXPECT_EQ(&s_sourceFile, sourcefile);
-    EXPECT_TRUE(s_sourceFileInUse);
-    EXPECT_STREQ(sourcefile->filepath, txtfile);
-    EXPECT_NOT_NULL(sourcefile->mapping);
-    EXPECT_NOT_NULL(sourcefile->buffer.begin());
-    EXPECT_EQ(0, sourcefile->lineNo);
-    EXPECT_EQ(strlen(test1) + 1 + strlen(test1), sourcefile->size);
-    EXPECT_EQ(sourcefile->buffer.begin(), sourcefile->mapping);
-    EXPECT_EQ(sourcefile->buffer.begin(), sourcefile->buffer.it());
-    EXPECT_EQ(sourcefile->size, sourcefile->buffer.end() - sourcefile->buffer.begin());
+    EXPECT_STREQ((const char *)sf.mapping, "Test 1. Test 2.");
 
-    EXPECT_STREQ((const char *)sourcefile->mapping, "Test 1. Test 2.");
-
-    // If we try to re-open the source file we should get a ENFILE
-    EXPECT_ERROR(ENFILE, NewSourceFile(filename, &sourcefile));
-    EXPECT_NOT_NULL(sourcefile);
-
-    CloseSourceFile(&sourcefile);
-    EXPECT_NULL(sourcefile);
+    sf.Close();
+    EXPECT_NULL(sf.mapping);
+    EXPECT_NULL(sf.buffer.begin());
 
     unlink(txtfile);
+    size_t size{0};
     EXPECT_ERROR(ENOENT, GetFilesSize(txtfile, &size));
-
-    gameDir[0] = 0;
 }

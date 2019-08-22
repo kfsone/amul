@@ -120,16 +120,13 @@ UnlinkGameFile(const char *gamefile)
     }
 }
 
-SourceFile s_sourceFile{};
-bool       s_sourceFileInUse;
-
 error_t
-GetFilesSize(const char *filepath, size_t *sizep, bool required)
+GetFilesSize(std::string_view filepath, size_t *sizep, bool required)
 {
-    REQUIRE(filepath && sizep);
+    REQUIRE(!filepath.empty() && sizep);
 
     struct stat sb = {};
-    error_t     err = stat(filepath, &sb);
+    error_t     err = stat(filepath.data(), &sb);
     if (err != 0) {
         if (required)
             afatal("Could not access file (%d): %s", errno, filepath);
@@ -139,51 +136,33 @@ GetFilesSize(const char *filepath, size_t *sizep, bool required)
     return 0;
 }
 
+SourceFile::SourceFile(std::string_view filepath)
+	: filepath{filepath}
+{}
+
 error_t
-NewSourceFile(const char *filename, SourceFile **sourcefilep)
+SourceFile::Open()
 {
-    REQUIRE(filename && *filename && sourcefilep);
-    if (s_sourceFileInUse)
-        return ENFILE;
-    // gamedir must be populated
-    if (!gameDir[0])
-        return EDOM;
-
-    SourceFile *sourcefile = &s_sourceFile;
-    memset(sourcefile, 0, sizeof(*sourcefile));
-
-    error_t err = MakeTextFileName(filename, sourcefile->filepath);
-    if (err != 0) {
-        alog(AL_ERROR, "Full filename too long for %s/%s", gameDir, filename);
-        return EDOM;
-    }
-
-    err = GetFilesSize(sourcefile->filepath, &sourcefile->size);
+    error_t err = GetFilesSize(filepath, &size);
     if (err != 0)
         return err;
-    if (sourcefile->size == 0)
+    if (size == 0)
         return ENODATA;
 
-    err = NewFileMapping(sourcefile->filepath, &sourcefile->mapping, &sourcefile->size);
+    err = NewFileMapping(filepath, &mapping, &size);
     if (err != 0) {
-        CloseSourceFile(&sourcefile);
+        Close();
         return err;
     }
 
-    sourcefile->buffer.Assign(static_cast<const char *>(sourcefile->mapping), sourcefile->size);
-    s_sourceFileInUse = true;
-    *sourcefilep = sourcefile;
+    buffer.Assign(static_cast<const char *>(mapping), size);
 
     return 0;
 }
 
 void
-CloseSourceFile(SourceFile **sourcefilep)
+SourceFile::Close()
 {
-    if (sourcefilep && *sourcefilep) {
-        (*sourcefilep)->buffer.Close();
-        CloseFileMapping(&(*sourcefilep)->mapping, (*sourcefilep)->size);
-        *sourcefilep = nullptr;
-        s_sourceFileInUse = false;
-    }
+	buffer.Close();
+    CloseFileMapping(&mapping, size);
 }

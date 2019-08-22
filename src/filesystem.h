@@ -5,12 +5,13 @@
 #include <h/amul.type.h>
 
 #include <cstring>
+#include <string_view>
 
 extern char gameDir[MAX_PATH_LENGTH];
 
 void UnlinkGameFile(const char *gamefile);
 
-error_t GetFilesSize(const char *filepath, size_t *size, bool required = false);
+error_t GetFilesSize(std::string_view filepath, size_t *size, bool required = false);
 
 // Copy and normalize a path into another location
 error_t PathCopy(char *into, size_t limit, size_t *offset, const char *path);
