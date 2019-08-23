@@ -5,6 +5,7 @@ SET(AMUL_LIB_SOURCES
 		constants.cpp
         logging.cpp
 		modules.cpp
+        sourcefile.cpp
 		spinlock.cpp
 		system.cpp
 )
@@ -66,13 +67,6 @@ ADD_EXECUTABLE(
 TARGET_LINK_LIBRARIES(${AMUL_COMPILER_NAME}
     PUBLIC "${AMUL_LIB_NAME}")
 TARGET_COMPILE_DEFINITIONS(${AMUL_COMPILER_NAME} PRIVATE COMPILER=1)
-
-ADD_EXECUTABLE(
-	testme
-
-	testme.cpp
-)
-TARGET_LINK_LIBRARIES(testme PUBLIC "${AMUL_LIB_NAME}")
 
 SET(AMUL_MANAGER_NAME aman)
 SET(AMUL_MANAGER_SOURCES

@@ -4,6 +4,7 @@
 // Buffer is for consuming bytes from a fixed range in memory.
 
 #include <h/amul.type.h>
+#include <cstring>
 
 struct Buffer {
     const char *m_start{nullptr};
@@ -44,6 +45,21 @@ struct Buffer {
     uint8_t Peek() const noexcept { return !Eof() ? *m_cur : 0; }
     uint8_t Read() noexcept { return (!Eof()) ? *(m_cur++) : 0; }
     void    Skip() noexcept { m_cur += !Eof() ? 1 : 0; }
+
+    const char *ReadLine() noexcept {
+        if (Eof())
+            return nullptr;
+        const char* eol = strpbrk(m_cur, "\r\n");
+        if (eol) {
+            m_cur = eol;
+            if (*m_cur == '\r')
+                ++m_cur;
+            if (*m_cur == '\n')
+                ++m_cur;
+        } else
+            eol = m_end;
+        return eol;
+    }
 
     void Close() noexcept { Assign(nullptr, 0); }
 };

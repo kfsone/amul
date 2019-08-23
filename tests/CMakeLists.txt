@@ -6,7 +6,7 @@ INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/h")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/src")
 
 SET(gtest_force_shared_crt ON CACHE BOOL "Force gtest to use shared crt" FORCE)
-ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/test/googletest" "test/googletest")
+ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/tests/googletest" "tests/googletest")
 
 MARK_AS_ADVANCED(
 	BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS

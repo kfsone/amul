@@ -2,11 +2,8 @@
 #include <h/amul.file.h>
 #include <h/amul.test.h>
 
-#include "buffer.h"
 #include "filesystem.h"
 #include "filesystem.inl.h"
-#include "filemapping.h"
-#include "sourcefile.h"
 
 char gameDir[MAX_PATH_LENGTH];
 
@@ -134,35 +131,4 @@ GetFilesSize(std::string_view filepath, size_t *sizep, bool required)
     }
     *sizep = sb.st_size;
     return 0;
-}
-
-SourceFile::SourceFile(std::string_view filepath)
-	: filepath{filepath}
-{}
-
-error_t
-SourceFile::Open()
-{
-    error_t err = GetFilesSize(filepath, &size);
-    if (err != 0)
-        return err;
-    if (size == 0)
-        return ENODATA;
-
-    err = NewFileMapping(filepath, &mapping, &size);
-    if (err != 0) {
-        Close();
-        return err;
-    }
-
-    buffer.Assign(static_cast<const char *>(mapping), size);
-
-    return 0;
-}
-
-void
-SourceFile::Close()
-{
-	buffer.Close();
-    CloseFileMapping(&mapping, size);
 }

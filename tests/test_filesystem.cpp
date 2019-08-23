@@ -161,7 +161,7 @@ TEST(FilesystemTest, SourceFileCtor)
     EXPECT_NULL(sf.buffer.begin());
 }
 
-TEST(FilesystemTest, SourceFileOpen)
+TEST(FilesystemTest, SourceFileOpenEmpty)
 {
     const char *txtfile = "sourcefile_test_file1.txt";
     unlink(txtfile);
@@ -175,6 +175,7 @@ TEST(FilesystemTest, SourceFileOpen)
     EXPECT_ERROR(ENODATA, sf.Open());
     EXPECT_NULL(sf.mapping);
     EXPECT_NULL(sf.buffer.begin());
+
     unlink(txtfile);
 }
 
@@ -191,6 +192,10 @@ TEST(FilesystemTest, SourceFile)
 
     SourceFile sf{txtfile};
     EXPECT_EQ(sf.filepath, txtfile);
+    EXPECT_NULL(sf.mapping);
+    EXPECT_TRUE(sf.Eof());
+
+    EXPECT_SUCCESS(sf.Open());
     EXPECT_NOT_NULL(sf.mapping);
     EXPECT_NOT_NULL(sf.buffer.begin());
     EXPECT_EQ(0, sf.lineNo);
