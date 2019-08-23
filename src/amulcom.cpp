@@ -281,7 +281,7 @@ getTidyBlock(FILE *fp)
 }
 
 int
-is_verb(const char *s)
+isVerb(const char *s)
 {
     if (strlen(s) > IDL) {
         printf("Invalid verb ID (too long): %s", s);
@@ -499,7 +499,7 @@ getObjectDescriptionID(const char *text)
 }
 
 int
-isnoun(const char *s)
+isNoun(const char *s)
 {
     /// TODO: This should check the noun table...
     if (stricmp(s, "none") == 0)
@@ -528,7 +528,7 @@ isloc(const char *s)
     if ((i = isroom(s)) != -1)
         return i;
     if ((i = iscont(s)) == -1) {
-        if (isnoun(s) == -1)
+        if (isNoun(s) == -1)
             alog(AL_ERROR, "Invalid object start location: %s", s);
         else
             alog(AL_ERROR, "Tried to start '%s' in non-container '%s'", obj2.id, s);
@@ -955,7 +955,7 @@ checkParameter(char *p, const VMOP *op, size_t paramNo, const char *category, FI
         value = isroom(token);
         break;
     case PVERB:
-        value = is_verb(token);
+        value = isVerb(token);
         break;
     case PADJ:
         break;
@@ -982,7 +982,7 @@ checkParameter(char *p, const VMOP *op, size_t paramNo, const char *category, FI
         value = isgen(toupper(*token));
         break;
     case PDAEMON:
-        if ((value = is_verb(token)) == -1 || *token != '.')
+        if ((value = isVerb(token)) == -1 || *token != '.')
             value = -1;
         break;
     default: {
@@ -1753,7 +1753,7 @@ trav_proc()
         roomtab->tabptr = t;
         roomtab->ttlines = 0;
     vbproc: /* Process verb list */
-        tt.pptr = (opparam_t *)-1;
+        tt.pptr = (oparg_t *)-1;
         p = block;
         ttNumVerbs = 0;  // number of verbs in this tt entry
         /* Break verb list down to verb no.s */
@@ -1761,7 +1761,7 @@ trav_proc()
             p = getword(p);
             if (Word[0] == 0)
                 break;
-            verbsUsed[ttNumVerbs] = is_verb(Word);
+            verbsUsed[ttNumVerbs] = isVerb(Word);
             if (verbsUsed[ttNumVerbs] == -1) {
                 alog(AL_ERROR, "Room: %s: Invalid verb: %s", roomtab->id, Word);
             }
@@ -1853,8 +1853,8 @@ trav_proc()
 
             // this is some weird-ass kind of encoding where -1 means "more", and "-2" means "last"
             for (int verbNo = 0; verbNo < ttNumVerbs; ++verbNo) {
-                opparam_t paramid = (verbNo + 1 < ttNumVerbs) ? -1 : -2;
-                tt.pptr = (opparam_t *)(uintptr_t)paramid;
+                oparg_t paramid = (verbNo + 1 < ttNumVerbs) ? -1 : -2;
+                tt.pptr = (oparg_t *)(uintptr_t)paramid;
                 tt.verb = verbsUsed[verbNo];
                 checkedfwrite(&tt.verb, sizeof(tt), 1, ofp1);
                 roomtab->ttlines++;
@@ -1955,7 +1955,7 @@ registerTravelVerbs(char *p)
         p = getword(p);
         if (Word[0] == 0)
             break;
-        int extant = is_verb(Word);
+        int extant = isVerb(Word);
         if (extant != -1) {
             if (vbptr[extant].flags | VB_TRAVEL) {
                 alog(AL_ERROR, "Redefinition of travel verb: %s", Word);
@@ -2108,7 +2108,7 @@ lang_proc()
         case WADJ:
         /* Need ISADJ() - do TT entry too */
         case WNOUN:
-            s = isnoun(Word);
+            s = isNoun(Word);
             break;
         case WPREP:
             s = isprep(Word);
@@ -2128,7 +2128,7 @@ lang_proc()
             s = getTextString(Word, false);
             break;
         case WVERB:
-            s = is_verb(Word);
+            s = isVerb(Word);
             break;
         case WCLASS:
             s = WANY;
@@ -2242,7 +2242,7 @@ lang_proc()
 
         vbslot.ents++;
         r = -1;
-        vt.pptr = (opparam_t *)FPos;
+        vt.pptr = (oparg_t *)FPos;
 
         /* Process the condition */
     notloop:
@@ -2366,9 +2366,9 @@ syn_proc()
             alog(AL_ERROR, "Invalid synonym line: %s", block);
             continue;
         }
-        int id = isnoun(Word);
+        int id = isNoun(Word);
         if (id < 0) {
-            id = is_verb(Word);
+            id = isVerb(Word);
             if (id == -1) {
                 alog(AL_ERROR, "Invalid verb/noun: %s", Word);
                 continue;

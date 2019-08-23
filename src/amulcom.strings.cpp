@@ -8,15 +8,20 @@
 #include <h/amul.xtra.h>
 
 #include <algorithm>
+#include <vector>
 #include <cctype>
 #include <string>
 #include <unordered_map>
 
+
+// Offsets of strings by string id.
+using OffsetTable = std::vector<size_t>;
 using StringMap = std::unordered_map<std::string, stringid_t>;
 
-static FILE *     stringFP;
-static stringid_t stringBytes;
-static StringMap  stringMap;
+static FILE *      stringFP;
+static size_t      stringData;
+static OffsetTable stringOffsets;
+static StringMap   stringMap;
 
 const std::string &
 StringLower(std::string &str)
@@ -32,14 +37,20 @@ isNewlineSuppressor(char c)
     return c == '{';
 }
 
+static stringid_t
+nextStringId() noexcept
+{
+    return stringid_t(stringOffsets.size());
+}
+
 static bool /*ok*/
 registerStringLabel(std::string label)
 {
 	StringLower(label);
-	auto [it, ins] = stringMap.insert(std::make_pair(label, stringBytes));
+	auto [it, ins] = stringMap.insert(std::make_pair(label, nextStringId()));
 	if (!ins)
 		return false;
-	alog(AL_DEBUG, "registered %s as %u", label.c_str(), stringBytes);
+	alog(AL_DEBUG, "registered %s as %d", label.c_str(), nextStringId());
 	return true;
 }
 
@@ -47,7 +58,7 @@ registerStringLabel(std::string label)
     do {                                                                                          \
         if (fwrite((buffer), 1, (length), fp) != (length))                                        \
             afatal("Unable to write %s", (op));                                                   \
-		stringBytes += (length);                                                                  \
+		stringData += (length);                                                                  \
     } while (0)
 
 error_t
@@ -63,7 +74,7 @@ AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
         isLine = false;
     }
 
-	*idp = stringBytes;
+	*idp = nextStringId();
 
     check_write_str("text string", start, end - start, stringFP);
     if (isLine) {
@@ -83,7 +94,7 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
     REQUIRE(!label || *label);
 
     // string's id will be the current position, so snag it now.
-    stringid_t id { stringBytes };
+    stringid_t id { nextStringId() };
 
     if (label && !registerStringLabel(label)) {
 		return EEXIST;
@@ -138,7 +149,7 @@ RegisterTextString(
     if (!idp) {
         idp = &id;
     }
-	*idp = stringBytes;
+	*idp = nextStringId();
 	if (!registerStringLabel(label)) {
 		return EEXIST;
 	}
@@ -175,7 +186,7 @@ GetStringCount()
 size_t
 GetStringBytes()
 {
-    return stringBytes;
+    return stringData;
 }
 
 char *
@@ -226,6 +237,7 @@ error_t
 startStringModule(Module *module)
 {
 	REQUIRE(stringMap.empty());
+    stringOffsets.reserve(1024);
     stringFP = OpenGameFile(stringTextFile, "w");  // Note: text mode, translate \r please
     REQUIRE(stringFP);
 
@@ -235,7 +247,13 @@ startStringModule(Module *module)
 error_t
 closeStringModule(Module *module, error_t err)
 {
-	alog(AL_DEBUG, "Strings: %zu, Bytes: %u", stringMap.size(), stringBytes);
+	alog(AL_DEBUG, "Strings: %zu, Bytes: %zu", stringOffsets.size(), stringData);
+    CloseFile(&stringFP);
+    stringFP = OpenGameFile(stringIndexFile, "w");
+    auto offsetSize = sizeof(*stringOffsets.data());
+    size_t written = fwrite(stringOffsets.data(), offsetSize, stringOffsets.size(), stringFP);
+    if (written != stringOffsets.size())
+        afatal("Unable to write string indexes");
     CloseFile(&stringFP);
 	stringMap.clear();
 

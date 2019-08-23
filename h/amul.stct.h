@@ -80,11 +80,11 @@ struct _ROOM_STRUCT {
 /// TODO: Allow multiple conditions, multiple actions.
 /// TODO: Rename from 'vbtab' to 'VMOp', 'Instruction', something .. better
 struct _VBTAB {
-    int32_t condition;
+    vmopid_t condition;
     /// TODO: Replace negative actions with a GOTO action.
-    int32_t action;   /* #>0=action, #<0=room  */
+    vmopid_t action;  /* #>0=action, #<0=room  */
                       /// TODO: pptr[]
-    opparam_t *pptr;  // Parameter list, or -1 for none.
+    oparg_t *pptr;    // Parameter list, or -1 for none.
 };
 
 // _SLOTTAB represents a syntax slot that expands to a series of instructions
@@ -170,10 +170,10 @@ struct _OBJ_STATE {
 // Travel table entry, which you will note is a verb table entry with a verb.
 /// TODO: See above.
 struct _TT_ENT {
-    verbid_t   verb;
-    int32_t    condition;
-    int32_t    action; /* #>0=action, #<0=room  */
-    opparam_t *pptr;   /* Param ptr. -1 = none  */
+    verbid_t verb;
+    vmopid_t condition;
+    vmopid_t action; /* #>0=action, #<0=room  */
+    oparg_t  *pptr;   /* Param ptr. -1 = none  */
 };
 
 // _MOB is the "live" representation of a runtime NPC

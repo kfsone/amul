@@ -85,7 +85,7 @@ umsg_proc()
 {
     error_t err = consumeMessageFile(ifp, "msgid=", nullptr);
     if (err == ENOENT) {
-        /// TODO: Tell the user
+        alog(AL_INFO, "No long user messages");
         return;
     }
 }

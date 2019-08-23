@@ -10,6 +10,7 @@ char gameDir[MAX_PATH_LENGTH];
 // File names
 const char *gameDataFile = "Prof.amulo";
 const char *stringTextFile = "strings.amulo";
+const char *stringIndexFile = "stringi.amulo";
 const char *roomDataFile = "room.amulo";
 const char *rankDataFile = "rank.amulo";
 const char *travelTableFile = "traveld.amulo";

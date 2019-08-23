@@ -23,6 +23,7 @@ extern const char *syntax[NSYNTS];
 constexpr const char *managerPortName = "AMULMgr";
 extern const char *   gameDataFile;
 extern const char *   stringTextFile;
+extern const char *   stringIndexFile;
 extern const char *   roomDataFile;
 extern const char *   rankDataFile;
 extern const char *   travelTableFile;
