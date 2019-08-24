@@ -133,7 +133,7 @@ AnswerPhone
 	          Grimsby though! BYE!"
 	<Click> ...
 
-DoorCl
+DoorClosed
 	The door is closed!
 
 NoClPatio

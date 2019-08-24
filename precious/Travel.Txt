@@ -77,12 +77,12 @@ verbs=up northwest
 	stairs1
 verbs=south out
 	state door 0 drive1
-	else error doorcl
+	else error doorclosed
 
 room=drive1
 verbs=north in
 	state door 0 hallway
-	else error doorcl
+	else error doorclosed
 verb=south out
 	drive2
 verb=west southwest southeast east
