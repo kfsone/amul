@@ -36,6 +36,6 @@ error_t PathJoin(char *into, size_t limit, const char *lhs, const char *rhs);
 #define gamedir_joiner(filename) path_joiner(filepath, gameDir, filename)
 #define safe_gamedir_joiner(filename)                                                              \
     if (gamedir_joiner(filename) != 0)                                                             \
-        alog(AL_FATAL, "Unable to form filename for %s / %s", gameDir, filename);
+        LogFatal("Unable to form filename for '", gameDir, "' / '", filename, "'");
 
 #endif

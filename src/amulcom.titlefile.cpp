@@ -1,7 +1,7 @@
 #include "amulcom.fileprocessing.h"
 #include "amulcom.strings.h"
+#include "logging.h"
 
-#include <h/amul.alog.h>
 #include <h/amul.type.h>
 #include <h/amul.xtra.h>
 #include <h/amul.gcfg.h>
@@ -19,7 +19,7 @@ getNo(const char *prefix, const char *from)
 {
     int result = 0;
     if (sscanf(from, "%d", &result) != 1) {
-        afatal("Invalid '%s' entry: %s", prefix, from);
+        LogFatal("Invalid '", prefix, "' entry: ", from);
     }
     return result;
 }
@@ -39,7 +39,7 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
     char block[1024];
     for (;;) {
         if (!fgets(block, sizeof(block), ifp)) {
-            afatal("Invalid title.txt: Missing '%s' line", linetype);
+            LogFatal("Invalid title.txt: Missing '", linetype, "' line");
         }
 
         repspc(block);
@@ -49,7 +49,7 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
             continue;
 
         if (!canSkipLead(linetype, &p)) {
-            afatal("Invalid title.txt: Expected '%s' got: %s", linetype, p);
+            LogFatal("Invalid title.txt: Expected '", linetype, "' got: ", p);
         }
 
         callback(linetype, p);
@@ -71,7 +71,7 @@ _getAdventureName(const char *prefix, const char *value)
 {
     strncpy(g_gameConfig.gameName, value, sizeof(g_gameConfig.gameName));
     if (strlen(value) > sizeof(g_gameConfig.gameName) - 1)
-        alog(AL_WARN, "Game name too long, truncated to: %s", g_gameConfig.gameName);
+        LogWarn("Game name too long, truncated to: ", g_gameConfig.gameName);
 }
 
 void
@@ -83,8 +83,7 @@ title_proc()
     getBlockNo("resettime=", &g_gameConfig.gameDuration_m);
     if (g_gameConfig.gameDuration_m < 15) {
         g_gameConfig.gameDuration_m = 15;
-        alog(AL_WARN, "resettime= too short: falling back to %" PRIu64 " minutes",
-             g_gameConfig.gameDuration_m);
+        LogWarn("resettime= too short: falling back to ", g_gameConfig.gameDuration_m, " minutes");
     }
 
     getBlockNo("seeinvis=", &g_gameConfig.seeInvisRank);
@@ -100,13 +99,13 @@ title_proc()
         if (!p || strncmp(p, "[title]", 7) != 0)
             continue;
         if (TextStringFromFile("$title", ifp, nullptr, true) != 0) {
-            afatal("Could not write splash text to message file");
+            LogFatal("Could not write splash text to message file");
         }
         return;
     }
 
-    alog(AL_WARN, "Missing [title] in Title.Txt");
+    LogWarn("Missing [title] in Title.Txt");
     std::string defaultTitle = compilerVersion + "\n\n";
-    RegisterTextString("$title", defaultTitle.c_str(), defaultTitle.length() + 1, true, nullptr);
+    RegisterTextString("$title", defaultTitle, true, nullptr);
 }
 

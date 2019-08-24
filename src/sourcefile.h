@@ -25,6 +25,15 @@ struct SourceFile {
     constexpr bool Eof() const noexcept { return buffer.Eof(); }
     bool GetLineTerms() noexcept;
     bool GetLine() noexcept;
+
+    void SkipBlock() noexcept {
+        while (!GetLine() && !line.empty() && !line.front().empty())
+            ;
+    }
+
+    bool GetIDLine(std::string_view prefix);
+
+    void GetLines(std::string &into);
 };
 
 #endif

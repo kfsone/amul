@@ -68,9 +68,10 @@ struct LS {
 // _ROOM_STRUCT represents a room, or location, in the game world.
 struct _ROOM_STRUCT {
     char       id[IDL + 1];
-    char       dmove[IDL + 1];  /// TODO: Rename CEMETERY
-    uint32_t   flags;           // static flags
-    stringid_t descid;
+    roomid_t   dmove;          ///TODO: Rename cemetery
+    uint32_t   flags;          // static flags
+    stringid_t shortDesc;      // short description id
+    stringid_t longDesc;       // long description id
     uint32_t   tabptr;   // offset to data in travel table
     uint32_t   ttlines;  /// TODO: normalize 'count'
 };

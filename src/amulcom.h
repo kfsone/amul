@@ -17,12 +17,13 @@ extern FILE *ofp4;
 extern FILE *ofp5;
 extern FILE *afp;
 extern char  gameDir[MAX_PATH_LENGTH];
-extern bool  exiting, reuseRoomData, checkDmoves;
+extern bool  exiting;
 
 // Close any open output files.
 void CloseOutFiles();
 
-// General purpose shutdown with an err (try to favor alog(AL_FATAL))
+// General purpose shutdown with an err, try to favor LogFatal()
+[[noreturn]]
 void Terminate(error_t err);
 
 extern FILE *OpenGameFile(const char *filename, const char *mode);

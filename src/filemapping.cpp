@@ -1,11 +1,11 @@
 #include <cstring>
 
 #include "amulconfig.h"
-#include <h/amul.alog.h>
 #include <h/amul.type.h>
 #include <h/amul.file.h>
 
 #include "filemapping.h"
+#include "logging.h"
 
 //#include <h/portable.hpp>
 
@@ -60,23 +60,23 @@ NewFileMapping(std::string_view filepath, void **datap, size_t *sizep) noexcept
     HANDLE maph = CreateFileMapping(osfh, nullptr, PAGE_READONLY, 0, 0, nullptr);
     close(fd);
     if (!maph) {
-        afatal("unable to map file: ", filepath);
+        LogFatal("unable to map file: ", filepath);
     }
     void *data = MapViewOfFile(maph, FILE_MAP_READ, 0, 0, 0);
     CloseHandle(maph);
 #else
     void *data = mmap(nullptr, size, PROT_READ, MMAP_FLAGS, fd, 0);
     if (data == MAP_FAILED) {
-        afatal("failed to load file: ", filepath, ": ", strerror(errno));
+        LogFatal("failed to load file: ", filepath, ": ", strerror(errno));
     }
     close(fd);
 #endif
 
     if (data == nullptr)
-        afatal("unable to load file: ", filepath);
+        LogFatal("unable to load file: ", filepath);
 
     *datap = data;
-    alog(AL_DEBUG, "mapped %s", filepath);
+    LogDebug("mapped ", filepath);
 
     return 0;
 }
@@ -88,7 +88,7 @@ CloseFileMapping(void **datap, size_t length) noexcept
 #if defined(_MSC_VER)
         BOOL result = UnmapViewOfFile(*datap);
         if (!result)
-            afatal("Error closing file mapping");
+            LogFatal("Error closing file mapping");
 #else
         munmap(*datap, length);
 #endif

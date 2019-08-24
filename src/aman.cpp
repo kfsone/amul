@@ -30,6 +30,7 @@
 #include <cstdio>
 #include <ctime>
 #include <thread>
+#include <vector>
 
 #if !defined(_MSC_VER)
 #    include <unistd.h>
@@ -38,7 +39,6 @@
 #endif
 
 #include <h/aman.h>
-#include <h/amul.alog.h>
 #include <h/amul.cons.h>
 #include <h/amul.defs.h>
 #include <h/amul.gcfg.h>
@@ -53,6 +53,7 @@ TRQ ResReq;  // Reset request & Incoming from timer
 #endif
 
 #include "filesystem.h"
+#include "logging.h"
 #include "msgports.h"
 #include "system.h"
 
@@ -71,6 +72,8 @@ MsgPort * trport;                // Timer port
 long      invis, invis2, calls;  // Invisibility Stuff & # of calls
 long      nextdaem, ded;         // nextdaem = time to next daemon, ded = deduct
 roomid_t *ormtab;
+
+std::vector<_ROOM_STRUCT> g_rooms;
 
 long online;
 char resety, forcereset, quiet;
@@ -98,7 +101,6 @@ givebackmemory()
 {
     ReleaseMem(&obtab);
     ReleaseMem(&rktab);
-    ReleaseMem(&rmtab);
     ReleaseMem(&slottab);
     ReleaseMem(&synp);
     ReleaseMem(&ttp);
@@ -136,7 +138,7 @@ quit()
 static void
 memfail(const char *s)
 {
-    afatal("Out of memory for %s");
+    LogFatal("Out of memory for ", s);
 }
 
 // Report a read failure
@@ -144,7 +146,7 @@ memfail(const char *s)
 static void
 readfail(const char *s, size_t got, size_t wanted)
 {
-    afatal("Expected %zu %s entries, got %zu", wanted, s, got);
+    LogFatal("Expected ", wanted, " ", s, ", but ", got);
 }
 
 // report open error
@@ -152,7 +154,7 @@ readfail(const char *s, size_t got, size_t wanted)
 static void
 openError(const char *filepath, const char *activity)
 {
-    afatal("Unable to open '%s' for %sing", filepath, activity);
+    LogFatal("Unable to open '", filepath, "' for ", activity, "ing");
 }
 
 // Open a file for reading
@@ -287,10 +289,10 @@ template <typename... Args>
 void
 warn(const char *fmt, Args... args)
 {
-    alog(AL_WARN, fmt, args...);
-
     char message[512];
     snprintf(message, sizeof(message), fmt, args...);
+    LogWarn(message);
+
     for (size_t i = 0; i < MAXU; i++) {
         if ((linestat + i)->state != OFFLINE) {
             auto amsg = std::make_unique<Aport>(reply, MRWARN);
@@ -309,10 +311,10 @@ kill()
         sprintf(source, "line %u.", uint32_t(Af + 1));
     else
         strcpy(source, "external");
-    alog(AL_WARN, "!! (X) %s: shutdown request from %s", now(), source);
+    LogWarn("!! (X) ", now(), ": shutdown request from ", source);
 
     if (online != 0) {
-        alog(AL_NOTE, "&&%25s: Request denied: %u users on-line", " ", uint32_t(online));
+        LogNote("Kill request denied: ", online, " users on-line");
         Ad = At = 'X';
     } else {
         warn("%s", "Game shutdown initiated by administrator.");
@@ -330,7 +332,7 @@ cnct()
     amul->opaque = (char *)usr;
     if (Af >= MAXU) {
         if (Af == MAXU + 1)
-            printf("** Mobile processor connected.\n");
+            LogInfo("Mobile processor connected.");
         if ((linestat + Af)->state != 0)
             Af = -1;
         else
@@ -416,7 +418,7 @@ static void
 discnct()
 {
     if (Af < MAXU && (linestat + Af)->state == PLAYING) {
-        alog(AL_INFO, "<- (%u) %s: user disconnected", uint32_t(Af), now());
+        LogInfo("<- ", Af, " ", now(), ": user disconnected");
     }
     if (Af < MAXU)
         online--;
@@ -460,7 +462,7 @@ data()
 static void
 login()
 {
-    alog(AL_INFO, "-> (%d) %s: \"%s\" logged in.", Af, now(), (usr + Af)->name);
+    LogInfo("-> ", Af, " ", now(), " '", (usr + Af)->name, "' logged in");
     (linestat + Af)->state = PLAYING;
 }
 
@@ -469,42 +471,42 @@ static void
 asend(int type, int data)
 {
     if ((reply = CreatePort("Killer!")) == nullptr) {
-        printf("Unable to create killer port!\n");
+        LogError("Unable to create ''killer' port");
         return;
     }
     auto aptr = std::make_unique<Aport>(reply, type, -1, data);
     port->Put(std::move(aptr));
     port->Wait();
-    if (quiet == 0)
+    if (quiet == 0) {
         switch (Ad) {
         case 'R':
-            printf("\x07*-- Reset Invoked --*\n\n");
+            LogNote("*-- Reset Invoked --*");
             break;
         case 'O':
-            printf("AMUL Manager removed!\n");
+            LogNote("AMUL Manager removed");
             break;
         case 'X':
-            printf("Cannot remove with users connected.\n");
+            LogError("Cannot reset manager with users connected");
             break;
         case 'U':
-            printf("AMAN error at other end!\n");
+            LogError("AMAN error at other end");
+            break;
         case -'X':
-            printf("... Reset set for %" PRId64 " seconds ...\n", Ap1);
+            LogNote("... Reset set for ", Ap1, " seconds ...");
             break;
         case -'R':
-            printf("... Reset in progress ...\n");
+            LogNote("... Reset in progress ...");
             break;
         case 'E':
-            printf("... Game extended by %" PRId64 " seconds ...\n", Ap1);
+            LogNote("... Reset delayed by ", Ap1, " seconds ...");
             break;
         default:
-            printf("** Internal AMUL error ** (Returned '%c')\n", static_cast<char>(Ad));
+            LogError("** Internal AMUL error: Return '", char(Ad), "')");
             break;
         }
+    }
     ReleaseMem(&amul);
     DeletePort(reply);
-    printf("\n");
-    return;
 }
 
 static void
@@ -546,11 +548,12 @@ extend(short int tics)
         return;
 
     newtime = count[0] + tics + 1;
-    if (count[0] > 120)
-        alog(AL_NOTE, "...Game time extended - reset will now occur in %ld %s and %ld %s...\n",
-             newtime / 60, "minutes", newtime - ((newtime / 60) * 60), "seconds");
-    else
-        alog(AL_NOTE, "...Reset postponed - it will now occur in %ld %s...\n", newtime, "seconds");
+    if (count[0] > 120) {
+        LogNote("...Game time extended - reset will now occur in ", newtime / 60, " minutes and ",
+                newtime - ((newtime / 60) * 60), " seconds");
+    } else {
+        LogNote("...Reset postponed - it will now occur in ", newtime, " seconds");
+    }
     Ap1 = tics;
     count[0] = newtime;
     Ad = 'E';
@@ -566,9 +569,9 @@ res()
     onwas = online;
     reset_users();
     if (onwas != 0)
-        alog(AL_NOTE, "== (#) %s: All users disconnected...\n", now());
+        LogNote("== (#) ", now(), ": All users disconnected...");
     else
-        alog(AL_NOTE, "== (#) %s: Reset completed!\n", now());
+        LogNote("== (#) ", now(), ": Reset completed!");
     Delay(100);  // Always wait atleast a few seconds
 }
 
@@ -588,14 +591,14 @@ lock()
 void
 logwiz(int who)
 {
-    alog(AL_NOTE, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)", Af + '0', now(),
-         (usr + Af)->name, (usr + Af)->rank + 1);
+    LogNote("@@ ]", char(Af + '0'), "[ ", now(), ": User \"", (usr + Af)->name,
+            "\" achieved top rank (", (usr + Af)->rank + 1, ")");
 }
 
 void
 logit(const char *s)
 {
-    alog(AL_INFO, "@@ (%c) %s: %s", Af + '0', now(), s);
+    LogInfo("@@ (", char(Af + '0'), ") ", now(), ": ", s);
 }
 
 // Read in & evaluate data files
@@ -616,9 +619,8 @@ setup()
     rctab = (short *)p;
 
     fopenr(roomDataFile);  // 1: Open room block file
-    if ((rmtab = (_ROOM_STRUCT *) AllocateMem(g_gameData.numRooms * sizeof(room))) == nullptr)
-        memfail("room table");  // Allocate memory
-    if (size_t i = fread((char *)rmtab, sizeof(room), g_gameData.numRooms, ifp); i != g_gameData.numRooms)
+    g_rooms.resize(g_gameData.numRooms);
+    if (size_t i = fread(g_rooms.data(), sizeof(_ROOM_STRUCT), g_gameData.numRooms, ifp); i != g_gameData.numRooms)
         readfail("room table", i, g_gameData.numRooms);
 
     fopenr(rankDataFile);  // 2: Read player g_gameData.numRanks
@@ -750,7 +752,7 @@ kernel()
 {
     int i;
 
-    alog(AL_INFO, "------------------------------------------------------------");
+    LogInfo("------------------------------------------------------------");
     online = resety = forcereset = 0;
     for (i = 0; i < MAXD; i++) {
         count[i] = -1;
@@ -767,7 +769,7 @@ kernel()
         (linestat + i)->helping = -1;
         (linestat + i)->following = -1;
     }
-    alog(AL_INFO, "== (=) %s: Loaded '%s'.", now(), g_gameConfig.gameName);
+    LogInfo("== (=) ", now(), ": Loaded ", g_gameData.gameName);
     forcereset = ded = 0;
 
     // Activate the daemon processor
@@ -873,7 +875,7 @@ kernel()
             break;  // Global daemon
         default:
             At = -1;
-            alog(AL_ERROR, "$$ (X) %s: *INVALID Message Type, %ld!*", now(), At);
+            LogError("$$ (X) ", now(), ": *INVALID Message Type: ", At);
             break;
         }
 
@@ -896,7 +898,7 @@ kernel()
         givebackmemory();
         setup();
         if (quiet == 0)
-            printf("\n[ %s %s ]\n", vername, "RESET");
+            LogInfo("[ ", vername, " RESET ]");
 #ifdef REPAIR
         if (GetFilesSize("reset.bat") > 0) {
             Execute("execute reset.bat", 0L, 0L);
@@ -911,7 +913,7 @@ kernel()
 executeCommand(int argc, const char *argv[])
 {
     if (!port) {
-        afatal("AMAN is not running");
+        LogFatal("AMAN is not running");
     }
     size_t mins{0};
     if (argc == 3)
@@ -926,7 +928,7 @@ executeCommand(int argc, const char *argv[])
         break;
     case 'X':
         if (argc != 3)
-            afatal("Missing minute value after -x option");
+            LogFatal("Missing minute value after -x option");
         sendext(count[0]);
         break;
     }
@@ -958,7 +960,7 @@ parseArguments(int argc, const char *argv[])
     if (argn < argc) {
         error_t err = path_copier(gameDir, argv[argn]);
         if (err != 0)
-            afatal("Invalid game path: %s", argv[argn]);
+            LogFatal("Invalid game path: ", argv[argn]);
     } else
         strcpy(gameDir, ".");
 }
@@ -970,7 +972,7 @@ GameData::Load()
     safe_gamedir_joiner(gameDataFile);
     FILE *fp = fopen(filepath, "rb");
     if (!fp)
-        afatal("Unable to open game data file: %s", filepath);
+        LogFatal("Unable to open game data file: ", filepath);
     fread(dynamic_cast<GameConfig *>(&g_gameData), sizeof(GameConfig), 1, fp);
     fclose(fp);
 
@@ -993,7 +995,7 @@ main(int argc, const char *argv[])
     chdir(gameDir);
 
     if (error_t err = g_gameData.Load(); err != 0)
-        afatal("Failed to load game data");
+        LogFatal("Failed to load game data");
 
     port = FindPort(managerPortName);  // Check for existing port
     if (port != nullptr) {

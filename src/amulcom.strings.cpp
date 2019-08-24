@@ -1,8 +1,8 @@
 #include "amulcom.strings.h"
 #include "amulcom.h"
+#include "logging.h"
 #include "modules.h"
 
-#include <h/amul.alog.h>
 #include <h/amul.cons.h>
 #include <h/amul.test.h>
 #include <h/amul.xtra.h>
@@ -23,7 +23,7 @@ static size_t      stringData;
 static OffsetTable stringOffsets;
 static StringMap   stringMap;
 
-const std::string &
+std::string &
 StringLower(std::string &str)
 {
 	std::transform(str.cbegin(), str.cend(), str.begin(),
@@ -44,43 +44,45 @@ nextStringId() noexcept
 }
 
 static bool /*ok*/
-registerStringLabel(std::string label)
+registerStringLabel(std::string_view label_)
 {
+    std::string label{label_};
 	StringLower(label);
 	auto [it, ins] = stringMap.insert(std::make_pair(label, nextStringId()));
 	if (!ins)
 		return false;
-	alog(AL_DEBUG, "registered %s as %d", label.c_str(), nextStringId());
+	LogDebug("registered ", label, " as ", nextStringId());
 	return true;
 }
 
-#define check_write_str(op, buffer, length, fp)                                                   \
-    do {                                                                                          \
-        if (fwrite((buffer), 1, (length), fp) != (length))                                        \
-            afatal("Unable to write %s", (op));                                                   \
-		stringData += (length);                                                                  \
-    } while (0)
+static void
+check_write_str(const char *op, std::string_view text, FILE *fp)
+{
+    if (fwrite(text.data(), 1, text.length(), fp) != text.length())
+        LogFatal("Write error: ", op, ": ", strerror(errno));
+    stringData += text.length();
+}
 
 error_t
-AddTextString(const char *start, const char *end, bool isLine, stringid_t *idp)
+AddTextString(std::string_view text, bool isLine, stringid_t *idp)
 {
-    REQUIRE(start && end && idp);
+    REQUIRE(idp);
 
-    while (end > start && isEol(*(end - 1)))
-        --end;
+    while (!text.empty() && isEol(text.back()))
+        text.remove_suffix(1);
 
-    if (end > start && isNewlineSuppressor(*(end - 1))) {
-        --end;
+    if (!text.empty() && isNewlineSuppressor(text.back())) {
+        text.remove_suffix(1);
         isLine = false;
     }
 
 	*idp = nextStringId();
 
-    check_write_str("text string", start, end - start, stringFP);
+    check_write_str("text string", text, stringFP);
     if (isLine) {
-        check_write_str("newline", "\n", 2, stringFP);
+        check_write_str("newline", { "\n", 2 }, stringFP);
     } else {
-        check_write_str("eos", "", 1, stringFP);
+        check_write_str("eos", { "", 1 }, stringFP);
     }
 
     return 0;
@@ -124,12 +126,12 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
             if (end > p && *(end - 1) == '{')
                 --end;
         }
-        check_write_str("text line", p, end - p, stringFP);
+        check_write_str("text line", {p, size_t(end - p)}, stringFP);
         if (isEol(*p)) {
-            check_write_str("eol", "\n", 1, stringFP);
+            check_write_str("eol", {"\n", 1}, stringFP);
         }
     }
-    check_write_str("eos", "", 1, stringFP);
+    check_write_str("eos", {"", 1}, stringFP);
 
     if (idp)
         *idp = id;
@@ -139,11 +141,10 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
 
 error_t
 RegisterTextString(
-        const char *label, const char *start, const char *end, bool isLine, stringid_t *idp)
+        std::string_view label, std::string_view text, bool isLine, stringid_t *idp)
 {
-    REQUIRE(start && end);
     REQUIRE(stringFP);
-	REQUIRE(label && *label);
+	REQUIRE(!label.empty());
 
     stringid_t id { 0 };
     if (!idp) {
@@ -154,19 +155,17 @@ RegisterTextString(
 		return EEXIST;
 	}
 
-    error_t err = AddTextString(start, end, isLine, idp);
+    error_t err = AddTextString(label, isLine, idp);
     if (err != 0)
         return err;
-
-    alog(AL_DEBUG, "register %s as %u", label, *idp);
 
     return 0;
 }
 
 error_t
-LookupTextString(const char *label, stringid_t *idp)
+LookupTextString(std::string_view label, stringid_t *idp)
 {
-    REQUIRE(label);
+    REQUIRE(!label.empty());
     std::string labelId { label };
     StringLower(labelId);
 	auto it = stringMap.find(labelId);
@@ -247,13 +246,13 @@ startStringModule(Module *module)
 error_t
 closeStringModule(Module *module, error_t err)
 {
-	alog(AL_DEBUG, "Strings: %zu, Bytes: %zu", stringOffsets.size(), stringData);
+	LogDebug("Strings: ", stringOffsets.size(), ", Bytes: ", stringData);
     CloseFile(&stringFP);
     stringFP = OpenGameFile(stringIndexFile, "w");
     auto offsetSize = sizeof(*stringOffsets.data());
     size_t written = fwrite(stringOffsets.data(), offsetSize, stringOffsets.size(), stringFP);
     if (written != stringOffsets.size())
-        afatal("Unable to write string indexes");
+        LogFatal("Unable to write string indexes");
     CloseFile(&stringFP);
 	stringMap.clear();
 

@@ -1,32 +1,32 @@
-#include <h/amul.alog.h>
 #include <h/amul.file.h>
 #include <h/amul.test.h>
 
 #include "filesystem.h"
 #include "filesystem.inl.h"
+#include "logging.h"
 
 char gameDir[MAX_PATH_LENGTH];
 
 // File names
-const char *gameDataFile = "Prof.amulo";
-const char *stringTextFile = "strings.amulo";
-const char *stringIndexFile = "stringi.amulo";
-const char *roomDataFile = "room.amulo";
-const char *rankDataFile = "rank.amulo";
-const char *travelTableFile = "traveld.amulo";
-const char *travelParamFile = "travelp.amulo";
-const char *verbDataFile = "verbd.amulo";
-const char *verbSlotFile = "verbst.amulo";
-const char *verbTableFile = "verbtd.amulo";
-const char *verbParamFile = "verbtp.amulo";
-const char *synonymDataFile = "synonymd.amulo";
-const char *synonymIndexFile = "synonymi.amulo";
-const char *objectDataFile = "objectd.amulo";
-const char *objectRoomFile = "objectr.amulo";
-const char *objectStateFile = "objects.amulo";
-const char *adjectiveDataFile = "adjd.amulo";
-const char *mobileDataFile = "mobiled.amulo";
-const char *mobileCmdFile = "mobilec.amulo";
+const char *gameDataFile = "Data/prof.amulo";
+const char *stringTextFile = "Data/strings.amulo";
+const char *stringIndexFile = "Data/stringi.amulo";
+const char *roomDataFile = "Data/room.amulo";
+const char *rankDataFile = "Data/rank.amulo";
+const char *travelTableFile = "Data/traveld.amulo";
+const char *travelParamFile = "Data/travelp.amulo";
+const char *verbDataFile = "Data/verbd.amulo";
+const char *verbSlotFile = "Data/verbst.amulo";
+const char *verbTableFile = "Data/verbtd.amulo";
+const char *verbParamFile = "Data/verbtp.amulo";
+const char *synonymDataFile = "Data/synonymd.amulo";
+const char *synonymIndexFile = "Data/synonymi.amulo";
+const char *objectDataFile = "Data/objectd.amulo";
+const char *objectRoomFile = "Data/objectr.amulo";
+const char *objectStateFile = "Data/objects.amulo";
+const char *adjectiveDataFile = "Data/adjd.amulo";
+const char *mobileDataFile = "Data/mobiled.amulo";
+const char *mobileCmdFile = "Data/mobilec.amulo";
 
 static inline bool
 isSeparator(const char *ptr)
@@ -127,7 +127,7 @@ GetFilesSize(std::string_view filepath, size_t *sizep, bool required)
     error_t     err = stat(filepath.data(), &sb);
     if (err != 0) {
         if (required)
-            afatal("Could not access file (%d): %s", errno, filepath);
+            LogFatal("Could not access file (", errno, "): ", filepath);
         return ENOENT;
     }
     *sizep = sb.st_size;

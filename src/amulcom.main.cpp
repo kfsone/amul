@@ -1,7 +1,7 @@
 #include "amulcom.h"
+#include "logging.h"
 #include "modules.h"
 
-#include <h/amul.alog.h>
 #include <h/amul.argp.h>
 #include <h/amul.test.h>
 

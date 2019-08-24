@@ -17,13 +17,14 @@ SET(AMUL_LIB_HEADERS
 		filemapping.h
 		filesystem.h
 		filesystem.inl.h
+        logging.h
 		modules.h
 		msgports.h
 		sourcefile.h
 		spinlock.h
+        svparse.h
 		system.h
 
-        ../h/amul.alog.h
 		../h/amul.cons.h
 		../h/amul.list.h
 )

@@ -37,7 +37,7 @@ enum BroadcastType {
 
 // Get AMUL, AMAN and AMULCOM versions from relevant .H
 #define PV "0.99d"       // Parser version
-#define IDL 12           // Length of ID strings
+#define IDL 16           // Length of ID strings
 #define RANKL 32         // Length of rank descs
 #define NAMEL 20         // Length of names
 #define ALWAYSEP "---"   // Always Endparse

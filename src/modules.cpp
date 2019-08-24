@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "logging.h"
 #include "modules.h"
 #include "system.h"
 
-#include <h/amul.alog.h>
 #include <h/amul.test.h>
 #include <h/amul.type.h>
 
@@ -22,6 +22,7 @@ static const char *moduleNames[MAX_MODULE_ID] = {
         "INVALID", "logging", "cmdline", "strings", "compiler",
 };
 
+[[noreturn]]
 void
 Terminate(error_t err)
 {
@@ -42,11 +43,11 @@ StartModules()
 {
     for (Module *cur = s_modulesHead; cur; cur = (Module *)cur->links.next) {
         if (cur->start) {
-            alog(AL_DEBUG, "Starting Module #%d: %s", cur->id, cur->name);
+            LogDebug("Starting Module #", cur->id, ": ", cur->name);
             error_t err = cur->start(cur);
             if (err != 0) {
-                alog(AL_ERROR, "Module initialization failed: aborting.");
-                DEBUG_BREAK;
+                LogError("Module initialization failed: aborting.");
+                LogBreak();
                 Terminate(err);
             }
         }
@@ -59,12 +60,13 @@ CloseModules(error_t err)
 {
     Module *prev = nullptr;
     for (Module *cur = s_modulesTail; cur; cur = prev) {
-        alog(AL_DEBUG, "Closing Module #%d: %s", cur->id, cur->name);
+        LogDebug("Closing Module #", cur->id, ": ", cur->name);
         prev = (Module *)cur->links.prev;
         error_t reterr = CloseModule(cur, err);
         if (reterr != 0) {
-            fprintf(stderr, "*** INTERNAL ERROR: Module %s failed to terminate with %d\n",
-                    cur->name, reterr);
+            // NOTE: Use
+            std::cerr << "*** INTERNAL ERROR: Module " << cur->name << " failed to terminate: "
+                      << reterr << std::endl;
         }
     }
 
@@ -80,13 +82,13 @@ NewModule(
     REQUIRE(context || (init || start || close));
 
     if (GetModule(id) != nullptr) {
-        alog(AL_DEBUG, "Tried to register duplicate module#%d: %s", id, moduleNames[id]);
+        LogDebug("Tried to register duplicate module#", id, ": ", id, moduleNames[id]);
         return EEXIST;
     }
 
     Module *cur = (Module *)AllocateMem(sizeof(Module));
     if (!cur) {
-        afatal("Out of memory");
+        LogFatal("Out of memory");
     }
 
     // populate values
@@ -111,7 +113,7 @@ NewModule(
     if (cur->init) {
         error_t err = cur->init(cur);
         if (err != 0) {
-            afatal("Module #%d: %s: initialization failed: %d", id, cur->name, err);
+            LogFatal("Module #", id, ": ", cur->name, ": initialization failed: ", err);
         }
     }
     if (ptr)

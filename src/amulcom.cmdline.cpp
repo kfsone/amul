@@ -7,39 +7,36 @@
 #endif
 
 #include "amulcom.h"
+#include "logging.h"
 #include "modules.h"
 #include "system.h"
 
-#include <h/amul.alog.h>
 #include <h/amul.argp.h>
 
 // For systems that support it: CTRL-C handler.
 void
 CXBRK()
 {
-    fprintf(stderr, "*** CTRL-C pressed: terminating\n");
+    LogError("*** CTRL-C pressed: terminating");
     Terminate(EINTR);
 }
 
 error_t
 misuse(const char **argv, const char *issue, const char *arg, error_t err)
 {
-    fprintf(stderr, "%s: %s: %s\n", argv[0], issue, arg);
-    fprintf(stderr, "Try '%s -help' for usage information\n", argv[0]);
-    fflush(stderr);
+    LogError(argv[0], ": ", issue, ": ", arg, "\n",
+            "Try '", argv[0], " -help' for usage information.\n");
     return err;
 }
 
 error_t
 usage(const char **argv)
 {
-    printf("Usage: %s [-h|-?] [-d] [-v|-q] [-r] [game directory]\n", argv[0]);
+    printf("Usage: %s [-h|-?] [-v|-q] [game directory]\n", argv[0]);
     printf("Compiler for AMUL multi-player games.\n");
     printf("\n");
     printf("  -help, -?                 Displays this help information\n");
-    printf("  -d, -dmoves               Enables 'dmove' checking\n");
     printf("  -q, -quiet                Decreases output verbosity\n");
-    printf("  -r, -room-reuse           Re-uses previous room data during compilation\n");
     printf("  -v, -verbose              Increases output verbosity\n");
     printf("  <game directory>          Optional path game files and data will be in\n");
 
@@ -53,18 +50,13 @@ ParseCommandLine(const CommandLine *cmdline)
     const char **argv = cmdline->argv;
     struct stat  sb;
 
-    int desiredLogLevel = AL_INFO;
+    int desiredLogLevel = LWARN;
 
     for (int n = 1; n < argc; n++) {
         const char *arg = argv[n];
         if (arg[0] == '-') {
             if (strncmp("-h", arg, 2) == 0 || strncmp("--h", arg, 2) == 0 || strcmp("-?", arg) == 0)
                 return usage(argv);
-
-            if (strncmp("-d", arg, 2) == 0) {
-                checkDmoves = true;
-                continue;
-            }
             if (strncmp("-q", arg, 2) == 0) {
                 if (desiredLogLevel < MAX_LOG_LEVEL - 1)
                     ++desiredLogLevel;
@@ -73,10 +65,6 @@ ParseCommandLine(const CommandLine *cmdline)
             if (strncmp("-v", arg, 2) == 0) {
                 if (desiredLogLevel > 0)
                     --desiredLogLevel;
-                continue;
-            }
-            if (strcmp("-r", arg) == 0) {
-                reuseRoomData = true;
                 continue;
             }
             return misuse(argv, "Unrecognized argument", arg, EINVAL);
@@ -94,7 +82,7 @@ ParseCommandLine(const CommandLine *cmdline)
 
     char pwd[MAX_PATH_LENGTH];
     if (!getcwd(pwd, sizeof(pwd)))
-        afatal("Cannot get CWD");
+        LogFatal("Cannot get CWD");
 
     if (strncmp(gameDir, "./", 2) == 0) {
         path_concater(pwd, gameDir + 2);
@@ -104,7 +92,7 @@ ParseCommandLine(const CommandLine *cmdline)
         path_copier(gameDir, pwd);
     }
 
-    alogLevel((LogLevel)desiredLogLevel);
+    SetLogLevel((LogLevel)desiredLogLevel);
 
     return 0;
 }
