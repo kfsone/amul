@@ -1,11 +1,11 @@
 #include <cstring>
 
 #include "amulconfig.h"
-#include <h/amul.type.h>
-#include <h/amul.file.h>
 
-#include "filemapping.h"
-#include "logging.h"
+#include "h/amul.file.h"
+#include "h/amul.type.h"
+#include "h/filemapping.h"
+#include "h/logging.h"
 
 //#include <h/portable.hpp>
 

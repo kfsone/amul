@@ -1,17 +1,17 @@
-#include "amulcom.strings.h"
-#include "amulcom.h"
-#include "logging.h"
-#include "modules.h"
-
-#include <h/amul.cons.h>
-#include <h/amul.test.h>
-#include <h/amul.xtra.h>
-
 #include <algorithm>
-#include <vector>
 #include <cctype>
+#include <cstring>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+#include "h/amul.cons.h"
+#include "h/amul.test.h"
+#include "h/amul.xtra.h"
+#include "h/amulcom.h"
+#include "h/amulcom.strings.h"
+#include "h/logging.h"
+#include "h/modules.h"
 
 
 // Offsets of strings by string id.

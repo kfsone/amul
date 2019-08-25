@@ -5,7 +5,7 @@
 #include <cctype>
 #include <iterator>
 
-#include "tokenstream.h"
+#include "h/tokenstream.h"
 
 // void
 // ZeroPlus(TokenStream &ts, Patterns patterns)

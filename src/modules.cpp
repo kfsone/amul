@@ -1,15 +1,13 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
 
-#include "logging.h"
-#include "modules.h"
-#include "system.h"
-
-#include <h/amul.test.h>
-#include <h/amul.type.h>
-
-#include <h/amigastubs.h>
+#include "h/amigastubs.h"
+#include "h/amul.test.h"
+#include "h/amul.type.h"
+#include "h/logging.h"
+#include "h/modules.h"
+#include "h/system.h"
 
 Module *s_modulesHead;
 Module *s_modulesTail;

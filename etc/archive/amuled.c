@@ -3,9 +3,15 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         */
 
-#include <h/amul.defs.h>
-#include <h/amul.stct.h>
-#include <ctype.h>
+#include <cctype>
+#include <cstdio>
+#include <fcntl.h>
+
+#include "h/amul.defs.h"
+#include "h/amul.defs.h"
+#include "h/amul.stct.h"
+#include "h/amul.stct.h"
+
 #if defined(_AMIGA_)
 #include <exec/io.h>
 #include <exec/memory.h>
@@ -19,10 +25,8 @@
 #include <proto/graphics.h>
 #include <proto/intuition.h>
 #else
-#include <h/amigastubs.h>
+#include "h/amigastubs.h"
 #endif
-#include <fcntl.h>
-#include <stdio.h>
 
 struct Library *ITBase;
 

@@ -1,14 +1,13 @@
-#include "amulcom.fileprocessing.h"
-#include "amulcom.strings.h"
-#include "logging.h"
-
-#include <h/amul.type.h>
-#include <h/amul.xtra.h>
-#include <h/amul.gcfg.h>
-
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 #include <string>
+
+#include "h/amul.gcfg.h"
+#include "h/amul.type.h"
+#include "h/amul.xtra.h"
+#include "h/amulcom.fileprocessing.h"
+#include "h/amulcom.strings.h"
+#include "h/logging.h"
 
 extern FILE *ifp;
 extern GameConfig g_gameConfig;

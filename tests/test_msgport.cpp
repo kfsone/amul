@@ -1,11 +1,12 @@
-#include "gtest_aliases.h"
-#include <gtest/gtest.h>
-#include "system.h"
-#include "msgports.h"
-
 #include <map>
 #include <memory>
 #include <string>
+
+#include "gtest_aliases.h"
+#include <gtest/gtest.h>
+
+#include "h/system.h"
+#include "h/msgports.h"
 
 using PortTable = std::map<std::string, std::unique_ptr<MsgPort>>;
 using PortMap   = std::map<MsgPort*, std::unique_ptr<MsgPort>>;

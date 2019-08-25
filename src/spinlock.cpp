@@ -1,4 +1,4 @@
-#include "spinlock.h"
+#include "h/spinlock.h"
 
 extern void Yield();
 

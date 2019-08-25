@@ -22,8 +22,8 @@
 #define PORTS 1
 
 #include <frame/amulinc.h> /* Main Include file */
-#include <h/amul.cons.h>   /* Predefined Constants etc */
-#include <h/amul.h>        /* Version info etc. */
+#include "h/amul.cons.h"   /* Predefined Constants etc */
+#include "h/amul.version.h"  /* Version info etc. */
 
 // Main Program
 int

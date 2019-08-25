@@ -1,9 +1,9 @@
-#include "amulcom.h"
-#include "logging.h"
-#include "modules.h"
+#include "h/amul.argp.h"
+#include "h/amul.test.h"
+#include "h/logging.h"
+#include "h/modules.h"
 
-#include <h/amul.argp.h>
-#include <h/amul.test.h>
+extern int amulcom_main();
 
 int
 main(int argc, const char **argv)

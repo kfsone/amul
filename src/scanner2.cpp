@@ -1,4 +1,4 @@
-#include <ctype.h>
+#include <cctype>
 
 #define REF(name) *name[static 0]
 

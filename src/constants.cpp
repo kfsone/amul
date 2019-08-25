@@ -1,7 +1,7 @@
-#include <h/amul.cons.h>
-#include <h/amul.defs.h>
-#include <h/amul.stct.h>
-#include <h/amul.vmop.h>
+#include "h/amul.cons.h"
+#include "h/amul.defs.h"
+#include "h/amul.stct.h"
+#include "h/amul.vmop.h"
 
 // Remember to update amul.defs.h
 const char *rflag[NRFLAGS] = {

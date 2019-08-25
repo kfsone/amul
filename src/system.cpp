@@ -1,16 +1,14 @@
-#include <memory>
-
-#include <h/amigastubs.h>
-#include "msgports.h"
-#include "system.h"
-
-// OS/portability functions
-
 #include <chrono>
 #include <map>
 #include <memory>
 #include <string>
 #include <thread>
+
+#include "h/amigastubs.h"
+#include "h/msgports.h"
+#include "h/system.h"
+
+// OS/portability functions
 
 // Emulate the Amiga's 50hz time
 using Tick = std::chrono::duration<int64_t, std::ratio<1, 50>>;

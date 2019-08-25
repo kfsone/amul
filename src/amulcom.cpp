@@ -11,33 +11,6 @@
 amulcom.cpp :: AMUL Compiler. Copyright (C) KingFisher Software 1990-2019.
 */
 
-#include "amulcom.h"
-#include "amulcom.fileprocessing.h"
-#include "amulcom.strings.h"
-
-#include "filesystem.h"
-#include "filesystem.inl.h"
-#include "logging.h"
-#include "modules.h"
-#include "sourcefile.h"
-#include "sourcefile.log.h"
-#include "svparse.h"
-#include "system.h"
-
-#include <h/amigastubs.h>
-#include <h/amul.acts.h>
-#include <h/amul.cons.h>
-#include <h/amul.defs.h>
-#include <h/amul.gcfg.h>
-#include <h/amul.msgs.h>
-#include <h/amul.stct.h>
-#include <h/amul.strs.h>
-#include <h/amul.test.h>
-#include <h/amul.vars.h>
-#include <h/amul.vmop.h>
-#include <h/amul.xtra.h>
-#include <h/amulcom.h>
-
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
@@ -46,6 +19,31 @@ amulcom.cpp :: AMUL Compiler. Copyright (C) KingFisher Software 1990-2019.
 #include <string>
 #include <sys/stat.h>
 #include <vector>
+
+#include "h/amigastubs.h"
+#include "h/amul.acts.h"
+#include "h/amul.cons.h"
+#include "h/amul.defs.h"
+#include "h/amul.gcfg.h"
+#include "h/amul.msgs.h"
+#include "h/amul.stct.h"
+#include "h/amul.strs.h"
+#include "h/amul.test.h"
+#include "h/amul.vars.h"
+#include "h/amul.vmop.h"
+#include "h/amul.xtra.h"
+#include "h/amulcom.fileprocessing.h"
+#include "h/amulcom.h"
+#include "h/amulcom.strings.h"
+#include "h/amulcom.version.h"
+#include "h/filesystem.h"
+#include "h/filesystem.inl.h"
+#include "h/logging.h"
+#include "h/modules.h"
+#include "h/sourcefile.h"
+#include "h/sourcefile.log.h"
+#include "h/svparse.h"
+#include "h/system.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Variables

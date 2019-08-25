@@ -1,18 +1,17 @@
-#include <h/amul.defs.h>
-#include <h/amul.enum.h>
-#include <h/amul.type.h>
-#include <h/amul.xtra.h>
-
-#include "amulcom.strings.h"
-#include "amulcom.fileprocessing.h"
-#include "filesystem.h"
-#include "filesystem.inl.h"
-#include "logging.h"
-#include "sourcefile.h"
-#include "svparse.h"
-
 #include <stdexcept>
 #include <string>
+
+#include "h/amul.defs.h"
+#include "h/amul.enum.h"
+#include "h/amul.type.h"
+#include "h/amul.xtra.h"
+#include "h/amulcom.fileprocessing.h"
+#include "h/amulcom.strings.h"
+#include "h/filesystem.h"
+#include "h/filesystem.inl.h"
+#include "h/logging.h"
+#include "h/sourcefile.h"
+#include "h/svparse.h"
 
 using IDCheckFn = bool(*)(std::string_view);
 

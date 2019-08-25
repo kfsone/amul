@@ -1,6 +1,6 @@
-#include "atom.h"
-#include "buffer.h"
-#include "char-to-atom.h"
+#include "h/atom.h"
+#include "h/buffer.h"
+#include "h/char-to-atom.h"
 
 // nextAtom returns the next atom for the given buffer, and advances the
 // cursor for the extent of that atom; for example, consumes '\r\n' as one

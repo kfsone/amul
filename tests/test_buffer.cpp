@@ -1,6 +1,7 @@
-#include "buffer.h"
 #include "gtest_aliases.h"
 #include <gtest/gtest.h>
+
+#include "h/buffer.h"
 
 class TestBuffer : public Buffer
 {

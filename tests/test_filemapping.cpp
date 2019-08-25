@@ -1,8 +1,9 @@
 #include "gtest_aliases.h"
 #include <gtest/gtest.h>
 
-#include "filesystem.h"
-#include "filemapping.h"
+#include "h/filemapping.h"
+#include "h/filesystem.h"
+
 
 TEST(FilesystemTest, FileMappingChecks)
 {

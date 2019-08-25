@@ -22,8 +22,8 @@
 #define FRAME 1
 #define PORTS 1
 
-#include <h/amul.defs.h>
-#include <h/amul.vars.h> /* all INTERNAL variables	*/
+#include "h/amul.defs.h"
+#include "h/amul.vars.h" /* all INTERNAL variables	*/
 
 #define dtx(x)                                                                                     \
     if (debug != 0)                                                                                \

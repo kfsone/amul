@@ -14,9 +14,8 @@
 #define PORTS 1
 #endif
 
-#include <h/amul.defs.h>
-#include <h/amul.msgs.h>
-#include <setjmp.h>
+#include "h/amul.defs.h"
+#include "h/amul.msgs.h"
 
 #define dtx(x)                                                                                     \
 if (debug != 0)                                                                                    \
@@ -47,7 +46,7 @@ extern struct IOStdReq  ReadIo, WriteIo;
 
 /* get the powerwindows file */
 #ifdef AMUL1
-#include <h/amul.scrn.h>
+#include "h/amul.scrn.h"
 
 void end(), sendmessage(), parget();
 #endif

@@ -8,13 +8,15 @@
 
                             */
 
-#define AMAN 1  /* Get AMan includes */
 #define FRAME 1 /* Avoids various includes */
 
-#include <h/amul.cons.h>
-#include <h/amul.defs.h>
-#include <h/amul.stct.h>
-#include <h/amigastubs.h>
+#include "h/amul.cons.h"
+#include "h/amul.cons.h"
+#include "h/amul.defs.h"
+#include "h/amul.defs.h"
+#include "h/amul.stct.h"
+#include "h/amul.stct.h"
+#include "h/amigastubs.h"
 #include <stdio.h>
 
 struct MsgPort *port, *reply, *FindPort(), *CreatePort();

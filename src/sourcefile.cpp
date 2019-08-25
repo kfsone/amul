@@ -1,12 +1,11 @@
-#include <h/amul.defs.h>
-#include <h/amul.type.h>
-
-#include "buffer.h"
-#include "filemapping.h"
-#include "filesystem.h"
-#include "logging.h"
-#include "sourcefile.h"
-#include "svparse.h"
+#include "h/amul.defs.h"
+#include "h/amul.type.h"
+#include "h/buffer.h"
+#include "h/filemapping.h"
+#include "h/filesystem.h"
+#include "h/logging.h"
+#include "h/sourcefile.h"
+#include "h/svparse.h"
 
 SourceFile::SourceFile(std::string_view filepath)
 	: filepath{filepath}
@@ -53,7 +52,7 @@ SourceFile::GetLineTerms() noexcept
         auto end = buffer.ReadLine();
         if (cur == end || end == nullptr)
             return false;
-        LogDebug("reading: ", std::string_view{cur, size_t(end - cur)});
+        LogMore("reading: ", std::string_view{cur, size_t(end - cur)});
 
         continuation = false;
         while (cur != end) {
@@ -100,7 +99,7 @@ SourceFile::GetLine() noexcept
         return false;
     ++lineNo;
     line.emplace_back(start, eol - start);
-    LogDebug("read line: ", line.back());
+    LogMore("read line: ", line.back());
     return true;
 }
 

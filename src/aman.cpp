@@ -13,12 +13,7 @@
 
                                        */
 
-#define MAXD 150
-#define XR 16668
-
-#define AMAN 1
 #define PORTS 1
-#define AMAN 1
 #define TRQ timerequest
 
 #define UINFO                                                                                      \
@@ -27,56 +22,52 @@
 
 #include <cassert>
 #include <cctype>
+#include <chrono>
 #include <cstdio>
 #include <ctime>
+#include <list>
 #include <thread>
 #include <vector>
 
-#if !defined(_MSC_VER)
-#    include <unistd.h>
-#else
-#    include <direct.h>
-#endif
-
-#include <h/aman.h>
-#include <h/amul.cons.h>
-#include <h/amul.defs.h>
-#include <h/amul.gcfg.h>
-#include <h/amul.type.h>
-#include <h/amul.vars.h>
-#include <h/amul.vmop.h>
-#if defined(__AMIGA__)
-#    include <devices/timer.h>
-TRQ ResReq;  // Reset request & Incoming from timer
-#else
-#    include <h/amigastubs.h>
-#endif
-
-#include "filesystem.h"
-#include "logging.h"
-#include "msgports.h"
-#include "system.h"
+#include "h/aman.version.h"
+#include "h/amigastubs.h"
+#include "h/amul.cons.h"
+#include "h/amul.defs.h"
+#include "h/amul.file.h"
+#include "h/amul.gcfg.h"
+#include "h/amul.type.h"
+#include "h/amul.vars.h"
+#include "h/amul.vmop.h"
+#include "h/demon.h"
+#include "h/demon.inl.h"
+#include "h/filesystem.h"
+#include "h/logging.h"
+#include "h/msgports.h"
+#include "h/system.h"
 
 FILE *   ifp;
 GameData g_gameData;
+time_t   s_nextReset;
+
+using DemonList = std::list<Demon>;
+DemonList demons{};
+demonid_t Demon::s_nextID { 1 };
 
 char      lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE];
 char      vername[128];
-bool      globflg[MAXD];               // Is daemon global?
-long      reslp, TDBase, daemons;      // Daemons to process!
-int       count[MAXD], num[MAXD];      // Daemon counters in minutes! & No.s
-char      own[MAXD];                   // And their owners...
-long      val[MAXD][2], typ[MAXD][2];  // Values and types...
+
 Aport *   am;
 MsgPort * trport;                // Timer port
 long      invis, invis2, calls;  // Invisibility Stuff & # of calls
-long      nextdaem, ded;         // nextdaem = time to next daemon, ded = deduct
+long      ded;                   // ded = deduct
 roomid_t *ormtab;
 
 std::vector<_ROOM_STRUCT> g_rooms;
 
 long online;
-char resety, forcereset, quiet;
+bool    g_resetInProgress { false };    // replaces: resety
+bool    g_forceReset { false };         // replaces: forcereset
+bool    g_quiet { false };              // replaces: quiet
 
 // Prevent CTRL-C'ing
 int
@@ -208,47 +199,23 @@ static void
 setam()
 {
     /// TODO: On the Amiga, it was the caller's responsibility to free messages
-    static Aport s_am;
-    am = &s_am;
+    new (am) Aport;
     am->mn_ReplyPort = reply;
     am->from = -1;
 }
 
-// Remove daemon from list
-static void
-pack(int i)
+std::unique_ptr<Aport>
+GetNewAport(uint32_t type, int64_t data)
 {
-    int j;
-    if (i != (daemons - 1)) {
-        j = daemons - 1;
-        num[i] = num[j];
-        own[i] = own[j];
-        count[i] = count[j];
-        globflg[i] = globflg[j];
-        val[i][0] = val[j][0];
-        val[i][1] = val[j][1];
-        typ[i][0] = typ[j][0];
-        typ[i][1] = typ[j][1];
-        i = j;
-    }
-    own[i] = -1;
-    count[i] = -1;
-    val[i][0] = -1;
-    val[i][1] = -1;
-    typ[i][0] = -1;
-    typ[i][1] = -1;
-    globflg[i] = false;
-    daemons--;
+    return std::make_unique<Aport>(reply, type, -1, data);
 }
 
 // Force users to log-out & kill extra lines
 static void
 reset_users()
 {
-    int i;
-
-    online = 0;  // Allows for daemons & mobiles
-    for (i = 0; i < MAXNODE; i++) {
+    online = 0;  // Allows for demons & mobiles
+    for (int i = 0; i < MAXNODE; i++) {
         if ((linestat + i)->state <= 0)
             continue;
         online++;
@@ -320,7 +287,7 @@ kill()
         warn("%s", "Game shutdown initiated by administrator.");
         reset_users();
         Ad = At = 'O';
-        resety = -1;
+        g_resetInProgress = true;
     }
 }
 
@@ -340,7 +307,7 @@ cnct()
         return;
     }
     Af = -1;
-    // Allow for daemons & mobiles
+    // Allow for demons & mobiles
     for (int i = 0; i < MAXU; i++) {
         if ((linestat + i)->state != 0)
             continue;
@@ -352,65 +319,56 @@ cnct()
     }
 }
 
-// Cancel demon
-void
-dkill(short int d)
+demonid_t
+Demon::Start(slot_t owner, time_t seconds, verbid_t action, Param param1, Param param2)
 {
-    nextdaem = g_gameData.gameDuration_m * 60;
-    for (long i = 1; i < daemons; i++) {
-        if (((d != -1 && globflg[i]) || own[i] == Af) && (num[i] == d || d == -1))
-            pack(i);
-        if (i != daemons && count[i] < nextdaem)
-            nextdaem = count[i];
+    const demonid_t id = s_nextID++;
+    const time_t trigger = time(nullptr) + seconds;
+    if (demons.empty() || demons.back().m_trigger <= trigger) {
+        demons.emplace_back(id, owner, trigger, action, param1, param2);
+    } else {
+        demons.emplace_front(id, owner, trigger, action, param1, param2);
+    }
+    return id;
+}
+
+Demon::~Demon()
+{
+    if (m_id != -1) {
+        LogDebug(*this, ": killed");
     }
 }
 
-// Initiate daemon
 void
-start(char owner)
+Demon::Kill(slot_t owner, verbid_t action)
 {
-    // Ad=#, p1=inoun1, p2=inoun2, p3=wtype[2], p4=wtype[5], Ap->opaque=count
-    val[daemons][0] = Ap1;
-    val[daemons][1] = Ap2;
-    typ[daemons][0] = Ap3;
-    typ[daemons][1] = Ap4;
-    own[daemons] = owner;
-    count[daemons] = (int)(uintptr_t)amul->opaque;
-    num[daemons] = Ad;
-    daemons++;
-    if (count[daemons - 1] < nextdaem)
-        nextdaem = count[daemons - 1];
+    demons.remove_if([=](const Demon &demon) {
+            return demon.m_owner == owner && (action == -1 || demon.m_action == action);
+    });
 }
 
-// Initiate global daemon
-void
-gstart()
+uint32_t
+Demon::GetSecondsRemaining() const noexcept
 {
-    globflg[daemons] = true;
-    start(MAXU);  // Set global flag & go!
+    if (auto now = time(nullptr); now >= m_trigger)
+        return uint32_t(now - m_trigger);
+    return 0;
 }
 
-// Initiate private daemon
+// Check if demon is active
 void
-pstart()
+checkDemon(verbid_t action)
 {
-    globflg[daemons] = false;
-    start(Af);
-}
-
-// Check if daemon is active
-void
-check(int d)
-{
-    Ad = -1;
-    Ap1 = -1;
-    for (long i = 1; i < daemons; i++) {
-        if ((own[i] == Af || globflg[i]) && num[i] == d) {
+    int i = 0;
+    for (auto && demon : demons) {
+        if (demon.m_action == action && (demon.m_owner == Demon::GlobalOwner || demon.m_owner == Af)) {
             Ad = i;
-            Ap1 = count[i];
-            break;
+            Ap1 = demon.GetSecondsRemaining();
+            return;
         }
+        ++i;
     }
+    Ad = -1, Ap1 = -1;
 }
 
 // User disconnection
@@ -426,10 +384,19 @@ discnct()
     (linestat + Af)->room = -1;
     (linestat + Af)->helping = -1;
     (linestat + Af)->following = -1;
-    dkill(-1);
+    Demon::Kill(Af, -1);
     (linestat + Af)->state = 0;
     Af = -1;
     Ad = -1;
+}
+
+uint32_t
+GetResetCountdown()
+{
+    if (auto seconds = s_nextReset - time(nullptr); seconds >= 0)
+        return uint32_t(seconds);
+
+    return 0;
 }
 
 // Sends pointers to database
@@ -448,7 +415,7 @@ data()
         break;
     case 0:
         amul->opaque = gameDir;
-        amul->p1 = count[0];  /// TODO: Fix
+        amul->p1 = GetResetCountdown();
         break;
     case 1:
         amul->opaque = &g_gameData;
@@ -477,7 +444,7 @@ asend(int type, int data)
     auto aptr = std::make_unique<Aport>(reply, type, -1, data);
     port->Put(std::move(aptr));
     port->Wait();
-    if (quiet == 0) {
+    if (!g_quiet) {
         switch (Ad) {
         case 'R':
             LogNote("*-- Reset Invoked --*");
@@ -510,52 +477,50 @@ asend(int type, int data)
 }
 
 static void
-shutreq(int x)
+shutreq(bool kill, int seconds)
 {
-    asend((x == 0) ? MKILL : MRESET, count[0]);
+    asend(kill ? MKILL : MRESET, seconds);
 }
 
 static void
-sendext(int t)
+sendext(int seconds)
 {
-    asend(MEXTEND, t);
+    asend(MEXTEND, seconds);
 }
 
 // RESeT in progress
 static void
 rest()
 {
-    forcereset = 1;
+    g_forceReset = true;
     if (Ad > 0) {
         Ap1 = Ad;
-        count[0] = Ad + 1;
+        s_nextReset = time(nullptr) + Ad;
         warn("** System reset invoked - %zu seconds remaining...\n", size_t(Ad));
         Ad = At = -'X';
         return;
     }
     Ad = At = 'R';
-    count[0] = 1;
+    s_nextReset = time(nullptr);
 }
 
 // Extend by this many ticks
 static void
-extend(short int tics)
+extend(int32_t seconds)
 {
-    short int newtime;
-
     Ad = At = 'U';
-    if (tics == 0)
+    if (seconds == 0)
         return;
 
-    newtime = count[0] + tics + 1;
-    if (count[0] > 120) {
-        LogNote("...Game time extended - reset will now occur in ", newtime / 60, " minutes and ",
-                newtime - ((newtime / 60) * 60), " seconds");
+    s_nextReset += seconds;
+    auto countdown = GetResetCountdown();
+    if (countdown > 120) {
+        LogNote("...Game time extended - reset will now occur in ", countdown / 60, " minutes and ",
+                countdown % 60, " seconds");
     } else {
-        LogNote("...Reset postponed - it will now occur in ", newtime, " seconds");
+        LogNote("...Reset postponed - it will now occur in ", countdown, " seconds");
     }
-    Ap1 = tics;
-    count[0] = newtime;
+    Ap1 = seconds;
     Ad = 'E';
 }
 
@@ -747,77 +712,79 @@ setup()
     ifp = nullptr;
 }
 
-static void
+void
+demonTicker()
+{
+    demons.sort([](auto &lhs, auto &rhs) noexcept { return lhs.m_trigger < rhs.m_trigger; });
+    time_t now = time(nullptr);
+    for (auto cnt = 0; cnt < 10 &&  !demons.empty() && demons.front().m_trigger <= now; ++cnt) {
+        auto demon = demons.front();
+        demons.pop_front();
+        auto amp = GetNewAport(MDAEMON, demon.m_trigger);
+
+        amp->p1 = demon.m_params[0].m_type;
+        amp->p2 = demon.m_params[0].m_value;
+        amp->p3 = demon.m_params[1].m_type;
+        amp->p4 = demon.m_params[1].m_value;
+
+        auto owner = demon.m_owner;
+        (linestat + owner)->rep->Put(std::move(amp));
+    }
+}
+
+
+void
+resetTicker()
+{
+    auto timeToReset = GetResetCountdown();
+    if (timeToReset == 300) {
+        warn("--+ Next reset in 5 minutes +--");
+    }
+    if (timeToReset == 120) {
+        warn("--+ 120 seconds until next reset +--");
+    }
+    if (timeToReset == 60) {
+        warn("--+ Final warning - 60 seconds to reset +--");
+    }
+    if (timeToReset <= 0) {
+        g_resetInProgress = true;
+        if (!g_forceReset)
+            warn("[ Automatic Reset ]\n");
+    }
+}
+
+void
 kernel()
 {
-    int i;
-
     LogInfo("------------------------------------------------------------");
-    online = resety = forcereset = 0;
-    for (i = 0; i < MAXD; i++) {
-        count[i] = -1;
-        own[i] = -1;
-        val[i][0] = val[i][1] = typ[i][0] = typ[i][1] = 0;
-        globflg[i] = false;
-    }
-    daemons = 1;
-    nextdaem = count[0] = g_gameData.gameDuration_m * 60;
-    for (i = 0; i < MAXNODE; i++) {
+    s_nextReset = time(nullptr) + g_gameData.gameDuration_m * 60;
+    g_resetInProgress = false;
+    g_forceReset = false;
+    online = 0;
+    demons.clear();
+
+    for (int i = 0; i < MAXNODE; i++) {
         (linestat + i)->IOlock = -1;
         (linestat + i)->room = bid[i] = -1;
         busy[i] = 0;
         (linestat + i)->helping = -1;
         (linestat + i)->following = -1;
     }
-    LogInfo("== (=) ", now(), ": Loaded ", g_gameData.gameName);
-    forcereset = ded = 0;
 
-    // Activate the daemon processor
+    LogInfo("== (=) ", now(), ": Loaded ", g_gameData.gameName);
+    ded = 0;
+
+    // Activate the demon processor
 
     execute("amul -\03");
 
-    while (resety == 0) {
-        std::this_thread::yield();
+    while (!g_resetInProgress) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
         reply->Clear();
 
-#ifdef NEVER  /// TODO:: Restore
-        while (GetMsg((MsgPort *)trport) != NULL) {
-            // Process counter table
-            for (i = 0; i < daemons; i++) {
-                count[i]--;
-                if (count[i] <= 0) {
-                    if (i == 0)
-                        break;
-                    setam();
-                    am->data = num[i];
-                    am->p1 = val[i][0];
-                    am->p2 = val[i][1];
-                    am->p3 = typ[i][0];
-                    am->p4 = typ[i][1];
-                    am->type = MDAEMON;
-                    PutMsg((linestat + own[i])->rep, am);
-                    pack(i);
-                    i--;
-                }
-            }
-            if (count[0] == 300) {
-                warn("--+ Next reset in 5 minutes +--");
-            }
-            if (count[0] == 120) {
-                warn("--+ 120 seconds until next reset +--");
-            }
-            if (count[0] == 60) {
-                warn("--+ Final warning - 60 seconds to reset +--");
-            }
-            if (count[0] <= 0) {
-                count[0] = -10;
-                resety = 1;
-                if (forcereset == 0)
-                    warn("[ Automatic Reset ]\n");
-            }
-        }
-#endif
+        demonTicker();
+        resetTicker();
 
         MessagePtr amsg{port->Get()};
         if (amul = static_cast<Aport *>(amsg.get()); !amul)
@@ -852,13 +819,14 @@ kernel()
             busy[Af] = 0;
             break;
         case MDSTART:
-            pstart();
-            break;  // Priv. daemon
+            Demon::Start(amul->from, time_t(amul->opaque), amul->data,
+                         {amul->p1, amul->p2}, {amul->p3, amul->p4});
+            break;  // Priv. demon
         case MDCANCEL:
-            dkill(Ad);
+            Demon::Kill(Af, Ad);
             break;
         case MCHECKD:
-            check(Ad);
+            checkDemon(Ad);
             break;
         case MMADEWIZ:
             logwiz(Af);
@@ -868,11 +836,12 @@ kernel()
             break;
         case MEXTEND:
             extend(Ad);
-            forcereset = 0;
+            g_forceReset = false;
             break;
         case MGDSTART:
-            gstart();
-            break;  // Global daemon
+            Demon::Start(Demon::GlobalOwner, time_t(amul->opaque), amul->data,
+                         {amul->p1, amul->p2}, {amul->p3, amul->p4});
+            break;  // Global demon
         default:
             At = -1;
             LogError("$$ (X) ", now(), ": *INVALID Message Type: ", At);
@@ -880,10 +849,8 @@ kernel()
         }
 
         ReplyMsg(std::move(amsg));
-
-        if (resety != 0)
-            break;
     }
+
     for (;;) {
         MessagePtr amsg{port->Get()};
         amul = static_cast<Aport *>(amsg.get());
@@ -893,20 +860,19 @@ kernel()
         ReplyMsg(std::move(amsg));
     }
 
-    if (resety == 1) {
+    if (g_resetInProgress) {
         res();
         givebackmemory();
         setup();
-        if (quiet == 0)
-            LogInfo("[ ", vername, " RESET ]");
+        LogInfo("[ ", vername, " RESET ]");
 #ifdef REPAIR
         if (GetFilesSize("reset.bat") > 0) {
             Execute("execute reset.bat", 0L, 0L);
         }
 #endif
-        online = resety = 0;
-    } else
-        resety = -1;
+        g_resetInProgress = false;
+        online = 0;
+    }
 }
 
 [[noreturn]] void
@@ -915,21 +881,20 @@ executeCommand(int argc, const char *argv[])
     if (!port) {
         LogFatal("AMAN is not running");
     }
-    size_t mins{0};
+    size_t seconds{0};
     if (argc == 3)
-        sscanf(argv[2], "%zu", &mins);
-    count[0] = mins;
+        sscanf(argv[2], "%zu", &seconds);
     switch (toupper(*(argv[1] + 1))) {
     case 'K':
-        shutreq(0);
+        shutreq(true, seconds);
         break;
     case 'R':
-        shutreq(1);
+        shutreq(false, seconds);
         break;
     case 'X':
         if (argc != 3)
             LogFatal("Missing minute value after -x option");
-        sendext(count[0]);
+        sendext(seconds);
         break;
     }
     exit(0);
@@ -955,7 +920,7 @@ parseArguments(int argc, const char *argv[])
     int argn = 1;
     if (!stricmp(argv[argn], "-q")) {
         ++argn;
-        quiet = 1;
+        g_quiet = true;
     }
     if (argn < argc) {
         error_t err = path_copier(gameDir, argv[argn]);
@@ -1027,13 +992,11 @@ main(int argc, const char *argv[])
 
     setup();
 
-    if (quiet == 0)
-        printf("\n[ %s %s ]\n", vername, "LOADED");
-    do {
+    LogInfo("[", vername, " LOADED]");
+    while (!g_resetInProgress) {
         kernel();
-    } while (resety != -1);
+    }
+    LogInfo("[ ", vername, " KILLED]");
 
-    if (quiet == 0)
-        printf("\n[ %s %s ]\n", vername, "KILLED");
     quit();
 }

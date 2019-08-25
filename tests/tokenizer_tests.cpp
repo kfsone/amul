@@ -1,6 +1,6 @@
-#include <h/amul.test.h>
-#include <src/buffer.h>
-#include <src/tokenizer.h>
+#include "h/amul.test.h"
+#include "h/buffer.h"
+#include "h/tokenizer.h"
 
 extern void _consumeEol(Buffer &buf, Token *token);
 extern void _consumeWhitespace(Buffer &buf, Token *token);

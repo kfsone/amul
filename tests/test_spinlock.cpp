@@ -1,8 +1,10 @@
+#include <thread>
+
 #include "gtest_aliases.h"
 #include <gtest/gtest.h>
-#include "spinlock.h"
 
-#include <thread>
+#include "h/spinlock.h"
+
 
 TEST(SpinLockTest, Lock)
 {

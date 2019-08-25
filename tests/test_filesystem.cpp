@@ -1,12 +1,9 @@
-#include "filesystem.h"
-#include "filesystem.inl.h"
-#include "gtest_aliases.h"
-#include "sourcefile.h"
 #include <gtest/gtest.h>
+#include "gtest_aliases.h"
 
-#ifndef _MSC_VER
-#    include <unistd.h>
-#endif
+#include "h/filesystem.h"
+#include "h/filesystem.inl.h"
+#include "h/sourcefile.h"
 
 TEST(FilesystemTest, PathCopy)
 {

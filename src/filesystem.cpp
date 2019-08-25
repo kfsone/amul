@@ -1,9 +1,8 @@
-#include <h/amul.file.h>
-#include <h/amul.test.h>
-
-#include "filesystem.h"
-#include "filesystem.inl.h"
-#include "logging.h"
+#include "h/amul.file.h"
+#include "h/amul.test.h"
+#include "h/filesystem.h"
+#include "h/filesystem.inl.h"
+#include "h/logging.h"
 
 char gameDir[MAX_PATH_LENGTH];
 

@@ -2,8 +2,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "logging.h"
-#include "modules.h"
+#include "h/logging.h"
+#include "h/modules.h"
 
 // Support breakpoints instead of exits for errors
 #ifndef __has_builtin
@@ -41,8 +41,10 @@ static size_t s_errorCount{ 0 };
 
 static LogLevel s_logLevel = LogLevel::LWARN;
 
-constexpr std::string_view levelName[MAX_LOG_LEVEL + 1] = { "Debug", "Info",  "Note",    "WARNING",
-                                                            "ERROR", "FATAL", "DISABLED" };
+constexpr std::string_view levelName[MAX_LOG_LEVEL + 1] = {
+    // Names of the debugging levels
+    "More", "Debug", "Info",  "Note",
+    "WARNING", "ERROR", "FATAL", "DISABLED" };
 
 error_t
 loggingModuleInit(Module * /*module*/)

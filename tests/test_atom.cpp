@@ -1,7 +1,9 @@
-#include "atom.h"
-#include "buffer.h"
 #include "gtest_aliases.h"
 #include <gtest/gtest.h>
+
+#include "h/atom.h"
+#include "h/buffer.h"
+
 
 TEST(AtomTest, AtomCtorFull)
 {

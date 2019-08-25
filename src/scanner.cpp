@@ -1,8 +1,8 @@
-#include "scanner.h"
-#include "buffer.h"
+#include "h/scanner.h"
+#include "h/buffer.h"
 
 // Include the table.
-#include "char-to-atom.h"
+#include "h/char-to-atom.h"
 
 /*
 

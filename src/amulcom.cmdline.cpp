@@ -1,17 +1,12 @@
-#include <stdio.h>
-#include <sys/stat.h>
-#if defined(_MSC_VER)
-#    include <direct.h>
-#else
-#    include <unistd.h>
-#endif
+#include <cstdio>
+#include <cstring>
 
-#include "amulcom.h"
-#include "logging.h"
-#include "modules.h"
-#include "system.h"
-
-#include <h/amul.argp.h>
+#include "h/amul.argp.h"
+#include "h/amul.file.h"
+#include "h/filesystem.h"
+#include "h/logging.h"
+#include "h/modules.h"
+#include "h/system.h"
 
 // For systems that support it: CTRL-C handler.
 void

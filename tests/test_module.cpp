@@ -1,8 +1,8 @@
-#include "filesystem.h"
-#include "modules.h"
-
 #include "gtest_aliases.h"
 #include <gtest/gtest.h>
+
+#include "h/filesystem.h"
+#include "h/modules.h"
 
 extern Module *s_modulesHead;
 extern Module *s_modulesTail;
