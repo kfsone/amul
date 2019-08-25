@@ -2,7 +2,6 @@ OPTION(AMUL_INCLUDE_TESTS "Build and run unit tests" ON)
 
 include(GoogleTest)
 
-INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/h")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/src")
 
 SET(gtest_force_shared_crt ON CACHE BOOL "Force gtest to use shared crt" FORCE)
@@ -22,13 +21,13 @@ MACRO(add_gtest TESTNAME LINKLIB)
 	set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 ENDMACRO()
 
-add_gtest(AtomTest ${AMUL_LIB_NAME} test_atom.cpp ../src/atom.h ../src/atomtype.h ../src/buffer.h)
-add_gtest(BufferTest ${AMUL_LIB_NAME} test_buffer.cpp ../src/buffer.h)
-add_gtest(FileMappingTest ${AMUL_LIB_NAME} test_filemapping.cpp ../src/filemapping.h ../src/filesystem.h)
-add_gtest(FilesystemTest ${AMUL_LIB_NAME} test_filesystem.cpp ../src/filesystem.h)
-add_gtest(ModuleTest ${AMUL_LIB_NAME} test_module.cpp ../src/modules.h)
-add_gtest(MsgPortTest ${AMUL_LIB_NAME} test_msgport.cpp ../src/system.h ../src/msgports.h)
-add_gtest(SpinLockTest ${AMUL_LIB_NAME} test_spinlock.cpp ../src/spinlock.h ../src/spinlock.h)
+add_gtest(AtomTest ${AMUL_LIB_NAME} test_atom.cpp ../src/h/atom.h ../src/h/atomtype.h ../src/h/buffer.h)
+add_gtest(BufferTest ${AMUL_LIB_NAME} test_buffer.cpp ../src/h/buffer.h)
+add_gtest(FileMappingTest ${AMUL_LIB_NAME} test_filemapping.cpp ../src/h/filemapping.h ../src/h/filesystem.h)
+add_gtest(FilesystemTest ${AMUL_LIB_NAME} test_filesystem.cpp ../src/h/filesystem.h)
+add_gtest(ModuleTest ${AMUL_LIB_NAME} test_module.cpp ../src/h/modules.h)
+add_gtest(MsgPortTest ${AMUL_LIB_NAME} test_msgport.cpp ../src/h/system.h ../src/h/msgports.h)
+add_gtest(SpinLockTest ${AMUL_LIB_NAME} test_spinlock.cpp ../src/h/spinlock.h)
 
 #SET(TESTS_SOURCES
 #    testmain.cpp

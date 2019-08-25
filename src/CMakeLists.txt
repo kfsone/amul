@@ -11,22 +11,22 @@ SET(AMUL_LIB_SOURCES
 )
 
 SET(AMUL_LIB_HEADERS
-		atom.h
-		atomtype.h
-		buffer.h
-		filemapping.h
-		filesystem.h
-		filesystem.inl.h
-        logging.h
-		modules.h
-		msgports.h
-		sourcefile.h
-		spinlock.h
-        svparse.h
-		system.h
+		h/atom.h
+		h/atomtype.h
+		h/buffer.h
+		h/filemapping.h
+		h/filesystem.h
+		h/filesystem.inl.h
+        h/logging.h
+		h/modules.h
+		h/msgports.h
+		h/sourcefile.h
+		h/spinlock.h
+        h/svparse.h
+		h/system.h
 
-		../h/amul.cons.h
-		../h/amul.list.h
+		h/amul.cons.h
+		h/amul.list.h
 )
 
 SET(AMULCOM_SOURCES
@@ -43,12 +43,12 @@ SET(AMULCOM_SOURCES
 )
 
 SET(AMULCOM_HEADERS
-        amulcom.h
-		amulcom.strings.h
-		atomtype.h
-		char-to-atom.h
-		token.h
-		tokentype.h
+        h/amulcom.h
+		h/amulcom.strings.h
+		h/atomtype.h
+		h/char-to-atom.h
+		h/token.h
+		h/tokentype.h
 
         ${AMUL_HEADERS}
 )
@@ -74,7 +74,7 @@ SET(AMUL_MANAGER_SOURCES
     aman.cpp
 )
 SET(AMUL_MANAGER_HEADERS
-    system.h
+    h/system.h
 
     ${AMUL_HEADERS}
 )
