@@ -27,7 +27,7 @@ lit(int r)
     return false;
 }
 
-int
+auto
 loc(int o)
 {
     if (*(obtab + o)->rmlist >= -1)
@@ -37,7 +37,7 @@ loc(int o)
     /* Else its in a container */
 }
 
-int
+auto
 carrying(int obj)
 {
     if (me2->numobj == 0)
@@ -85,21 +85,21 @@ canGive(int obj, int plyr)
     return true;
 }
 
-int
+verbid_t
 isverb(char *s)
 {
     vbptr = vbtab;
-    for (int i = 0; i < verbs; i++, vbptr++)
+    for (verbid_t i = 0; i < verbs; i++, vbptr++)
         if (match(vbptr->id, s) == NULL)
             return i;
     return -1;
 }
 
-int
+verbid_t
 isaverb(char **s)
 {
-    int ret;
-    if ((ret = isverb(*s)) != -1) {
+    verbid_t ret = isverb(*s);
+    if (ret != -1) {
         (*s) += strlen((vbtab + ret)->id);
         return ret;
     }
@@ -110,9 +110,9 @@ isaverb(char **s)
     return -1;
 }
 
-// Is VERB syn
-int
-isvsyn(char *s)
+==== BASE ====
+isvsyn(char *s) /* Is VERB syn */
+==== BASE ====
 {
     char *p = synp;
     for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
@@ -265,22 +265,24 @@ CHAEtype(int obj)
         return 'C';
     if (isin(obj, me2->room))
         return 'H';
-    if (int i = owner(obj); i != -1 && (linestat + i)->room == me2->room)
+    int i = owner(obj);
+    if (i != -1 && (linestat + i)->room == me2->room)
         return 'A';
     return 'E';
 }
 
-int
+auto
 isadj(char *s)
 {
     char *p = adtab;
-    for (int i = 0; i < adjs; i++, p += IDL + 1)
+    for (int i = 0; i < adjs; i++, p += IDL + 1) {
         if (match(p, s) != -1)
             return i;
+    }
     return -1;
 }
 
-int
+auto
 isprep(char *s)
 {
     for (int i = 0; i < NPREP; i++)
@@ -298,7 +300,7 @@ isin(int o, int r)
     return false;
 }
 
-int
+auto
 isroom(char *s)
 {
     for (int r = 0; r < rooms; r++)
@@ -431,7 +433,7 @@ castWillSucceed(int rnk, int points, int chance)
 
     if (me->rank < rnk)
         chance = ((me->rank) + 1 - rnk) * ((100 - chance) / (ranks - rnk)) + chance;
-    if (mod(rnd(), 100) < chance) {
+    if (randint(0, 100) < chance) {
         sys(SPELLFAIL);
         return false;
     }

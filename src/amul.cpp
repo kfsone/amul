@@ -21,13 +21,157 @@
 #define FRAME 1
 #define PORTS 1
 
-#include <frame/amulinc.h> /* Main Include file */
+#include "h/amulinc.h" /* Main Include file */
 #include "h/amul.cons.h"   /* Predefined Constants etc */
 #include "h/amul.version.h"  /* Version info etc. */
 
-// Main Program
+// There are 3 roles the amul client plays:
+// 1- player,
+// 2- background event processing (demon),
+// 3- npc (mobile)
+// 
+// 2 and 3 are "special"s
+
+/* Daemon processing host */
+static void
+demonService()
+{
+	printf("-- Demon processor loaded\n");
+	///AUDIT: while !g_resetInProgress?
+    for ( ;; ) {
+        Wait(-1);
+        iocheck();
+    }
+}
+
+static void
+mobileService()
+{
+    printf("-- Mobile processor loaded\n");
+	///NOTE: This snapshot is from right before I implemented the mobile
+	/// system in 0.9.00, so there's no actual mobile implementation :(
+
+	// Most mobiles will probably want an easily accessible list of travel.
+	std::vector<verbid_t> travelVerbs {};
+	for (verbid_t i = 0; i < verbs; ++i) {
+		if (vbtab[i].flags & VB_TRAVEL) {
+			travelVerbs.push_back(i);
+		}
+	}
+
+	for ( ;; ) {
+		Wait(-1);
+		iocheck();
+	}
+}
+
+///TODO: Rename 'serviceHandler'
+void
+Special_Proc()
+{
+	// Invoke a demon or mobile worker
+    if (ifp != NULL)
+        fclose(ifp);
+    ifp = NULL;
+    wtype[0] = wtype[1] = wtype[2] = wtype[3] = wtype[4] = wtype[5] = WNONE;
+    iverb = iadj1 = inoun1 = iprep = iadj2 = inoun2 = -1;
+    actor = last_him = last_her = it = -1;
+    switch (MyFlag) /* What type of processor ? */
+    {
+    case am_DAEM: /* Execute the boot-up daemon */
+        if (verbid_t i = isverb("\"boot"); i != -1)
+            lang_proc(i, 0);
+        demonService(); /* Daemon Processor */
+		break;
+    case am_MOBS:
+		mobileService();
+		break;
+    default:
+        printf("XX Unsupported special processor requested\n");
+    }
+    quit();
+}
+
+void
+look(char *s, int f)
+{
+    int roomno, mod;
+
+    /* Some complex stuff here!
+      if f==0 (rdmode=RoomCount) and we have been here before,
+        look(brief)
+      if f==0 (rdmode=RoomCount) and this is our first visit,
+        look(verbose)
+      if f==0 visit the room
+                                   */
+
+    if ((roomno = isroom(s)) == -1)
+        return;
+    roomtab = rmtab + roomno;
+    if (f == RDRC && ((*(rctab + roomno) & rset) != rset))
+        mod = RDVB;
+    else
+        mod = f;
+    if (f != 2)
+        *(rctab + roomno) = *(rctab + roomno) | rset;
+    look_here(mod, roomno);
+}
+
+
+/* Add object to players inventory */
+void
+agive(int obj, int to)
+{
+    int own, orm;
+
+    objtab = obtab + obj;
+
+    if ((objtab->flags & OF_SCENERY) || (STATE->flags & SF_ALIVE) || objtab->nrooms != 1)
+        return;
+    if ((own = owner(obj)) != -1)
+        rem_obj(own, obj);
+    orm = *objtab->rmlist;
+    add_obj(to);
+
+    /*== The lighting conditions for transfering an object between a
+         variable source and destination are complex! See below!	*/
+    if (STATE->flags & SF_LIT) {
+        if (own == -1) /*== Did I just pick and was it from here? */
+        {
+            if (orm == (linestat + own)->room)
+                return;
+        } else { /*== If I got it from someone, and he is near me... */
+            if ((linestat + own)->room == (linestat + to)->room)
+                return;
+            lighting(own, AHERE); /*== Else check his lights! */
+        }
+        lighting(to, AHERE);
+    }
+}
+
+
+/* Drop the object (to a room) */
+void
+adrop(int ob, int r, int f)
+{
+    objtab = obtab + ob;
+    *objtab->rmlist = r;
+    rem_obj(Af, ob);
+    lighting(Af, AHERE);
+
+    /* If the room IS a 'swamp', give em points */
+    if ((rmtab + me2->room)->flags & SANCTRY) {
+        /*== Only give points if player hasn't quit. */
+        if (exeunt == 0)
+            aadd(scaled(STATE->value, STATE->flags), STSCORE, Af);
+        *objtab->rmlist = -1;
+    }
+}
+
+
+// Original AMUL entry point
 int
-main(int argc, char *argv[])
+amul_main(int argc, char *argv[])
 {
     int i;
 
@@ -234,76 +378,3 @@ quitgame: /* Quite the game, tidily. */
     quit();
 }
 
-void
-look(char *s, int f)
-{
-    int roomno, mod;
-
-    /* Some complex stuff here!
-      if f==0 (rdmode=RoomCount) and we have been here before,
-        look(brief)
-      if f==0 (rdmode=RoomCount) and this is our first visit,
-        look(verbose)
-      if f==0 visit the room
-                                   */
-
-    if ((roomno = isroom(s)) == -1)
-        return;
-    roomtab = rmtab + roomno;
-    if (f == RDRC && ((*(rctab + roomno) & rset) != rset))
-        mod = RDVB;
-    else
-        mod = f;
-    if (f != 2)
-        *(rctab + roomno) = *(rctab + roomno) | rset;
-    look_here(mod, roomno);
-}
-
-// Add object to players inventory
-void
-agive(int obj, int to)
-{
-    int own, orm;
-
-    objtab = obtab + obj;
-
-    if ((objtab->flags & OF_SCENERY) || (STATE->flags & SF_ALIVE) || objtab->nrooms != 1)
-        return;
-    if ((own = owner(obj)) != -1)
-        rem_obj(own, obj);
-    orm = *objtab->rmlist;
-    add_obj(to);
-
-    /*== The lighting conditions for transfering an object between a
-         variable source and destination are complex! See below!	*/
-    if (STATE->flags & SF_LIT) {
-        if (own == -1) /*== Did I just pick and was it from here? */
-        {
-            if (orm == (linestat + own)->room)
-                return;
-        } else { /*== If I got it from someone, and he is near me... */
-            if ((linestat + own)->room == (linestat + to)->room)
-                return;
-            lighting(own, AHERE); /*== Else check his lights! */
-        }
-        lighting(to, AHERE);
-    }
-}
-
-// Drop the object (to a room)
-void
-adrop(int ob, int r)
-{
-    objtab = obtab + ob;
-    *objtab->rmlist = r;
-    rem_obj(Af, ob);
-    lighting(Af, AHERE);
-
-    /* If the room IS a 'swamp', give em points */
-    if ((rmtab + me2->room)->flags & SANCTRY) {
-        /*== Only give points if player hasn't quit. */
-        if (exeunt == 0)
-            aadd(scaled(STATE->value, STATE->flags), STSCORE, Af);
-        *objtab->rmlist = -1;
-    }
-}

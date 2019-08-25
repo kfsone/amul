@@ -1,22 +1,4 @@
-/*
-          ####         ###     ### ##     ## ####
-         ##  ##         ###   ###  ##     ##  ##            Amiga
-        ##    ##        #########  ##     ##  ##            Multi
-        ##    ##        #########  ##     ##  ##            User
-        ########  ----  ## ### ##  ##     ##  ##            adventure
-        ##    ##        ##     ##  ##     ##  ##            Language
-       ####  ####      ####   ####  #######  #########
-
-
-              ****       AMUL2.C......Adventure System      ****
-              ****            The Saga Continues!           ****
-
-    Copyright (C) Oliver Smith, 1990. Copyright (C) Kingfisher s/w 1990
-  Program Designed, Developed and Written By: Oliver Smith & Richard Pike.
-
-
-             Secondary/low-level functions, macros and routines
-                                        */
+#include <random>
 
 #include "frame/daemons.c"
 #include "frame/filebits.c"
@@ -76,33 +58,7 @@ moveto(int r)
     me2->flags = me2->flags & -(1 + PFMOVING);
 }
 
-// n MODulo X
-long
-mod(long n, long x)
 {
-    if (x == 0)
-        return 0;
-
-    n = n & 65535;
-    if (n < 0)
-        return -mod(-n, x);
-    if (x < 0)
-        x = -x;
-
-    while (n > x)
-        n -= x;
-    if (n < 0)
-        n += x;
-    return n;
-}
-
-// Return pseudo-random number.
-long
-rnd()
-{
-    long x = time(NULL);
-    srand(x);
-    return rand();
 }
 
 // Do I own a 'obj' in state 'stat'?
@@ -190,9 +146,9 @@ look_here(int f, int rm)
         sys(TOODARK);
         *(rctab + rm) = *(rctab + rm) & rclr;
     } else {
-    	desc_here(f);
-    	list_what(rm, 0);
-	}
+        desc_here(f);
+        list_what(rm, 0);
+    }
 
     if ((roomtab->flags & DEATH) && me->rank != ranks - 1) {
         if (dmove[0] == 0)
@@ -1086,8 +1042,8 @@ attack/defence. */
 
     oldstr = you2->stamina;
     adam = -1;
-    if (mod(rand(), 100) < aatt || (ddef <= 0 && mod(rand(), 100) < 50)) {
-        if (mod(rand(), 100) < ddef) {
+    if (randint(0, 100) < aatt || (ddef <= 0 && randint(0, 100) < 50)) {
+        if (randint(0, 100) < ddef) {
             if (you2->wield != -1) {
                 sys(WBLOCK);
                 utx(me2->fighting, acp(WDEFEND));
@@ -1100,7 +1056,7 @@ attack/defence. */
             if (me2->wield != -1) {
                 sys(WATTACK);
                 objtab = obtab + me2->wield;
-                adam = (me2->strength / 10) + 1 + mod(rand(), STATE->damage);
+                adam = (me2->strength / 10) + 1 + randint(0, STATE->damage);
                 utx(me2->fighting, acp(WHIT));
             } else {
                 adam = (me2->strength / 10) + 1;
@@ -1313,7 +1269,7 @@ show_tasks(int p)
     tx(block);
 }
 
-/* Drop everything to a room */
+// Drop everything to a room
 void
 dropall(int torm)
 {

@@ -226,7 +226,7 @@ skip:
     return lang_proc(iverb, 0);
 }
 
-int
+auto
 lang_proc(int v, char e)
 {
     int j, l, m;

@@ -357,7 +357,7 @@ cond(long n, int l)
             ret = -1;
         break;
     case CRAND:
-        if (!isValidNumber(mod(rnd(), CP1), *(tt.pptr + 1)))
+        if (!isValidNumber(randint(0, CP1), *(tt.pptr + 1))
             ret = -1;
         break;
     case CRDMODE:
@@ -554,7 +554,7 @@ cond(long n, int l)
             return -1;
         break;
     case CSPELL:
-        if (!isValidNumber((linestat + CP1)->wisdom, mod(rnd(), CP2)))
+        if (!isValidNumber((linestat + CP1)->wisdom, randint(0, CP2)))
             ret = -1;
         break;
     case CIN:
@@ -726,12 +726,16 @@ strip:
 int
 actual(unsigned long n)
 {
+    // Rand 0 is a simple rand(N)
     if (n & RAND0)
-        return (int)mod(rnd(), n ^ RAND0);
-    if (n & RAND1)
-        return (int)(mod(rnd(), n ^ RAND1) + (n ^ RAND1) / 2);
+        return randint(0, n ^ RAND0);
+    // Rand 1 is N +/- .5N
+    if (n & RAND1) {
+        auto nval = n ^ RAND1;
+        return nval / 2 + randint(nval);
+    }
     if (n & PRANK)
-        return (int)pRANK(actual(n & -(1 + PRANK)));
+        return pRANK(actual(n & -(1 + PRANK)));
 
     if ((n & (OBVAL + OBDAM + OBWHT)) != 0) {
         int x;

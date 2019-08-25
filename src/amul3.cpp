@@ -383,7 +383,7 @@ isValidNumber(long x, long n)
  */
 
 void
-atreatas(ULONG verbno)
+atreatas(verbid_t verbno)
 {
     donet = 0;
     inc = 0;
@@ -496,18 +496,18 @@ aabortparse()
  */
 
 void
-ado(int verb)
+ado(verbid_t verb)
 {
-	// context snapshot
+    // context snapshot
     long old_ml = ml;
     long old_donet = donet;
     long old_verb = iverb;
     iverb = verb;
     long old_ttv = tt.verb;
     long old_rm = me2->room;
-    struct _TT_ENT *old_ttabp = ttabp;
-    struct _VERB_STRUCT *ovbptr = vbptr;
-    struct _SLOTTAB *ostptr = stptr;
+    _TT_ENT *old_ttabp = ttabp;
+    _VERB_STRUCT *ovbptr = vbptr;
+    _SLOTTAB *ostptr = stptr;
 
     lang_proc(verb, 1);
 
@@ -825,9 +825,8 @@ asyntax(int n1, int n2)
 void
 qcopy(char *p2, char *p, int max)
 {
-    int i;
     Forbid();
-    for (i = 0; i < max && *p != 0 && *p != '\n'; i++)
+    for (int i = 0; i < max && *p != 0 && *p != '\n'; i++)
         *(p2++) = *(p++);
     *p2 = 0;
     Permit();
@@ -1176,8 +1175,9 @@ show:
  *
  */
 
-int
-scaled(long value, short int flags)
+==== BASE ====
+scaled(long value, short int flags) /* Scale an object value */
+==== BASE ====
 {
     if (!(flags & SF_SCALED))
         return value;
@@ -1440,11 +1440,18 @@ awhere(int obj)
 void
 osflag(int o, int flag)
 {
+==== BASE ====
+    int own, l;
+
+==== BASE ====
     objtab = obtab + o;
 
-    int own = owner(o);
-    bool wasLit = false;
-    if (own != -1)
+==== BASE ====
+    own = owner(o);
+    if (own == -1)
+        l = lit(loc(o));
+    else
+==== BASE ====
         rem_obj(own, o);
     else
         wasLit = lit(loc(o));

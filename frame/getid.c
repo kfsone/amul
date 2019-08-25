@@ -74,8 +74,10 @@ loop:
         me2->room = 0;
     if (nrs == 1)
         me2->room = start_rm[0];
-    if (nrs > 1)
-        me2->room = start_rm[mod(rnd(), nrs - 1)];
+    if (nrs > 1) {
+        roomid_t dest = randint(0, nrs - 1);
+        me2->room = start_rm[dest];
+    }
     roomtab = rmtab + me2->room;
 
     me2->wield = -1;

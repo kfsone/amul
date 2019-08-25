@@ -77,8 +77,8 @@ USHORT gadnum[] = /* Tells us what order to go around the gadgets */
 
 main(int argc, char *argv[])
 {
-    register int   i;
-    register char *p;
+    int   i;
+    char *p;
 
     MyTask = FindTask(0);
     MyTask->tc_Node.ln_Name = "AMUL-Ed v1.0";
@@ -345,7 +345,7 @@ userpack()
     PrintIText(win->RPort, &AEIntuiTextList1, 0, 0);
 }
 
-request(register char *title)
+request(char *title)
 {
     struct Window *req;
     struct Gadget *gad;
@@ -372,7 +372,7 @@ Update() { RefreshGadgets(GetGadget(win, gNAME), win, NULL); }
 
 User() /* Set the current user according to "me" */
 {
-    register int i;
+    int i;
 
     fopenr(plyrfn);
 loop:
@@ -400,7 +400,7 @@ loop:
     closei();
 }
 
-setstringinfo(register int no, register char *s)
+setstringinfo(int no, char *s)
 {
     struct StringInfo *siptr;
     siptr = (struct StringInfo *)GetGadget(win, no)->SpecialInfo;

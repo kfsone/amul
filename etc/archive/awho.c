@@ -107,7 +107,7 @@ main(int argc, char *argv[]) /* Accept no arguments */
     printf("Rooms: [1;33m%6ld[0m    Objects: [1;33m%6ld[0m    Ranks: [1;33m%6ld[0m\n\n",
            rooms, nouns, ranks);
     if (argc == 2) {
-        register int i;
+        int i;
 
         if (online == 0)
             printf("[1;33m ** No users online presently.[0m\n\n");
@@ -136,7 +136,7 @@ main(int argc, char *argv[]) /* Accept no arguments */
     quit();
 }
 
-sendmsg(register int i)
+sendmsg(int i)
 {
     Ad = i;
 
