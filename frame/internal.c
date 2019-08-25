@@ -29,9 +29,9 @@
  *
  */
 
-internal(register char *s)
+internal(char *s)
 {
-    register char *p;
+    char *p;
 
     if (*s == '?') {
         tx("AMULEd v0.5 - All commands prefixed with a \"/\"\n\n");

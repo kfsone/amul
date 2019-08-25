@@ -2,7 +2,7 @@
 
 grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
 {
-    register char *s, *d, *p, c; /* Source & Destination */
+    char *s, *d, *p, c; /* Source & Destination */
 
     s = input;
     more = 10;
@@ -75,7 +75,7 @@ grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
 parser()
 {
     char *       p;
-    register int x, om;
+    int x, om;
 
     om = more; /* We need to know if this is phrase one in a mo... */
     more = 0;
@@ -105,7 +105,7 @@ phrase:
         return;
     p = block;
     if (*p == '\"' || *p == '\'') {
-        register char *p2;
+        char *p2;
         if (*(p + 1) == 0)
             return;
         if ((iverb = isverb("\"speech")) == -1) {
@@ -227,9 +227,9 @@ skip:
     return lang_proc(iverb, 0);
 }
 
-lang_proc(register int v, char e)
+lang_proc(int v, char e)
 {
-    register int i, j, l, m, d;
+    int i, j, l, m, d;
 
     forced = 0;
     exeunt = 0;
@@ -338,7 +338,7 @@ caloop:
 
     vbptr = vbtab + v;
     if (!(vbptr->flags & VB_TRAVEL)) {
-        register int iv;
+        int iv;
         iv = iverb;
         iverb = v;
         if (ttproc() == 0)

@@ -1,11 +1,14 @@
 
 /* Daemon processing bizness! */
 
-dpstart(register int d, register int c) /* Begin PRIVATE daemon! */ { dstart(d, c, MDSTART); }
+// Start a private (player owned) demon
+dpstart(int d, int c) { dstart(d, c, MDSTART); }
 
-dgstart(register int d, register int c) /* Begin GLOBAL daemon! */ { dstart(d, c, MGDSTART); }
+// Start a global demon
+dgstart(int d, int c) { dstart(d, c, MGDSTART); }
 
-dstart(register int d, register int c, register int t)
+// Start a demon
+dstart(int d, int c, int t)
 {
     if (c == 0) {
         long lv, ld, lr, v, a1, n1, pp, a2, n2;
@@ -37,9 +40,12 @@ dstart(register int d, register int c, register int t)
     }
 }
 
-dbegin(register int d) /* Force daemon to happen */ {}
+// For a demon to execute
+dbegin(int d)
+{
+}
 
-dshow(register int d)
+dshow(int d)
 {
     SendIt(MCHECKD, d, NULL);
     if (Ad == -1) {
@@ -50,7 +56,8 @@ dshow(register int d)
     tx(block);
 }
 
-dsend(register int p, register int d, register int c) /* Send a daemon */
+// Dispatch a demon to the manager
+dsend(int p, int d, int c)
 {
     if (p == Af)
         dpstart(d, c);

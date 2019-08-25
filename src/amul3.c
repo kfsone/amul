@@ -64,7 +64,7 @@ short int           rset, rclr, ip, csyn;             /* Masks for Room Counter 
 
 /*===============Stuff that didn't fit into AMUL any more==================*/
 
-ans(register char *s)
+ans(char *s)
 {
     if (me->flags & ufANSI)
         txs("[%s", s);
@@ -105,7 +105,7 @@ aquit()
      see that they're here?						  */
 whohere()
 {
-    register int i;
+    int i;
 
     if (lit(me2->room) == NO)
         return;
@@ -134,9 +134,9 @@ whohere()
     }
 }
 
-awho(register int type)
+awho(int type)
 {
-    register int i, j;
+    int i, j;
 
     if (type == TYPEV) {
         for (i = 0; i < MAXU; i++)
@@ -316,7 +316,7 @@ getflags()
  *
  ******************************************************************************/
 
-numb(register long x, register long n)
+numb(long x, long n)
 {
     if (n == x) {
         return YES;
@@ -372,7 +372,7 @@ numb(register long x, register long n)
  *
  */
 
-atreatas(register ULONG verbno)
+atreatas(ULONG verbno)
 {
     donet = 0;
     inc = 0;
@@ -480,7 +480,7 @@ aabortparse()
  *
  */
 
-ado(register int verb)
+ado(int verb)
 {
     long                 old_ml, old_donet, old_verb, old_ttv, old_rm;
     struct _TT_ENT *     old_ttabp;
@@ -548,7 +548,7 @@ ado(register int verb)
  *
  */
 
-add_obj(register int to) /*== Add an object into a players inventory */
+add_obj(int to) /*== Add an object into a players inventory */
 {
     *objtab->rmlist = -(5 + to); /* It now belongs to him */
     (linestat + to)->numobj++;
@@ -590,7 +590,7 @@ add_obj(register int to) /*== Add an object into a players inventory */
  *
  */
 
-rem_obj(register int to, register int ob) /*== Remove object from inventory */
+rem_obj(int to, int ob) /*== Remove object from inventory */
 {
     (linestat + to)->numobj--;
     (linestat + to)->weight -= STATE->weight;
@@ -634,7 +634,7 @@ rem_obj(register int to, register int ob) /*== Remove object from inventory */
  *
  */
 
-ainteract(register int who)
+ainteract(int who)
 {
     actor = -1;
     if ((linestat + who)->state != PLAYING)
@@ -678,9 +678,9 @@ ainteract(register int who)
  *
  */
 
-asyntax(register int n1, register int n2)
+asyntax(int n1, int n2)
 {
-    register unsigned long t1, t2;
+    unsigned long t1, t2;
 
     inc = 0;
     /* === N1 Handling === */
@@ -813,7 +813,7 @@ iocopy(char *Dest, char *Source, unsigned long Max)
 
 qcopy(char *p2, char *p, int max)
 {
-    register int i;
+    int i;
     Forbid();
     for (i = 0; i < max && *p != 0 && *p != '\n'; i++)
         *(p2++) = *(p++);
@@ -848,7 +848,7 @@ qcopy(char *p2, char *p, int max)
  *
  */
 
-DoThis(register int x, register char *cmd, register short int type)
+DoThis(int x, char *cmd, short int type)
 {
     lockusr(x);
     if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
@@ -969,8 +969,8 @@ LoseFollower()
 
 ShowFile(char *s)
 {
-    register long  fsize;
-    register char *p;
+    long  fsize;
+    char *p;
 
     if (ifp != NULL)
         fclose(ifp);
@@ -1038,7 +1038,7 @@ show:
 
 scaled(long value, short int flags) /* Scale an object value */
 {
-    register scalefactor;
+    int scalefactor;
 
     if (!(flags & SF_SCALED))
         return value;
@@ -1075,8 +1075,8 @@ scaled(long value, short int flags) /* Scale an object value */
 
 showin(int o, int mode) /* Show contents of object */
 {
-    register int   i, j, k, l;
-    register char *p, *s;
+    int   i, j, k, l;
+    char *p, *s;
 
     if (State(o)->flags & SF_OPAQUE && mode == NO) {
         tx(str);
@@ -1150,7 +1150,7 @@ showin(int o, int mode) /* Show contents of object */
  *
  */
 
-stfull(register int st, register int p) /* full <st> <player> */
+stfull(int st, int p) /* full <st> <player> */
 {
     you = (usr + p);
     you2 = (linestat + p);
@@ -1213,7 +1213,7 @@ stfull(register int st, register int p) /* full <st> <player> */
 
 asetstat(int obj, int stat)
 {
-    register char i, j, x, w, f;
+    char i, j, x, w, f;
 
     objtab = obtab + obj;
     x = owner(obj);
@@ -1253,10 +1253,10 @@ asetstat(int obj, int stat)
     }
 }
 
-awhere(register int obj)
+awhere(int obj)
 {
-    register int   i, j, found, k;
-    register long *rp;
+    int   i, j, found, k;
+    long *rp;
 
     found = -1;
     for (i = 0; i < nouns; i++) /* Check all */
@@ -1301,9 +1301,9 @@ awhere(register int obj)
         sys(SPELLFAIL);
 }
 
-osflag(register int o, register int flag)
+osflag(int o, int flag)
 {
-    register int own, l;
+    int own, l;
 
     objtab = obtab + o;
 
@@ -1330,7 +1330,7 @@ osflag(register int o, register int flag)
 
 /* Set @xx and @xy corresponding to a specific player */
 
-setmxy(register int Flags, register int Them)
+setmxy(int Flags, int Them)
 {
     if (Them == Af || cansee(Them, Af) == YES) /* If he can see me */
     {

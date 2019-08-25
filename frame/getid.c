@@ -7,8 +7,8 @@ short int start_rm[512];
 
 getid()
 {
-    register int   i, ok, nrs;
-    register FILE *fp;
+    int   i, ok, nrs;
+    FILE *fp;
 
     iverb = iadj1 = inoun1 = iprep = iadj2 = inoun2 = actor = -1;
     *(me2->pre) = *(me2->post) = 0;
@@ -140,7 +140,7 @@ getname()
 
 newid()
 {
-    register int i;
+    int i;
 
     strcpy(me->name, him.name);
     sys(CREATE);

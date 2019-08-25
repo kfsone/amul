@@ -2,8 +2,8 @@
 
 ttproc()
 {
-    register int             i, match, dun, l;
-    register struct _TT_ENT *tp;
+    int             i, match, dun, l;
+    struct _TT_ENT *tp;
 
     exeunt = died = donet = skip = 0;
     failed = NO;
@@ -58,8 +58,8 @@ more:
 
 act(long ac, long *pt)
 {
-    register long x1, x2;
-    register int  i;
+    long x1, x2;
+    int  i;
     tt.action = ac;
     tt.pptr = pt;
     if (tt.condition < 0)
@@ -229,7 +229,7 @@ act(long ac, long *pt)
         default: txn("** Internal error - illegal action %ld!\n", ac);
         }
     } else {
-        register int flag;
+        int flag;
 
         needcr = NO;
         iocheck();
@@ -294,7 +294,7 @@ act(long ac, long *pt)
 
 cond(long n, int l) /* Execute a condition on me */
 {
-    register int mult, ret, i;
+    int mult, ret, i;
 
     mult = 1;
     ret = 1;
@@ -571,9 +571,9 @@ cond(long n, int l) /* Execute a condition on me */
     return mult * ret;
 }
 
-type(register char **s)
+type(char **s)
 {
-    register char *p, *p2;
+    char *p, *p2;
 
 strip:
     p = *s;
@@ -642,7 +642,7 @@ strip:
     }
 
     if (*p == '\"' || *p == '\'') {
-        register char c;
+        char c;
         c = *p;
         p2 = ++p;
         word = (int)p;
@@ -728,7 +728,7 @@ strip:
     return -2; /* Unknown */
 }
 
-actual(register unsigned long n)
+actual(unsigned long n)
 {
     if (n & RAND0)
         return (int)mod(rnd(), n ^ RAND0);
@@ -738,7 +738,7 @@ actual(register unsigned long n)
         return (int)pRANK(actual(n & -(1 + PRANK)));
 
     if ((n & (OBVAL + OBDAM + OBWHT)) != 0) {
-        register int x;
+        int x;
         x = actual(n & (-1 - (OBVAL + OBDAM + OBWHT)));
         switch (n & (OBVAL + OBDAM + OBWHT)) {
         case OBVAL: return (int)scaled(State(x)->value, State(x)->flags);

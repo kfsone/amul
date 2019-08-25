@@ -24,7 +24,7 @@ long minop; /* Mobiles in operation */
 
 Special_Proc() /* Special Processor core */
 {
-    register int i;
+    int i;
 
     if (ifp != NULL)
         fclose(ifp);
@@ -49,7 +49,7 @@ Special_Proc() /* Special Processor core */
 Daem_Proc() /* Daemon processing host */
 {
     long         lastt;
-    register int i, ded, next;
+    int i, ded, next;
 
     /* Setup Mobile bits & pieces */
     /* Whats the highest travel verb number? */

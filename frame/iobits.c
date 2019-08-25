@@ -6,9 +6,9 @@ iocheck()
 
 REALiocheck()
 {
-    register int   i;
-    register long  t, d, f;
-    register char *pt;
+    int   i;
+    long  t, d, f;
+    char *pt;
     int            p[4];
 
 loopit:
@@ -57,7 +57,7 @@ loopit:
     p[2] = ap->p3;
     p[3] = ap->p4;
     if (t == MDAEMON) {
-        register long p1, p2, p3, p4, v;
+        long p1, p2, p3, p4, v;
         ReplyMsg((struct Message *)ap);
         if (MyFlag == am_DAEM)
             tx("Processing daemon!\n");
@@ -151,7 +151,7 @@ voila:
 
 lockusr(int u)
 {
-    register long t, d, p;
+    long t, d, p;
     do {
         t = At;
         d = Ad;
@@ -188,7 +188,7 @@ lp:
 
 esc(char *p, char *s) /* Find @ escape sequences */
 {
-    register char c;
+    char c;
 
     c = tolower(*(p + 1));
     switch (tolower(*p)) {
@@ -377,8 +377,7 @@ interact(int msg, int n, int d)
     PutMsg((linestat + n)->rep, (struct Message *)intam);
 }
 
-sendex(register int n, register int d, register int p1, register int p2, register int p3,
-       register int p4)
+sendex(int n, int d, int p1, int p2, int p3, int p4)
 {
     if ((linestat + n)->state < PLAYING)
         return;

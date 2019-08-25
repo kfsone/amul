@@ -27,7 +27,7 @@
 
 main(int argc, char *argv[]) /* Main Program */
 {
-    register int i;
+    int i;
 
     lverb = -1;
     iverb = -1;
@@ -234,7 +234,7 @@ quitgame: /* Quite the game, tidily. */
 
 look(char *s, int f)
 {
-    register int roomno, mod;
+    int roomno, mod;
 
     /* Some complex stuff here!
       if f==0 (rdmode=RoomCount) and we have been here before,
@@ -256,9 +256,9 @@ look(char *s, int f)
     look_here(mod, roomno);
 }
 
-agive(register int obj, register int to) /* Add object to players inventory */
+agive(int obj, int to) /* Add object to players inventory */
 {
-    register int own, orm;
+    int own, orm;
 
     objtab = obtab + obj;
 

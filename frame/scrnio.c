@@ -1,6 +1,6 @@
 switchC(int n, char c)
 {
-    register int     h;
+    int     h;
     struct NewScreen ns;
     struct NewWindow nw;
 
@@ -55,10 +55,10 @@ switchC(int n, char c)
     iosup = CUSSCREEN;
 }
 
-tx(register char *s)
+tx(char *s)
 {
-    register int   i, l;
-    register char *p, *ls, *lp;
+    int   i, l;
+    char *p, *ls, *lp;
 
     if (iosup == LOGFILE)
         return;
@@ -131,7 +131,7 @@ tx(register char *s)
     }
 }
 
-utx(register int n, register char *s)
+utx(int n, char *s)
 {
     ioproc(s);
     if (n == Af)
@@ -140,7 +140,7 @@ utx(register int n, register char *s)
         interact(MMESSAGE, n, -1);
 }
 
-utxn(register int plyr, register char *format, register int n)
+utxn(int plyr, char *format, int n)
 {
     sprintf(str, format, n);
     utx(plyr, str);
@@ -184,8 +184,8 @@ txs(char *format, char *s)
 
 Inp(char *s, int l) /* Get to str, and max length l */
 {
-    register char *p;
-    register int   c;
+    char *p;
+    int   c;
 
     p = s;
     *p = c = 0;
@@ -378,7 +378,7 @@ scrend()
 
 switchS(char *s, char *p, char *u, char *rts)
 {
-    register long ser_baud, unit, ext;
+    long ser_baud, unit, ext;
 
     if (s != NULL)
         ser_baud = atoi(s);

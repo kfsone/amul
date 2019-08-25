@@ -1,6 +1,7 @@
-CXBRK() /* What to do when ^C pressed */ { return 0; }
+/* What to do when ^C pressed */ 
+CXBRK() { return 0; }
 
-memfail(register char *s)
+memfail(char *s)
 {
     txs("** Unable to allocate memory for %s! **\n", s);
     quit();
@@ -25,7 +26,7 @@ givebackmemory()
         DeleteExtIO((struct IORequest *)wserio);
 }
 
-fopenr(register char *s)
+fopenr(char *s)
 {
     if (ifp != NULL)
         fclose(ifp);
@@ -60,7 +61,7 @@ close_ofps()
     ofp1 = ofp2 = ofp3 = NULL;
 }
 
-kquit(register char *s)
+kquit(char *s)
 {
     sprintf(block, "@me just dropped carrier.\n");
     action(ow, AOTHERS);
@@ -82,7 +83,7 @@ quit()
     exit(0);
 }
 
-SendIt(register int t, register int d, register char *p)
+SendIt(int t, int d, char *p)
 {
     if (link == 0)
         return;
@@ -104,7 +105,7 @@ SendIt(register int t, register int d, register char *p)
 
 pressret()
 {
-    register int l;
+    int l;
     sys(RETURN);
     Inp(block, 0);
     l = strlen(umsgp + *(umsgip + RETURN));
@@ -116,17 +117,17 @@ pressret()
     }
 }
 
-sys(register int n) { tx(umsgp + *(umsgip + n)); }
+sys(int n) { tx(umsgp + *(umsgip + n)); }
 
-crsys(register int n)
+crsys(int n)
 {
     txc('\n');
     tx(umsgp + *(umsgip + n));
 }
 
-timeto(register char *s, register long secs)
+timeto(char *s, long secs)
 {
-    register int x, y;
+    int x, y;
 
     if (secs >= 3600) /* More than an hour */
     {

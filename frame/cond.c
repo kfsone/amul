@@ -1,8 +1,8 @@
 /* Conditions for AMUL */
 
-lit(register int r) /* Is my room lit? */
+lit(int r) /* Is my room lit? */
 {
-    register int        i, j;
+    int        i, j;
     struct _OBJ_STRUCT *tobjtab;
 
     tobjtab = objtab;
@@ -32,7 +32,7 @@ lit(register int r) /* Is my room lit? */
     return NO;
 }
 
-loc(register int o)
+loc(int o)
 {
     if (*(obtab + o)->rmlist >= -1)
         return *(obtab + o)->rmlist;
@@ -41,7 +41,7 @@ loc(register int o)
     /* Else its in a container */
 }
 
-carrying(register int obj)
+carrying(int obj)
 {
     if (me2->numobj == 0)
         return -1;
@@ -50,7 +50,7 @@ carrying(register int obj)
     return -1;
 }
 
-nearto(register int ob)
+nearto(int ob)
 {
     if (canseeobj(ob, Af) == NO)
         return NO;
@@ -70,7 +70,7 @@ visible() /* Can others in this room see me? */
     return YES;
 }
 
-cangive(register int obj, register int plyr) /* If player could manage to carry object */
+cangive(int obj, int plyr) /* If player could manage to carry object */
 {
     objtab = obtab + obj;
 
@@ -83,9 +83,9 @@ cangive(register int obj, register int plyr) /* If player could manage to carry 
     return YES;
 }
 
-isverb(register char *s)
+isverb(char *s)
 {
-    register int i;
+    int i;
     vbptr = vbtab;
     for (i = 0; i < verbs; i++, vbptr++)
         if (match(vbptr->id, s) == NULL)
@@ -93,9 +93,9 @@ isverb(register char *s)
     return -1;
 }
 
-isaverb(register char **s)
+isaverb(char **s)
 {
-    register int ret;
+    int ret;
 
     if ((ret = isverb(*s)) != -1) {
         (*s) += strlen((vbtab + ret)->id);
@@ -108,10 +108,10 @@ isaverb(register char **s)
     return -1;
 }
 
-isvsyn(register char *s) /* Is VERB syn */
+isvsyn(char *s) /* Is VERB syn */
 {
-    register int   i;
-    register char *p;
+    int   i;
+    char *p;
     p = synp;
     for (i = 0; i < syns; i++, p += strlen(p) + 1) {
         if (*(synip + i) < -1 && match(p, s) == NULL) {
@@ -122,10 +122,10 @@ isvsyn(register char *s) /* Is VERB syn */
     return (int)(csyn = -1);
 }
 
-isnsyn(register char *s) /* Is noun syn */
+isnsyn(char *s) /* Is noun syn */
 {
-    register int   i;
-    register char *p;
+    int   i;
+    char *p;
     p = synp;
     for (i = 0; i < syns; i++, p += strlen(p) + 1) {
         if (*(synip + i) > -1 && match(p, s) == NULL) {
@@ -137,10 +137,10 @@ isnsyn(register char *s) /* Is noun syn */
     return -1;
 }
 
-issyn(register char *s)
+issyn(char *s)
 {
-    register int   i;
-    register char *p;
+    int   i;
+    char *p;
     p = synp;
     for (i = 0; i < syns; i++, p += strlen(p) + 1) {
         if (toupper(*p) == toupper(*s) && match(p, s) == NULL) {
@@ -163,9 +163,9 @@ issyn(register char *s)
 
                                         */
 
-isnoun(register char *s, register int adj, register char *pat)
+isnoun(char *s, int adj, char *pat)
 {
-    register int pass, x, done_e, lsuc, lobj;
+    int pass, x, done_e, lsuc, lobj;
     int          start;
 
     if (iverb != -1) {
@@ -230,9 +230,9 @@ isnoun(register char *s, register int adj, register char *pat)
         return lobj;
 }
 
-isanoun(register char *s)
+isanoun(char *s)
 {
-    register int        i;
+    int        i;
     struct _OBJ_STRUCT *obpt;
 
     obpt = obtab;
@@ -242,10 +242,10 @@ isanoun(register char *s)
     return -1;
 }
 
-scan(register int start, register char Type, register int tst, register char *s, register int adj)
+scan(int start, char Type, int tst, char *s, int adj)
 {
     int                          i, last;
-    register struct _OBJ_STRUCT *obpt;
+    struct _OBJ_STRUCT *obpt;
 
     last = -1;
     obpt = obtab + start;
@@ -266,9 +266,9 @@ scan(register int start, register char Type, register int tst, register char *s,
     return last;
 }
 
-CHAEtype(register int obj)
+CHAEtype(int obj)
 {
-    register int i;
+    int i;
 
     if (carrying(obj) != -1)
         return 'C';
@@ -281,8 +281,8 @@ CHAEtype(register int obj)
 
 isadj(char *s)
 {
-    register int   i;
-    register char *p;
+    int   i;
+    char *p;
 
     p = adtab;
     for (i = 0; i < adjs; i++, p += IDL + 1)
@@ -291,27 +291,27 @@ isadj(char *s)
     return -1;
 }
 
-isprep(register char *s)
+isprep(char *s)
 {
-    register int i;
+    int i;
     for (i = 0; i < NPREP; i++)
         if (stricmp(s, prep[i]) == NULL)
             return i;
     return -1;
 }
 
-isin(register int o, register int r)
+isin(int o, int r)
 {
-    register int i;
+    int i;
     for (i = 0; i < (obtab + o)->nrooms; i++)
         if (*((obtab + o)->rmlist + i) == r)
             return YES;
     return NO;
 }
 
-isroom(register char *s)
+isroom(char *s)
 {
-    register int r;
+    int r;
 
     for (r = 0; r < rooms; r++)
         if (stricmp((rmtab + r)->id, s) == 0)
@@ -319,7 +319,7 @@ isroom(register char *s)
     return -1;
 }
 
-infl(register int plyr, register int spell)
+infl(int plyr, int spell)
 {
     you2 = linestat + plyr;
     switch (spell) {
@@ -359,7 +359,7 @@ infl(register int plyr, register int spell)
     return NO;
 }
 
-stat(register int plyr, register int st, register int x)
+stat(int plyr, int st, int x)
 {
     switch (st) {
     case STSTR: return numb((linestat + plyr)->strength, x);
@@ -373,7 +373,7 @@ stat(register int plyr, register int st, register int x)
 }
 
 /* If <player1> can see <player2> */
-cansee(register int p1, register int p2)
+cansee(int p1, int p2)
 {
     /* You can't see YOURSELF, and check for various other things... */
     if (*(usr + p2)->name == 0 || p1 == p2)
@@ -408,7 +408,7 @@ cansee(register int p1, register int p2)
         return NO;
 }
 
-canseeobj(register int obj, register int who)
+canseeobj(int obj, int who)
 {
     if (((obtab + obj)->flags & OF_SMELL) && !((linestat + who)->flags & PFBLIND))
         return NO;
@@ -425,7 +425,7 @@ canseeobj(register int obj, register int who)
         return YES;
 }
 
-magic(register int rnk, register int points, register int chance)
+magic(int rnk, int points, int chance)
 {
     if (me->rank < rnk - 1) {
         sys(LOWLEVEL);

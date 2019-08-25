@@ -28,9 +28,9 @@ extern char ncop[]; /* Conditions */
 
 /* Various low-level macros/functions for AMUL... */
 
-owner(register int obj)
+owner(int obj)
 {
-    register int r;
+    int r;
 
     r = -5 - *(obtab + obj)->rmlist;
     if (r >= MAXU || r < 0)
@@ -38,14 +38,14 @@ owner(register int obj)
     return r;
 }
 
-show_rank(register int p, register int rankn, register int sex)
+show_rank(int p, int rankn, int sex)
 {
     str[0] = 0;
     make_rank(p, rankn, sex);
     tx(str);
 }
 
-make_rank(register int p, register int rankn, register int sex)
+make_rank(int p, int rankn, int sex)
 {
     strcat(str, " the ");
     p += 5;
@@ -60,9 +60,9 @@ make_rank(register int p, register int rankn, register int sex)
     }
 }
 
-moveto(register int r) /* Move player to room, testing ligthing! */
+moveto(int r) /* Move player to room, testing ligthing! */
 {
-    register int i;
+    int i;
 
     /*
       Set the players current lighting to NONE and then test lighting for
@@ -83,7 +83,7 @@ moveto(register int r) /* Move player to room, testing ligthing! */
     me2->flags = me2->flags & -(1 + PFMOVING);
 }
 
-mod(register long n, register long x) /* n MODulo X */
+mod(long n, long x) /* n MODulo X */
 {                                     /*== This nolonger freezes the task on the odd ocassion! */
     n = n & 65535;
 
@@ -111,9 +111,9 @@ rnd() /*== Return pseudo-random number! */
     return rand();
 }
 
-gotin(register int obj, register int st) /* Do I own a 'obj' in state 'stat'? */
+gotin(int obj, int st) /* Do I own a 'obj' in state 'stat'? */
 {
-    register int i;
+    int i;
 
     for (i = 0; i < nouns; i++) {
         if (stricmp((obtab + i)->id, (obtab + obj)->id) == NULL &&
@@ -125,7 +125,7 @@ gotin(register int obj, register int st) /* Do I own a 'obj' in state 'stat'? */
 
 /* The next two commands are ACTIONS but work like conditions */
 
-achecknear(register int obj) /* Check player is near object, else msg + endparse */
+achecknear(int obj) /* Check player is near object, else msg + endparse */
 {
     if (nearto(obj) == NO) {
         txs("I can't see the %s!\n", (obtab + obj)->id);
@@ -136,7 +136,7 @@ achecknear(register int obj) /* Check player is near object, else msg + endparse
     return 0;
 }
 
-acheckget(register int obj) /* Check the player can 'get' the object */
+acheckget(int obj) /* Check the player can 'get' the object */
 {
     if (carrying(obj) != -1) {
         tx("You've already got it!\n");
@@ -179,9 +179,9 @@ acheckget(register int obj) /* Check the player can 'get' the object */
     return 0;
 }
 
-look_here(register int f, register int rm)
+look_here(int f, int rm)
 {
-    register char il;
+    char il;
 
     /* Can I see? */
     if (me2->flags & PFBLIND) {
@@ -206,9 +206,9 @@ die:
         whohere();
 }
 
-desc_here(register int f)
+desc_here(int f)
 {
-    register char *p, c;
+    char *p, c;
     fseek(ifp, roomtab->desptr, 0L);
     if (roomtab->flags & DMOVE) /* A dmove room? */
         fgets(dmove, IDL, ifp);
@@ -255,9 +255,9 @@ desc_here(register int f)
     }
 }
 
-list_what(register int r, register int i)
+list_what(int r, int i)
 {
-    register int o, or, f;
+    int o, or, f;
 
     f = -1;
     if (lit(me2->room) == NO)
@@ -293,7 +293,7 @@ list_what(register int r, register int i)
         sys(NOWTSPECIAL);
 }
 
-descobj(register int Ob)
+descobj(int Ob)
 {
     obj.states = (obtab + Ob)->states + (long)(obtab + Ob)->state;
     if (obj.states->descrip == 0)
@@ -321,7 +321,7 @@ descobj(register int Ob)
     showin(Ob, NO);
 }
 
-inflict(register int x, register int s)
+inflict(int x, int s)
 {
     you2 = linestat + x;
     if (you2->state != PLAYING)
@@ -359,7 +359,7 @@ inflict(register int x, register int s)
     lighting(x, AHERE);
 }
 
-cure(register int x, register int s)
+cure(int x, int s)
 {
     you2 = linestat + x;
     if (you2->state != PLAYING)
@@ -406,9 +406,9 @@ summon(int plyr)
     interact(MSUMMONED, plyr, me2->room);
 }
 
-adestroy(register int obj)
+adestroy(int obj)
 {
-    register int i;
+    int i;
 
     Forbid();
     loseobj(obj);
@@ -418,9 +418,9 @@ adestroy(register int obj)
     Permit();
 }
 
-arecover(register int obj)
+arecover(int obj)
 {
-    register int i;
+    int i;
 
     if (State(obj)->flags & SF_LIT)
         me2->light++;
@@ -455,8 +455,8 @@ refresh() /* Restore players details! */
 
 zapme()
 {
-    register char *p;
-    register int   i;
+    char *p;
+    int   i;
 
     Forbid();
     p = (char *)me->name;
@@ -468,9 +468,9 @@ zapme()
     nohelp();
 }
 
-send(register int o, register int to)
+send(int o, int to)
 {
-    register short int x, i;
+    short int x, i;
 
     x = lit(to);
     loseobj(o);
@@ -480,7 +480,7 @@ send(register int o, register int to)
         actionin(to, acp(NOWLIGHT));
 }
 
-achange(register int u)
+achange(int u)
 {
     if (u == Af) {
         me->sex = 1 - me->sex;
@@ -490,9 +490,9 @@ achange(register int u)
 }
 
 /*== Fixed to allow increase/decrease */
-newrank(register int plyr, register int r)
+newrank(int plyr, int r)
 {
-    register int or ;
+    int or ;
 
     or = me->rank;
 
@@ -538,9 +538,9 @@ newrank(register int plyr, register int r)
     }
 }
 
-aadd(register int howmuch, register int stat, register int plyr)
+aadd(int howmuch, int stat, int plyr)
 {
-    register int r;
+    int r;
     if (howmuch < 0)
         return asub(-howmuch, stat, plyr);
     if (howmuch == 0)
@@ -589,9 +589,9 @@ aadd(register int howmuch, register int stat, register int plyr)
         sendex(plyr, AADD, howmuch, stat, plyr); /* Tell them to clear up! */
 }
 
-asub(register int howmuch, register int stat, register int plyr)
+asub(int howmuch, int stat, int plyr)
 {
-    register int r;
+    int r;
     if (howmuch < 0)
         return asub(-howmuch, stat, plyr);
     if (howmuch == 0)
@@ -656,7 +656,7 @@ asub(register int howmuch, register int stat, register int plyr)
         sendex(plyr, ASUB, howmuch, stat, plyr); /* Tell them to clear up! */
 }
 
-afix(register int stat, register int plyr)
+afix(int stat, int plyr)
 {
     if (plyr == Af) {
         switch (stat) {
@@ -686,9 +686,9 @@ afix(register int stat, register int plyr)
         sendex(plyr, AFIX, stat, plyr, 0); /* Tell them to clear up! */
 }
 
-announce(register char *s, register int towho) /* Loud noises/events */
+announce(char *s, int towho) /* Loud noises/events */
 {
-    register int i, x;
+    int i, x;
 
     for (i = 0; i < MAXU; i++) {
         /* If the player is deaf, ignore him */
@@ -733,7 +733,7 @@ announce(register char *s, register int towho) /* Loud noises/events */
 
 announcein(int toroom, char *s) /* Loud noises/events */
 {
-    register int i;
+    int i;
     for (i = 0; i < MAXU; i++) {
         /* If the player is deaf, ignore him */
         if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF) ||
@@ -746,7 +746,7 @@ announcein(int toroom, char *s) /* Loud noises/events */
 
 announcefrom(int obj, char *s) /* Loud noises/events */
 {
-    register int i, o;
+    int i, o;
     for (i = 0; i < MAXU; i++) {
         /* If the player is deaf or can see me, ignore him */
         if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF) ||
@@ -762,9 +762,9 @@ announcefrom(int obj, char *s) /* Loud noises/events */
     }
 }
 
-objannounce(register int obj, register char *s) /* Loud noises/events */
+objannounce(int obj, char *s) /* Loud noises/events */
 {
-    register int i, o;
+    int i, o;
     for (i = 0; i < MAXU; i++) {
         /* If the player is deaf or can see me, ignore him */
         if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF))
@@ -781,7 +781,7 @@ objannounce(register int obj, register char *s) /* Loud noises/events */
 
 action(char *s, int towho) /* Quiet actions/notices */
 {
-    register int i, x;
+    int i, x;
     for (i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
         if (actor == i || ((linestat + i)->state < 2) ||
@@ -818,7 +818,7 @@ action(char *s, int towho) /* Quiet actions/notices */
 
 actionin(int toroom, char *s) /* Quiet actions/notices */
 {
-    register int i;
+    int i;
     for (i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
         if (actor == i || ((linestat + i)->state < PLAYING) ||
@@ -831,7 +831,7 @@ actionin(int toroom, char *s) /* Quiet actions/notices */
 
 actionfrom(int obj, char *s) /* Quiet actions/notices */
 {
-    register int i, o;
+    int i, o;
     for (i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
         if (actor == i || ((linestat + i)->state < 2) ||
@@ -848,9 +848,9 @@ actionfrom(int obj, char *s) /* Quiet actions/notices */
     }
 }
 
-objaction(register int obj, register char *s) /* Quiet actions/notices */
+objaction(int obj, char *s) /* Quiet actions/notices */
 {
-    register int i, o;
+    int i, o;
     for (i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
         if (actor == i || ((linestat + i)->state < 2) ||
@@ -869,7 +869,7 @@ objaction(register int obj, register char *s) /* Quiet actions/notices */
 
 fwait(long n)
 {
-    register int i;
+    int i;
 
     if (n < 1)
         n = 1;
@@ -881,7 +881,7 @@ fwait(long n)
 
 ableep(int n)
 {
-    register int i;
+    int i;
 
     for (i = 0; i < n; i++) {
         tx(". ");
@@ -910,9 +910,9 @@ lighting(int x, int twho) /*== twho - tell who! */
     }
 }
 
-loseobj(register int obj) /* Remove object from its owners inventory */
+loseobj(int obj) /* Remove object from its owners inventory */
 {
-    register int o, i;
+    int o, i;
 
     objtab = obtab + obj;
 
@@ -926,7 +926,7 @@ loseobj(register int obj) /* Remove object from its owners inventory */
 
 nohelp()
 {
-    register int i;
+    int i;
 
     if (me2->helping != -1)
         utx(me2->helping, "@me is no-longer able to help you...\n");
@@ -941,7 +941,7 @@ nohelp()
     me2->helping = me2->helped = -1;
 }
 
-aforce(register int x, register char *cmd) { DoThis(x, cmd, 0); }
+aforce(int x, char *cmd) { DoThis(x, cmd, 0); }
 
 afight(int plyr)
 {
@@ -997,7 +997,7 @@ Damage:  Str / 10 + weapon.		<--- made this random!
 strike out at another player! Also, blindness should affect your
 attack/defence. */
 
-    register int aatt, adef, adam, datt, ddef, str;
+    int aatt, adef, adam, datt, ddef, str;
     int          oldstr, minpksl;
 
     calcdext();
@@ -1111,7 +1111,7 @@ attack/defence. */
 
 exits()
 {
-    register int    v, i, maxl, x, ac, brk, l;
+    int    v, i, maxl, x, ac, brk, l;
     struct _TT_ENT *tp, *otp;
     int             c, a;
     long *          pptr;
@@ -1188,7 +1188,7 @@ isaroom(char *s)
     return -1;
 }
 
-follow(register int x, register char *cmd)
+follow(int x, char *cmd)
 {
     lockusr(x);
     if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
@@ -1204,7 +1204,7 @@ follow(register int x, register char *cmd)
     (linestat + x)->IOlock = -1;
 }
 
-log(register char *s)
+log(char *s)
 {
     ioproc(s);
     s = ow;
@@ -1262,7 +1262,7 @@ akillme()
     ans("0;37m");
 }
 
-show_tasks(register int p)
+show_tasks(int p)
 {
     sprintf(block, "Tasks completed by ");
     if (p != Af)
@@ -1273,7 +1273,7 @@ show_tasks(register int p)
     if (me->tasks == 0)
         strcat(block, "None.\n");
     else {
-        register int i;
+        int i;
         char         tsk[6];
         tsk[0] = 0;
         for (i = 0; i < 32; i++) {
@@ -1290,9 +1290,9 @@ show_tasks(register int p)
     tx(block);
 }
 
-dropall(register int torm) /* Drop everything to a room */
+dropall(int torm) /* Drop everything to a room */
 {
-    register int i;
+    int i;
 
     for (i = 0; i < nouns && me2->numobj > 0; i++)
         if (*(obtab + i)->rmlist == -(5 + Af))
@@ -1300,10 +1300,10 @@ dropall(register int torm) /* Drop everything to a room */
     me2->numobj = 0;
 }
 
-invent(register int plyr)
+invent(int plyr)
 {
-    register int   i, pr, j;
-    register char *p;
+    int   i, pr, j;
+    char *p;
 
     p = block + strlen(block);
 
@@ -1332,7 +1332,7 @@ invent(register int plyr)
     tx(block);
 }
 
-ascore(register int type)
+ascore(int type)
 {
     calcdext();
 
@@ -1409,7 +1409,7 @@ toprank()
     aadd((rktab + ranks - 1)->score - me->score + 1, STSCORE, Af);
 }
 
-damage(register int obj, register int howmuch)
+damage(int obj, int howmuch)
 {
     objtab = obtab + obj;
     if (objtab->flags & OF_SCENERY)
@@ -1425,7 +1425,7 @@ damage(register int obj, register int howmuch)
     }
 }
 
-repair(register int obj, register int howmuch)
+repair(int obj, int howmuch)
 {
     objtab = obtab + obj;
     if (objtab->flags & OF_SCENERY)

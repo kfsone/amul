@@ -63,7 +63,7 @@ char *now() /* Get current time/date */
 }
 
 char *
-readf(register char *s, register char *p)
+readf(char *s, char *p)
 {
     fopenr(s);
     fread(p, 32767, 32767, ifp);
@@ -74,7 +74,7 @@ readf(register char *s, register char *p)
 
 fsize(char *s)
 {
-    register int n;
+    int n;
     fopenr(s);
     fseek(ifp, 0, 2L);
     n = ftell(ifp);
@@ -171,8 +171,8 @@ main(int argc, char *argv[])
 
 kernel()
 {
-    register int   i;
-    register FILE *fp;
+    int   i;
+    FILE *fp;
 
     strcpy(block, "--------------------------------------------------------------\n");
     log(block);
@@ -357,7 +357,7 @@ kill() /* Shutdown receiver */
 
 cnct() /* User connection! */
 {
-    register int i;
+    int i;
 
     Ad = (long)linestat;
     Ap = (char *)usr;
@@ -490,9 +490,9 @@ login() /* Receive & log a player login */
     log(block);
 }
 
-shutreq(register int x) { asend((x == 0) ? MKILL : MRESET, count[0]); }
+shutreq(int x) { asend((x == 0) ? MKILL : MRESET, count[0]); }
 
-sendext(register int t) { asend(MEXTEND, t); }
+sendext(int t) { asend(MEXTEND, t); }
 
 asend(int type, int data) /* Shutdown request */
 {
@@ -564,7 +564,7 @@ rest() /* RESeT in progress */
 
 extend(short int tics) /* Extend by this many ticks */
 {
-    register short int newtime;
+    short int newtime;
 
     Ad = At = 'U';
     if (tics == 0)
@@ -584,7 +584,7 @@ extend(short int tics) /* Extend by this many ticks */
 
 res() /* Reset <receiver> */
 {
-    register int onwas;
+    int onwas;
     sprintf(block, "][ (%c) %s: Reset requested! %ld user(s) online...\n",
             (Af >= 0 && Af < 11) ? '0' + Af : '#', now(), online);
     log(block);
@@ -600,7 +600,7 @@ res() /* Reset <receiver> */
 
 reset_users() /* Force users to log-out & kill extra lines */
 {
-    register int    i;
+    int    i;
     struct Message *xx;
 
     online = 0; /* Allows for daemons & mobiles */
@@ -646,9 +646,9 @@ loop2:
 
 setup() /* Read in & evaluate data files */
 {
-    register long  i, rc, l, act, j, k;
+    long  i, rc, l, act, j, k;
     long *         pt;
-    register char *p;
+    char *p;
 
     rc = 0;
     fopenr(gameDataFile);
@@ -871,8 +871,8 @@ quit() /* Exit program tidily */
 
 char *xread(char *s, long *n, char *t) /* Size/Read data files */
 {
-    register char *p;
-    register int   i;
+    char *p;
+    int   i;
 
     fopenr(s);
     fseek(ifp, 0, 2L);
@@ -900,7 +900,7 @@ lock() /* Lock a users IO system */
 
 log(char *s) /* Log data to AMUL.Log */
 {
-    register FILE *fp;
+    FILE *fp;
 
     if ((fp = fopen("AMUL.Log", "ab+")) == NULL)
         oer("AMUL.Log", "logg");
@@ -909,9 +909,9 @@ log(char *s) /* Log data to AMUL.Log */
     fclose((FILE *)fp);
 }
 
-pack(register int i) /* Remove daemon from list */
+pack(int i) /* Remove daemon from list */
 {
-    register int j;
+    int j;
     if (i != (daemons - 1)) {
         j = daemons - 1;
         num[i] = num[j];
@@ -934,9 +934,9 @@ pack(register int i) /* Remove daemon from list */
     daemons--;
 }
 
-dkill(register short int d) /* Cancel daemon... */
+dkill(short int d) /* Cancel daemon... */
 {
-    register int i;
+    int i;
 
     nextdaem = mins * 60;
     for (i = 1; i < daemons; i++) {
@@ -947,7 +947,7 @@ dkill(register short int d) /* Cancel daemon... */
     }
 }
 
-start(register char owner) /* Initiate daemon */
+start(char owner) /* Initiate daemon */
 {
     /* Ad=#, p1=inoun1, p2=inoun2, p3=wtype[2], p4=wtype[5], Ap=count */
 
@@ -975,9 +975,9 @@ pstart() /* Initiate private daemon */
     start(Af);
 }
 
-check(register int d) /* Check if daemon is active */
+check(int d) /* Check if daemon is active */
 {
-    register int i;
+    int i;
     Ad = -1;
     Ap1 = -1;
     for (i = 1; i < daemons; i++)
@@ -997,22 +997,22 @@ setam()
     am->from = -1;
 }
 
-logwiz(register int who)
+logwiz(int who)
 {
     sprintf(block, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)!!!\n", Af + '0', now(),
             (usr + Af)->name, (usr + Af)->rank + 1);
     log(block);
 }
 
-logit(register char *s)
+logit(char *s)
 {
     sprintf(block, "@@ (%c) %s: %s\n", Af + '0', now(), s);
     log(block);
 }
 
-warn(register char *s)
+warn(char *s)
 {
-    register int i;
+    int i;
 
     for (i = 0; i < MAXU; i++)
         if ((linestat + i)->state != OFFLINE) {
