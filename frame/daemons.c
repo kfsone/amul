@@ -1,26 +1,34 @@
-
 /* Daemon processing bizness! */
 
 // Start a private (player owned) demon
-dpstart(int d, int c) { dstart(d, c, MDSTART); }
+void
+dpstart(int d, int seconds)
+{
+	dstart(d, seconds, MDSTART);
+}
 
 // Start a global demon
-dgstart(int d, int c) { dstart(d, c, MGDSTART); }
+void
+dgstart(int d, int seconds)
+{
+	dstart(d, seconds, MGDSTART);
+}
 
 // Start a demon
-dstart(int d, int c, int t)
+void
+dstart(int d, int seconds, int type)
 {
-    if (c == 0) {
-        long lv, ld, lr, v, a1, n1, pp, a2, n2;
-        v = iverb;
-        lv = lverb;
-        ld = ldir;
-        lr = lroom;
-        a1 = iadj1;
-        a2 = iadj2;
-        n1 = inoun1;
-        n2 = inoun2;
-        pp = iprep;
+	// Immediate?
+    if (seconds == 0) {
+        long v = iverb;
+        long lv = lverb;
+        long ld = ldir;
+        long lr = lroom;
+        long a1 = iadj1;
+        long a2 = iadj2;
+        long n1 = inoun1;
+        long n2 = inoun2;
+        long pp = iprep;
         lang_proc(d, 0);
         iverb = v;
         lverb = lv;
@@ -40,11 +48,13 @@ dstart(int d, int c, int t)
     }
 }
 
-// For a demon to execute
+// Force a demon to execute
+void
 dbegin(int d)
 {
 }
 
+void
 dshow(int d)
 {
     SendIt(MCHECKD, d, NULL);
@@ -57,6 +67,7 @@ dshow(int d)
 }
 
 // Dispatch a demon to the manager
+void
 dsend(int p, int d, int c)
 {
     if (p == Af)

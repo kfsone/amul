@@ -26,18 +26,16 @@ extern char ncop[]; /* Conditions */
 #include "frame/filebits.c"
 #include "frame/parser.c"
 
-/* Various low-level macros/functions for AMUL... */
-
+int
 owner(int obj)
 {
-    int r;
-
-    r = -5 - *(obtab + obj)->rmlist;
+    int r = -5 - *(obtab + obj)->rmlist;
     if (r >= MAXU || r < 0)
         return -1;
     return r;
 }
 
+void
 show_rank(int p, int rankn, int sex)
 {
     str[0] = 0;
@@ -45,6 +43,7 @@ show_rank(int p, int rankn, int sex)
     tx(str);
 }
 
+void
 make_rank(int p, int rankn, int sex)
 {
     strcat(str, " the ");
@@ -60,19 +59,17 @@ make_rank(int p, int rankn, int sex)
     }
 }
 
-moveto(int r) /* Move player to room, testing ligthing! */
+// Move player to room, testing ligthing!
+void
+moveto(int r)
 {
-    int i;
+    // Set the players current lighting to NONE and then test lighting for
+    // the room. Then move the player and restore his lighting; test again.
 
-    /*
-      Set the players current lighting to NONE and then test lighting for
-      the room. Then move the player and restore his lighting. Now test
-      again!
-                                                                            */
     StopFollow();
     me2->flags = me2->flags | PFMOVING;
     lroom = me2->room;
-    i = me2->light;
+    int i = me2->light;
     me2->light = 0;
     lighting(Af, AOTHERS);
     me2->room = r;
@@ -83,13 +80,14 @@ moveto(int r) /* Move player to room, testing ligthing! */
     me2->flags = me2->flags & -(1 + PFMOVING);
 }
 
-mod(long n, long x) /* n MODulo X */
-{                                     /*== This nolonger freezes the task on the odd ocassion! */
-    n = n & 65535;
-
+// n MODulo X
+long
+mod(long n, long x)
+{
     if (x == 0)
         return 0;
 
+    n = n & 65535;
     if (n < 0)
         return -mod(-n, x);
     if (x < 0)
@@ -102,30 +100,32 @@ mod(long n, long x) /* n MODulo X */
     return n;
 }
 
-rnd() /*== Return pseudo-random number! */
+// Return pseudo-random number.
+long
+rnd()
 {
-    long x;
-
-    time(&x);
+    long x = time(NULL);
     srand(x);
     return rand();
 }
 
-gotin(int obj, int st) /* Do I own a 'obj' in state 'stat'? */
+// Do I own a 'obj' in state 'stat'?
+bool
+gotin(int obj, int st)
 {
-    int i;
-
-    for (i = 0; i < nouns; i++) {
+    for (int i = 0; i < nouns; i++) {
         if (stricmp((obtab + i)->id, (obtab + obj)->id) == NULL &&
-            ((obtab + i)->state == st || st == -1) && owner(i) == Af)
-            return YES;
+            	((obtab + i)->state == st || st == -1) && owner(i) == Af)
+            return true;
     }
-    return NO;
+    return false;
 }
 
 /* The next two commands are ACTIONS but work like conditions */
 
-achecknear(int obj) /* Check player is near object, else msg + endparse */
+// Check player is near object, else msg + endparse
+int
+achecknear(int obj)
 {
     if (nearto(obj) == NO) {
         txs("I can't see the %s!\n", (obtab + obj)->id);
@@ -136,7 +136,9 @@ achecknear(int obj) /* Check player is near object, else msg + endparse */
     return 0;
 }
 
-acheckget(int obj) /* Check the player can 'get' the object */
+// Check the player can 'get' the object
+int
+acheckget(int obj)
 {
     if (carrying(obj) != -1) {
         tx("You've already got it!\n");
@@ -179,22 +181,23 @@ acheckget(int obj) /* Check the player can 'get' the object */
     return 0;
 }
 
+void
 look_here(int f, int rm)
 {
-    /* Can I see? */
+    // Can I see?
     if (me2->flags & PFBLIND) {
         list_what(rm, 0);
         return;
     }
-    /* Can we see in here? */
+    // Can I see in here?
     if (!lit(me2->room)) {
         sys(TOODARK);
         *(rctab + rm) = *(rctab + rm) & rclr;
-        goto die;
-    }
-    desc_here(f);
-    list_what(rm, 0);
-die:
+    } else {
+    	desc_here(f);
+    	list_what(rm, 0);
+	}
+
     if ((roomtab->flags & DEATH) && me->rank != ranks - 1) {
         if (dmove[0] == 0)
             strcpy(dmove, (rmtab + lroom)->id);
@@ -204,9 +207,9 @@ die:
         whohere();
 }
 
+void
 desc_here(int f)
 {
-    char *p, c;
     fseek(ifp, roomtab->desptr, 0L);
     if (roomtab->flags & DMOVE) /* A dmove room? */
         fgets(dmove, IDL, ifp);
@@ -214,9 +217,10 @@ desc_here(int f)
         dmove[0] = 0;
 
     /* Print short description */
-    p = block;
+    char *p = block;
     if (!(roomtab->flags & DEATH))
         ans("1m");
+    char c;
     while ((c = fgetc(ifp)) != 0 && c != EOF && c != '\n') {
         *(p++) = c;
         *p = 0;
@@ -253,11 +257,9 @@ desc_here(int f)
     }
 }
 
+void
 list_what(int r, int i)
 {
-    int o, or, f;
-
-    f = -1;
     if (!lit(me2->room))
         return sys(TOOMAKE);
     if (me2->flags & PFBLIND)
@@ -265,7 +267,8 @@ list_what(int r, int i)
     if (((rmtab + r)->flags & HIDEWY) && i != 0 && me->rank != ranks - 1) {
         sys(NOWTSPECIAL); /* Wizards can see in hideaways! */
     }
-    for (o = 0; o < nouns; o++) /* All objects */
+    int f = -1;
+    for (int o = 0; o < nouns; o++) /* All objects */
     {
         /* Only let the right people see the object */
         if (canseeobj(o, Af) == NO)
@@ -276,7 +279,7 @@ list_what(int r, int i)
         if (!lit(me2->room) !((obtab + o)->flags & OF_SMELL))
             continue;
         obj = *(obtab + o);
-        for (or = 0; or < obj.nrooms; or ++) {
+        for (int or = 0; or < obj.nrooms; or ++) {
             if (*(obj.rmlist + or) == r && State(o)->descrip >= 0) {
                 if (isOINVIS(o))
                     ans("3m");
@@ -291,6 +294,7 @@ list_what(int r, int i)
         sys(NOWTSPECIAL);
 }
 
+void
 descobj(int Ob)
 {
     obj.states = (obtab + Ob)->states + (long)(obtab + Ob)->state;
@@ -319,6 +323,7 @@ descobj(int Ob)
     showin(Ob, NO);
 }
 
+void
 inflict(int x, int s)
 {
     you2 = linestat + x;
@@ -357,6 +362,7 @@ inflict(int x, int s)
     lighting(x, AHERE);
 }
 
+void
 cure(int x, int s)
 {
     you2 = linestat + x;
@@ -395,6 +401,7 @@ cure(int x, int s)
     lighting(x, AHERE);
 }
 
+void
 summon(int plyr)
 {
     if ((linestat + plyr)->room == me2->room) {
@@ -404,31 +411,31 @@ summon(int plyr)
     interact(MSUMMONED, plyr, me2->room);
 }
 
+void
 adestroy(int obj)
 {
-    int i;
-
     Forbid();
     loseobj(obj);
-    for (i = 0; i < (obtab + obj)->nrooms; i++)
+    for (int i = 0; i < (obtab + obj)->nrooms; i++)
         *((obtab + obj)->rmlist + i) = -1;
     (obtab + obj)->flags = (obtab + obj)->flags | OF_ZONKED;
     Permit();
 }
 
+void
 arecover(int obj)
 {
-    int i;
-
     if (State(obj)->flags & SF_LIT)
         me2->light++;
-    for (i = 0; i < (obtab + obj)->nrooms; i++)
+    for (int i = 0; i < (obtab + obj)->nrooms; i++)
         *((obtab + obj)->rmlist + i) = me2->room;
     (obtab + obj)->flags = (obtab + obj)->flags & -(1 + OF_ZONKED);
     lighting(Af, AHERE);
 }
 
-refresh() /* Restore players details! */
+// Refresh the player's stats
+void
+refresh()
 {
     if (me->strength <= 0)
         me->strength = (rktab + me->rank)->strength;
@@ -451,21 +458,20 @@ refresh() /* Restore players details! */
     calcdext();
 }
 
+void
 zapme()
 {
-    char *p;
-    int   i;
-
     Forbid();
-    p = (char *)me->name;
+    char *p = (char *)me->name;
     exeunt = 1;
-    for (i = 0; i < sizeof(usr); i++)
+    for (int i = 0; i < sizeof(usr); i++)
         *(p++) = 0;
     Permit();
     save_me();
     nohelp();
 }
 
+void
 send(int o, int to)
 {
     bool wasLit = lit(to);
@@ -476,6 +482,8 @@ send(int o, int to)
         actionin(to, acp(NOWLIGHT));
 }
 
+// Change player's gender
+void
 achange(int u)
 {
     if (u == Af) {
@@ -485,13 +493,11 @@ achange(int u)
         sendex(u, ACHANGESEX, u, NONE); /* Tell them to clear up! */
 }
 
-/*== Fixed to allow increase/decrease */
+// Fixed to allow increase/decrease
+void
 newrank(int plyr, int r)
 {
-    int or ;
-
-    or = me->rank;
-
+    int or = me->rank;
     if ((rktab + r)->tasks != 0) {
         if ((me->tasks & (1 << ((rktab + r)->tasks) - 1)) == NULL) {
             sys(NOTASK);
@@ -534,9 +540,9 @@ newrank(int plyr, int r)
     }
 }
 
+void
 aadd(int howmuch, int stat, int plyr)
 {
-    int r;
     if (howmuch < 0)
         return asub(-howmuch, stat, plyr);
     if (howmuch == 0)
@@ -549,7 +555,7 @@ aadd(int howmuch, int stat, int plyr)
             ans("1m");
             utxn(plyr, "(%ld)\n", me->score);
             ans("0;37m");
-            for (r = ranks - 1; r >= 0; r--) {
+            for (int r = ranks - 1; r >= 0; r--) {
                 if (me->score >= (rktab + r)->score) {
                     if (me->rank == r)
                         break;
@@ -585,9 +591,9 @@ aadd(int howmuch, int stat, int plyr)
         sendex(plyr, AADD, howmuch, stat, plyr); /* Tell them to clear up! */
 }
 
+void
 asub(int howmuch, int stat, int plyr)
 {
-    int r;
     if (howmuch < 0)
         return asub(-howmuch, stat, plyr);
     if (howmuch == 0)
@@ -602,7 +608,7 @@ asub(int howmuch, int stat, int plyr)
             ans("1m");
             utxn(plyr, "(%ld)\n", me->score);
             ans("0;37m");
-            for (r = 0; r < ranks - 1; r++) {
+            for (int r = 0; r < ranks - 1; r++) {
                 if (me->score < (rktab + (r + 1))->score && me->rank == r)
                     break;
                 if (me->score < (rktab + (r + 1))->score) {
@@ -652,6 +658,7 @@ asub(int howmuch, int stat, int plyr)
         sendex(plyr, ASUB, howmuch, stat, plyr); /* Tell them to clear up! */
 }
 
+void
 afix(int stat, int plyr)
 {
     if (plyr == Af) {
@@ -682,11 +689,11 @@ afix(int stat, int plyr)
         sendex(plyr, AFIX, stat, plyr, 0); /* Tell them to clear up! */
 }
 
-announce(char *s, int towho) /* Loud noises/events */
+// Loud noises/events
+void
+announce(char *s, int towho)
 {
-    int i, x;
-
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         /* If the player is deaf, ignore him */
         if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF))
             continue;
@@ -698,7 +705,7 @@ announce(char *s, int towho) /* Loud noises/events */
         if (i != Af && (linestat + i)->room != me2->room && /* --v */
             ((rmtab + (linestat + i)->room)->flags & SILENT))
             continue;
-        x = 0;
+        int x = 0;
         switch (towho) {
         case AALL:
         case AEVERY1:
@@ -727,10 +734,12 @@ announce(char *s, int towho) /* Loud noises/events */
     }
 }
 
-announcein(int toroom, char *s) /* Loud noises/events */
+// Loud noises/events
+void
+announcein(int toroom, char *s)
 {
     int i;
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         /* If the player is deaf, ignore him */
         if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF) ||
             (linestat + i)->room != toroom)
@@ -740,16 +749,18 @@ announcein(int toroom, char *s) /* Loud noises/events */
     }
 }
 
-announcefrom(int obj, char *s) /* Loud noises/events */
+// Loud noises/events
+void
+announcefrom(int obj, char *s)
 {
-    int i, o;
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         /* If the player is deaf or can see me, ignore him */
         if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF) ||
             (linestat + i)->room == me2->room)
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-        if ((o = owner(obj)) != -1 && (linestat + o)->room != (linestat + i)->room)
+		int o = owner(obj);
+        if (o != -1 && (linestat + o)->room != (linestat + i)->room)
             continue;
         if (o == -1 && isin(obj, (linestat + o)->room) == NO)
             continue;
@@ -758,15 +769,17 @@ announcefrom(int obj, char *s) /* Loud noises/events */
     }
 }
 
-objannounce(int obj, char *s) /* Loud noises/events */
+// Loud noises/events (via an object)
+void
+objannounce(int obj, char *s)
 {
-    int i, o;
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         /* If the player is deaf or can see me, ignore him */
         if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF))
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-        if ((o = owner(obj)) != -1 && (linestat + o)->room != (linestat + i)->room)
+		int o = owner(obj);
+        if (o != -1 && (linestat + o)->room != (linestat + i)->room)
             continue;
         if (o == -1 && isin(obj, (linestat + o)->room) == NO)
             continue;
@@ -775,15 +788,16 @@ objannounce(int obj, char *s) /* Loud noises/events */
     }
 }
 
-action(char *s, int towho) /* Quiet actions/notices */
+// Quiet actions/notices
+void
+action(char *s, int towho)
 {
-    int i, x;
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
         if (actor == i || ((linestat + i)->state < 2) ||
             ((linestat + i)->flags & (PFBLIND + PFASLEEP)) != 0)
             continue;
-        x = 0;
+        int x = 0;
         switch (towho) {
         case AALL:
         case AEVERY1:
@@ -812,10 +826,11 @@ action(char *s, int towho) /* Quiet actions/notices */
     }
 }
 
-actionin(int toroom, char *s) /* Quiet actions/notices */
+/* Quiet actions/notices */
+void
+actionin(int toroom, char *s)
 {
-    int i;
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
         if (actor == i || ((linestat + i)->state < PLAYING) ||
             ((linestat + i)->flags & (PFBLIND + PFASLEEP)) || (linestat + i)->room != toroom)
@@ -825,16 +840,18 @@ actionin(int toroom, char *s) /* Quiet actions/notices */
     }
 }
 
-actionfrom(int obj, char *s) /* Quiet actions/notices */
+/* Quiet actions/notices */
+void
+actionfrom(int obj, char *s)
 {
-    int i, o;
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
         if (actor == i || ((linestat + i)->state < 2) ||
             ((linestat + i)->flags & (PFBLIND + PFASLEEP)) || (linestat + i)->room == me2->room)
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-        if ((o = owner(obj)) != -1)
+		int o = owner(obj);
+        if (o != -1)
             if ((linestat + o)->room != (linestat + i)->room)
                 continue;
         if (o == -1 && isin(obj, (linestat + i)->room) == NO)
@@ -844,16 +861,18 @@ actionfrom(int obj, char *s) /* Quiet actions/notices */
     }
 }
 
-objaction(int obj, char *s) /* Quiet actions/notices */
+/* Quiet actions/notices */
+void
+objaction(int obj, char *s)
 {
-    int i, o;
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         /* If the player is asleep, or blind, skip him */
         if (actor == i || ((linestat + i)->state < 2) ||
             ((linestat + i)->flags & (PFBLIND + PFASLEEP)))
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-        if ((o = owner(obj)) != -1)
+        int o = owner(obj);
+        if (o != -1)
             if ((linestat + o)->room != (linestat + i)->room)
                 continue;
         if (o == -1 && isin(obj, (linestat + i)->room) == NO)
@@ -863,30 +882,30 @@ objaction(int obj, char *s) /* Quiet actions/notices */
     }
 }
 
+void
 fwait(long n)
 {
-    int i;
-
     if (n < 1)
         n = 1;
-    for (i = 0; i < 7; i++) {
+    for (int i = 0; i < 7; i++) {
         Delay(n * 7);
         iocheck();
     }
 }
 
+void
 ableep(int n)
 {
-    int i;
-
-    for (i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
         tx(". ");
         fwait(1);
     }
     txc('\n');
 }
 
-lighting(int x, int twho) /*== twho - tell who! */
+// twho - who to notify
+void
+lighting(int x, int twho)
 {
     if ((linestat + x)->light == (linestat + x)->hadlight ||
         !((rmtab + (linestat + x)->room)->flags & DARK))
@@ -906,30 +925,30 @@ lighting(int x, int twho) /*== twho - tell who! */
     }
 }
 
-loseobj(int obj) /* Remove object from its owners inventory */
+/* Remove object from its owners inventory */
+void
+loseobj(int obj)
 {
-    int o, i;
-
     objtab = obtab + obj;
 
-    if ((o = owner(obj)) != -1) {
-        for (i = 0; i < objtab->nrooms; i++)
+	int o = owner(obj);
+    if (o != -1) {
+        for (int i = 0; i < objtab->nrooms; i++)
             *(objtab->rmlist + i) = -1;
         rem_obj(o);
         lighting(o, AHERE);
     }
 }
 
+void
 nohelp()
 {
-    int i;
-
     if (me2->helping != -1)
         utx(me2->helping, "@me is no-longer able to help you...\n");
     (linestat + me2->helping)->helped--;
     me2->helping = -1;
     you2 = linestat;
-    for (i = 0; i < MAXU; i++, you2++)
+    for (int i = 0; i < MAXU; i++, you2++)
         if (you2->helping == Af) {
             utx(i, "You are no longer able to help @me.\n");
             you2->helping = -1;
@@ -937,8 +956,13 @@ nohelp()
     me2->helping = me2->helped = -1;
 }
 
-aforce(int x, char *cmd) { DoThis(x, cmd, 0); }
+void
+aforce(int x, char *cmd)
+{
+	DoThis(x, cmd, 0);
+}
 
+void
 afight(int plyr)
 {
     if (plyr == Af)
@@ -965,6 +989,7 @@ afight(int plyr)
     Permit();
 }
 
+void
 clearfight()
 {
     Forbid();
@@ -975,6 +1000,7 @@ clearfight()
     Permit();
 }
 
+void
 finishfight(int plyr)
 {
     you2 = linestat + plyr;
@@ -982,8 +1008,10 @@ finishfight(int plyr)
     you2->fighting = -1;
 }
 
+void
 acombat()
-{ /* Check this out for Stats!!
+{
+/* Check this out for Stats:
 To hit:  Str=40 Exp=50 Dext=10
 Defence: Dext=70 Exp=20 Str=10
 No hits: Players level different by 2 double attacks etc.
@@ -1105,12 +1133,10 @@ attack/defence. */
     }
 }
 
+void
 exits()
 {
-    int    v, i, maxl, x, ac, brk, l;
-    struct _TT_ENT *tp, *otp;
-    int             c, a;
-    long *          pptr;
+    int    ac;
 
     roomtab = rmtab + me2->room;
     if (roomtab->tabptr == -1) {
@@ -1119,29 +1145,28 @@ exits()
     }
 
     vbptr = vbtab;
-    x = 0;
-    c = tt.condition;
-    a = tt.action;
-    otp = ttabp;
-    pptr = tt.pptr;
+    int c = tt.condition;
+    int a = tt.action;
+    struct _TT_ENT *otp = ttabp;
+    long *pptr = tt.pptr;
 
-    for (v = 0; v < verbs; v++, vbptr++) {
+    for (int v = 0; v < verbs; v++, vbptr++) {
         if (vbptr->flags & VB_TRAVEL)
             continue; /* Not a trav verb */
 
         roomtab = rmtab + me2->room;
-        l = -1;
-        maxl = roomtab->ttlines;
-        tp = ttp + roomtab->tabptr;
-        brk = 0;
-        for (i = 0; i < maxl && brk == 0; i++) {
+        int l = -1;
+        int maxl = roomtab->ttlines;
+        struct _TT_ENT *tp = ttp + roomtab->tabptr;
+        bool brk { false };
+        for (int i = 0; i < maxl && !brk; i++) {
             ttabp = tp + i;
             tt.condition = ttabp->condition;
             tt.pptr = ttabp->pptr;
             if (ttabp->verb == v && (l = cond(ttabp->condition, l)) != -1) {
                 if (ttabp->action >= 0) {
                     txs("%-10s ", vbptr->id);
-                    brk = 1;
+                    brk = true;
                     roomtab = rmtab + (ttabp->action);
                     if (roomtab->flags & DEATH)
                         sys(CERTDEATH);
@@ -1173,17 +1198,17 @@ exits()
     ttabp = otp;
 }
 
+int
 isaroom(char *s)
 {
-    int r;
-
     roomtab = rmtab;
-    for (r = 0; r < rooms; r++, roomtab++)
+    for (int r = 0; r < rooms; r++, roomtab++)
         if (stricmp(roomtab->id, s) == 0)
             return r;
     return -1;
 }
 
+void
 follow(int x, char *cmd)
 {
     lockusr(x);
@@ -1200,6 +1225,7 @@ follow(int x, char *cmd)
     (linestat + x)->IOlock = -1;
 }
 
+void
 log(char *s)
 {
     ioproc(s);
@@ -1214,22 +1240,25 @@ log(char *s)
     SendIt(MLOG, NULL, ow);
 }
 
-PutRankInto(char *s) { PutARankInto(s, Af); }
+void
+PutRankInto(char *s)
+{
+	PutARankInto(s, Af);
+}
 
+void
 PutARankInto(char *s, int x)
 {
-    char *p;
-
     you = (usr + x);
     you2 = (linestat + x);
 
     if (you2->pre[0] != 0) {
-        p = you2->pre;
+        char *p = you2->pre;
         while (*p != 0)
             *(s++) = *(p++);
         *(s++) = ' ';
     }
-    p = (you->sex == 0) ? (rktab + you->rank)->male : (rktab + you->rank)->female;
+    char *p = (you->sex == 0) ? (rktab + you->rank)->male : (rktab + you->rank)->female;
     while (*p != 0)
         *(s++) = *(p++);
     if (you2->post[0] != 0) {
@@ -1242,6 +1271,7 @@ PutARankInto(char *s, int x)
     *s = 0;
 }
 
+void
 akillme()
 {
     if (me2->fighting != -1)
@@ -1258,6 +1288,7 @@ akillme()
     ans("0;37m");
 }
 
+void
 show_tasks(int p)
 {
     sprintf(block, "Tasks completed by ");
@@ -1286,23 +1317,20 @@ show_tasks(int p)
     tx(block);
 }
 
-dropall(int torm) /* Drop everything to a room */
+/* Drop everything to a room */
+void
+dropall(int torm)
 {
-    int i;
-
-    for (i = 0; i < nouns && me2->numobj > 0; i++)
+    for (int i = 0; i < nouns && me2->numobj > 0; i++)
         if (*(obtab + i)->rmlist == -(5 + Af))
             adrop(i, torm, NO);
     me2->numobj = 0;
 }
 
+void
 invent(int plyr)
 {
-    int   i, pr, j;
-    char *p;
-
-    p = block + strlen(block);
-
+    char *p = block + strlen(block);
     strcpy(p, "carrying ");
     *(p += 9) = 0;
     if ((linestat + plyr)->numobj == 0) {
@@ -1311,9 +1339,9 @@ invent(int plyr)
         return;
     }
     objtab = obtab;
-    j = 0;
-    pr = -(5 + plyr);
-    for (i = 0; i < nouns; i++, objtab++)
+    int j = 0;
+    int pr = -(5 + plyr);
+    for (int i = 0; i < nouns; i++, objtab++)
         if (*objtab->rmlist == pr && canseeobj(i, Af) == YES) {
             if (j++ != 0)
                 strcat(p, ", ");
@@ -1328,6 +1356,7 @@ invent(int plyr)
     tx(block);
 }
 
+void
 ascore(int type)
 {
     calcdext();
@@ -1369,6 +1398,7 @@ ascore(int type)
     }
 }
 
+void
 calcdext()
 {
     me2->dext = (rktab + me->rank)->dext;
@@ -1394,10 +1424,10 @@ calcdext()
     me2->dext += me2->dextadj;
 }
 
+void
 toprank()
 {
-    int i;
-    for (i = 0; i < ranks - 1; i++) {
+    for (int i = 0; i < ranks - 1; i++) {
         if ((rktab + i)->tasks != 0) {
             me->tasks = me->tasks | (1 << ((rktab + i)->tasks - 1));
         }
@@ -1405,6 +1435,7 @@ toprank()
     aadd((rktab + ranks - 1)->score - me->score + 1, STSCORE, Af);
 }
 
+void
 damage(int obj, int howmuch)
 {
     objtab = obtab + obj;
@@ -1421,6 +1452,7 @@ damage(int obj, int howmuch)
     }
 }
 
+void
 repair(int obj, int howmuch)
 {
     objtab = obtab + obj;

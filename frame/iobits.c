@@ -1,18 +1,20 @@
+void
 iocheck()
 {
     REALiocheck();
     addcr = NO;
 }
 
+void
 REALiocheck()
 {
     int   i;
-    long  t, d, f;
+    long  d, f;
     char *pt;
-    int            p[4];
+    int   p[4];
 
 loopit:
-    t = 0;
+    long t = 0;
     if ((ap = (struct Aport *)GetMsg(repbk)) != NULL) {
         t = ap->type;
         ReleaseMem(&ap);
@@ -30,7 +32,8 @@ loopit:
         sys(RESETSTART);
         if (MyFlag == am_USER) {
             fopenr("reset.txt");
-            do /*  Print the Reset Text */
+			//  Print the Reset Text
+            do
             {
                 i = fread(block, 1, 800, ifp);
                 block[i] = 0;
@@ -149,6 +152,7 @@ voila:
     goto loopit; /* Check for further messages */
 }
 
+void
 lockusr(int u)
 {
     long t, d, p;
@@ -167,12 +171,10 @@ lockusr(int u)
     Ap = (char *)p;
 }
 
+char *
 ioproc(char *s)
 {
-    char *p;
-
-    p = ow;
-
+    char *p = ow;
 lp:
     if (*s == 0) {
         *p = 0;
@@ -186,11 +188,11 @@ lp:
     goto lp;
 }
 
-esc(char *p, char *s) /* Find @ escape sequences */
+/* Find @ escape sequences */
+int
+esc(char *p, char *s)
 {
-    char c;
-
-    c = tolower(*(p + 1));
+    char c = tolower(*(p + 1));
     switch (tolower(*p)) {
     case 'm':
         switch (c) {
@@ -358,6 +360,7 @@ esc(char *p, char *s) /* Find @ escape sequences */
     }
 }
 
+void
 interact(int msg, int n, int d)
 {
     if ((linestat + n)->state < PLAYING)
@@ -377,6 +380,7 @@ interact(int msg, int n, int d)
     PutMsg((linestat + n)->rep, (struct Message *)intam);
 }
 
+void
 sendex(int n, int d, int p1, int p2, int p3, int p4)
 {
     if ((linestat + n)->state < PLAYING)

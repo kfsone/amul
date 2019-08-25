@@ -1,3 +1,4 @@
+void
 reset()
 {
     SendIt(MDATAREQ, 0, dir); /* Get basic data */

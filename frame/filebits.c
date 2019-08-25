@@ -1,12 +1,18 @@
 /* What to do when ^C pressed */ 
-CXBRK() { return 0; }
+int
+CXBRK()
+{
+	return 0;
+}
 
+void
 memfail(char *s)
 {
     txs("** Unable to allocate memory for %s! **\n", s);
     quit();
 }
 
+void
 givebackmemory()
 {
     if (repbk != NULL)
@@ -26,6 +32,7 @@ givebackmemory()
         DeleteExtIO((struct IORequest *)wserio);
 }
 
+void
 fopenr(char *s)
 {
     if (ifp != NULL)
@@ -38,6 +45,7 @@ fopenr(char *s)
     }
 }
 
+void
 fopena(char *s)
 {
     if (afp != NULL)
@@ -50,6 +58,7 @@ fopena(char *s)
     }
 }
 
+void
 close_ofps()
 {
     if (ofp1 != NULL)
@@ -61,6 +70,7 @@ close_ofps()
     ofp1 = ofp2 = ofp3 = NULL;
 }
 
+void
 kquit(char *s)
 {
     sprintf(block, "@me just dropped carrier.\n");
@@ -68,6 +78,7 @@ kquit(char *s)
     quit();
 }
 
+void
 quit()
 {
     txs("\n%s exiting.\n\n", vername);
@@ -83,6 +94,7 @@ quit()
     exit(0);
 }
 
+void
 SendIt(int t, int d, char *p)
 {
     if (link == 0)
@@ -103,12 +115,12 @@ SendIt(int t, int d, char *p)
     Ap4 = Apx4;
 }
 
+void
 pressret()
 {
-    int l;
     sys(RETURN);
     Inp(block, 0);
-    l = strlen(umsgp + *(umsgip + RETURN));
+    int l = strlen(umsgp + *(umsgip + RETURN));
     while (l > 0) {
         txc(8);
         txc(32);
@@ -117,22 +129,26 @@ pressret()
     }
 }
 
-sys(int n) { tx(umsgp + *(umsgip + n)); }
+void
+sys(int n)
+{
+	tx(umsgp + *(umsgip + n));
+}
 
+void
 crsys(int n)
 {
     txc('\n');
     tx(umsgp + *(umsgip + n));
 }
 
+void
 timeto(char *s, long secs)
 {
-    int x, y;
-
     if (secs >= 3600) /* More than an hour */
     {
-        x = secs / 3600;       /* Hours */
-        y = secs - (x * 3600); /* Minutes & seconds */
+        int x = secs / 3600;       /* Hours */
+        int y = secs - (x * 3600); /* Minutes & seconds */
         if (y < 60)            /* Upto 1 minute? */
         {
             sprintf(s, "%ld %s, %ld %s", x, (x > 1) ? "hours" : "hour", y,
@@ -144,8 +160,8 @@ timeto(char *s, long secs)
                 (y > 1) ? "minutes" : "minute");
         return;
     }
-    x = secs / 60;
-    y = secs - (x * 60);
+    int x = secs / 60;
+    int y = secs - (x * 60);
     if (x == 0 && y == 0)
         strcpy(s, "now");
     if (x != 0 && y == 0)

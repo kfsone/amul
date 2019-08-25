@@ -5,9 +5,10 @@
 
 short int start_rm[512];
 
+void
 getid()
 {
-    int   i, ok, nrs;
+    int   i, nrs;
     FILE *fp;
 
     iverb = iadj1 = inoun1 = iprep = iadj2 = inoun2 = actor = -1;
@@ -19,9 +20,7 @@ getid()
 
     me2->rec = -1;
     me2->flags = 0;
-    do {
-        ok = -1;
-
+    while (!ok) {
         getname();
 
         strcpy(him.name, block);
@@ -47,7 +46,7 @@ getid()
             ok = newid();
         else
             ok = getpasswd();
-    } while (ok != 0);
+    }
 
     /* Inform AMAN that we have begun! */
     SendIt(MLOGGED, 0, me->name);
@@ -104,6 +103,7 @@ loop:
     look(roomtab->id, me->rdmode);
 }
 
+void
 getname()
 {
     char *p;
@@ -138,17 +138,16 @@ getname()
     } while (word != -2);
 }
 
+bool
 newid()
 {
-    int i;
-
     strcpy(me->name, him.name);
     sys(CREATE);
     *me->name = 0;
     block[0] = 0;
     Inp(block, 3);
     if (toupper(block[0]) != 'Y')
-        return -1;
+        return false;
 
     me->score = 0;
     me->plays = 1;
@@ -186,7 +185,7 @@ newid()
     strcpy(me->passwd, block);
 
     me->name[0] = toupper(me->name[0]);
-    for (i = 1; i < strlen(me->name); i++) {
+    for (int i = 1; i < strlen(me->name); i++) {
         if (me->name[i - 1] == ' ')
             me->name[i] = toupper(me->name[i]);
         else
@@ -208,21 +207,21 @@ newid()
 
     crsys(YOUBEGIN);
     txc('\n');
-    return 0;
+
+    return true;
 }
 
+bool
 getpasswd()
 {
-    int i;
-
     me2->rec--; /* Move 'back' a record */
 
-    for (i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
         if (i == 3) {
             sys(TRIESOUT); /* Update bad try count */
             me->tries++;
             save_me();
-            return quit();
+            quit();
         }
         txn("\nTry #%d -- ", i + 1);
         sys(ENTERPASSWD);
@@ -241,5 +240,5 @@ getpasswd()
         ans("0;37m");
     }
     me->tries = 0;
-    return 0;
+    return true;
 }

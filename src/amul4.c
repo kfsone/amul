@@ -20,12 +20,40 @@
 
 #include "frame/amulinc.h"
 
-long minop; /* Mobiles in operation */
-
-Special_Proc() /* Special Processor core */
+/* Daemon processing host */
+void
+Daem_Proc()
 {
-    int i;
+    printf("-- Daemon processor loaded\n");
+    /* Setup Mobile bits & pieces */
+    /* Whats the highest travel verb number? */
+	long lastt = -1;
+    for (i = 0; i < verbs; i++)
+        if (!(vbptr->flags & VB_TRAVEL))
+            lastt = i;
 
+    for ( ; ; ) {
+        Wait(-1);
+        iocheck();
+    }
+}
+
+void
+Mobile_Proc()
+{
+    printf("-- Mobile processor loaded\n");
+
+	// Not implemented.
+	for ( ; ; ) {
+		Wait(-1);
+		iocheck();
+	}
+}
+
+// Special Processor core
+void
+Special_Proc()
+{
     if (ifp != NULL)
         fclose(ifp);
     ifp = NULL;
@@ -35,30 +63,15 @@ Special_Proc() /* Special Processor core */
     switch (MyFlag) /* What type of processor ? */
     {
     case am_DAEM: /* Execute the boot-up daemon */
-        if ((i = isverb("\"boot")) != -1)
+        if (int i = isverb("\"boot"); i != -1)
             lang_proc(i, 0);
         Daem_Proc(); /* Daemon Processor */
+		break;
     case am_MOBS:
-        printf("-- Mobile processor loaded\n");
+		Mobile_Proc();
     default:
         printf("-- Unsupported special processor requested\n");
     }
     quit(); /* Don't go anywhere */
 }
 
-Daem_Proc() /* Daemon processing host */
-{
-    long         lastt;
-    int i, ded, next;
-
-    /* Setup Mobile bits & pieces */
-    /* Whats the highest travel verb number? */
-    for (i = 0; i < verbs; i++)
-        if (!(vbptr->flags & VB_TRAVEL))
-            lastt = i;
-
-    do {
-        Wait(-1);
-        iocheck();
-    } while (1 == 1);
-}

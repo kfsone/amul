@@ -1,31 +1,28 @@
 /* Phrase/sentance processing */
 
+int
 ttproc()
 {
-    int             i, match, dun, l;
-    struct _TT_ENT *tp;
-
     exeunt = died = donet = skip = 0;
     failed = NO;
     roomtab = rmtab + me2->room;
-    l = -1;
+    int l = -1;
     tt.verb = iverb;
     if (roomtab->tabptr == -1) {
         sys(CANTGO);
         return 0;
     }
-    dun = -1;
+    int dun = -1;
     ml = roomtab->ttlines;
-    tp = ttp + roomtab->tabptr;
+    struct _TT_ENT *tp = ttp + roomtab->tabptr;
 
     iocheck();
     if (forced != 0 || died != 0 || exeunt != 0)
         return 0;
 more:
-    i = donet;
-    for (i = donet; i < ml; i++) {
+    for (int i = donet; i < ml; i++) {
         ttabp = tp + i;
-        match = -1;
+        int match = -1;
         donet++;
         tt.pptr = ttabp->pptr;
         if (skip != 0) {
@@ -56,6 +53,7 @@ more:
     return 0;
 }
 
+void
 act(long ac, long *pt)
 {
     long x1, x2;
@@ -292,12 +290,12 @@ act(long ac, long *pt)
         donet = ml + 1;
 }
 
-cond(long n, int l) /* Execute a condition on me */
+// Execute a condition on me
+int
+cond(long n, int l)
 {
-    int mult, ret, i;
-
-    mult = 1;
-    ret = 1;
+    int mult = 1;
+    int ret = 1;
     tt.condition = (n < 0) ? -1 - n : n;
     if (n < 0) {
         n = -1 - n;
@@ -368,12 +366,12 @@ cond(long n, int l) /* Execute a condition on me */
             ret = -1;
         break;
     case CONLYUSER:
-        for (i = 0; i < MAXU; i++)
+        for (int i = 0; i < MAXU; i++)
             if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1)
                 ret = -1;
         break;
     case CALONE:
-        for (i = 0; i < MAXU; i++)
+        for (int i = 0; i < MAXU; i++)
             if (((linestat + i)->room == me2->room) && i != Af)
                 ret = -1;
         break;
@@ -390,7 +388,7 @@ cond(long n, int l) /* Execute a condition on me */
             ret = -1;
         break;
     case CCARRYING:
-        if (gotin(CP1, -1) == NO)
+        if (!gotin(CP1, -1))
             ret = -1;
         break;
     case CNEARTO:
@@ -423,7 +421,7 @@ cond(long n, int l) /* Execute a condition on me */
             ret = -1;
         break;
     case CGOTA:
-        if (gotin(CP1, CP2) == NO)
+        if (!gotin(CP1, CP2))
             ret = -1;
         break;
     case CACTIVE:
@@ -571,12 +569,11 @@ cond(long n, int l) /* Execute a condition on me */
     return mult * ret;
 }
 
+int
 type(char **s)
 {
-    char *p, *p2;
-
 strip:
-    p = *s;
+    char *p = *s;
     while (isspace(*p))
         p++;
     *s = p;
@@ -644,7 +641,7 @@ strip:
     if (*p == '\"' || *p == '\'') {
         char c;
         c = *p;
-        p2 = ++p;
+        char *p2 = ++p;
         word = (int)p;
         while (*p2 != 0 && *p2 != c)
             p2++;
@@ -728,6 +725,7 @@ strip:
     return -2; /* Unknown */
 }
 
+int
 actual(unsigned long n)
 {
     if (n & RAND0)
@@ -783,6 +781,7 @@ actual(unsigned long n)
     return (int)n;
 }
 
+int
 actptr(unsigned long n)
 {
     if (n == -1 || n == -2)
@@ -797,14 +796,13 @@ actptr(unsigned long n)
     return (int)umsgp + *(umsgip + n);
 }
 
+void
 deduct(int plyr, int howmuch)
 {
-    int amount;
-
     if (howmuch < 0)
         return;
     if (plyr == Af) {
-        amount = me->score * howmuch / 100;
+        int amount = me->score * howmuch / 100;
         asub(amount, STSCORE, Af);
     } else
         sendex(plyr, ADEDUCT, plyr, howmuch, 0, 0); /* Tell them to clear up! */

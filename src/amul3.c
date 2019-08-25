@@ -64,19 +64,23 @@ short int           rset, rclr, ip, csyn;             /* Masks for Room Counter 
 
 /*===============Stuff that didn't fit into AMUL any more==================*/
 
+void
 ans(char *s)
 {
     if (me->flags & ufANSI)
         txs("[%s", s);
 }
 
+void
 asave()
 {
     save_me();
     txn(acp(SAVED), me->score);
 }
 
-save_me() /* Update my record. */
+// Update my record.
+void
+save_me()
 {
     if (me->score < 0)
         me->score = 0;
@@ -87,6 +91,7 @@ save_me() /* Update my record. */
     afp = NULL;
 }
 
+void
 aquit()
 {
     sys(REALLYQUIT);
@@ -103,17 +108,16 @@ aquit()
 /*== This must abide FULLY by INVIS & INVIS2... Should we make it so that
      visible players can't see an invisible players entry, they can just
      see that they're here?						  */
+void
 whohere()
 {
-    int i;
-
     if (!lit(me2->room))
         return;
     if (((rmtab + me2->room)->flags & HIDE) != NULL && me->rank != ranks - 1) {
         sys(WHO_HIDE);
         return;
     }
-    for (i = 0; i < MAXU; i++) {
+    for (int i = 0; i < MAXU; i++) {
         if (i != Af && cansee(Af, i) == YES && !((linestat + i)->flags & PFMOVING)) {
             PutARankInto(str, i);
             sprintf(block, acp(ISHERE), (usr + i)->name, str);
@@ -134,12 +138,11 @@ whohere()
     }
 }
 
+void
 awho(int type)
 {
-    int i, j;
-
     if (type == TYPEV) {
-        for (i = 0; i < MAXU; i++)
+        for (int i = 0; i < MAXU; i++)
             if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1 &&
                 (!((linestat + i)->flags & PFSINVIS))) {
                 str[0] = 0;
@@ -160,9 +163,9 @@ awho(int type)
                 tx(str);
             }
     } else {
-        j = 0;
+        int j = 0;
         str[0] = 0;
-        for (i = 0; i < MAXU; i++)
+        for (int i = 0; i < MAXU; i++)
             if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1 &&
                 (!((linestat + i)->flags & PFSINVIS))) {
                 if (i != Af) {
@@ -182,7 +185,9 @@ awho(int type)
     }
 }
 
-flagbits() /* Get the users flag bits */
+// Get the users flag bits
+void
+flagbits()
 {
     me->llen = DLLEN;
     me->slen = DSLEN;
@@ -204,6 +209,7 @@ flagbits() /* Get the users flag bits */
     save_me();
 }
 
+void
 getllen()
 {
     sprintf(input, "%ld %s", me->llen, "characters");
@@ -217,6 +223,7 @@ getllen()
     tx(str);
 }
 
+void
 getslen()
 {
     sprintf(input, "%ld %s", me->slen, "lines");
@@ -230,10 +237,10 @@ getslen()
     tx(str);
 }
 
+void
 getrchar()
 {
-    char rchar;
-    rchar = me->rchar;
+    char rchar = me->rchar;
     me->rchar = 0;
     sprintf(input, "currently \"%c\"", rchar);
     sprintf(str, "\nEnter %s%s[%s]: ", "redo-character", " ", input);
@@ -253,6 +260,7 @@ getrchar()
     tx(str);
 }
 
+void
 getflags()
 {
     tx("Follow CR with a Line Feed? ");
@@ -316,6 +324,7 @@ getflags()
  *
  ******************************************************************************/
 
+int
 numb(long x, long n)
 {
     if (n == x) {
@@ -372,6 +381,7 @@ numb(long x, long n)
  *
  */
 
+void
 atreatas(ULONG verbno)
 {
     donet = 0;
@@ -404,12 +414,12 @@ atreatas(ULONG verbno)
  *
  */
 
+void
 afailparse()
 {
     donet = ml + 1;
     ml = -1;
     failed = YES;
-    return;
 }
 
 /****** amul3.c/afinishparse ******************************************
@@ -428,7 +438,10 @@ afailparse()
  *
  */
 
-afinishparse() { return; }
+void
+afinishparse()
+{
+}
 
 /****** amul3.c/aabortparse ******************************************
  *
@@ -446,6 +459,7 @@ afinishparse() { return; }
  *
  */
 
+void
 aabortparse()
 {
     donet = ml + 1;
@@ -480,22 +494,19 @@ aabortparse()
  *
  */
 
+void
 ado(int verb)
 {
-    long                 old_ml, old_donet, old_verb, old_ttv, old_rm;
-    struct _TT_ENT *     old_ttabp;
-    struct _VERB_STRUCT *ovbptr;
-    struct _SLOTTAB *    ostptr;
-
-    old_ml = ml;
-    old_donet = donet;
-    old_verb = iverb;
+	// context snapshot
+    long old_ml = ml;
+    long old_donet = donet;
+    long old_verb = iverb;
     iverb = verb;
-    old_ttv = tt.verb;
-    old_rm = me2->room;
-    old_ttabp = ttabp;
-    ovbptr = vbptr;
-    ostptr = stptr;
+    long old_ttv = tt.verb;
+    long old_rm = me2->room;
+    struct _TT_ENT *old_ttabp = ttabp;
+    struct _VERB_STRUCT *ovbptr = vbptr;
+    struct _SLOTTAB *ostptr = stptr;
 
     lang_proc(verb, 1);
 
@@ -548,9 +559,11 @@ ado(int verb)
  *
  */
 
-add_obj(int to) /*== Add an object into a players inventory */
+// Add an object into a players inventory
+void
+add_obj(int to)
 {
-    *objtab->rmlist = -(5 + to); /* It now belongs to him */
+    *objtab->rmlist = -(5 + to);  // It now belongs to the player
     (linestat + to)->numobj++;
     (linestat + to)->weight += STATE->weight;
     (linestat + to)->strength -= ((rktab + (usr + to)->rank)->strength * STATE->weight) /
@@ -590,7 +603,9 @@ add_obj(int to) /*== Add an object into a players inventory */
  *
  */
 
-rem_obj(int to, int ob) /*== Remove object from inventory */
+// Remove object from inventory
+void
+rem_obj(int to, int ob)
 {
     (linestat + to)->numobj--;
     (linestat + to)->weight -= STATE->weight;
@@ -634,12 +649,12 @@ rem_obj(int to, int ob) /*== Remove object from inventory */
  *
  */
 
+void
 ainteract(int who)
 {
     actor = -1;
-    if ((linestat + who)->state != PLAYING)
-        return;
-    actor = who;
+    if ((linestat + who)->state == PLAYING)
+    	actor = who;
 }
 
 /****** AMUL3.C/asyntax ******************************************
@@ -678,6 +693,7 @@ ainteract(int who)
  *
  */
 
+void
 asyntax(int n1, int n2)
 {
     unsigned long t1, t2;
@@ -803,14 +819,9 @@ asyntax(int n1, int n2)
  *
  */
 
-iocopy(char *Dest, char *Source, unsigned long Max)
-{
-    ioproc(Source);
-    qcopy(Dest, Source, Max);
-}
-
 /* -- Quick copy - used by iocopy and others -- */
 
+void
 qcopy(char *p2, char *p, int max)
 {
     int i;
@@ -819,6 +830,13 @@ qcopy(char *p2, char *p, int max)
         *(p2++) = *(p++);
     *p2 = 0;
     Permit();
+}
+
+void
+iocopy(char *Dest, char *Source, unsigned long Max)
+{
+    ioproc(Source);
+    qcopy(Dest, Source, Max);
 }
 
 /****** AMUL3.C/DoThis ******************************************
@@ -848,6 +866,7 @@ qcopy(char *p2, char *p, int max)
  *
  */
 
+void
 DoThis(int x, char *cmd, short int type)
 {
     lockusr(x);
@@ -883,6 +902,7 @@ DoThis(int x, char *cmd, short int type)
  *
  */
 
+void
 StopFollow()
 {
     Forbid();
@@ -902,7 +922,126 @@ StopFollow()
     me2->following = -1;
 }
 
-#include "frame/internal.c" /* Internal Command processor */
+/****** AMUL3.C/internal ******************************************
+ *
+ *   NAME
+ *	internal -- process internal control command.
+ *
+ *   SYNOPSIS
+ *	internal( Command )
+ *
+ *	void internal( BYTE );
+ *
+ *   FUNCTION
+ *	Processes an internal-command string pointed to by Command. Options
+ *	available are listed below.
+ *
+ *   INPUTS
+ *	Command - points to an ASCIZ string containing a command sequence.
+ *		available commands are:
+ *			?		Displays available commands.
+ *			p [password]	Change users password
+ *			lf [on|off]	Toggles linefeeds on/off
+ *			ar [on|off]	Toggles auto-redo on/off
+ *			r <redo char>	Changes users redo-char
+ *			mN <macro>	Changes macro #N (n=1-4)
+ *			ansi [on|off]	Toggles ANSI on/off for the user
+ *			llen <line len>	Changes users line-length
+ *			plen <page len>	Changes users page-length
+ *
+ ******************************************************************************
+ *
+ */
+
+void
+internal(char *s)
+{
+    if (*s == '?') {
+        tx("AMULEd v0.5 - All commands prefixed with a \"/\"\n\n");
+        tx(" /?\tDisplays this list\n");
+        tx(" /p\tChange password\n");
+        tx(" /lf\tToggle linefeeds on/off\n");
+        tx(" /ar\tToggle auto-redo on/off\n");
+        tx(" /r\tSet redo-character\n");
+        tx(" /mN\tSet macro #N (n=1-4)\n");
+        tx(" /an\tToggle ANSI on/off\n");
+        tx(" /x\tSet line-length\n");
+        tx(" /y\tSet page-length\n\n");
+        return;
+    }
+
+    char *p = s;
+    while (*p != 0) {
+        *p = tolower(*p);
+        p++;
+    }
+
+    if (*s == 'r') {
+        getrchar();
+        return;
+    }
+    if (*s == 'x') {
+        getllen();
+        return;
+    }
+    if (*s == 'y') {
+        getslen();
+        return;
+    }
+
+    if (*s == 'l') {
+        me->flags = me->flags ^ ufCRLF;
+        txs("LineFeed follows carriage return %sABLED.\n", (me->flags & ufCRLF) ? "EN" : "DIS");
+        return;
+    }
+
+    if (*s == 'a') {
+        switch (*(s + 1)) {
+        case 'n':
+            me->flags = me->flags ^ ufANSI;
+            ans("1m");
+            txs("ANSI control codes now %sABLED.\n", (me->flags & ufANSI) ? "EN" : "DIS");
+            ans("0;37m");
+            save_me();
+            return;
+        }
+    }
+
+    if (*s == 'p') {
+        tx("Enter old password  : ");
+        Inp(input, 250);
+        if (input[0] == 0) {
+            tx("Cancelled.\n");
+            return;
+        }
+        if (stricmp(input, me->passwd) != NULL) {
+            tx("Invalid password.\n");
+            return;
+        }
+        tx("Enter new password  : ");
+        Inp(input, 250);
+        if (input[0] == 0) {
+            tx("Cancelled.\n");
+            return;
+        }
+        if (stricmp(input, me->passwd) == NULL) {
+            tx("Passwords are the same.\n");
+            return;
+        }
+        tx("Confirm new password: ");
+        Inp(block, 250);
+        if (stricmp(input, block) != NULL) {
+            tx("Passwords did not match.\n");
+            return;
+        }
+        strcpy(me->passwd, input);
+        tx("Password changed.\n");
+        save_me();
+        return;
+    }
+
+    tx("Invalid internal command. Type /? for list of commands.\n");
+}
 
 /****** AMUL3.C/LoseFollower ******************************************
  *
@@ -923,6 +1062,7 @@ StopFollow()
  *
  */
 
+void
 LoseFollower()
 {
     if (me2->followed == -1)
@@ -967,11 +1107,9 @@ LoseFollower()
  *
  */
 
+void
 ShowFile(char *s)
 {
-    long  fsize;
-    char *p;
-
     if (ifp != NULL)
         fclose(ifp);
     sprintf(block, "%s%s.txt", dir, s);
@@ -990,9 +1128,10 @@ ShowFile(char *s)
     return;
 show:
     fseek(ifp, 0, 2L);
-    fsize = ftell(ifp);
+    long fsize = ftell(ifp);
     fseek(ifp, 0, 0L);
-    if ((p = (char *)AllocateMemAllocMem(fsize + 2)) == NULL) {
+	char *p = (char *)AllocMem(fsize + 2);
+    if (p == NULL) {
         txs("\n--+ \x07System memory too low, exiting! +--\n");
         forced = 1;
         exeunt = 1;
@@ -1036,13 +1175,12 @@ show:
  *
  */
 
-scaled(long value, short int flags) /* Scale an object value */
+int
+scaled(long value, short int flags)
 {
-    int scalefactor;
-
     if (!(flags & SF_SCALED))
         return value;
-    scalefactor =
+    int scalefactor =
             ((rscale * me->rank * 100 / ranks) + (tscale * *rescnt * 100 / (mins * 60))) / 100;
     return value - (value * scalefactor / 100);
 }
@@ -1073,17 +1211,15 @@ scaled(long value, short int flags) /* Scale an object value */
  *
  */
 
-showin(int o, int mode) /* Show contents of object */
+void
+showin(int o, int mode)
 {
-    int   i, j, k, l;
-    char *p, *s;
-
     if (State(o)->flags & SF_OPAQUE && mode == NO) {
         tx(str);
         txc('\n');
         return;
     }
-    p = str + strlen(str);
+    char *p = str + strlen(str);
     if ((obtab + o)->inside <= 0) {
         if (mode == YES) {
             if ((obtab + o)->putto == 0)
@@ -1103,17 +1239,17 @@ showin(int o, int mode) /* Show contents of object */
         sprintf(p, "%s the %s you find: ", obputs[(obtab + o)->putto], (obtab + o)->id);
     p += strlen(p);
 
-    j = 0;
-    k = -(INS + o);
-    l = (obtab + o)->inside;
-    for (i = 0; i < nouns && l > 0; i++) {
+    int j = 0;
+    int k = -(INS + o);
+    int l = (obtab + o)->inside;
+    for (int i = 0; i < nouns && l > 0; i++) {
         if (*(obtab + i)->rmlist != k)
             continue;
         if (j != 0) {
             *(p++) = ',';
             *(p++) = ' ';
         }
-        s = (obtab + i)->id;
+        char *s = (obtab + i)->id;
         while (*s != 0)
             *(p++) = *(s++);
         *p = 0;
@@ -1150,7 +1286,8 @@ showin(int o, int mode) /* Show contents of object */
  *
  */
 
-stfull(int st, int p) /* full <st> <player> */
+int
+stfull(int st, int p)
 {
     you = (usr + p);
     you2 = (linestat + p);
@@ -1211,19 +1348,19 @@ stfull(int st, int p) /* full <st> <player> */
  *
  */
 
+void
 asetstat(int obj, int stat)
 {
-    char j, x, w, f;
-
     objtab = obtab + obj;
-    x = owner(obj);
+    int x = owner(obj);
     bool wasLit = lit(loc(obj));
     /* Remove from owners inventory */
+	int w = -1;
     if (x != -1) {
         w = (linestat + x)->wield;
         rem_obj(x, obj);
     }
-    f = STATE->flags & SF_LIT;
+    int f = STATE->flags & SF_LIT;
     objtab->state = stat;
     if (objtab->flags & OF_SHOWFIRE) {
         if (f == 0)
@@ -1254,18 +1391,15 @@ asetstat(int obj, int stat)
     }
 }
 
+void
 awhere(int obj)
 {
-    int   i, j, found, k;
-    long *rp;
-
-    found = -1;
-    for (i = 0; i < nouns; i++) /* Check all */
-    {
+    bool found { false };
+    for (int i = 0; i < nouns; i++) {
         if (stricmp((obtab + obj)->id, (obtab + i)->id) == NULL) {
             if (canseeobj(i, Af) == NO)
                 continue;
-            if ((j = owner(i)) != -1) {
+            if (int j = owner(i); j != -1) {
                 if (lit((linestat + j)->room)) {
                     if (j != Af) {
                         tx("You see ");
@@ -1275,12 +1409,12 @@ awhere(int obj)
                         tx(".\n");
                     } else
                         tx("There is one in your possesion.\n");
-                    found++;
+                    found = true;
                 }
                 continue;
             }
-            rp = (obtab + i)->rmlist;
-            for (j = 0; j < (obtab + i)->nrooms; j++) {
+            long *rp = (obtab + i)->rmlist;
+            for (int j = 0; j < (obtab + i)->nrooms; j++) {
                 if (*(rp + j) == -1)
                     continue;
                 if (*(rp + j) >= 0) {
@@ -1289,12 +1423,12 @@ awhere(int obj)
                     roomtab = rmtab + *(rp + j);
                     desc_here(2);
                 } else {
-                    k = -(INS + *(rp + j));
+                    int k = -(INS + *(rp + j));
                     sprintf(block, "There is one %s something known as %s!\n",
                             obputs[(obtab + k)->putto], (obtab + k)->id);
                     tx(block);
                 }
-                found++;
+                found = true;
             }
         }
     }
@@ -1302,6 +1436,7 @@ awhere(int obj)
         sys(SPELLFAIL);
 }
 
+void
 osflag(int o, int flag)
 {
     objtab = obtab + o;
@@ -1331,6 +1466,7 @@ osflag(int o, int flag)
 
 /* Set @xx and @xy corresponding to a specific player */
 
+void
 setmxy(int Flags, int Them)
 {
     if (Them == Af || cansee(Them, Af) == YES) /* If he can see me */

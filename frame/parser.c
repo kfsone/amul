@@ -1,10 +1,10 @@
 /* The AMUL parser and VT processor */
 
-grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
+/* Copy INPUT to BLOCK, taking one sentence at a time, etc */
+void
+grab()
 {
-    char *s, *d, *p, c; /* Source & Destination */
-
-    s = input;
+    char *s = input;
     more = 10;
     forced = 0;
     exeunt = 0;
@@ -14,7 +14,7 @@ grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
     ml = 0;
 
     do {
-        d = block;
+        char *d = block;
         block[0] = 0;
     loop:
         *d = 0;
@@ -28,8 +28,8 @@ grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
         if (block[0] != 0)
             *(d++) = ' '; /* Force spacing */
         if (*s == '\'' || *s == '\"') {
-            c = *(d++) = *(s++);       /* Store which */
-            while (*s != c && *s != 0) /* Find match or \0 */
+            char quote = *(d++) = *(s++);    /* Store which */
+            while (*s != quote && *s != 0)   /* Find match or \0 */
                 *(d++) = *(s++);
             if (*s == 0)
                 *(s + 1) = 0;
@@ -40,7 +40,7 @@ grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
             goto loop;
         }
 
-        p = d;
+        char *p = d;
         while (*s != 0 && !isspace(*s) && *s != '!' && *s != ';' && *s != ',' && *s != '.' &&
                *s != '\"' && *s != '\'')
             *(d++) = *(s++);
@@ -72,21 +72,20 @@ grab() /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
     iocheck();
 }
 
+void
 parser()
 {
-    char *       p;
-    int x, om;
-
-    om = more; /* We need to know if this is phrase one in a mo... */
+    int om = more; /* We need to know if this is phrase one in a mo... */
     more = 0;
     if (strlen(block) == 0)
         return;
 
+    int x;
 phrase:
     wtype[1] = wtype[2] = wtype[3] = wtype[4] = wtype[5] = WNONE;
     iadj1 = inoun1 = iprep = iadj2 = inoun2 = -1;
     actor = -1;
-    p = block + strlen(block) - 1;
+    char *p = block + strlen(block) - 1;
     while (p != block && isspace(*p))
         *(p--) = 0;
     if (me->rank >= (minsgo - 1) && (x = isroom(block)) != -1) {
@@ -227,9 +226,10 @@ skip:
     return lang_proc(iverb, 0);
 }
 
+int
 lang_proc(int v, char e)
 {
-    int i, j, l, m, d;
+    int j, l, m;
 
     forced = 0;
     exeunt = 0;
@@ -237,12 +237,12 @@ lang_proc(int v, char e)
     died = 0;
     donet = 0;
     ml = 0;
-    d = -2;
+    int d = -2;
     tt.verb = -1;
     vbptr = vbtab + v;
 caloop:
-    for (i = 0; i < (vbtab + v)->ents; i++) {
-        m = 0;
+    for (int i = 0; i < (vbtab + v)->ents; i++) {
+        int m = 0;
         stptr = vbptr->ptr + i;
         donet = 0;
         ml = stptr->ents;

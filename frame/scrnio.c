@@ -1,3 +1,4 @@
+void
 switchC(int n, char c)
 {
     int     h;
@@ -55,6 +56,7 @@ switchC(int n, char c)
     iosup = CUSSCREEN;
 }
 
+void
 tx(char *s)
 {
     int   i, l;
@@ -131,6 +133,7 @@ tx(char *s)
     }
 }
 
+void
 utx(int n, char *s)
 {
     ioproc(s);
@@ -140,12 +143,14 @@ utx(int n, char *s)
         interact(MMESSAGE, n, -1);
 }
 
+void
 utxn(int plyr, char *format, int n)
 {
     sprintf(str, format, n);
     utx(plyr, str);
 }
 
+void
 txc(char c)
 {
     switch (iosup) {
@@ -170,25 +175,26 @@ txc(char c)
         needcr = YES;
 }
 
+void
 txn(char *format, int n)
 {
     sprintf(str, format, n);
     tx(str);
 }
 
+void
 txs(char *format, char *s)
 {
     sprintf(str, format, s);
     tx(str);
 }
 
-Inp(char *s, int l) /* Get to str, and max length l */
+/* Get to str, and max length l */
+void
+Inp(char *s, int l)
 {
-    char *p;
-    int   c;
-
-    p = s;
-    *p = c = 0;
+    char *p = s;
+    int c = *p = 0;
     forced = 0;
     do {
         if (ip == 0)
@@ -256,7 +262,9 @@ Inp(char *s, int l) /* Get to str, and max length l */
         iocheck();
 }
 
-wgetc() /* Ask for a character to be input to *s */
+// Ask for a character to be input to *s
+void
+wgetc()
 {
     char c;
 
@@ -280,6 +288,7 @@ loop:
     goto loop;
 }
 
+void
 wsend(char *s)
 {
     WriteIo.io_Data = (APTR)s;
@@ -287,7 +296,9 @@ wsend(char *s)
     DoIO((struct IORequest *)&WriteIo);
 }
 
-sgetc() /* Ask for a character to be input to *s */
+/* Ask for a character to be input to *s */
+char
+sgetc()
 {
     char c;
 
@@ -315,6 +326,7 @@ loop:
     goto loop;
 }
 
+void
 ssend(char *s)
 {
     cdcheck();
@@ -328,6 +340,7 @@ ssend(char *s)
 #define NOCARRIER (serio->io_Status & (1 << 5)) /* Carrier detect in io_Status */
 
 /* On the Amiga, CD is ACTIVE when bit 5 is low, CD is INACTIVE when CD is high */
+void
 cdcheck()
 {
     sercmd(SDCMD_QUERY);
@@ -335,6 +348,7 @@ cdcheck()
         kquit("dropped carrier!");
 }
 
+void
 bits()
 {
     /* Create ports for IO */
@@ -346,12 +360,14 @@ bits()
     }
 }
 
+void
 squit()
 {
     iosup = 0;
     quit();
 }
 
+void
 scrend()
 {
     if (iosup == SERIO && wserio != NULL && wserio->IOSer.io_Device != NULL) {
@@ -376,6 +392,7 @@ scrend()
         CloseLibrary((struct Library *)IntuitionBase);
 }
 
+void
 switchS(char *s, char *p, char *u, char *rts)
 {
     long ser_baud, unit, ext;
@@ -427,6 +444,7 @@ switchS(char *s, char *p, char *u, char *rts)
     iosup = SERIO;
 }
 
+void
 sercmd(int cmd)
 {
     wserio->IOSer.io_Command = cmd;

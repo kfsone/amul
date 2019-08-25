@@ -1,39 +1,37 @@
 /* Conditions for AMUL */
 
-/* Is my room lit? */
+// Is my room lit?
 bool
 lit(int r)
 {
-    int        i, j;
-    struct _OBJ_STRUCT *tobjtab;
-
-    tobjtab = objtab;
+    struct _OBJ_STRUCT *tobjtab = objtab;
 
     if (!((rmtab + r)->flags & DARK))
         return true;
     Forbid();
     you2 = linestat;
-    for (i = 0; i < MAXU; i++, you2++)
+    for (int i = 0; i < MAXU; i++, you2++)
         if (you2->room == r && you2->hadlight != 0) {
             Permit();
             return true;
         }
     objtab = obtab;
-    for (i = 0; i < nouns; i++, objtab++) {
+    for (int i = 0; i < nouns; i++, objtab++) {
         if ((STATE->flags & SF_LIT) != SF_LIT)
             continue;
-        for (j = 0; j < objtab->nrooms; j++)
+        for (int j = 0; j < objtab->nrooms; j++)
             if (*(objtab->rmlist + j) == r) {
                 objtab = tobjtab;
                 Permit();
                 return true;
             }
-    };
+    }
     objtab = tobjtab;
     Permit();
     return false;
 }
 
+int
 loc(int o)
 {
     if (*(obtab + o)->rmlist >= -1)
@@ -43,6 +41,7 @@ loc(int o)
     /* Else its in a container */
 }
 
+int
 carrying(int obj)
 {
     if (me2->numobj == 0)
@@ -52,6 +51,7 @@ carrying(int obj)
     return -1;
 }
 
+int
 nearto(int ob)
 {
     if (canseeobj(ob, Af) == NO)
@@ -63,7 +63,9 @@ nearto(int ob)
     return NO;
 }
 
-visible() /* Can others in this room see me? */
+// Can others in this room see me?
+int
+visible()
 {
     if (LightHere == NO)
         return NO;
@@ -72,7 +74,9 @@ visible() /* Can others in this room see me? */
     return YES;
 }
 
-cangive(int obj, int plyr) /* If player could manage to carry object */
+// If player could manage to carry object
+int
+cangive(int obj, int plyr)
 {
     objtab = obtab + obj;
 
@@ -85,20 +89,20 @@ cangive(int obj, int plyr) /* If player could manage to carry object */
     return YES;
 }
 
+int
 isverb(char *s)
 {
-    int i;
     vbptr = vbtab;
-    for (i = 0; i < verbs; i++, vbptr++)
+    for (int i = 0; i < verbs; i++, vbptr++)
         if (match(vbptr->id, s) == NULL)
             return i;
     return -1;
 }
 
+int
 isaverb(char **s)
 {
     int ret;
-
     if ((ret = isverb(*s)) != -1) {
         (*s) += strlen((vbtab + ret)->id);
         return ret;
@@ -110,12 +114,12 @@ isaverb(char **s)
     return -1;
 }
 
-isvsyn(char *s) /* Is VERB syn */
+// Is VERB syn
+int
+isvsyn(char *s)
 {
-    int   i;
-    char *p;
-    p = synp;
-    for (i = 0; i < syns; i++, p += strlen(p) + 1) {
+    char *p = synp;
+    for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
         if (*(synip + i) < -1 && match(p, s) == NULL) {
             csyn = *(synip + i);
             return strlen(p);
@@ -124,12 +128,12 @@ isvsyn(char *s) /* Is VERB syn */
     return (int)(csyn = -1);
 }
 
-isnsyn(char *s) /* Is noun syn */
+// Is noun syn
+int
+isnsyn(char *s)
 {
-    int   i;
-    char *p;
-    p = synp;
-    for (i = 0; i < syns; i++, p += strlen(p) + 1) {
+    char *p = synp;
+    for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
         if (*(synip + i) > -1 && match(p, s) == NULL) {
             csyn = *(synip + i);
             return strlen(p);
@@ -139,12 +143,11 @@ isnsyn(char *s) /* Is noun syn */
     return -1;
 }
 
+int
 issyn(char *s)
 {
-    int   i;
-    char *p;
-    p = synp;
-    for (i = 0; i < syns; i++, p += strlen(p) + 1) {
+    char *p = synp;
+    for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
         if (toupper(*p) == toupper(*s) && match(p, s) == NULL) {
             csyn = *(synip + i);
             return strlen(p);
@@ -154,21 +157,15 @@ issyn(char *s)
     return -1;
 }
 
-/*
-    Notice:
-    ------
+// Due to the complexity of a multi-ocurance/state environment, I gave up
+// trying to do a 'sort', storing the last, nearest object, and went for
+// an eight pass seek-and-return parse. This may be damned slow with a
+// few thousand objects, but if you only have a thousand, it'll be OK!
 
-    Due to the complexity of a multi-ocurance/state environment, I gave up
-    trying to do a 'sort', storing the last, nearest object, and went for
-    an eight pass seek-and-return parse. This may be damned slow with a
-    few thousand objects, but if you only have a thousand, it'll be OK!
-
-                                        */
-
+int
 isnoun(char *s, int adj, char *pat)
 {
-    int pass, x, done_e, lsuc, lobj;
-    int          start;
+    int pass, x;
 
     if (iverb != -1) {
         verb.sort[0] = *pat;
@@ -177,13 +174,14 @@ isnoun(char *s, int adj, char *pat)
         strcpy(verb.sort + 1, "CHAE");
         verb.sort[0] = -1;
     }
-    done_e = 0;
-    lsuc = lobj = -1;
-    start = isanoun(s);
     if ((obtab + start)->adj == adj && CHAEtype(start) == verb.sort[1] &&
         (obtab + start)->state == verb.sort[0])
         return start;
-    for (pass = 1; pass < 5; pass++) {
+
+    bool done_e = 0;
+    int lsuc = -1, lobj = -1;
+    int start = isanoun(s);
+    for (int pass = 1; pass < 5; pass++) {
         /* At this point, we out to try BOTH phases, however, in the
            second phase, try for the word. Next 'pass', if there is
            no suitable item, drop back to that from the previous... */
@@ -224,34 +222,30 @@ isnoun(char *s, int adj, char *pat)
                 return lobj;
         };
         if (verb.sort[pass] == 'E')
-            done_e = 1;
+            done_e = true;
     }
-    if (done_e == 0)
+    if (!done_e)
         return scan(0, 'E', -1, s, adj);
     else
         return lobj;
 }
 
+int
 isanoun(char *s)
 {
-    int        i;
-    struct _OBJ_STRUCT *obpt;
-
-    obpt = obtab;
-    for (i = 0; i < nouns; i++, obpt++)
+    struct _OBJ_STRUCT *obpt = obtab;
+    for (int i = 0; i < nouns; i++, obpt++)
         if (!(obpt->flags & OF_COUNTER) && stricmp(s, obpt->id) == NULL)
             return i;
     return -1;
 }
 
+int
 scan(int start, char Type, int tst, char *s, int adj)
 {
-    int                          i, last;
-    struct _OBJ_STRUCT *obpt;
-
-    last = -1;
-    obpt = obtab + start;
-    for (i = start; i < nouns; i++, obpt++) {
+    int last = -1;
+    struct _OBJ_STRUCT *obpt = obtab + start;
+    for (int i = start; i < nouns; i++, obpt++) {
         if ((obpt->flags & OF_COUNTER) || (adj != -1 && obpt->adj != adj))
             continue;
         if (match(obpt->id, s) != NULL || CHAEtype(i) != Type)
@@ -268,59 +262,56 @@ scan(int start, char Type, int tst, char *s, int adj)
     return last;
 }
 
+char
 CHAEtype(int obj)
 {
-    int i;
-
     if (carrying(obj) != -1)
         return 'C';
     if (isin(obj, me2->room) == YES)
         return 'H';
-    if ((i = owner(obj)) != -1 && (linestat + i)->room == me2->room)
+    if (int i = owner(obj); i != -1 && (linestat + i)->room == me2->room)
         return 'A';
     return 'E';
 }
 
+int
 isadj(char *s)
 {
-    int   i;
-    char *p;
-
-    p = adtab;
-    for (i = 0; i < adjs; i++, p += IDL + 1)
+    char *p = adtab;
+    for (int i = 0; i < adjs; i++, p += IDL + 1)
         if (match(p, s) != -1)
             return i;
     return -1;
 }
 
+int
 isprep(char *s)
 {
-    int i;
-    for (i = 0; i < NPREP; i++)
+    for (int i = 0; i < NPREP; i++)
         if (stricmp(s, prep[i]) == NULL)
             return i;
     return -1;
 }
 
+int
 isin(int o, int r)
 {
-    int i;
-    for (i = 0; i < (obtab + o)->nrooms; i++)
+    for (int i = 0; i < (obtab + o)->nrooms; i++)
         if (*((obtab + o)->rmlist + i) == r)
             return YES;
     return NO;
 }
 
+int
 isroom(char *s)
 {
-    int r;
-
-    for (r = 0; r < rooms; r++)
+    for (int r = 0; r < rooms; r++)
         if (stricmp((rmtab + r)->id, s) == 0)
             return r;
     return -1;
 }
 
+int
 infl(int plyr, int spell)
 {
     you2 = linestat + plyr;
@@ -361,6 +352,7 @@ infl(int plyr, int spell)
     return NO;
 }
 
+int
 stat(int plyr, int st, int x)
 {
     switch (st) {
@@ -374,7 +366,8 @@ stat(int plyr, int st, int x)
     }
 }
 
-/* If <player1> can see <player2> */
+// If <player1> can see <player2>
+int
 cansee(int p1, int p2)
 {
     /* You can't see YOURSELF, and check for various other things... */
@@ -410,6 +403,7 @@ cansee(int p1, int p2)
         return NO;
 }
 
+int
 canseeobj(int obj, int who)
 {
     if (((obtab + obj)->flags & OF_SMELL) && !((linestat + who)->flags & PFBLIND))
@@ -427,6 +421,7 @@ canseeobj(int obj, int who)
         return YES;
 }
 
+int
 magic(int rnk, int points, int chance)
 {
     if (me->rank < rnk - 1) {
