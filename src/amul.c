@@ -25,15 +25,17 @@
 #include <h/amul.cons.h>   /* Predefined Constants etc */
 #include <h/amul.h>        /* Version info etc. */
 
-main(int argc, char *argv[]) /* Main Program */
+// Main Program
+int
+main(int argc, char *argv[])
 {
     int i;
 
     lverb = -1;
     iverb = -1;
     ip = 1;
-    needcr = NO;
-    addcr = NO;
+    needcr = false;
+    addcr = false;
     MyFlag = am_USER;
 
     sprintf(vername, "AMUL v%d.%d (%s)", VERSION, REVISION, DATE);
@@ -173,15 +175,15 @@ main(int argc, char *argv[]) /* Main Program */
         died = 0;
         actor = -1;
         fol = 0;
-        needcr = NO;
-        addcr = NO;
+        needcr = false;
+        addcr = false;
         if (last_him != -1 && (linestat + last_him)->state != PLAYING)
             last_him = -1;
         if (last_her != -1 && (linestat + last_her)->state != PLAYING)
             last_her = -1;
         iocheck();
         tx((rktab + me->rank)->prompt);
-        needcr = YES;
+        needcr = true;
         block[0] = 0;
         Inp(input, 390);
         if (exeunt != 0)
@@ -201,7 +203,7 @@ main(int argc, char *argv[]) /* Main Program */
         if (input[0] == 0)
             continue;
     gloop:
-        failed = NO;
+        failed = false;
         forced = 0;
         died = 0;
         exeunt = 0;
@@ -232,6 +234,7 @@ quitgame: /* Quite the game, tidily. */
     quit();
 }
 
+void
 look(char *s, int f)
 {
     int roomno, mod;
@@ -256,7 +259,9 @@ look(char *s, int f)
     look_here(mod, roomno);
 }
 
-agive(int obj, int to) /* Add object to players inventory */
+// Add object to players inventory
+void
+agive(int obj, int to)
 {
     int own, orm;
 
@@ -285,7 +290,9 @@ agive(int obj, int to) /* Add object to players inventory */
     }
 }
 
-adrop(int ob, int r, int f) /* Drop the object (to a room) */
+// Drop the object (to a room)
+void
+adrop(int ob, int r)
 {
     objtab = obtab + ob;
     *objtab->rmlist = r;

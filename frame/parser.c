@@ -8,7 +8,7 @@ grab()
     more = 10;
     forced = 0;
     exeunt = 0;
-    failed = NO;
+    failed = false;;
     died = 0;
     donet = -1;
     ml = 0;
@@ -68,7 +68,7 @@ grab()
         }
         if (parser() == -1)
             return;
-    } while (*s != 0 && more == 0 && exeunt == 0 && forced == 0 && failed == NO && died == 0);
+    } while (*s != 0 && more == 0 && exeunt == 0 && forced == 0 && !failed && died == 0);
     iocheck();
 }
 
@@ -89,13 +89,13 @@ phrase:
     while (p != block && isspace(*p))
         *(p--) = 0;
     if (me->rank >= (minsgo - 1) && (x = isroom(block)) != -1) {
-        if (visible() == YES)
+        if (isVisible())
             action(acp(SGOVANISH), AOTHERS);
         StopFollow();
         LoseFollower();
         sys(SGO);
         moveto(x);
-        if (visible() == YES)
+        if (isVisible())
             action(acp(SGOAPPEAR), AOTHERS);
         return;
     }
@@ -141,7 +141,7 @@ phrase:
     vbptr = vbtab + word;
     if ((me2->flags & PFASLEEP) && !(vbptr->flags & VB_DREAM)) {
         tx("You can't do anything until you wake up!\n");
-        failed = YES;
+        failed = true;
         return -1;
     }
     if (!(vbptr->flags & VB_TRAVEL)) {
@@ -221,7 +221,7 @@ ended:
     vbptr = vbtab + iverb;
 skip:
     iocheck();
-    if (forced != 0 || exeunt != 0 || died != 0 || failed != NO)
+    if (forced != 0 || exeunt != 0 || died != 0 || failed == true)
         return;
     return lang_proc(iverb, 0);
 }
@@ -233,7 +233,7 @@ lang_proc(int v, char e)
 
     forced = 0;
     exeunt = 0;
-    failed = NO;
+    failed = false;
     died = 0;
     donet = 0;
     ml = 0;
@@ -324,10 +324,10 @@ caloop:
                 donet = ml + 1;
                 break;
             }
-            if (ml < 0 || failed != NO || forced != 0 || died != 0 || exeunt != 0)
+            if (ml < 0 || failed == true || forced != 0 || died != 0 || exeunt != 0)
                 break;
         }
-        if (failed != NO || forced != 0 || died != 0 || exeunt != 0)
+        if (failed == true || forced != 0 || died != 0 || exeunt != 0)
             break;
     after:
         if (donet > ml)

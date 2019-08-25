@@ -48,9 +48,10 @@ char *              input;                                 /* 400 bytes, 5 lines
 char                str[800], spc[200], mxx[40], mxy[60];  /* Output string */
 char                wtil[80];                              /* Window title */
 char                iosup;                                 /* What kind of IO support */
-char                inc, forced, failed, died, addcr, fol; /* For parsers use */
+bool failed, addcr, needcr;
+char                inc, forced, died, fol; /* For parsers use */
 char                actor, last_him, last_her;             /* People we talked about */
-char                autoexits, needcr;                     /* General flags */
+char                autoexits;                     /* General flags */
 long                iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir, lroom;
 long                wtype[6], word, mins;             /* Type of word... */
 unsigned short int *rescnt;                           /* Reset counter from AMan */
@@ -118,7 +119,7 @@ whohere()
         return;
     }
     for (int i = 0; i < MAXU; i++) {
-        if (i != Af && cansee(Af, i) == YES && !((linestat + i)->flags & PFMOVING)) {
+        if (i != Af && canSee(Af, i) && !((linestat + i)->flags & PFMOVING)) {
             PutARankInto(str, i);
             sprintf(block, acp(ISHERE), (usr + i)->name, str);
             if (((linestat + i)->flags & PFSITTING) != 0)
@@ -291,16 +292,16 @@ getflags()
  *
  *===========================================================================*/
 
-/****** amul.library/numb ******************************************
+/****** amul.library/isValidNumber ******************************************
  *
  *   NAME
- *	numb -- mathematically compare two numbers, including <> and =.
+ *	isValidNumber -- mathematically compare two numbers, including <> and =.
  *
  *   SYNOPSIS
- *	ret = numb( Number, Value )
+ *	ret = isValidNumber( Number, Value )
  *	d0            d0      d1
  *
- *	BOOLEAN numb( ULONG, ULONG );
+ *	BOOLEAN isValidNumber( ULONG, ULONG );
  *
  *   FUNCTION
  *	Quantifies and/or equates the value of two numbers.
@@ -314,7 +315,7 @@ getflags()
  *	ret    - TRUE if Number equates with Value (ie 5 IS <10)
  *
  *   EXAMPLE
- *	numb(10, ( LESS & 20 ));	Returns TRUE.
+ *	isValidNumber(10, ( LESS & 20 ));	Returns TRUE.
  *    Lang.Txt:
  *	numb ?brick >%wall
  *
@@ -324,23 +325,23 @@ getflags()
  *
  ******************************************************************************/
 
-int
-numb(long x, long n)
+bool
+isValidNumber(long x, long n)
 {
     if (n == x) {
-        return YES;
+        return true;
     }
     if ((n & MORE) == MORE) {
         n = n - MORE;
         if (n > x)
-            return YES;
+            return true;
     }
     if ((n & LESS) == LESS) {
         n = n - LESS;
         if (n < x)
-            return YES;
+            return true;
     }
-    return NO;
+    return false;
 }
 
 /*===========================================================================*
@@ -419,7 +420,7 @@ afailparse()
 {
     donet = ml + 1;
     ml = -1;
-    failed = YES;
+    failed = true;
 }
 
 /****** amul3.c/afinishparse ******************************************
@@ -512,10 +513,10 @@ ado(int verb)
 
     iverb = old_verb;
 
-    if (failed != NO || forced != 0 || died != 0 || exeunt != 0) {
+    if (failed == true forced != 0 || died != 0 || exeunt != 0) {
         donet = ml + 1;
         ml = -1;
-        failed = YES;
+        failed = true;
         return;
     }
 
@@ -1191,9 +1192,9 @@ scaled(long value, short int flags)
  *	showin -- Display the contents of an object.
  *
  *   SYNOPSIS
- *	showin( Object, Mode )
+ *	showin( Object, verbose )
  *
- *	void showin( int, int );
+ *	void showin( int, bool );
  *
  *   FUNCTION
  *	Displays the contents of an object, modified depending on the
@@ -1202,7 +1203,7 @@ scaled(long value, short int flags)
  *
  *   INPUTS
  *	Object -- the object's id number.
- *	Mode   -- YES to force display of contents, or to inform the player
+ *	verbose   -- YES to force display of contents, or to inform the player
  *		  if the object is empty.
  *		  NO not to list the contents of the object if it is opaque,
  *		  and not to display anything when it is empty.
@@ -1212,16 +1213,16 @@ scaled(long value, short int flags)
  */
 
 void
-showin(int o, int mode)
+showin(int o, bool verbose)
 {
-    if (State(o)->flags & SF_OPAQUE && mode == NO) {
+    if (State(o)->flags & SF_OPAQUE && !verbose) {
         tx(str);
         txc('\n');
         return;
     }
     char *p = str + strlen(str);
     if ((obtab + o)->inside <= 0) {
-        if (mode == YES) {
+        if (verbose) {
             if ((obtab + o)->putto == 0)
                 sprintf(p, "The %s contains ", (obtab + o)->id);
             else
@@ -1260,15 +1261,15 @@ showin(int o, int mode)
     tx(str);
 }
 
-/****** AMUL3.C/stfull ******************************************
+/****** AMUL3.C/isStatFull ******************************************
  *
  *   NAME
- *	stfull -- Check if players property is at full
+ *	isStatFull -- Check if players property is at full
  *
  *   SYNOPSIS
- *	stfull( Stat, Player )
+ *	isStatFull( Stat, Player )
  *
- *	BOOLEAN stfull( USHORT, USHORT );
+ *	BOOLEAN isStatFull( USHORT, USHORT );
  *
  *   FUNCTION
  *	Tests to see if a players 'stat' is at full power and returns a
@@ -1286,42 +1287,42 @@ showin(int o, int mode)
  *
  */
 
-int
-stfull(int st, int p)
+bool
+isStatFull(int st, int p)
 {
     you = (usr + p);
     you2 = (linestat + p);
     switch (st) {
     case STSCORE:
-        return NO;
+        return false;
     case STSCTG:
-        return NO;
+        return false;
     case STSTR:
         if (you2->strength < you->strength)
-            return NO;
+            return false;
         break;
     case STDEX:
         if (you2->dext < you->dext)
-            return NO;
+            return false;
         break;
     case STSTAM:
         if (you2->stamina < you->stamina)
-            return NO;
+            return false;
         break;
     case STWIS:
         if (you2->wisdom < you->wisdom)
-            return NO;
+            return false;
         break;
     case STMAGIC:
         if (you2->magicpts < you->magicpts)
-            return NO;
+            return false;
         break;
     case STEXP:
         if (you->experience < (rktab + you->rank)->experience)
-            return NO;
+            return false;
         break;
     }
-    return YES;
+    return true;
 }
 
 /****** blank.form/empty ******************************************
@@ -1397,7 +1398,7 @@ awhere(int obj)
     bool found { false };
     for (int i = 0; i < nouns; i++) {
         if (stricmp((obtab + obj)->id, (obtab + i)->id) == NULL) {
-            if (canseeobj(i, Af) == NO)
+            if (!canSeeObject(i, Af))
                 continue;
             if (int j = owner(i); j != -1) {
                 if (lit((linestat + j)->room)) {
@@ -1455,7 +1456,7 @@ osflag(int o, int flag)
     }
 
     if (lit(loc(o)) != wasLit)
-        if (wasLit == YES) {
+        if (wasLit) {
             actionfrom(o, acp(NOWTOODARK));
             sys(NOWTOODARK);
         } else {
@@ -1469,7 +1470,7 @@ osflag(int o, int flag)
 void
 setmxy(int Flags, int Them)
 {
-    if (Them == Af || cansee(Them, Af) == YES) /* If he can see me */
+    if (Them == Af || canSee(Them, Af)) /* If he can see me */
     {
         ioproc("@me");
         strcpy(mxx, ow);

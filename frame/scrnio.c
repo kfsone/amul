@@ -64,10 +64,10 @@ tx(char *s)
 
     if (iosup == LOGFILE)
         return;
-    if (addcr == YES && needcr == YES)
+    if (addcr && needcr)
         txc('\n');
-    addcr = NO;
-    needcr = NO;
+    addcr = false;
+    needcr = false;
     if (iosup == 0) {
         printf(s);
         return;
@@ -96,7 +96,7 @@ tx(char *s)
         } while (*s != 0 && *s != '\n' && (me->llen < 8 || i < (me->llen - 1)) && *s != 12);
 
         if (i > 0)
-            needcr = YES;
+            needcr = true;
         if (((me->llen - 1) >= 8 && i == (me->llen - 1)) && *s != '\n') {
             if (*s == ' ' || *s == 9)
                 s++;
@@ -107,14 +107,14 @@ tx(char *s)
             if (iosup == SERIO)
                 *(p++) = '\r';
             *(p++) = '\n';
-            needcr = NO;
+            needcr = false;
         }
         if (*s == '\n') {
             if (iosup == SERIO)
                 *(p++) = '\r';
             *(p++) = '\n';
             s++;
-            needcr = NO;
+            needcr = false;
         }
         *p = 0;
         switch (iosup) {
@@ -170,9 +170,9 @@ txc(char c)
     }
     if (c == '\n') {
         txc('\r');
-        needcr = NO;
+        needcr = false;
     } else
-        needcr = YES;
+        needcr = true;
 }
 
 void
@@ -253,11 +253,11 @@ Inp(char *s, int l)
         *(p++) = (char)c;
         *p = 0;
         txc((char)c);
-        needcr = YES;
+        needcr = true;
     } while (c != '\n');
     if (isspace(*(s + strlen(s) - 1)))
         *(s + strlen(s) - 1) = 0;
-    needcr = NO;
+    needcr = false;
     if (ip == 0)
         iocheck();
 }

@@ -58,9 +58,10 @@ extern char *          input;                                 /* 400 bytes, 5 li
 extern char            str[], spc[], mxx[], mxy[];            /* Output string */
 extern char            wtil[];                                /* Window title */
 extern char            iosup;                                 /* What kind of IO support */
-extern char            inc, forced, failed, died, addcr, fol; /* For parsers use */
+extern bool addcr, failed, needcr;
+extern char            inc, forced, died, fol; /* For parsers use */
 extern char            actor, last_him, last_her;             /* People we know of */
-extern char            autoexits, needcr;                     /* Autoexits on/off? */
+extern char            autoexits;                     /* Autoexits on/off? */
 extern long            iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir, lroom;
 extern long            wtype[6], word;                   /* Type of word... */
 extern short int       donev, skip;                      /* No. of vb's/TT's done */

@@ -127,7 +127,7 @@ gotin(int obj, int st)
 int
 achecknear(int obj)
 {
-    if (nearto(obj) == NO) {
+    if (!nearto(obj)) {
         txs("I can't see the %s!\n", (obtab + obj)->id);
         donet = ml + 1;
         return -1;
@@ -271,7 +271,7 @@ list_what(int r, int i)
     for (int o = 0; o < nouns; o++) /* All objects */
     {
         /* Only let the right people see the object */
-        if (canseeobj(o, Af) == NO)
+        if (!canSeeObject(o, Af))
             continue;
         if (((rmtab + r)->flags & HIDEWY) && (i == 0 || (i == 1 && me->rank != ranks - 1)) &&
             !((obtab + o)->flags & OF_SCENERY))
@@ -320,7 +320,7 @@ descobj(int Ob)
         *(str + strlen(str) - 1) = 0;
     }
     strcat(str, " ");
-    showin(Ob, NO);
+    showin(Ob, false);
 }
 
 void
@@ -762,7 +762,7 @@ announcefrom(int obj, char *s)
 		int o = owner(obj);
         if (o != -1 && (linestat + o)->room != (linestat + i)->room)
             continue;
-        if (o == -1 && isin(obj, (linestat + o)->room) == NO)
+        if (o == -1 && !isin(obj, (linestat + o)->room))
             continue;
         setmxy(NOISE, i);
         utx(i, s);
@@ -781,7 +781,7 @@ objannounce(int obj, char *s)
 		int o = owner(obj);
         if (o != -1 && (linestat + o)->room != (linestat + i)->room)
             continue;
-        if (o == -1 && isin(obj, (linestat + o)->room) == NO)
+        if (o == -1 && !isin(obj, (linestat + o)->room))
             continue;
         setmxy(NOISE, i);
         utx(i, s);
@@ -811,7 +811,7 @@ action(char *s, int towho)
             if (i == Af)
                 break;
         case AHERE:
-            if ((linestat + i)->room == me2->room && cansee(i, Af) == YES)
+            if ((linestat + i)->room == me2->room && canSee(i, Af))
                 x = 1;
             break;
         case AOUTSIDE:
@@ -854,7 +854,7 @@ actionfrom(int obj, char *s)
         if (o != -1)
             if ((linestat + o)->room != (linestat + i)->room)
                 continue;
-        if (o == -1 && isin(obj, (linestat + i)->room) == NO)
+        if (o == -1 && !isin(obj, (linestat + i)->room))
             continue;
         setmxy(ACTION, i);
         utx(i, s);
@@ -875,7 +875,7 @@ objaction(int obj, char *s)
         if (o != -1)
             if ((linestat + o)->room != (linestat + i)->room)
                 continue;
-        if (o == -1 && isin(obj, (linestat + i)->room) == NO)
+        if (o == -1 && !isin(obj, (linestat + i)->room))
             continue;
         setmxy(ACTION, i);
         utx(i, s);
@@ -1323,7 +1323,7 @@ dropall(int torm)
 {
     for (int i = 0; i < nouns && me2->numobj > 0; i++)
         if (*(obtab + i)->rmlist == -(5 + Af))
-            adrop(i, torm, NO);
+            adrop(i, torm);
     me2->numobj = 0;
 }
 
@@ -1342,7 +1342,7 @@ invent(int plyr)
     int j = 0;
     int pr = -(5 + plyr);
     for (int i = 0; i < nouns; i++, objtab++)
-        if (*objtab->rmlist == pr && canseeobj(i, Af) == YES) {
+        if (*objtab->rmlist == pr && canSeeObject(i, Af)) {
             if (j++ != 0)
                 strcat(p, ", ");
             strcat(p, objtab->id);
@@ -1407,7 +1407,7 @@ calcdext()
         me2->dext = me2->dext / 2;
     else if (me2->flags & PFLYING)
         me2->dext = me2->dext / 3;
-    if ((LightHere == NO) || (me2->flags & PFBLIND))
+    if (!lit(me2->room) || (me2->flags & PFBLIND))
         me2->dext = me2->dext / 5;
 
     me2->dext -=

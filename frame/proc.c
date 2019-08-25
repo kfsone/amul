@@ -4,7 +4,7 @@ int
 ttproc()
 {
     exeunt = died = donet = skip = 0;
-    failed = NO;
+    failed = false;
     roomtab = rmtab + me2->room;
     int l = -1;
     tt.verb = iverb;
@@ -132,7 +132,7 @@ act(long ac, long *pt)
             break;
         case AADDVAL: aadd(scaled(State(TP1)->value, State(TP1)->flags), STSCORE, Af); break;
         case AGET: agive(TP1, Af); break;
-        case ADROP: adrop(TP1, me2->room, YES); break;
+        case ADROP: adrop(TP1, me2->room); break;
         case AINVENT:
             strcpy(block, "You are ");
             invent(Af);
@@ -156,7 +156,7 @@ act(long ac, long *pt)
         case AOBJACT: objaction(TP1, AP2); break;
         case ACONTENTS:
             str[0] = 0;
-            showin(TP1, YES);
+            showin(TP1, true);
             break;
         case AFORCE: aforce(TP1, TP2); break;
         case AHELP:
@@ -227,9 +227,9 @@ act(long ac, long *pt)
         default: txn("** Internal error - illegal action %ld!\n", ac);
         }
     } else {
-        int flag;
+        bool flag { false };
 
-        needcr = NO;
+        needcr = false;
         iocheck();
         if (exeunt != 0 || died != 0)
             return;
@@ -248,13 +248,12 @@ act(long ac, long *pt)
                 };
         }
         me2->flags = me2->flags | PFMOVING; /* As of now I'm out of here. */
-        if (visible() == YES) {
+        if (isVisible()) {
             Permit();
             action(me2->dep, AOTHERS);
             Forbid();
         }
         ldir = iverb;
-        flag = NO;
         lroom = me2->room;
         i = me2->light;
         me2->light = 0;
@@ -265,7 +264,7 @@ act(long ac, long *pt)
         me2->light = i;
         me2->hadlight = 0;
         lighting(Af, AOTHERS);
-        if (visible() == YES)
+        if (isVisible())
             action(me2->arr, AOTHERS);
         me2->flags = me2->flags & -(1 + PFMOVING);
         if (me2->followed > -1 && me2->followed != Af && (!IamINVIS) && (!IamSINVIS)) {
@@ -276,7 +275,7 @@ act(long ac, long *pt)
                 LoseFollower();
             else {
                 DoThis(me2->followed, (vbtab + overb)->id, 1);
-                flag = YES;
+                flag = true;
             }
         } else
             me2->followed = -1;
@@ -316,17 +315,17 @@ cond(long n, int l)
             ret = -1;
         break;
     case CISHERE:
-        if (isin(CP1, me2->room) == NO)
+        if (!isin(CP1, me2->room))
             ret = -1;
         break;
     case CMYRANK:
-        if (numb(me->rank + 1, CP1) == NO)
+        if (!isValidNumber(me->rank + 1, CP1))
             ret = -1;
         break;
     case CSTATE:
         if ((obtab + CP1)->flags & OF_ZONKED)
             ret = -1;
-        if (numb((obtab + CP1)->state, CP2) == NO)
+        if (!isValidNumber((obtab + CP1)->state, CP2))
             ret = -1;
         break;
     case CMYSEX:
@@ -358,7 +357,7 @@ cond(long n, int l)
             ret = -1;
         break;
     case CRAND:
-        if (numb(mod(rnd(), CP1), *(tt.pptr + 1)) == NO)
+        if (!isValidNumber(mod(rnd(), CP1), *(tt.pptr + 1)))
             ret = -1;
         break;
     case CRDMODE:
@@ -392,20 +391,20 @@ cond(long n, int l)
             ret = -1;
         break;
     case CNEARTO:
-        if (nearto(CP1) == NO)
+        if (!nearto(CP1))
             ret = -1;
         break;
     case CHIDDEN:
-        if (visible() == YES)
+        if (isVisible())
             ret = -1;
         break;
     case CCANGIVE:
-        if (cangive(CP1, CP2) == NO)
+        if (!canGivecangive(CP1, CP2))
             ret = -1;
         break;
     case CINFL:
     case CINFLICTED:
-        if (infl(CP1, CP2) == NO)
+        if (!isInflicted(CP1, CP2))
             ret = -1;
         break;
     case CSAMEROOM:
@@ -431,7 +430,7 @@ cond(long n, int l)
         break;
     case CTIMER:
         SendIt(MCHECKD, CP1, NULL);
-        if (Ad == -1 || numb(Ap1, CP2) == NO)
+        if (Ad == -1 || !isValidNumber(Ap1, CP2))
             ret = -1;
         break;
     case CBURNS:
@@ -447,7 +446,7 @@ cond(long n, int l)
             ret = -1;
         break;
     case COBJSIN:
-        if (numb((obtab + CP1)->inside, CP2) == NO)
+        if (!isValidNumber((obtab + CP1)->inside, CP2))
             ret = -1;
         break;
     case CHELPING:
@@ -463,7 +462,7 @@ cond(long n, int l)
             ret = -1;
         break;
     case CSTAT:
-        if (stat(CP2, CP1, CP3) == NO)
+        if (!testStat(CP2, CP1, CP3))
             ret = -1;
         break;
     case COBJINV:
@@ -479,11 +478,11 @@ cond(long n, int l)
             ret = -1;
         break;
     case CCANSEE:
-        if (cansee(Af, CP1) == NO)
+        if (!canSee(Af, CP1))
             ret = -1;
         break;
     case CVISIBLETO:
-        if (cansee(CP1, Af) == NO)
+        if (!canSee(CP1, Af))
             ret = -1;
         break;
     case CNOUN1:
@@ -521,11 +520,11 @@ cond(long n, int l)
             return -1;
         break;
     case CFULL:
-        if (stfull(CP1, CP2) == NO)
+        if (!isStatFull(CP1, CP2))
             return -1;
         break;
     case CTIME:
-        if (numb(*rescnt, CP1) == NO)
+        if (!isValidNumber(*rescnt, CP1))
             return -1;
         break;
     case CDEC:
@@ -547,20 +546,19 @@ cond(long n, int l)
             return -1;
         break;
     case CHEALTH:
-        if (numb((((linestat + CP1)->stamina * 100) / (rktab + (usr + CP1)->rank)->stamina), CP2) ==
-            NO)
+        if (!isValidNumber((((linestat + CP1)->stamina * 100) / (rktab + (usr + CP1)->rank)->stamina), CP2))
             ret = -1;
         break;
     case CMAGIC:
-        if (magic(CP1, CP2, CP3) == NO)
+        if (!castWillSucceed(CP1, CP2, CP3))
             return -1;
         break;
     case CSPELL:
-        if (numb((linestat + CP1)->wisdom, mod(rnd(), CP2)) == NO)
+        if (!isValidNumber((linestat + CP1)->wisdom, mod(rnd(), CP2)))
             ret = -1;
         break;
     case CIN:
-        if (isin(CP2, CP1) == NO)
+        if (!isin(CP2, CP1))
             ret = -1;
         break;
     default: ret = -1;

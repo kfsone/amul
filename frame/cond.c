@@ -47,42 +47,42 @@ carrying(int obj)
     return -1;
 }
 
-int
+bool
 nearto(int ob)
 {
-    if (canseeobj(ob, Af) == NO)
-        return NO;
-    if (isin(ob, me2->room) == YES)
-        return YES;
+    if (!canSeeObject(ob, Af))
+        return false;
+    if (isin(ob, me2->room))
+        return true;
     if (carrying(ob) != -1)
-        return YES;
-    return NO;
+        return true;
+    return false;
 }
 
 // Can others in this room see me?
-int
-visible()
+bool
+isVisible()
 {
-    if (LightHere == NO)
-        return NO;
+    if (!lit(me2->room))
+        return false;
     if (IamINVIS || IamSINVIS)
-        return NO;
-    return YES;
+        return false;
+    return true;
 }
 
 // If player could manage to carry object
-int
-cangive(int obj, int plyr)
+bool
+canGive(int obj, int plyr)
 {
     objtab = obtab + obj;
 
     if ((linestat + plyr)->weight + STATE->weight > (rktab + (usr + plyr)->rank)->maxweight)
-        return NO;
+        return false;
     if ((linestat + plyr)->numobj + 1 > (rktab + (usr + plyr)->rank)->numobj)
-        return NO;
+        return false;
     if ((objtab->flags & OF_SCENERY) || (objtab->flags & OF_COUNTER) || objtab->nrooms != 1)
-        return NO;
-    return YES;
+        return false;
+    return true;
 }
 
 int
@@ -263,7 +263,7 @@ CHAEtype(int obj)
 {
     if (carrying(obj) != -1)
         return 'C';
-    if (isin(obj, me2->room) == YES)
+    if (isin(obj, me2->room))
         return 'H';
     if (int i = owner(obj); i != -1 && (linestat + i)->room == me2->room)
         return 'A';
@@ -289,13 +289,13 @@ isprep(char *s)
     return -1;
 }
 
-int
+bool
 isin(int o, int r)
 {
     for (int i = 0; i < (obtab + o)->nrooms; i++)
         if (*((obtab + o)->rmlist + i) == r)
-            return YES;
-    return NO;
+            return true;
+    return false;
 }
 
 int
@@ -307,135 +307,134 @@ isroom(char *s)
     return -1;
 }
 
-int
-infl(int plyr, int spell)
+bool
+isInflicted(int plyr, int spell)
 {
     you2 = linestat + plyr;
     switch (spell) {
     case SGLOW:
         if (you2->flags & PFGLOW)
-            return YES;
+            return true;
         break;
     case SINVIS:
         if (you2->flags & PFINVIS)
-            return YES;
+            return true;
         break;
     case SDEAF:
         if (you2->flags & PFDEAF)
-            return YES;
+            return true;
         break;
     case SBLIND:
         if (you2->flags & PFBLIND)
-            return YES;
+            return true;
         break;
     case SCRIPPLE:
         if (you2->flags & PFCRIP)
-            return YES;
+            return true;
         break;
     case SDUMB:
         if (you2->flags & PFDUMB)
-            return YES;
+            return true;
         break;
     case SSLEEP:
         if (you2->flags & PFASLEEP)
-            return YES;
+            return true;
         break;
     case SSINVIS:
         if (you2->flags & PFSINVIS)
-            return YES;
+            return true;
         break;
     }
-    return NO;
+    return false;
 }
 
-int
-stat(int plyr, int st, int x)
+bool
+testStat(int plyr, int st, int x)
 {
     switch (st) {
-    case STSTR: return numb((linestat + plyr)->strength, x);
-    case STSTAM: return numb((linestat + plyr)->stamina, x);
-    case STEXP: return numb((usr + plyr)->experience, x);
-    case STWIS: return numb((linestat + plyr)->wisdom, x);
-    case STDEX: return numb((linestat + plyr)->dext, x);
-    case STMAGIC: return numb((linestat + plyr)->magicpts, x);
-    case STSCTG: return numb((linestat + plyr)->sctg, x);
+    case STSTR: return isValidNumber((linestat + plyr)->strength, x);
+    case STSTAM: return isValidNumber((linestat + plyr)->stamina, x);
+    case STEXP: return isValidNumber((usr + plyr)->experience, x);
+    case STWIS: return isValidNumber((linestat + plyr)->wisdom, x);
+    case STDEX: return isValidNumber((linestat + plyr)->dext, x);
+    case STMAGIC: return isValidNumber((linestat + plyr)->magicpts, x);
+    case STSCTG: return isValidNumber((linestat + plyr)->sctg, x);
+    default: return false;
     }
 }
 
 // If <player1> can see <player2>
-int
-cansee(int p1, int p2)
+bool
+canSee(int p1, int p2)
 {
     /* You can't see YOURSELF, and check for various other things... */
     if (*(usr + p2)->name == 0 || p1 == p2)
-        return NO;
+        return false;
     if ((linestat + p2)->state != PLAYING)
-        return NO;
+        return false;
     /* If different rooms, or current room is dark */
     if (pROOM(p1) != pROOM(p2))
-        return NO;
+        return false;
     /* If p2 is Super Invis, he can't be seen! */
     if ((linestat + p2)->flags & PFSINVIS)
-        return NO;
+        return false;
     /* If player is blind, obviously can't see p2! */
     if ((linestat + p1)->flags & PFBLIND)
-        return NO;
+        return false;
     if (!lit(pROOM(p1)))
-        return NO;
+        return false;
     /* If you are in a 'hide' room and he isn't a wizard */
     if (pRANK(p1) == ranks - 1)
-        return YES;
+        return true;
     if (((rmtab + pROOM(p1))->flags & HIDE))
-        return NO;
+        return false;
     /* If he isn't invisible */
     if (!isPINVIS(p2))
-        return YES;
+        return true;
     /* Otherwise */
     if (isPINVIS(p1) && pRANK(p1) >= invis - 1)
-        return YES;
+        return true;
     if (pRANK(p1) >= invis2 - 1)
-        return YES;
-    else
-        return NO;
+        return true;
+    return false;
 }
 
-int
-canseeobj(int obj, int who)
+bool
+canSeeObject(int obj, int who)
 {
     if (((obtab + obj)->flags & OF_SMELL) && !((linestat + who)->flags & PFBLIND))
-        return NO;
+        return false;
     if ((linestat + who)->flags & PFBLIND &&
         (!((obtab + obj)->flags & OF_SMELL) || *(obtab + obj)->rmlist != -(5 + who)))
-        return NO;
+        return false;
     if (!isOINVIS(obj))
-        return YES;
+        return true;
     if (isPINVIS(who) && pRANK(who) >= invis - 1)
-        return YES;
+        return true;
     if (pRANK(who) < invis2 - 1)
-        return NO;
-    else
-        return YES;
+        return false;
+    return true;
 }
 
-int
-magic(int rnk, int points, int chance)
+bool
+castWillSucceed(int rnk, int points, int chance)
 {
     if (me->rank < rnk - 1) {
         sys(LOWLEVEL);
-        return NO;
+        return false;
     }
 
     if (me2->magicpts < points) {
         sys(NOMAGIC);
-        return NO;
+        return false;
     }
 
     if (me->rank < rnk)
         chance = ((me->rank) + 1 - rnk) * ((100 - chance) / (ranks - rnk)) + chance;
     if (mod(rnd(), 100) < chance) {
         sys(SPELLFAIL);
-        return NO;
+        return false;
     }
     me->magicpts -= points;
-    return YES;
+    return true;
 }

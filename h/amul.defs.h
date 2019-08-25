@@ -18,9 +18,6 @@ enum {
 #define MAXU 14             // Max users at 1 time
 #define MAXNODE (MAXU + 2)  // + 1 mobiles+1 daemons
 
-#define YES 0
-#define NO 1
-
 enum VolumeLevel {
     LOUD = 1,
     QUIET = 2,
@@ -449,7 +446,6 @@ enum AnnounceType {
 #define myRANK me->rank
 #define mySCORE me->score
 #define myROOM me2->room
-#define LightHere lit(me2->room)
 #define unfreeze                                                                                   \
     Permit();                                                                                      \
     return

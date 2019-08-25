@@ -2,7 +2,7 @@ void
 iocheck()
 {
     REALiocheck();
-    addcr = NO;
+    addcr = false;
 }
 
 void
@@ -25,7 +25,7 @@ loopit:
     if ((ap = (struct Aport *)GetMsg((struct MsgPort *)reply)) == NULL)
         return;
     ip = 1;
-    addcr = YES;
+    addcr = true;
     if (ap->type == MCLOSEING || ap->type == -'R') {
     here:
         me2->helping = me2->helped = me2->following = me2->followed = -1;
@@ -106,7 +106,7 @@ loopit:
             if (lit(me2->room) && !(me2->flags & PFINVIS) && !(me2->flags & PFSINVIS))
                 action(acp(SUMVANISH), AOTHERS);
             moveto(d);
-            if (lit(me2->room) YES && !(me2->flags & PFINVIS) && !(me2->flags & PFSINVIS))
+            if (lit(me2->room) && !(me2->flags & PFINVIS) && !(me2->flags & PFSINVIS))
                 action(acp(SUMARRIVE), AOTHERS);
         }
         i = 0; /* wake in transit. */
@@ -131,7 +131,7 @@ loopit:
         forced = d + 1;
     }
     if (t == MRWARN) {
-        addcr = YES;
+        addcr = true;
         tx(pt);
         goto endlok;
     }
@@ -139,7 +139,7 @@ loopit:
         goto endlok;
 wait: /* Lock my IO so I can read & clear my output buffer */
 loked:
-    addcr = YES;
+    addcr = true;
     tx(ob);
     *ob = 0;
 endlok:
