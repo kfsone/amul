@@ -4,8 +4,6 @@
 bool
 lit(int r)
 {
-    struct _OBJ_STRUCT *tobjtab = objtab;
-
     if (!((rmtab + r)->flags & DARK))
         return true;
     Forbid();
@@ -15,18 +13,16 @@ lit(int r)
             Permit();
             return true;
         }
-    objtab = obtab;
-    for (int i = 0; i < nouns; i++, objtab++) {
+    struct _OBJ_STRUCT *objp = objtab;
+    for (int i = 0; i < nouns; i++, objp++) {
         if ((STATE->flags & SF_LIT) != SF_LIT)
             continue;
-        for (int j = 0; j < objtab->nrooms; j++)
-            if (*(objtab->rmlist + j) == r) {
-                objtab = tobjtab;
+        for (int j = 0; j < objp->nrooms; j++)
+            if (*(objp->rmlist + j) == r) {
                 Permit();
                 return true;
             }
     }
-    objtab = tobjtab;
     Permit();
     return false;
 }
