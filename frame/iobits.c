@@ -100,10 +100,10 @@ loopit:
     if (t == MSUMMONED) {
         if (d != me2->room) {
             sys(BEENSUMND);
-            if (lit(me2->room) == YES && !(me2->flags & PFINVIS) && !(me2->flags & PFSINVIS))
+            if (lit(me2->room) && !(me2->flags & PFINVIS) && !(me2->flags & PFSINVIS))
                 action(acp(SUMVANISH), AOTHERS);
             moveto(d);
-            if (lit(me2->room) == YES && !(me2->flags & PFINVIS) && !(me2->flags & PFSINVIS))
+            if (lit(me2->room) YES && !(me2->flags & PFINVIS) && !(me2->flags & PFSINVIS))
                 action(acp(SUMARRIVE), AOTHERS);
         }
         i = 0; /* wake in transit. */

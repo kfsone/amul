@@ -314,7 +314,7 @@ cond(long n, int l) /* Execute a condition on me */
     case CELTEP:
     case CELSE: ret = -l; break;
     case CLIGHT:
-        if (lit(me2->room) == NO)
+        if (!lit(me2->room))
             ret = -1;
         break;
     case CISHERE:

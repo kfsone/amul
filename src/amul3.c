@@ -107,7 +107,7 @@ whohere()
 {
     int i;
 
-    if (lit(me2->room) == NO)
+    if (!lit(me2->room))
         return;
     if (((rmtab + me2->room)->flags & HIDE) != NULL && me->rank != ranks - 1) {
         sys(WHO_HIDE);
@@ -1213,11 +1213,11 @@ stfull(int st, int p) /* full <st> <player> */
 
 asetstat(int obj, int stat)
 {
-    char i, j, x, w, f;
+    char j, x, w, f;
 
     objtab = obtab + obj;
     x = owner(obj);
-    i = lit(loc(obj)); /* WAS the room lit? */
+    bool wasLit = lit(loc(obj));
     /* Remove from owners inventory */
     if (x != -1) {
         w = (linestat + x)->wield;
@@ -1242,9 +1242,10 @@ asetstat(int obj, int stat)
         (linestat + x)->wield = w;
     }
 
-    if ((j = lit(loc(obj))) == i)
+    bool nowLit = lit(loc(obj));
+    if (nowLit == wasLit)
         return;
-    if (j == NO) {
+    if (!nowLit) {
         actionfrom(obj, acp(NOWTOODARK));
         sys(NOWTOODARK);
     } else {
@@ -1265,7 +1266,7 @@ awhere(int obj)
             if (canseeobj(i, Af) == NO)
                 continue;
             if ((j = owner(i)) != -1) {
-                if (lit((linestat + j)->room) == YES) {
+                if (lit((linestat + j)->room)) {
                     if (j != Af) {
                         tx("You see ");
                         ans("1m");
@@ -1283,7 +1284,7 @@ awhere(int obj)
                 if (*(rp + j) == -1)
                     continue;
                 if (*(rp + j) >= 0) {
-                    if (*(rp + j) == -1 || lit(*(rp + j)) == NO)
+                    if (*(rp + j) == -1 || !lit(*(rp + j)))
                         continue;
                     roomtab = rmtab + *(rp + j);
                     desc_here(2);
@@ -1303,23 +1304,23 @@ awhere(int obj)
 
 osflag(int o, int flag)
 {
-    int own, l;
-
     objtab = obtab + o;
 
-    own = owner(o);
-    if (own == -1)
-        l = lit(loc(o));
-    else
+    int own = owner(o);
+    bool wasLit = false;
+    if (own != -1)
         rem_obj(own, o);
+    else
+        wasLit = lit(loc(o));
     STATE->flags = flag;
     if (own != -1) {
         add_obj(o);
         lighting(own, AHERE);
         return;
     }
-    if (lit(loc(o)) != l)
-        if (l == YES) {
+
+    if (lit(loc(o)) != wasLit)
+        if (wasLit == YES) {
             actionfrom(o, acp(NOWTOODARK));
             sys(NOWTOODARK);
         } else {

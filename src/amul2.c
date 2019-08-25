@@ -181,15 +181,13 @@ acheckget(int obj) /* Check the player can 'get' the object */
 
 look_here(int f, int rm)
 {
-    char il;
-
     /* Can I see? */
     if (me2->flags & PFBLIND) {
         list_what(rm, 0);
         return;
     }
     /* Can we see in here? */
-    if ((il = lit(me2->room)) == NO) {
+    if (!lit(me2->room)) {
         sys(TOODARK);
         *(rctab + rm) = *(rctab + rm) & rclr;
         goto die;
@@ -260,7 +258,7 @@ list_what(int r, int i)
     int o, or, f;
 
     f = -1;
-    if (lit(me2->room) == NO)
+    if (!lit(me2->room))
         return sys(TOOMAKE);
     if (me2->flags & PFBLIND)
         sys(YOURBLIND);
@@ -275,7 +273,7 @@ list_what(int r, int i)
         if (((rmtab + r)->flags & HIDEWY) && (i == 0 || (i == 1 && me->rank != ranks - 1)) &&
             !((obtab + o)->flags & OF_SCENERY))
             continue;
-        if (lit(me2->room) == NO && !((obtab + o)->flags & OF_SMELL))
+        if (!lit(me2->room) !((obtab + o)->flags & OF_SMELL))
             continue;
         obj = *(obtab + o);
         for (or = 0; or < obj.nrooms; or ++) {
@@ -470,13 +468,11 @@ zapme()
 
 send(int o, int to)
 {
-    short int x, i;
-
-    x = lit(to);
+    bool wasLit = lit(to);
     loseobj(o);
-    for (i = 0; i < objtab->nrooms; i++)
+    for (int i = 0; i < objtab->nrooms; i++)
         *(objtab->rmlist + i) = to;
-    if (lit(to) != x)
+    if (lit(to) != wasLit)
         actionin(to, acp(NOWLIGHT));
 }
 
@@ -899,12 +895,12 @@ lighting(int x, int twho) /*== twho - tell who! */
         if ((linestat + x)->hadlight <= 0)
             return;
         (linestat + x)->hadlight = (linestat + x)->light = 0;
-        if (lit((linestat + x)->room) == NO)
+        if (!lit((linestat + x)->room))
             action(acp(NOWTOODARK), twho);
     } else {
         if ((linestat + x)->hadlight != 0)
             return;
-        if (lit((linestat + x)->room) == NO)
+        if (!lit((linestat + x)->room))
             action(acp(NOWLIGHT), twho);
         (linestat + x)->hadlight = (linestat + x)->light;
     }

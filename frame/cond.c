@@ -1,6 +1,8 @@
 /* Conditions for AMUL */
 
-lit(int r) /* Is my room lit? */
+/* Is my room lit? */
+bool
+lit(int r)
 {
     int        i, j;
     struct _OBJ_STRUCT *tobjtab;
@@ -8,13 +10,13 @@ lit(int r) /* Is my room lit? */
     tobjtab = objtab;
 
     if (!((rmtab + r)->flags & DARK))
-        return YES;
+        return true;
     Forbid();
     you2 = linestat;
     for (i = 0; i < MAXU; i++, you2++)
         if (you2->room == r && you2->hadlight != 0) {
             Permit();
-            return YES;
+            return true;
         }
     objtab = obtab;
     for (i = 0; i < nouns; i++, objtab++) {
@@ -24,12 +26,12 @@ lit(int r) /* Is my room lit? */
             if (*(objtab->rmlist + j) == r) {
                 objtab = tobjtab;
                 Permit();
-                return YES;
+                return true;
             }
     };
     objtab = tobjtab;
     Permit();
-    return NO;
+    return false;
 }
 
 loc(int o)
@@ -389,7 +391,7 @@ cansee(int p1, int p2)
     /* If player is blind, obviously can't see p2! */
     if ((linestat + p1)->flags & PFBLIND)
         return NO;
-    if (lit(pROOM(p1)) == NO)
+    if (!lit(pROOM(p1)))
         return NO;
     /* If you are in a 'hide' room and he isn't a wizard */
     if (pRANK(p1) == ranks - 1)
