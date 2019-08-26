@@ -2597,6 +2597,7 @@ createDataDir()
     if (mkdir(filepath, 0776) < 0 && errno != EEXIST)
 #endif
         LogFatal("Unable to create Data directory: ", filepath, ": ", strerror(errno));
+    LogInfo("Created ", filepath);
 }
 
 error_t
@@ -2660,9 +2661,10 @@ InitCompilerModule()
 error_t
 amulcom_main()
 {
-    InitStrings();
-
     InitCompilerModule();
+
+    // Strings is effectively a sub-module of the compiler
+    InitStrings();
 
     StartModules();
 
