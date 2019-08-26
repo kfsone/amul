@@ -30,7 +30,7 @@ make_rank(int p, int rankn, int sex)
         strcat(str, (linestat + p)->pre);
         strcat(str, " ");
     }
-    strcat(str, (sex == 0) ? (rktab + rankn)->male : (rktab + rankn)->female);
+    strcat(str, (sex == 0) ? g_ranks[rankn].male : g_ranks[rankn].female);
     if (*(linestat + p)->post != 0) {
         strcat(str, " ");
         strcat(str, (linestat + p)->post);
@@ -107,25 +107,24 @@ acheckget(int obj)
         donet = ml + 1;
         return -1;
     }
-    if ((rktab + me->rank)->numobj <= 0) {
+    const auto &rank = g_ranks[me->rank];
+    if (rank.numobj <= 0) {
         tx("You can't manage it!\n");
         donet = ml + 1;
         return -1;
     }
-    if (STATE->weight > (rktab + me->rank)->maxweight) {
+    if (STATE->weight > rank.maxweight) {
         tx("You aren't strong enough to lift that!\n");
         donet = ml + 1;
         return -1;
     }
-    if (me2->numobj + 1 > (rktab + me->rank)->numobj) {
-        tx("You can't carry any more!");
-        tx(" You'll have to drop something else first.\n");
+    if (me2->numobj + 1 > rank.numobj) {
+        tx("You can't carry any more! You'll have to drop something else first.\n");
         donet = ml + 1;
         return -1;
     }
-    if (STATE->weight + me2->weight > (rktab + me->rank)->maxweight) {
-        tx("It's too heavy.");
-        tx(" You'll have to drop something else first.\n");
+    if (STATE->weight + me2->weight > rank.maxweight) {
+        tx("It's too heavy. You'll have to drop something else first.\n");
         donet = ml + 1;
         return -1;
     }
@@ -389,23 +388,24 @@ arecover(int obj)
 void
 refresh()
 {
+    const auto &rank = g_ranks[me->rank];
     if (me->strength <= 0)
-        me->strength = (rktab + me->rank)->strength;
+        me->strength = rank.strength;
     me2->strength = me->strength;
     if (me->stamina <= 0)
-        me->stamina = (rktab + me->rank)->stamina;
+        me->stamina = rank.stamina;
     me2->stamina = me->stamina;
     if (me->dext <= 0)
-        me->dext = (rktab + me->rank)->dext;
+        me->dext = rank.dext;
     me2->dext = me->dext;
     me2->dextadj = 0;
     if (me->wisdom <= 0)
-        me->wisdom = (rktab + me->rank)->wisdom;
+        me->wisdom = rank.wisdom;
     me2->wisdom = me->wisdom;
     if (me->experience <= 0)
-        me->experience = (rktab + me->rank)->experience;
+        me->experience = rank.experience;
     if (me->magicpts <= 0)
-        me->magicpts = (rktab + me->rank)->magicpts;
+        me->magicpts = rank.magicpts;
     me2->magicpts = me->magicpts;
     calcdext();
 }
@@ -447,46 +447,47 @@ achange(int u)
 
 // Fixed to allow increase/decrease
 void
-newrank(int plyr, int r)
+newrank(int plyr, int newRankNo)
 {
-    int or = me->rank;
-    if ((rktab + r)->tasks != 0) {
-        if ((me->tasks & (1 << ((rktab + r)->tasks) - 1)) == NULL) {
+    const auto &oldRank = g_ranks[me->rank];
+    const auto &newRank = g_ranks[newRankNo];
+    if (newRank.tasks != 0) {
+        if ((me->tasks & (1 << (newRank.tasks) - 1)) == NULL) {
             sys(NOTASK);
             return;
         }
     }
 
-    me->rank = r;
+    me->rank = newRankNo;   ///TODO: Sync
     sys(MADERANK);
 
     /* Update Current Line Stats */
-    me2->strength += (rktab + r)->strength - (rktab + or)->strength;
-    if (me2->strength > (rktab + r)->strength)
-        me2->strength = (rktab + r)->strength;
-    me2->stamina += (rktab + r)->stamina - (rktab + or)->stamina;
-    if (me2->stamina > (rktab + r)->stamina)
-        me2->stamina = (rktab + r)->stamina;
-    me2->wisdom += (rktab + r)->wisdom - (rktab + or)->wisdom;
-    if (me2->wisdom > (rktab + r)->wisdom)
-        me2->wisdom = (rktab + r)->wisdom;
-    me->experience += (rktab + r)->experience - (rktab + or)->experience;
-    if (me->experience > (rktab + r)->experience)
-        me->experience = (rktab + r)->experience;
-    me2->magicpts += (rktab + r)->magicpts - (rktab + or)->magicpts;
-    if (me2->magicpts > (rktab + r)->magicpts)
-        me2->magicpts = (rktab + r)->magicpts;
+    me2->strength += newRank.strength - oldRank.strength;
+    if (me2->strength > newRank.strength)
+        me2->strength = newRank.strength;
+    me2->stamina += newRank.stamina - oldRank.stamina;
+    if (me2->stamina > newRank.stamina)
+        me2->stamina = newRank.stamina;
+    me2->wisdom += newRank.wisdom - oldRank.wisdom;
+    if (me2->wisdom > newRank.wisdom)
+        me2->wisdom = newRank.wisdom;
+    me->experience += newRank.experience - oldRank.experience;
+    if (me->experience > newRank.experience)
+        me->experience = newRank.experience;
+    me2->magicpts += newRank.magicpts - oldRank.magicpts;
+    if (me2->magicpts > newRank.magicpts)
+        me2->magicpts = newRank.magicpts;
     calcdext();
 
     /* Update File Stats */
-    me->strength = (rktab + r)->strength;
-    me->stamina = (rktab + r)->stamina;
-    me->wisdom = (rktab + r)->wisdom;
-    me->dext = (rktab + r)->dext;
-    me->experience += (rktab + r)->experience - (rktab + or)->experience;
-    me->magicpts = (rktab + r)->magicpts;
+    me->strength = newRank.strength;
+    me->stamina = newRank.stamina;
+    me->wisdom = newRank.wisdom;
+    me->dext = newRank.dext;
+    me->experience += newRank.experience - oldRank.experience;
+    me->magicpts = newRank.magicpts;
 
-    if (r == ranks - 1) {
+    if (newRankNo == ranks - 1) {
         sys(TOPRANK);
         SendIt(MMADEWIZ, 0, me->name);
     }
@@ -508,7 +509,7 @@ aadd(int howmuch, int stat, int plyr)
             utxn(plyr, "(%ld)\n", me->score);
             ans("0;37m");
             for (int r = ranks - 1; r >= 0; r--) {
-                if (me->score >= (rktab + r)->score) {
+                if (me->score >= g_ranks[r].score) {
                     if (me->rank == r)
                         break;
                     newrank(plyr, r);
@@ -561,12 +562,11 @@ asub(int howmuch, int stat, int plyr)
             utxn(plyr, "(%ld)\n", me->score);
             ans("0;37m");
             for (int r = 0; r < ranks - 1; r++) {
-                if (me->score < (rktab + (r + 1))->score && me->rank == r)
+                if (me->score >= g_ranks[r+1].score)
+                    continue;
+                if (me->rank == r)
                     break;
-                if (me->score < (rktab + (r + 1))->score) {
-                    newrank(plyr, r);
-                    break;
-                }
+                newrank(plyr, r);
             }
             break;
         case STSTR:
@@ -614,27 +614,28 @@ void
 afix(int stat, int plyr)
 {
     if (plyr == Af) {
+        const auto &rank = g_ranks[me->rank];
         switch (stat) {
         case STSTR:
             me2->strength =
-                    ((rktab + me->rank)->strength * (rktab + me->rank)->maxweight - me2->weight) /
-                    (rktab + me->rank)->maxweight;
+                    (rank.strength * rank.maxweight - me2->weight) /
+                    rank.maxweight;
             break;
         case STSTAM:
-            me2->stamina = (rktab + me->rank)->stamina;
+            me2->stamina = rank.stamina;
             break;
         case STDEX:
             me2->dextadj = 0;
             calcdext();
             break;
         case STWIS:
-            me2->wisdom = (rktab + me->rank)->wisdom;
+            me2->wisdom = rank.wisdom;
             break;
         case STEXP:
-            me->experience = (rktab + me->rank)->experience;
+            me->experience = rank.experience;
             break;
         case STMAGIC:
-            me2->magicpts = (rktab + me->rank)->magicpts;
+            me2->magicpts = rank.magicpts;
             break;
         }
     } else
@@ -986,7 +987,7 @@ attack/defence. */
 
     you = usr + me2->fighting;
     you2 = linestat + me2->fighting;
-    minpksl = (rktab + you->rank)->minpksl;
+    minpksl = g_ranks[you->rank].minpksl;
 
     if (you2->state < PLAYING || you2->room != me2->room || you2->stamina <= 0) {
         donet = ml + 1;
@@ -1000,19 +1001,20 @@ attack/defence. */
     } else
         str = (20 * me2->strength);
 
+    const auto &maxRank = g_ranks.back();
     if (me->dext == 0)
         aatt = 5;
     else
-        aatt = (50 * me->experience) / (rktab + ranks - 1)->experience +
-               (40 * me2->strength) / (rktab + ranks - 1)->strength +
-               (10 * me2->dext) / (rktab + ranks - 1)->dext;
+        aatt = (50 * me->experience) / maxRank.experience +
+               (40 * me2->strength) / maxRank.strength +
+               (10 * me2->dext) / maxRank.dext;
 
     if (me->dext == 0)
         adef = 5;
     else
-        adef = (5 * me->experience) / (rktab + ranks - 1)->experience +
-               (15 * me2->strength) / (rktab + ranks - 1)->strength +
-               (80 * me2->dext) / (rktab + ranks - 1)->dext;
+        adef = (5 * me->experience) / maxRank.experience +
+               (15 * me2->strength) / maxRank.strength +
+               (80 * me2->dext) / maxRank.dext;
 
     /*	if(me2->flags & PFCRIP)  { aatt = aatt / 5; adef = adef / 10; }
         if(me2->flags & PFBLIND) { aatt = aatt / 2; adef = adef / 4;  } */
@@ -1026,16 +1028,16 @@ attack/defence. */
     if (you->dext == 0)
         datt = 5;
     else
-        datt = (50 * you->experience) / (rktab + ranks - 1)->experience +
-               (40 * you2->strength) / (rktab + ranks - 1)->strength +
-               (10 * you2->dext) / (rktab + ranks - 1)->dext;
+        datt = (50 * you->experience) / maxRank.experience +
+               (40 * you2->strength) / maxRank.strength +
+               (10 * you2->dext) / maxRank.dext;
 
     if (you->dext == 0)
         ddef = 5;
     else
-        ddef = (5 * you->experience) / (rktab + ranks - 1)->experience +
-               (15 * you2->strength) / (rktab + ranks - 1)->strength +
-               (80 * you2->dext) / (rktab + ranks - 1)->dext;
+        ddef = (5 * you->experience) / maxRank.experience +
+               (15 * you2->strength) / maxRank.strength +
+               (80 * you2->dext) / maxRank.dext;
 
     /*	if(you2->flags & PFCRIP)  { datt = datt / 5; ddef = ddef / 10; }
         if(you2->flags & PFBLIND) { datt = datt / 2; ddef = ddef / 4;  } */
@@ -1210,7 +1212,7 @@ PutARankInto(char *s, int x)
             *(s++) = *(p++);
         *(s++) = ' ';
     }
-    char *p = (you->sex == 0) ? (rktab + you->rank)->male : (rktab + you->rank)->female;
+    char *p = (you->sex == 0) ? g_ranks[you->rank].male : g_ranks[you->rank].female;
     while (*p != 0)
         *(s++) = *(p++);
     if (you2->post[0] != 0) {
@@ -1319,16 +1321,15 @@ ascore(int type)
         tx("Name: @m! Sex  : @gn		Played   : @gp times\n");
         ioproc("@mr");
         txs("Rank: %-20s  Score: @sc points	This game: @sg points\n", ow);
+        const auto &rank = g_ranks[me->rank];
         sprintf(block, "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity %ld/%ld.\n",
-                (rktab + me->rank)->strength, (rktab + me->rank)->stamina, me2->dext,
-                (rktab + me->rank)->dext);
+                rank.strength, rank.stamina, me2->dext, rank.dext);
         tx(block);
-        sprintf(block, "Magic Points: @mg/%ld. Wisdom:  @wi.\n", (rktab + me->rank)->magicpts);
+        sprintf(block, "Magic Points: @mg/%ld. Wisdom:  @wi.\n", rank.magicpts);
         tx(block);
 
         sprintf(block, "\nCurrent Info:\nObjects Carried: %ld/%ld,	Weight Carried: %ld/%ldg\n",
-                me2->numobj, (rktab + me->rank)->numobj, me2->weight,
-                (rktab + me->rank)->maxweight);
+                me2->numobj, rank.numobj, me2->weight, rank.maxweight);
         tx(block);
         tx("Following: @mf.	");
         if (me2->helping != -1)
@@ -1344,8 +1345,7 @@ ascore(int type)
     } else {
         txs("Score: @sc. ", ow);
         sprintf(block, "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity: %ld/%ld. Magic: @mg/%ld\n",
-                (rktab + me->rank)->strength, (rktab + me->rank)->stamina, me2->dext,
-                (rktab + me->rank)->dext, (rktab + me->rank)->magicpts);
+                rank.strength, rank.stamina, me2->dext, rank.dext, rank.magicpts);
         tx(block);
     }
 }
@@ -1353,7 +1353,8 @@ ascore(int type)
 void
 calcdext()
 {
-    me2->dext = (rktab + me->rank)->dext;
+    const auto &rank = g_ranks[me->rank];
+    me2->dext = rank.dext;
 
     if (me2->flags & PFSITTING)
         me2->dext = me2->dext / 2;
@@ -1364,8 +1365,7 @@ calcdext()
 
     me2->dext -=
             ((me2->dext / 10) -
-             (((me2->dext / 10) * ((rktab + me->rank)->maxweight - (me2->weight))) /
-              (rktab + me->rank)->maxweight));
+             (((me2->dext / 10) * (rank.maxweight - (me2->weight))) / rank.maxweight));
 
     if (me2->flags & PFINVIS)
         me2->dext += (me2->dext / 3);
@@ -1379,12 +1379,11 @@ calcdext()
 void
 toprank()
 {
-    for (int i = 0; i < ranks - 1; i++) {
-        if ((rktab + i)->tasks != 0) {
-            me->tasks = me->tasks | (1 << ((rktab + i)->tasks - 1));
-        }
+    for (const auto &rank : g_ranks) {
+        // turn the task into a bit
+        me->tasks |= 1 << (rank.tasks - 1);
     }
-    aadd((rktab + ranks - 1)->score - me->score + 1, STSCORE, Af);
+    aadd(g_ranks.back().score - me->score + 1, STSCORE, Af);
 }
 
 void

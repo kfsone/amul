@@ -326,7 +326,7 @@ amul_main(int argc, char *argv[])
         if (last_her != -1 && (linestat + last_her)->state != PLAYING)
             last_her = -1;
         iocheck();
-        tx((rktab + me->rank)->prompt);
+        tx(g_ranks[me->rank].prompt);
         needcr = true;
         block[0] = 0;
         Inp(input, 390);

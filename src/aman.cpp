@@ -60,9 +60,14 @@ Aport *   am;
 MsgPort * trport;                // Timer port
 long      invis, invis2, calls;  // Invisibility Stuff & # of calls
 long      ded;                   // ded = deduct
-roomid_t *ormtab;
 
 std::vector<_ROOM_STRUCT> g_rooms;
+std::vector<_RANK_STRUCT> g_ranks;
+std::vector<_ADJECTIVE>   g_adjectives;
+std::vector<_OBJ_STRUCT>  g_objects;
+std::vector<roomid_t>     g_objectLocations;
+std::vector<_OBJ_STATE>   g_objectStates;
+std::vector<_SYNONYM>     g_synonyms;
 
 long online;
 bool    g_resetInProgress { false };    // replaces: resety
@@ -90,21 +95,14 @@ now()
 static void
 givebackmemory()
 {
-    ReleaseMem(&obtab);
-    ReleaseMem(&rktab);
     ReleaseMem(&slottab);
-    ReleaseMem(&synp);
     ReleaseMem(&ttp);
     ReleaseMem(&ttpp);
     ReleaseMem(&usr);
     ReleaseMem(&vbtab);
 
-    adtab = nullptr;
     linestat = nullptr;
-    ormtab = nullptr;
     rctab = nullptr;
-    statab = nullptr;
-    synip = nullptr;
     vtp = nullptr;
     vtpp = nullptr;
 }
@@ -570,7 +568,6 @@ logit(const char *s)
 static void
 setup()
 {
-    long  rc = 0;
     long  l, act, j, k;
     long *pt;
     char *p;
@@ -583,17 +580,6 @@ setup()
     p += sizeof(*linestat) * MAXNODE;
     rctab = (short *)p;
 
-    fopenr(roomDataFile);  // 1: Open room block file
-    g_rooms.resize(g_gameData.numRooms);
-    if (size_t i = fread(g_rooms.data(), sizeof(_ROOM_STRUCT), g_gameData.numRooms, ifp); i != g_gameData.numRooms)
-        readfail("room table", i, g_gameData.numRooms);
-
-    fopenr(rankDataFile);  // 2: Read player g_gameData.numRanks
-    if ((rktab = (_RANK_STRUCT *) AllocateMem(g_gameData.numRanks * sizeof(rank))) == nullptr)
-        memfail("player g_gameData.numRanks");  // Allocate memory
-    if (size_t i = fread((char *)rktab, sizeof(rank), g_gameData.numRanks, ifp); i != g_gameData.numRanks)
-        readfail("player g_gameData.numRanks", i, g_gameData.numRanks);
-
     fopenr(verbDataFile);  // 4: Read the g_gameData.numVerbs in
     if ((vbtab = (_VERB_STRUCT *) AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) ==
         nullptr)
@@ -602,35 +588,11 @@ setup()
         readfail("verb table", i, g_gameData.numVerbs);
 
     // 3, 5, 6 & 7: Read objects
-    size_t obtlen, ormtablen, statablen;
     size_t stlen, vtlen, vtplen;
-    size_t synlen, synilen, adtablen;
 
-    GetFilesSize(objectDataFile, &obtlen, true);
-    GetFilesSize(objectRoomFile, &ormtablen, true);
-    GetFilesSize(objectStateFile, &statablen, true);
     GetFilesSize(verbSlotFile, &stlen, true);
     GetFilesSize(verbTableFile, &vtlen, true);
     GetFilesSize(verbParamFile, &vtplen, true);
-    GetFilesSize(synonymDataFile, &synlen, true);
-    GetFilesSize(synonymIndexFile, &synilen, true);
-    GetFilesSize(adjectiveDataFile, &adtablen, true);
-
-    if ((p = (char *) AllocateMem(obtlen + ormtablen + statablen)) == nullptr)
-        memfail("object data");
-    obtab = (_OBJ_STRUCT *)readf(objectDataFile, p);
-    ormtab = (roomid_t *)readf(objectRoomFile, (p = p + obtlen));
-    statab = (_OBJ_STATE *)readf(objectStateFile, p + ormtablen);
-
-    // Update the object room list ptrs and the state ptrs
-    statep = statab;
-    for (size_t i = 0; i < g_gameData.numObjects; i++) {
-        objtab = obtab + i;
-        objtab->rmlist = ormtab + rc;
-        rc += objtab->nrooms;
-        objtab->states = statep;
-        statep = statep + (long)objtab->nstates;
-    }
 
     // 9: Read the travel table
     size_t ttlen{0};
@@ -666,13 +628,6 @@ setup()
     vtp = (_VBTAB *)readf(verbTableFile, p + stlen);
     vtpp = (long *)readf(verbParamFile, p + stlen + vtlen);
 
-    // 17: Get the Synonym data & adjectives
-    if ((p = (char *) AllocateMem(synlen + synilen + adtablen)) == nullptr)
-        memfail("synonym data");
-    synp = (char *)readf(synonymDataFile, p);
-    synip = (short int *)readf(synonymIndexFile, (p = p + synlen));
-    adtab = (char *)readf(adjectiveDataFile, p + synilen);
-
     // 18: Get last reset time
     strcpy(lastres, now());
     strcpy(lastcrt, now());
@@ -702,14 +657,18 @@ setup()
     }
 
     // Fix the object 'inside' flags
-    objtab = obtab;
-    for (size_t i = 0; i < g_gameData.numObjects; i++, objtab++) {
-        if (*(objtab->rmlist) <= -INS)
-            (obtab + (-(INS + *(objtab->rmlist))))->inside++;
+    for (size_t i = 0; i < g_gameData.numObjects; i++) {
+        // Look for objects that have a negative room id which is below the 'INS' value
+        size_t roomIdx = g_objects[i].rooms;
+        if (g_objectLocations[roomIdx] > -INS)
+            continue;
+        objid_t container = -(g_objectLocations[roomIdx] + INS);
+        g_objects[container].inside++;
     }
-    if (ifp != nullptr)
+    if (ifp != nullptr) {
         fclose(ifp);
-    ifp = nullptr;
+        ifp = nullptr;
+    }
 }
 
 void
@@ -930,16 +889,51 @@ parseArguments(int argc, const char *argv[])
         strcpy(gameDir, ".");
 }
 
+constexpr auto
+checkedRead = [](int fd, auto *into, size_t count) noexcept
+{
+    auto expected = sizeof(*into) * count;
+    if (auto bytes = read(fd, into, expected); size_t(bytes) != expected)
+        LogFatal("Read error: expected ", expected, " bytes, got ", bytes);
+};
+
+constexpr auto
+checkedLoad = [](int fd, auto &into, size_t count) noexcept
+{
+    into.resize(count);
+    checkedRead(fd, into.data(), count);
+};
+
 error_t
 GameData::Load()
 {
     char filepath[MAX_PATH_LENGTH];
     safe_gamedir_joiner(gameDataFile);
-    FILE *fp = fopen(filepath, "rb");
-    if (!fp)
-        LogFatal("Unable to open game data file: ", filepath);
-    fread(dynamic_cast<GameConfig *>(&g_gameData), sizeof(GameConfig), 1, fp);
-    fclose(fp);
+    int fd = open(filepath, READ_FLAGS);
+    if (fd == -1)
+        LogFatal("Unable to open game data file: ", filepath, ": ", strerror(errno));
+
+    checkedRead(fd, dynamic_cast<GameConfig *>(&g_gameData), 1);
+    if (g_gameData.version != GameConfig::CurrentVersion) {
+        LogError("Game file was compiled with a different AMUL version -- cannot load.");
+        return EINVAL;
+    }
+
+    checkedLoad(fd, g_ranks, g_gameData.numRanks);
+
+    checkedLoad(fd, g_rooms, g_gameData.numRooms);
+
+    checkedLoad(fd, g_adjectives, g_gameData.numAdjectives);
+
+    checkedLoad(fd, g_objects, g_gameData.numObjects);
+
+    checkedLoad(fd, g_objectLocations, g_gameData.numObjLocations);
+
+    checkedLoad(fd, g_objectStates, g_gameData.numObjStates);
+
+    checkedLoad(fd, g_synonyms, g_gameData.numSynonyms);
+
+    close(fd);
 
     return 0;
 }

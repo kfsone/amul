@@ -8,6 +8,13 @@
 enum { GAME_NAME_LENGTH = 64 };
 
 struct GameConfig {
+    enum Versions {
+        CPPAmul = 1,
+
+        CurrentVersion = CPPAmul
+    };
+
+    int32_t version { CurrentVersion };
     /// TODO: Add amul version number
     char gameName[GAME_NAME_LENGTH];
     // This rank is required to see an invisible player/thing
@@ -31,11 +38,12 @@ struct GameConfig {
     size_t numTTEnts;       // Size of travel table
     size_t numObjects;      // Size of object table
     size_t numObjStates;    // Total object state count
+    size_t numObjLocations; // Number of locations objects occupy
     size_t numVerbs;        // Size of verb table
     size_t numVerbSlots;    // size of the slot component of verbs
     size_t numVerbOps;      // Total count of verb C&A
-    size_t numSynonyms;     // Size of synonym table
     size_t numAdjectives;   // Size of adjective table
+    size_t numSynonyms;     // Size of synonym table
     size_t numMobs;         // Size of mobile table
     size_t numMobPersonas;  // Size of mobile persona table
 };

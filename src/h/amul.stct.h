@@ -134,13 +134,6 @@ struct _RANK_STRUCT {
     uint32_t tasks;    // Bitmask of required tasks to attain rank
 };
 
-// "Noun" is the name of an object so that it can be used as *a noun*.
-struct _NTAB_STRUCT {
-    char                id[IDL + 1];  /// TODO: Dictionary id
-    uint32_t            numInstances;
-    struct _OBJ_STRUCT *first;
-};
-
 // Object: Item or npc in the game world
 struct _OBJ_STRUCT {
     char               id[IDL + 1];                   /// TODO: noun id
@@ -154,8 +147,8 @@ struct _OBJ_STRUCT {
     int8_t             state;                         /* Current state	 */
     int8_t             mobile;                        /* Mobile character	 */
     struct _OBJ_STATE *states;                        /* Ptr to states!	 */
-    int16_t            nrooms;                        /* No. of rooms its in	 */
-    roomid_t *         rmlist; /* List of rooms	 */  /// TODO: rmlist[]
+    int32_t            nrooms;                        /* No. of rooms its in	 */
+    int32_t            rooms;                         // offset to room table
 };
 
 // Object: State specific properties
@@ -166,6 +159,13 @@ struct _OBJ_STATE {
     uint16_t   damage;    // } damage it does or damage done to it
     stringid_t description;
     uint16_t   flags;
+};
+
+// "Noun" is the name of an object so that it can be used as *a noun*.
+struct _NTAB_STRUCT {
+    char                id[IDL + 1];  /// TODO: Dictionary id
+    uint32_t            numInstances;
+    struct _OBJ_STRUCT *first;
 };
 
 // Travel table entry, which you will note is a verb table entry with a verb.
@@ -203,6 +203,15 @@ struct _MOB_TAB {
     uint16_t speed;  /* Secs/turn		*/
     uint16_t count;  /* Time till next	*/
     uint16_t pflags; /* Player style flags	*/
+};
+
+struct _ADJECTIVE {
+    char word[IDL + 1];
+};
+
+struct _SYNONYM {
+    char word[IDL + 1];
+    int32_t aliases;
 };
 
 /// TODO: enumize

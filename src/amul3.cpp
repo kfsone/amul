@@ -567,8 +567,8 @@ add_obj(int to)
     *objtab->rmlist = -(5 + to);  // It now belongs to the player
     (linestat + to)->numobj++;
     (linestat + to)->weight += STATE->weight;
-    (linestat + to)->strength -= ((rktab + (usr + to)->rank)->strength * STATE->weight) /
-                                 (rktab + (usr + to)->rank)->maxweight;
+    const auto &rank = g_ranks[usr[to].rank];
+    (linestat + to)->strength -= (rank.strength * STATE->weight) / rank.maxweight;
     if (STATE->flags & SF_LIT)
         (linestat + to)->light++;
 }
@@ -610,8 +610,8 @@ rem_obj(int to, int ob)
 {
     (linestat + to)->numobj--;
     (linestat + to)->weight -= STATE->weight;
-    (linestat + to)->strength += ((rktab + (usr + to)->rank)->strength * STATE->weight) /
-                                 (rktab + (usr + to)->rank)->maxweight;
+    const auto &rank = g_ranks[usr[to].rank];
+    (linestat + to)->strength += (rank.strength * STATE->weight) / rank.maxweight;
     if (STATE->flags & SF_LIT)
         (linestat + to)->light--;
     if (me2->wield == ob)
@@ -1318,7 +1318,7 @@ isStatFull(int st, int p)
             return false;
         break;
     case STEXP:
-        if (you->experience < (rktab + you->rank)->experience)
+        if (you->experience < g_ranks[you->rank].experience)
             return false;
         break;
     }
