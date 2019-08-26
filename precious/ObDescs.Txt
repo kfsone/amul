@@ -11,10 +11,10 @@ dooraop
 The %s door is open.
 
 dooracl
-The %s door is closed.
+The {adj} door is closed.
 
 dooralk
-The %s door is locked.
+The {adj} door is locked.
 
 ; -- standard door state descriptions (without adjectives)
 doorop
