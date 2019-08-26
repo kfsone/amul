@@ -113,11 +113,11 @@ TEST(FilesystemTest, GetFileSizeNewFile)
     unlink(datafile);
 }
 
-TEST(FilesystemTest, MakeTestFileNameChecks)
+TEST(FilesystemTest, MakeTextFileNameChecks)
 {
     char filepath[MAX_PATH_LENGTH]{};
 
-    EXPECT_ERROR(EINVAL, MakeTextFileName(nullptr, filepath));
+    EXPECT_ERROR(EINVAL, MakeTextFileName("", filepath));
     EXPECT_STREQ("", filepath);
 
     // When gamedir is actually empty, it's invalid to append a path
@@ -126,19 +126,19 @@ TEST(FilesystemTest, MakeTestFileNameChecks)
     EXPECT_STREQ(filepath, "");
 }
 
-TEST(FilesystemTest, MakeTestFileName)
+TEST(FilesystemTest, MakeTextFileName)
 {
     char filepath[MAX_PATH_LENGTH]{0};
 
     strcpy(gameDir, ".");
-    EXPECT_ERROR(EINVAL, MakeTextFileName(nullptr, filepath));
+    EXPECT_ERROR(EINVAL, MakeTextFileName("", filepath));
     EXPECT_STREQ(filepath, "");
     EXPECT_SUCCESS(MakeTextFileName("/a/b/c", filepath));
     EXPECT_STREQ(filepath, "./a/b/c.txt");
     gameDir[0] = 0;
 }
 
-TEST(FilesystemTest, MakeTestFileNameRoot)
+TEST(FilesystemTest, MakeTextFileNameRoot)
 {
     char filepath[MAX_PATH_LENGTH]{0};
 
