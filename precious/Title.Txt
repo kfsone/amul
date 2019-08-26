@@ -19,8 +19,8 @@ sgorank=12
 ; (note: labels are case insensitive)
 RankScale=90
 
-; 55% of an objects value is deducted at the beginning of the game
-timeScale=55
+; 40% of an objects value is deducted at the beginning of the game
+timeScale=60
 
 [title]
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
