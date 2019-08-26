@@ -17,8 +17,8 @@
 #define TRQ timerequest
 
 #define UINFO                                                                                      \
-    (((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_gameData.numRooms * sizeof(short)) +       \
-            (sizeof(mob) * g_gameData.numMobs))
+    (((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_game.numRooms * sizeof(short)) +       \
+            (sizeof(mob) * g_game.numMobs))
 
 #include <cassert>
 #include <cctype>
@@ -46,7 +46,7 @@
 #include "h/system.h"
 
 FILE *   ifp;
-GameData g_gameData;
+Game g_game;
 time_t   s_nextReset;
 
 using DemonList = std::list<Demon>;
@@ -60,14 +60,6 @@ Aport *   am;
 MsgPort * trport;                // Timer port
 long      invis, invis2, calls;  // Invisibility Stuff & # of calls
 long      ded;                   // ded = deduct
-
-std::vector<_ROOM_STRUCT> g_rooms;
-std::vector<_RANK_STRUCT> g_ranks;
-std::vector<_ADJECTIVE>   g_adjectives;
-std::vector<_OBJ_STRUCT>  g_objects;
-std::vector<roomid_t>     g_objectLocations;
-std::vector<_OBJ_STATE>   g_objectStates;
-std::vector<_SYNONYM>     g_synonyms;
 
 long online;
 bool    g_resetInProgress { false };    // replaces: resety
@@ -135,7 +127,7 @@ memfail(const char *s)
 static void
 readfail(const char *s, size_t got, size_t wanted)
 {
-    LogFatal("Expected ", wanted, " ", s, ", but ", got);
+    LogFatal("Expected ", wanted, " ", s, ", got ", got);
 }
 
 // report open error
@@ -158,22 +150,31 @@ fopenr(const char *s)
 }
 
 // Size/Read data files
-char *
+void *
 xread(const char *s, size_t *countInto, const char *t)
 {
-    char *p{nullptr};
-
-    fopenr(s);
-    fseek(ifp, 0, 2L);
-    *countInto = ftell(ifp);
-    fseek(ifp, 0, 0L);
-    if (*countInto != 0) {
-        if ((p = (char *) AllocateMem(*countInto)) == nullptr)
-            memfail(t);
-        if (int i = fread(p, 1, *countInto, ifp); i != *countInto)
-            readfail(t, i, *countInto);
+    char filepath[MAX_PATH_LENGTH];
+    safe_gamedir_joiner(s);
+    int fd = open(filepath, READ_FLAGS);
+    if (fd == -1) {
+        LogFatal("Unable to open file: ", filepath, ": ", strerror(errno));
     }
-    return p;
+    struct stat sb {};
+    if (fstat(fd, &sb) == -1) {
+        LogFatal("Error accessing file: ", filepath, ": ", strerror(errno));
+    }
+    if (sb.st_size == 0) {
+        LogFatal("Empty/corrupt file: ", filepath);
+    }
+    void *data = AllocateMem(sb.st_size);
+    if (data == nullptr)
+        memfail(filepath);
+    if (size_t bytes = read(fd, data, sb.st_size); bytes != sb.st_size) {
+        LogFatal("Unexpected end of file: ", filepath, ": Expected: ", sb.st_size, ", Got: ", bytes);
+    }
+    close(fd);
+    *countInto = sb.st_size;
+    return data;
 }
 
 char *
@@ -228,7 +229,7 @@ reset_users()
         if (am == nullptr)
             break;
         if (am->from != -'O') {
-            printf("\x07 !! Invalid message!\n");
+            LogError("invalid amsg: ", am->from);
             am->type = am->data = -'R';
             ReplyMsg(std::move(amsg));
             continue;
@@ -408,7 +409,7 @@ data()
         amul->opaque = usr;
         Ap1 = calls;
         Ap2 = (uintptr_t)vername;
-        Ap3 = (uintptr_t)g_gameData.gameName;
+        Ap3 = (uintptr_t)g_game.gameName;
         Ap4 = (uintptr_t)linestat;
         break;
     case 0:
@@ -416,7 +417,7 @@ data()
         amul->p1 = GetResetCountdown();
         break;
     case 1:
-        amul->opaque = &g_gameData;
+        amul->opaque = &g_game;
         break;
     default:
         amul->opaque = nullptr;
@@ -564,6 +565,14 @@ logit(const char *s)
     LogInfo("@@ (", char(Af + '0'), ") ", now(), ": ", s);
 }
 
+static void
+filesize(const char *filename, size_t *intop)
+{
+    char filepath[MAX_PATH_LENGTH] {};
+    safe_gamedir_joiner(filename);
+    GetFilesSize(filepath, intop, true);
+}
+
 // Read in & evaluate data files
 static void
 setup()
@@ -580,31 +589,27 @@ setup()
     p += sizeof(*linestat) * MAXNODE;
     rctab = (short *)p;
 
-    fopenr(verbDataFile);  // 4: Read the g_gameData.numVerbs in
-    if ((vbtab = (_VERB_STRUCT *) AllocateMem(g_gameData.numVerbs * sizeof(_VERB_STRUCT))) ==
-        nullptr)
-        memfail("verb table");
-    if (size_t i = fread(vbtab->id, sizeof(_VERB_STRUCT), g_gameData.numVerbs, ifp); i != g_gameData.numVerbs)
-        readfail("verb table", i, g_gameData.numVerbs);
+    size_t verblen{0};
+    vbtab = (_VERB_STRUCT*)xread(verbDataFile, &verblen, "verb list");
+    assert(verblen / sizeof(_VERB_STRUCT) == g_game.numVerbs);
 
-    // 3, 5, 6 & 7: Read objects
-    size_t stlen, vtlen, vtplen;
+    size_t stlen{0}, vtlen{0}, vtplen{0};
 
-    GetFilesSize(verbSlotFile, &stlen, true);
-    GetFilesSize(verbTableFile, &vtlen, true);
-    GetFilesSize(verbParamFile, &vtplen, true);
+    filesize(verbSlotFile, &stlen);
+    filesize(verbTableFile, &vtlen);
+    filesize(verbParamFile, &vtplen);
 
     // 9: Read the travel table
     size_t ttlen{0};
     ttp = (_TT_ENT *)xread(travelTableFile, &ttlen, "travel table");
-    assert(ttlen / sizeof(_TT_ENT) == g_gameData.numTTEnts);
+    assert(ttlen / sizeof(_TT_ENT) == g_game.numTTEnts);
 
     // 12: Read parameters
     size_t ttplen{0};
     ttpp = (long *)xread(travelParamFile, &ttplen, "TT parameter table");
     ttabp = ttp;
     pt = ttpp;
-    for (size_t i = 0; i < g_gameData.numTTEnts; i++) {
+    for (size_t i = 0; i < g_game.numTTEnts; i++) {
         ttabp = ttp + i;
         k = (long)ttabp->pptr;
         ttabp->pptr = (int *)pt;
@@ -637,7 +642,7 @@ setup()
     stptr = slottab;
     vtabp = vtp;
     l = 0;
-    for (size_t i = 0; i < g_gameData.numVerbs; i++, vbptr++) {
+    for (size_t i = 0; i < g_game.numVerbs; i++, vbptr++) {
         vbptr->ptr = stptr;
         for (j = 0; j < vbptr->ents; j++, stptr++) {
             stptr->ptr = vtabp;
@@ -656,15 +661,6 @@ setup()
         }
     }
 
-    // Fix the object 'inside' flags
-    for (size_t i = 0; i < g_gameData.numObjects; i++) {
-        // Look for objects that have a negative room id which is below the 'INS' value
-        size_t roomIdx = g_objects[i].rooms;
-        if (g_objectLocations[roomIdx] > -INS)
-            continue;
-        objid_t container = -(g_objectLocations[roomIdx] + INS);
-        g_objects[container].inside++;
-    }
     if (ifp != nullptr) {
         fclose(ifp);
         ifp = nullptr;
@@ -716,7 +712,7 @@ void
 kernel()
 {
     LogInfo("------------------------------------------------------------");
-    s_nextReset = time(nullptr) + g_gameData.gameDuration_m * 60;
+    s_nextReset = time(nullptr) + g_game.gameDuration_m * 60;
     g_resetInProgress = false;
     g_forceReset = false;
     online = 0;
@@ -730,7 +726,7 @@ kernel()
         (linestat + i)->following = -1;
     }
 
-    LogInfo("== (=) ", now(), ": Loaded ", g_gameData.gameName);
+    LogInfo("== (=) ", now(), ": Loaded ", g_game.gameName);
     ded = 0;
 
     // Activate the demon processor
@@ -859,14 +855,24 @@ executeCommand(int argc, const char *argv[])
     exit(0);
 }
 
+[[noreturn]]
+void
+usage(const char *argv[], error_t err)
+{
+    printf("Usage: %s [-h|-?|--help] [-v|--verbose] [-q|--quiet] [game directory]\n", argv[0]);
+    printf("Server for AMUL multi-player games.\n");
+    printf("\n");
+    printf("  --help               Displays this help information\n");
+    printf("  --quiet              Decreases output verbosity\n");
+    printf("  --verbose            Increases output verbosity\n");
+    printf("  <game directory>     Option path containing game files\n");
+
+    exit(err);
+}
+
 void
 parseArguments(int argc, const char *argv[])
 {
-    if (argc > 4) {
-        printf("Invalid arguments!\n");
-        exit(0);
-    }
-
     if (argc == 1) {
         strcpy(gameDir, ".");
         return;
@@ -876,17 +882,43 @@ parseArguments(int argc, const char *argv[])
         executeCommand(argc, argv);
     }
 
-    int argn = 1;
-    if (!stricmp(argv[argn], "-q")) {
-        ++argn;
-        g_quiet = true;
-    }
-    if (argn < argc) {
-        error_t err = path_copier(gameDir, argv[argn]);
+    int desiredLogLevel = LWARN;
+
+    for (int argn = 1; argn < argc; ++argn) {
+        std::string_view arg = argv[argn];
+        if (arg[0] == '-') {
+            if (arg == "-v" || arg == "--verbose") {
+                if (desiredLogLevel > 0)
+                    --desiredLogLevel;
+                continue;
+            }
+            if (arg == "-q" || arg == "--quiet") {
+                g_quiet = true;
+                if (desiredLogLevel < MAX_LOG_LEVEL - 1)
+                    ++desiredLogLevel;
+                continue;
+            }
+            if (arg == "-h" || arg == "-?" || arg == "--help") {
+                usage(argv, 0);
+            }
+            printf("ERROR: Invalid command line argument: %s", arg.data());
+            usage(argv, EINVAL);
+        }
+
+        if (gameDir[0] != 0) {
+            LogFatal("Invalid argument/multiple paths specified: %s", arg.data());
+        }
+
+        error_t err = path_copier(gameDir, arg.data());
         if (err != 0)
             LogFatal("Invalid game path: ", argv[argn]);
-    } else
+    }
+
+    if (gameDir[0] == 0)
         strcpy(gameDir, ".");
+
+    SetLogLevel((LogLevel) desiredLogLevel);
+    LogDebug("Game Path: ", gameDir);
 }
 
 constexpr auto
@@ -898,42 +930,55 @@ checkedRead = [](int fd, auto *into, size_t count) noexcept
 };
 
 constexpr auto
-checkedLoad = [](int fd, auto &into, size_t count) noexcept
+checkedLoad = [](const char *label, int fd, auto &into, size_t count) noexcept
 {
     into.resize(count);
+    LogDebug("reading ", label, ": ", count, ": ", sizeof(*into.data()) * count);
     checkedRead(fd, into.data(), count);
 };
 
 error_t
-GameData::Load()
+Game::Load()
 {
+    LogInfo("Loading game data");
+
     char filepath[MAX_PATH_LENGTH];
-    safe_gamedir_joiner(gameDataFile);
+    safe_gamedir_joiner(gameFile);
     int fd = open(filepath, READ_FLAGS);
     if (fd == -1)
         LogFatal("Unable to open game data file: ", filepath, ": ", strerror(errno));
 
-    checkedRead(fd, dynamic_cast<GameConfig *>(&g_gameData), 1);
-    if (g_gameData.version != GameConfig::CurrentVersion) {
+    LogDebug("data section");
+    checkedRead(fd, dynamic_cast<GameConfig *>(&g_game), 1);
+    if (g_game.version != GameConfig::CurrentVersion) {
         LogError("Game file was compiled with a different AMUL version -- cannot load.");
         return EINVAL;
     }
 
-    checkedLoad(fd, g_ranks, g_gameData.numRanks);
+    checkedLoad("string index", fd, m_stringIndex, numStrings);
+    checkedLoad("string bytes", fd, m_strings, stringBytes);
 
-    checkedLoad(fd, g_rooms, g_gameData.numRooms);
+    checkedLoad("ranks", fd, m_ranks, numRanks);
 
-    checkedLoad(fd, g_adjectives, g_gameData.numAdjectives);
+    checkedLoad("rooms", fd, m_rooms, numRooms);
 
-    checkedLoad(fd, g_objects, g_gameData.numObjects);
+    checkedLoad("adjectives", fd, m_adjectives, numAdjectives);
 
-    checkedLoad(fd, g_objectLocations, g_gameData.numObjLocations);
+    checkedLoad("objects", fd, m_objects, numObjects);
+    checkedLoad("object locations", fd, m_objectLocations, numObjLocations);
+    checkedLoad("object states", fd, m_objectStates, numObjStates);
 
-    checkedLoad(fd, g_objectStates, g_gameData.numObjStates);
-
-    checkedLoad(fd, g_synonyms, g_gameData.numSynonyms);
+    checkedLoad("synonyms", fd, m_synonyms, numSynonyms);
 
     close(fd);
+
+    // Fix the object 'inside' flags
+    for (auto & obj : m_objects) {
+        // Look for objects that have a negative room id which is below the 'INS' value
+        objid_t container = m_objectLocations[obj.rooms];
+        if (container <= -INS)
+            m_objects[container].inside++;
+    }
 
     return 0;
 }
@@ -951,9 +996,8 @@ main(int argc, const char *argv[])
 #endif
 
     parseArguments(argc, argv);
-    chdir(gameDir);
 
-    if (error_t err = g_gameData.Load(); err != 0)
+    if (error_t err = g_game.Load(); err != 0)
         LogFatal("Failed to load game data");
 
     port = FindPort(managerPortName);  // Check for existing port

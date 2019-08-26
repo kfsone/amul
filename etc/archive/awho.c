@@ -31,7 +31,7 @@ struct _OBJ_STRUCT * obtab;
 
 long   calls, online, rooms, ranks, nouns;
 char * adname;
-short *rescnt;
+uint32_t *rescnt;
 
 main(int argc, char *argv[]) /* Accept no arguments */
 {
@@ -130,7 +130,7 @@ main(int argc, char *argv[]) /* Accept no arguments */
                    "----", "--------", "-----");
         }
     }
-    rescnt = (short *)Ap1;
+    rescnt = (uint32_t *)Ap1;
     printf("Next reset in [33m%ld[0m mins, [33m%ld[0m secs.\n\n", *rescnt / 60,
            *rescnt - ((*rescnt / 60) * 60));
     quit();

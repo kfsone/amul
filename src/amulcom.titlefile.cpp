@@ -10,7 +10,6 @@
 #include "h/logging.h"
 
 extern FILE *ifp;
-extern GameConfig g_gameConfig;
 extern std::string compilerVersion;
 
 static int
@@ -68,9 +67,9 @@ getBlockNo(const char *prefix, int *into)
 void
 _getAdventureName(const char *prefix, const char *value)
 {
-    strncpy(g_gameConfig.gameName, value, sizeof(g_gameConfig.gameName));
-    if (strlen(value) > sizeof(g_gameConfig.gameName) - 1)
-        LogWarn("Game name too long, truncated to: ", g_gameConfig.gameName);
+    strncpy(g_game.gameName, value, sizeof(g_game.gameName));
+    if (strlen(value) > sizeof(g_game.gameName) - 1)
+        LogWarn("Game name too long, truncated to: ", g_game.gameName);
 }
 
 void
@@ -79,19 +78,19 @@ title_proc()
     nextc(true);
 
     getBlock("name=", _getAdventureName);
-    getBlockNo("resettime=", &g_gameConfig.gameDuration_m);
-    if (g_gameConfig.gameDuration_m < 15) {
-        g_gameConfig.gameDuration_m = 15;
-        LogWarn("resettime= too short: falling back to ", g_gameConfig.gameDuration_m, " minutes");
+    getBlockNo("resettime=", &g_game.gameDuration_m);
+    if (g_game.gameDuration_m < 15) {
+        g_game.gameDuration_m = 15;
+        LogWarn("resettime= too short: falling back to ", g_game.gameDuration_m, " minutes");
     }
 
-    getBlockNo("seeinvis=", &g_gameConfig.seeInvisRank);
-    getBlockNo("seesuperinvis=", &g_gameConfig.seeSuperInvisRank);
+    getBlockNo("seeinvis=", &g_game.seeInvisRank);
+    getBlockNo("seesuperinvis=", &g_game.seeSuperInvisRank);
 
-    getBlockNo("sgorank=", &g_gameConfig.superGoRank);
+    getBlockNo("sgorank=", &g_game.superGoRank);
 
-    getBlockNo("rankscale=", &g_gameConfig.rankScale);
-    getBlockNo("timescale=", &g_gameConfig.timeScale);
+    getBlockNo("rankscale=", &g_game.rankScale);
+    getBlockNo("timescale=", &g_game.timeScale);
 
     while (nextc(false)) {
         char *p = getTidyBlock(ifp);

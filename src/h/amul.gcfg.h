@@ -3,7 +3,10 @@
 
 // Description of game configuration and properties (room count, etc)
 
+#include <vector>
+
 #include "h/amul.type.h"
+#include "h/amul.stct.h"
 
 enum { GAME_NAME_LENGTH = 64 };
 
@@ -48,29 +51,41 @@ struct GameConfig {
     size_t numMobPersonas;  // Size of mobile persona table
 };
 
-struct GameData final : public GameConfig {
+struct Game final : public GameConfig {
     void *m_dataPtr;  // raw pointer to the data
     /// TODO: Game Info and Game Config
     //
-    const char *m_strings;
-    const char *m_adjectives;
+    std::vector<stringid_t>   m_stringIndex;
+    std::vector<char>         m_strings;
+    std::vector<_RANK_STRUCT> m_ranks;
+    std::vector<_ROOM_STRUCT> m_rooms;
+    std::vector<_ADJECTIVE>   m_adjectives;
+    std::vector<_OBJ_STRUCT>  m_objects;
+    std::vector<roomid_t>     m_objectLocations;
+    std::vector<_OBJ_STATE>   m_objectStates;
+    std::vector<_SYNONYM>     m_synonyms;
 
-    struct _RANK_STRUCT *m_ranks;
-
-    struct _ROOM_STRUCT *m_rooms;
     struct _TT_ENT *     m_travel;
-
-    struct _OBJ_STRUCT *m_objects;
-    struct _OBJ_STATE * m_objStates;
 
     struct _VERB_STRUCT *m_verbs;
     struct _SLOTTAB *    m_verbSlots;
     struct _VBTAB *      m_verbOps;
 
-    ~GameData() {}
+    ~Game() {}
 
     error_t Load();
-    error_t Save() const { return 0; }
+    error_t Save();
 };
+
+
+extern Game g_game;
+
+static inline _RANK_STRUCT &GetRank(int n) noexcept { return g_game.m_ranks[n]; }
+static inline _ROOM_STRUCT &GetRoom(roomid_t n) noexcept { return g_game.m_rooms[n]; }
+static inline _ADJECTIVE &GetAdj(adjid_t n) noexcept { return g_game.m_adjectives[n]; }
+static inline _OBJ_STRUCT &GetObject(objid_t n) noexcept { return g_game.m_objects[n]; }
+static inline const char *GetString(stringid_t n) noexcept {
+    return g_game.m_strings.data() + g_game.m_stringIndex[n];
+}
 
 #endif

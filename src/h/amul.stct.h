@@ -134,6 +134,16 @@ struct _RANK_STRUCT {
     uint32_t tasks;    // Bitmask of required tasks to attain rank
 };
 
+// Object: State specific properties
+struct _OBJ_STATE {
+    uint32_t   weight;    // In grammes
+    int32_t    value;     // Base points for dropping in a swamp
+    uint16_t   strength;  // } Unclear: May be health of the item,
+    uint16_t   damage;    // } damage it does or damage done to it
+    stringid_t description;
+    uint16_t   flags;
+};
+
 // Object: Item or npc in the game world
 struct _OBJ_STRUCT {
     char               id[IDL + 1];                   /// TODO: noun id
@@ -146,19 +156,18 @@ struct _OBJ_STRUCT {
     int8_t             putto;                         /* Where things go	 */
     int8_t             state;                         /* Current state	 */
     int8_t             mobile;                        /* Mobile character	 */
-    struct _OBJ_STATE *states;                        /* Ptr to states!	 */
+    _OBJ_STATE *states;                        /* Ptr to states!	 */
     int32_t            nrooms;                        /* No. of rooms its in	 */
-    int32_t            rooms;                         // offset to room table
-};
+    roomid_t           rooms;                         // offset to room table
 
-// Object: State specific properties
-struct _OBJ_STATE {
-    uint32_t   weight;    // In grammes
-    int32_t    value;     // Base points for dropping in a swamp
-    uint16_t   strength;  // } Unclear: May be health of the item,
-    uint16_t   damage;    // } damage it does or damage done to it
-    stringid_t description;
-    uint16_t   flags;
+    roomid_t Room(size_t idx) const noexcept;
+    slot_t Owner() const noexcept;
+    void SetOwner(slot_t slot) noexcept;
+    bool IsOwned() const noexcept;
+    const _OBJ_STATE &State() const noexcept;
+    _OBJ_STATE &State() noexcept;
+
+    bool isInvis() const noexcept;
 };
 
 // "Noun" is the name of an object so that it can be used as *a noun*.

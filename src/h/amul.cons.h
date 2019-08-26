@@ -21,7 +21,7 @@ extern const char *prep[NPREP];
 extern const char *syntax[NSYNTS];
 
 constexpr const char *managerPortName = "AMULMgr";
-extern const char *   gameDataFile;
+extern const char *   gameFile;
 extern const char *   stringTextFile;
 extern const char *   stringIndexFile;
 extern const char *   travelTableFile;

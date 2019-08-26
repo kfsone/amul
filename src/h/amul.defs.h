@@ -455,7 +455,7 @@ enum {
 
 // -- Useful defines --
 
-#define isOINVIS(x) ((obtab + (x))->flags & OF_INVIS)
+#define isOINVIS(x) (g_game.m_objects[x].flags & OF_INVIS)
 #define isPINVIS(x) ((linestat + (x))->flags & PFINVIS)
 #define IamINVIS (me2->flags & PFINVIS)
 #define IamSINVIS (me2->flags & PFSINVIS)
@@ -480,9 +480,7 @@ enum {
 #define AP2 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 1))
 #define AP3 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 2))
 #define AP4 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 3))
-#define STATE (objtab->states + (long)objtab->state)
-#define State(i) ((obtab + (i))->states + (long)(obtab + (i))->state)
-#define ItsState (it->states + (long)it->state)
+#define ItsState it->State()
 #define xLIGHT(x) (linestat + (x))->light
 #define xHADLIGHT(x) (linestat + (x))->hadlight
 

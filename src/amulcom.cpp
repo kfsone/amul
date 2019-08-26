@@ -61,21 +61,13 @@ long   wizstr;     /* Wizards strength		*/
 char block[1024];  // scratch pad
 
 // counters
-GameConfig g_gameConfig;
+Game g_game;
 
 FILE *ifp, *ofp1, *ofp2, *ofp3, *ofp4;
 
 bool exiting;
 
 std::map<std::string, std::string> s_dmoveLookups;
-std::vector<_ROOM_STRUCT> s_rooms;
-std::vector<_RANK_STRUCT> s_ranks;
-std::vector<_ADJECTIVE>   s_adjectives;
-std::vector<_OBJ_STRUCT>  s_objects;
-std::vector<roomid_t>     s_objectLocations;
-std::vector<_OBJ_STATE>   s_objectStates;
-std::vector<_SYNONYM>     s_synonyms;
-
 std::map<std::string, roomid_t> s_roomIdx;
 std::map<std::string, adjid_t> s_adjectiveIdx;
 
@@ -278,12 +270,12 @@ isVerb(const char *s)
     }
 
     vbptr = vbtab;
-    for (size_t i = 0; i < g_gameConfig.numVerbs; i++, vbptr++) {
+    for (size_t i = 0; i < g_game.numVerbs; i++, vbptr++) {
         if (stricmp(vbptr->id, s) == 0)
             return i;
     }
     if (stricmp(g_verb.id, s) == 0)
-        return g_gameConfig.numVerbs + 1;
+        return g_game.numVerbs + 1;
 
     return -1;
 }
@@ -364,16 +356,16 @@ set_adj()
     }
     _ADJECTIVE adj {};
     strncpy(adj.word, Word, sizeof(adj.word));
-    s_adjectiveIdx[Word] = s_adjectives.size();
-    s_adjectives.push_back(adj);
-    return g_gameConfig.numAdjectives++;
+    s_adjectiveIdx[Word] = g_game.m_adjectives.size();
+    g_game.m_adjectives.push_back(adj);
+    return g_game.numAdjectives++;
 }
 
 [[noreturn]]
 void
 objectInvalid(const _OBJ_STRUCT &obj, const char *s)
 {
-    LogFatal("Object #", g_gameConfig.numObjects + 1, ": ", obj.id, ": invalid ", s, ": ", Word);
+    LogFatal("Object #", g_game.numObjects + 1, ": ", obj.id, ": invalid ", s, ": ", Word);
 }
 
 int
@@ -412,7 +404,7 @@ set_put(const _OBJ_STRUCT &obj)
 int
 set_mob(const _OBJ_STRUCT &obj)
 {
-    for (int i = 0; i < g_gameConfig.numMobPersonas; i++) {
+    for (int i = 0; i < g_game.numMobPersonas; i++) {
         if (stricmp(mobp[i].id, Word) == 0) {
             return i;
         }
@@ -451,7 +443,7 @@ bool
 checkRankLine(const char *p)
 {
     if (*p == 0) {
-        LogError("Rank line ", g_gameConfig.numRanks, " incomplete");
+        LogError("Rank line ", g_game.numRanks, " incomplete");
         return false;
     }
     return true;
@@ -461,7 +453,7 @@ checkRankLine(const char *p)
 void
 stateInvalid(const _OBJ_STRUCT &obj, const char *s)
 {
-    LogFatal("Object #", g_gameConfig.numObjects + 1, ": ", obj.id, ": invalid ", s,
+    LogFatal("Object #", g_game.numObjects + 1, ": ", obj.id, ": invalid ", s,
              " state line: ", block);
 }
 
@@ -482,8 +474,8 @@ isNoun(const char *s)
     /// TODO: This should check the noun table...
     if (stricmp(s, "none") == 0)
         return -2;
-    for (size_t i = 0; i < s_objects.size(); ++i) {
-        if (stricmp(s_objects[i].id, s) == 0)
+    for (size_t i = 0; i < g_game.m_objects.size(); ++i) {
+        if (stricmp(g_game.m_objects[i].id, s) == 0)
             return  i;
     }
     return -1;
@@ -492,8 +484,8 @@ isNoun(const char *s)
 int
 isContainer(const char *s)
 {
-    for (size_t i = 0; i < s_objects.size(); ++i) {
-        if (stricmp(s, s_objects[i].id) == 0 && s_objects[i].contains > 0)
+    for (size_t i = 0; i < g_game.m_objects.size(); ++i) {
+        if (stricmp(s, g_game.m_objects[i].id) == 0 && g_game.m_objects[i].contains > 0)
             return i;
     }
     return -1;
@@ -1084,7 +1076,7 @@ room_proc()
     std::string text {};
     text.reserve(4096);
 
-    s_rooms.reserve(512);
+    g_game.m_rooms.reserve(512);
 
     while (!src.Eof()) {
         // Terminate if we've reached the error limit.
@@ -1139,6 +1131,8 @@ room_proc()
         }
 
         if (src.GetLine() && !src.line.empty() && !src.line.front().empty()) {
+            if (src.line.front().front() == '\t')
+                src.line.front().remove_prefix(1);
             // Short description.
             AddTextString(src.line.front(), true, &room.shortDesc);
 
@@ -1149,10 +1143,10 @@ room_proc()
                 AddTextString(text, false, &room.longDesc);
         }
 
-        s_roomIdx[rmname] = s_rooms.size();
-        s_rooms.push_back(room);
+        s_roomIdx[rmname] = g_game.m_rooms.size();
+        g_game.m_rooms.push_back(room);
 
-        ++g_gameConfig.numRooms;
+        ++g_game.numRooms;
     }
 
     for (auto & it : s_dmoveLookups) {
@@ -1166,7 +1160,7 @@ room_proc()
         auto roomIt = s_roomIdx.find(rmname);
         if (roomIt == s_roomIdx.end())
             LogFatal("room:", rmname, ": internal error: room not present in index");
-        s_rooms[roomIt->second].dmove = dmoveIt->second;
+        g_game.m_rooms[roomIt->second].dmove = dmoveIt->second;
     }
 }
 
@@ -1189,7 +1183,7 @@ rank_proc()
             continue;
 
         if (strlen(Word) < 3 || p - block > RANKL) {
-            LogFatal("Rank ", g_gameConfig.numRanks + 1, ": Invalid male rank: ", Word);
+            LogFatal("Rank ", g_game.numRanks + 1, ": Invalid male rank: ", Word);
         }
 
         _RANK_STRUCT rank {};
@@ -1205,7 +1199,7 @@ rank_proc()
         if (!checkRankLine(p))
             continue;
         if (strcmp(Word, "=") != 0 && (strlen(Word) < 3 || strlen(Word) > RANKL)) {
-            LogFatal("Rank ", g_gameConfig.numRanks + 1, ": Invalid female rank: ", Word);
+            LogFatal("Rank ", g_game.numRanks + 1, ": Invalid female rank: ", Word);
         }
         if (Word[0] != '=') {
             n = 0;
@@ -1305,7 +1299,7 @@ rank_proc()
             p++;
         /* Greater than prompt length? */
         if (p - block > 10) {
-            LogError("Rank #", g_gameConfig.numRanks + 1, ": prompt too long: ", block);
+            LogError("Rank #", g_game.numRanks + 1, ": prompt too long: ", block);
             continue;
         }
         if (block[0] == 0)
@@ -1314,8 +1308,8 @@ rank_proc()
             WordCopier(rank.prompt, block, p);
 
         wizstr = rank.strength;
-        s_ranks.push_back(rank);
-        g_gameConfig.numRanks++;
+        g_game.m_ranks.push_back(rank);
+        g_game.numRanks++;
     }
 }
 
@@ -1468,9 +1462,9 @@ state_proc(_OBJ_STRUCT &obj)
         state.flags |= bitset(flag);
     }
 
-    s_objectStates.push_back(state);
+    g_game.m_objectStates.push_back(state);
     obj.nstates++;
-    g_gameConfig.numObjStates++;
+    g_game.numObjStates++;
 }
 
 void
@@ -1507,13 +1501,13 @@ objs_proc()
 
         _OBJ_STRUCT obj {};
         obj.adj = obj.mobile = -1;
-        obj.idno = g_gameConfig.numObjects;
+        obj.idno = g_game.numObjects;
         obj.state = 0;
         obj.nrooms = 0;
         obj.contains = 0;
         obj.flags = 0;
         obj.putto = 0;
-        obj.rooms = s_objectLocations.size();
+        obj.rooms = g_game.m_objectLocations.size();
         strncpy(obj.id, Word, sizeof(obj.id));
         /// TODO: Register noun
 
@@ -1546,7 +1540,7 @@ objs_proc()
                     break;
                 case OP_MOB:
                     obj.mobile = set_mob(obj);
-                    g_gameConfig.numMobs++;
+                    g_game.numMobs++;
                     break;
                 default:
                     LogFatal("Internal Error: Code for object-parameter '", obparms[idNo], "' missing");
@@ -1581,9 +1575,9 @@ objs_proc()
         if (locations.empty())
             LogError("object:", obj.id, ": no location given");
         else {
-            s_objectLocations.insert(s_objectLocations.end(), locations.begin(), locations.end());
+            g_game.m_objectLocations.insert(g_game.m_objectLocations.end(), locations.begin(), locations.end());
             obj.nrooms = uint16_t(locations.size());
-            g_gameConfig.numObjLocations += obj.nrooms;
+            g_game.numObjLocations += obj.nrooms;
         }
 
         obj.nstates = 0;
@@ -1601,8 +1595,8 @@ objs_proc()
         if (obj.nstates > 100)
             LogError("object:", obj.id, ": too many states defined (", obj.nstates, ")");
 
-        s_objects.push_back(obj);
-        g_gameConfig.numObjects++;
+        g_game.m_objects.push_back(obj);
+        g_game.numObjects++;
     }
 
     /*
@@ -1628,7 +1622,7 @@ trav_proc()
     fopenw(travelTableFile);
     fopenw(travelParamFile);
 
-    assert(g_gameConfig.numTTEnts == 0);
+    assert(g_game.numTTEnts == 0);
     int ntt = 0, t = 0, r = 0;
     int ttNumVerbs = 0;
 
@@ -1658,7 +1652,7 @@ trav_proc()
             skipblock();
             continue;
         }
-        c_room = &s_rooms[rmn];
+        c_room = &g_game.m_rooms[rmn];
         if (c_room->tabptr != -1) {
             LogError("room:", Word, ": Multiple tt entries for room");
             skipblock();
@@ -1789,7 +1783,7 @@ trav_proc()
                 tt.verb = verbsUsed[verbNo];
                 checkedfwrite(ofp1, &tt, 1);
                 c_room->ttlines++;
-                g_gameConfig.numTTEnts++;
+                g_game.numTTEnts++;
             }
         next:
             strip = 0;
@@ -1801,8 +1795,8 @@ trav_proc()
 
     c_room = nullptr;
 
-    if (GetLogErrorCount() == 0 && ntt != g_gameConfig.numRooms) {
-        for (auto &room : s_rooms) {
+    if (GetLogErrorCount() == 0 && ntt != g_game.numRooms) {
+        for (auto &room : g_game.m_rooms) {
             if (room.tabptr == -1 && (room.flags & DEATH) != DEATH) {
                 LogWarn("room:", room.id, ": no travel entry");
             }
@@ -1900,7 +1894,7 @@ registerTravelVerbs(char *p)
         strncpy(g_verb.id, Word, sizeof(g_verb.id));
         checkedfwrite(ofp1, &g_verb, 1);
         proc = 0;
-        *(vbtab + (g_gameConfig.numVerbs++)) = g_verb;
+        *(vbtab + (g_game.numVerbs++)) = g_verb;
         LogDebug("Added TRAVEL verb: ", Word);
     }
 }
@@ -1956,8 +1950,8 @@ lang_proc()
         memset(&g_verb, 0, sizeof(g_verb));
         strncpy(g_verb.id, Word, sizeof(g_verb.id));
 
-        ++g_gameConfig.numVerbs;
-        LogDebug("verb#", g_gameConfig.numVerbs, ":", g_verb.id);
+        ++g_game.numVerbs;
+        LogDebug("verb#", g_game.numVerbs, ":", g_verb.id);
 
         getVerbFlags(&g_verb, p);
 
@@ -2264,7 +2258,7 @@ lang_proc()
     write:
         checkedfwrite(ofp1, &g_verb, 1);
         proc = 0;
-        *(vbtab + (g_gameConfig.numVerbs - 1)) = g_verb;
+        *(vbtab + (g_game.numVerbs - 1)) = g_verb;
     }
 }
 
@@ -2307,11 +2301,11 @@ syn_proc()
             if (Word[0] == 0)
                 break;
             strncpy(syn.word, Word, sizeof(syn.word));
-            s_synonyms.push_back(syn);
+            g_game.m_synonyms.push_back(syn);
         }
     }
 
-    g_gameConfig.numSynonyms = s_synonyms.size();
+    g_game.numSynonyms = g_game.m_synonyms.size();
 }
 
 /* Mobiles.Txt Processor */
@@ -2439,18 +2433,18 @@ mob_proc1()
             continue;
 
         checkedfwrite(ofp1, &mob, 1);
-        g_gameConfig.numMobPersonas++;
+        g_game.numMobPersonas++;
     }
 
-    if (g_gameConfig.numMobPersonas != 0) {
-        mobp = (_MOB_ENT *)AllocateMem(sizeof(mob) * g_gameConfig.numMobPersonas);
+    if (g_game.numMobPersonas != 0) {
+        mobp = (_MOB_ENT *)AllocateMem(sizeof(mob) * g_game.numMobPersonas);
         if (mobp == nullptr) {
             LogFatal("Out of memory");
         }
         CloseOutFiles();
 
         fopenr(mobileDataFile);
-        checkedfread(ifp, mobp, g_gameConfig.numMobPersonas);
+        checkedfread(ifp, mobp, g_game.numMobPersonas);
     }
 }
 
@@ -2588,13 +2582,15 @@ compilerModuleStart(Module *module)
     LogDebug("Game Directory: ", gameDir);
     LogDebug("Log Verbosity : ", GetLogLevelName(GetLogLevel()));
 
-    s_rooms.reserve(1024);
-    s_ranks.reserve(20);
-    s_objects.reserve(512);
-    s_objectLocations.reserve(1024);
-    s_objectStates.reserve(1024);
-    s_adjectives.reserve(256);
-    s_synonyms.reserve(512);
+    g_game.m_stringIndex.reserve(1024);
+    g_game.m_strings.reserve(256 * 1024);
+    g_game.m_rooms.reserve(1024);
+    g_game.m_ranks.reserve(20);
+    g_game.m_objects.reserve(512);
+    g_game.m_objectLocations.reserve(1024);
+    g_game.m_objectStates.reserve(1024);
+    g_game.m_adjectives.reserve(256);
+    g_game.m_synonyms.reserve(512);
 
     createDataDir();
 
@@ -2622,7 +2618,7 @@ compilerModuleClose(Module *module, error_t err)
 
     // If we didn't complete compilation, delete the profile file.
     if (err != 0 || !exiting) {
-        UnlinkGameFile(gameDataFile);
+        UnlinkGameFile(gameFile);
     }
 
     ReleaseMem((void **)&vbtab);
@@ -2638,37 +2634,49 @@ InitCompilerModule()
               nullptr, nullptr);
 }
 
+constexpr auto checkedSave = [](const char *label, const auto &container) {
+    auto written = checkedfwrite(ofp1, container.data(), container.size());
+    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+    LogDebug("wrote ", label, ": ", container.size(), ": ", written, " bytes");
+};
 
-void
-saveGame()
+
+error_t
+Game::Save()
 {
-    fopenw(gameDataFile);
+    fopenw(gameFile);
 
-    auto written = checkedfwrite(ofp1, &g_gameConfig, 1);
+    // Round the string table up to pointer alignment.
+    auto stringPadding = sizeof(uintptr_t) - (stringBytes & (sizeof(uintptr_t) - 1));
+    for (size_t i = 0; i < stringPadding; ++i) {
+        m_strings.push_back('\0');
+        stringBytes++;
+    }
+
+    auto written = checkedfwrite(ofp1, dynamic_cast<GameConfig*>(this), 1);
     assert((written & (sizeof(uintptr_t) - 1)) == 0);
 
-    written = checkedfwrite(ofp1, s_ranks.data(), s_ranks.size());
-    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+    assert(m_stringIndex.size() == numStrings);
+    checkedSave("string index", m_stringIndex);
+    checkedSave("string bytes", m_strings);
 
-    written = checkedfwrite(ofp1, s_rooms.data(), s_rooms.size());
-    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+    checkedSave("ranks", m_ranks);
 
-    written = checkedfwrite(ofp1, s_adjectives.data(), s_adjectives.size());
-    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+    checkedSave("rooms", m_rooms);
 
-    written = checkedfwrite(ofp1, s_objects.data(), s_objects.size());
-    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+    checkedSave("adjectives", m_adjectives);
 
-    written = checkedfwrite(ofp1, s_objectLocations.data(), s_objectLocations.size());
-    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+    checkedSave("objects", m_objects);
 
-    written = checkedfwrite(ofp1, s_objectStates.data(), s_objectStates.size());
-    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+    checkedSave("object locations", m_objectLocations);
 
-    written = checkedfwrite(ofp1, s_synonyms.data(), s_synonyms.size());
-    assert((written & (sizeof(uintptr_t) - 1)) == 0);
+    checkedSave("object states", m_objectStates);
+
+    checkedSave("synonyms", m_synonyms);
 
     CloseOutFiles();
+
+    return 0;
 }
 
 /*---------------------------------------------------------*/
@@ -2685,22 +2693,22 @@ amulcom_main()
 
     compileGame();
 
-    g_gameConfig.numStrings = GetStringCount();
-    g_gameConfig.stringBytes = GetStringBytes();
+    g_game.numStrings = GetStringCount();
+    g_game.stringBytes = GetStringBytes();
 
     LogNote("Execution finished normally");
-    LogInfo("Statistics for ", g_gameConfig.gameName, ":");
-    LogInfo("Rooms: ", g_gameConfig.numRooms,
-            ", Ranks: ", g_gameConfig.numRanks,
-            ", Objects: ", g_gameConfig.numObjects,
-            ", Adjs: ", g_gameConfig.numAdjectives,
-            ", Verbs: ", g_gameConfig.numVerbs,
-            ", Syns: ", g_gameConfig.numSynonyms,
-            ", TT Ents: ", g_gameConfig.numTTEnts,
-            ", Strings: ", g_gameConfig.numStrings,
-            ", Text: ", g_gameConfig.stringBytes);
+    LogInfo("Statistics for ", g_game.gameName, ":");
+    LogInfo("Rooms: ", g_game.numRooms,
+            ", Ranks: ", g_game.numRanks,
+            ", Objects: ", g_game.numObjects,
+            ", Adjs: ", g_game.numAdjectives,
+            ", Verbs: ", g_game.numVerbs,
+            ", Syns: ", g_game.numSynonyms,
+            ", TT Ents: ", g_game.numTTEnts,
+            ", Strings: ", g_game.numStrings,
+            ", Text: ", g_game.stringBytes);
 
-    saveGame();
+    g_game.Save();
 
     exiting = true;
 

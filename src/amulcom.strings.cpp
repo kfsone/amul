@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "h/amul.cons.h"
+#include "h/amul.gcfg.h"
 #include "h/amul.test.h"
 #include "h/amul.xtra.h"
 #include "h/amulcom.h"
@@ -15,12 +16,8 @@
 
 
 // Offsets of strings by string id.
-using OffsetTable = std::vector<size_t>;
 using StringMap = std::unordered_map<std::string, stringid_t>;
 
-static FILE *      stringFP;
-static size_t      stringData;
-static OffsetTable stringOffsets;
 static StringMap   stringMap;
 
 std::string &
@@ -40,7 +37,7 @@ isNewlineSuppressor(char c)
 static stringid_t
 nextStringId() noexcept
 {
-    return stringid_t(stringOffsets.size());
+    return stringid_t(g_game.m_stringIndex.size());
 }
 
 static bool /*ok*/
@@ -53,14 +50,6 @@ registerStringLabel(std::string_view label_)
 		return false;
 	LogDebug("registered ", label, " as ", nextStringId());
 	return true;
-}
-
-static void
-check_write_str(const char *op, std::string_view text, FILE *fp)
-{
-    if (fwrite(text.data(), 1, text.length(), fp) != text.length())
-        LogFatal("Write error: ", op, ": ", strerror(errno));
-    stringData += text.length();
 }
 
 error_t
@@ -78,12 +67,12 @@ AddTextString(std::string_view text, bool isLine, stringid_t *idp)
 
 	*idp = nextStringId();
 
-    check_write_str("text string", text, stringFP);
-    if (isLine) {
-        check_write_str("newline", { "\n", 2 }, stringFP);
-    } else {
-        check_write_str("eos", { "", 1 }, stringFP);
-    }
+    g_game.m_stringIndex.push_back(GetStringBytes());
+
+    g_game.m_strings.insert(g_game.m_strings.end(), text.cbegin(), text.cend());
+    if (isLine)
+        g_game.m_strings.push_back('\n');
+    g_game.m_strings.push_back('\0');
 
     return 0;
 }
@@ -106,6 +95,8 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
     char line[2048];
 
     // Consume lines from the file until we reach a paragraph break
+    static std::string text;
+    text.clear();
     while (!feof(fp)) {
         char *p = fgets(line, sizeof(line), fp);
         if (p == nullptr)
@@ -126,12 +117,15 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
             if (end > p && *(end - 1) == '{')
                 --end;
         }
-        check_write_str("text line", {p, size_t(end - p)}, stringFP);
+        text += end;
         if (isEol(*p)) {
-            check_write_str("eol", {"\n", 1}, stringFP);
+            text += '\n';
         }
     }
-    check_write_str("eos", {"", 1}, stringFP);
+    text += '\0';
+
+    g_game.m_stringIndex.push_back(GetStringBytes());
+    g_game.m_strings.insert(g_game.m_strings.end(), text.cbegin(), text.cend());
 
     if (idp)
         *idp = id;
@@ -143,7 +137,6 @@ error_t
 RegisterTextString(
         std::string_view label, std::string_view text, bool isLine, stringid_t *idp)
 {
-    REQUIRE(stringFP);
 	REQUIRE(!label.empty());
 
     stringid_t id { 0 };
@@ -179,13 +172,13 @@ LookupTextString(std::string_view label, stringid_t *idp)
 size_t
 GetStringCount()
 {
-    return stringMap.size();
+    return g_game.m_stringIndex.size();
 }
 
 size_t
 GetStringBytes()
 {
-    return stringData;
+    return g_game.m_strings.size();
 }
 
 char *
@@ -228,7 +221,6 @@ ZeroPad(char *string, size_t stringSize)
 error_t
 initStringModule(Module *module)
 {
-    REQUIRE(!stringFP);
     return 0;
 }
 
@@ -236,9 +228,6 @@ error_t
 startStringModule(Module *module)
 {
 	REQUIRE(stringMap.empty());
-    stringOffsets.reserve(1024);
-    stringFP = OpenGameFile(stringTextFile, "w");  // Note: text mode, translate \r please
-    REQUIRE(stringFP);
 
     return 0;
 }
@@ -246,15 +235,7 @@ startStringModule(Module *module)
 error_t
 closeStringModule(Module *module, error_t err)
 {
-	LogDebug("Strings: ", stringOffsets.size(), ", Bytes: ", stringData);
-    CloseFile(&stringFP);
-    stringFP = OpenGameFile(stringIndexFile, "w");
-    auto offsetSize = sizeof(*stringOffsets.data());
-    size_t written = fwrite(stringOffsets.data(), offsetSize, stringOffsets.size(), stringFP);
-    if (written != stringOffsets.size())
-        LogFatal("Unable to write string indexes");
-    CloseFile(&stringFP);
-	stringMap.clear();
+	LogDebug("Strings: ", GetStringCount(), ", Bytes: ", GetStringBytes());
 
     return 0;
 }
