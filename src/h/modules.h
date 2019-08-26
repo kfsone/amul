@@ -23,23 +23,26 @@ struct Module {
 
     enum ModuleID id;
 
-    moduleinit_fn  init;
+    moduleinit_fn init;
     modulestart_fn start;
     moduleclose_fn close;
 
     const char *name;
-    void *      context;
+    void *context;
 };
 
-void    InitModules();
+void InitModules();
 error_t StartModules();
-void    CloseModules(error_t err);
+void CloseModules(error_t err);
 
-error_t NewModule(
-        enum ModuleID id, moduleinit_fn init, modulestart_fn start, moduleclose_fn close,
-        void *context /*opt*/, struct Module **ptr /*opt*/);
+error_t NewModule(enum ModuleID id,
+                  moduleinit_fn init,
+                  modulestart_fn start,
+                  moduleclose_fn close,
+                  void *context /*opt*/,
+                  struct Module **ptr /*opt*/);
 struct Module *GetModule(enum ModuleID id);
-error_t        CloseModule(struct Module *module, error_t err);
+error_t CloseModule(struct Module *module, error_t err);
 
 extern error_t RegisterContextModule(enum ModuleID id, void *context);
 #endif

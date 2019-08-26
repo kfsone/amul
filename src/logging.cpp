@@ -33,8 +33,7 @@
 #define DEBUG_BREAK (void) 0
 #endif
 
-[[noreturn]]
-void Terminate(error_t err);
+[[noreturn]] void Terminate(error_t err);
 
 // Track the number of messages logged with AL_ERROR
 static size_t s_errorCount{ 0 };
@@ -43,8 +42,8 @@ static LogLevel s_logLevel = LogLevel::LWARN;
 
 constexpr std::string_view levelName[MAX_LOG_LEVEL + 1] = {
     // Names of the debugging levels
-    "More", "Debug", "Info",  "Note",
-    "WARNING", "ERROR", "FATAL", "DISABLED" };
+    "More", "Debug", "Info", "Note", "WARNING", "ERROR", "FATAL", "DISABLED"
+};
 
 error_t
 loggingModuleInit(Module * /*module*/)
@@ -86,7 +85,8 @@ InitLogging()
                      nullptr);
 }
 
-void LogBreak()
+void
+LogBreak()
 {
     DEBUG_BREAK;
 }

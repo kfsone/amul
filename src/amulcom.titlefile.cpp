@@ -58,9 +58,10 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
 static void
 getBlockNo(const char *prefix, int *into)
 {
-    static int blockValue { 0 };
+    static int blockValue{ 0 };
     // TODO: This is awful, use a context.
-    getBlock(prefix, [](const char *prefix, const char *value) { blockValue = getNo(prefix, value); });
+    getBlock(prefix,
+             [](const char *prefix, const char *value) { blockValue = getNo(prefix, value); });
     *into = blockValue;
 }
 
@@ -106,4 +107,3 @@ title_proc()
     std::string defaultTitle = compilerVersion + "\n\n";
     RegisterTextString("$title", defaultTitle, true, nullptr);
 }
-

@@ -141,107 +141,112 @@ RoomId = Labeled("room=", Word());
 template<typename LhsT, typename RhsT, typename... Args>
 struct Expression : public Expression<RhsT, Args...>
 {
-    
+
 
 
 }
 */
 using Lexeme = int;
-enum Token {
-	Error = -1, None, Even, Odd
-};
+enum Token { Error = -1, None, Even, Odd };
 using Lexemes = std::vector<Lexeme>;
 using LexCursor = Lexemes::iterator;
 
 struct TokenizerState {
-	Lexemes m_lexemes;
-	LexCursor m_cursor;
-	std::vector<Token> m_tokens;
+    Lexemes m_lexemes;
+    LexCursor m_cursor;
+    std::vector<Token> m_tokens;
 
-	TokenizerStae() : m_lexemes{}, m_cursor{m_lexemes.begin()}, m_tokens{} {}
+    TokenizerStae() : m_lexemes{}, m_cursor{ m_lexemes.begin() }, m_tokens{} {}
 
-	bool empty() const { return m_cursor == m_lexemes.end(); }
-	Lexeme Current() const { return *m_cursor; }
-	Token AddToken(t, size_t numLexemes) {
-		m_tokens.push_back(t);
-		m_cursor += numLexemes;
-		return t;
-	}
+    bool empty() const { return m_cursor == m_lexemes.end(); }
+    Lexeme Current() const { return *m_cursor; }
+    Token AddToken(t, size_t numLexemes)
+    {
+        m_tokens.push_back(t);
+        m_cursor += numLexemes;
+        return t;
+    }
 };
 
 struct TokenMatcher {
-	TokenMatcher() {}
+    TokenMatcher() {}
 
-	virtual Token Match(TokenizerState &ts) {
-		return Error;
-	}
-	Token Match(TokenizerState &ts, TokenMatcher &tm)
-	{
-		if (ts.empty()) return None;
-		return tm.Match(ts);
-	}
+    virtual Token Match(TokenizerState &ts) { return Error; }
+    Token Match(TokenizerState &ts, TokenMatcher &tm)
+    {
+        if (ts.empty())
+            return None;
+        return tm.Match(ts);
+    }
 
-	Token AddToken(Token t, size_t numLexemes) {
-		ts.m_tokens.push(t);
-		ts.m_cursor += numLexemes;
-		return t;
-	}
+    Token AddToken(Token t, size_t numLexemes)
+    {
+        ts.m_tokens.push(t);
+        ts.m_cursor += numLexemes;
+        return t;
+    }
 };
 
 struct MatchEven : public TokenMatcher {
-	bool Match(TokenizerState &ts) override {
-		if ((ts.Current() & 1) == 0) {
-			return AddToken(Even, 1);
-		}
-	}
+    bool Match(TokenizerState &ts) override
+    {
+        if ((ts.Current() & 1) == 0) {
+            return AddToken(Even, 1);
+        }
+    }
 };
 
 struct MatchOdd : public TokenMatcher {
-	bool Match(TokenizerState &ts) override {
-		if ((ts.Current() & 1) != 0) {
-			return AddToken(Even, 1);
-		}
-	}
+    bool Match(TokenizerState &ts) override
+    {
+        if ((ts.Current() & 1) != 0) {
+            return AddToken(Even, 1);
+        }
+    }
 };
 
 struct MatchEither : public TokenMatcher {
-	TokenMatcher &lhs;
-	TokenMatcher &rhs;
-	MatchEither(TokenMatcher &lhs, TokenMatcher &rhs) : lhs(lhs), rhs(rhs) {}
-	bool Match(TokenizerState &ts) override {
-		if (Token matched = Match(ts, lhs); matched != None)
-			return matched;
-		if (Token matched = Match(ts, rhs); matched != None)
-			return matched;
-		return None;
-	}
+    TokenMatcher &lhs;
+    TokenMatcher &rhs;
+    MatchEither(TokenMatcher &lhs, TokenMatcher &rhs) : lhs(lhs), rhs(rhs) {}
+    bool Match(TokenizerState &ts) override
+    {
+        if (Token matched = Match(ts, lhs); matched != None)
+            return matched;
+        if (Token matched = Match(ts, rhs); matched != None)
+            return matched;
+        return None;
+    }
 }
 
 struct MatchN : public TokenMatcher {
-	TokenMatcher &matcher;
-	size_t n;
-	MatchN(TokenMatcher &matcher, size_t n) : matcher(matcher), n(n) {}
+    TokenMatcher &matcher;
+    size_t n;
+    MatchN(TokenMatcher &matcher, size_t n) : matcher(matcher), n(n) {}
 
-	bool Match(TokenizerState &ts) override {
-		for (size_t i = 0; i < n; ++i) {
-			if (ts.empty()) return Error;
-			Token t = Match(ts, matcher);
-			if (t <= None) return Error;
-			ts.AddToken(t, 1);
-		}
-	}
+    bool Match(TokenizerState &ts) override
+    {
+        for (size_t i = 0; i < n; ++i) {
+            if (ts.empty())
+                return Error;
+            Token t = Match(ts, matcher);
+            if (t <= None)
+                return Error;
+            ts.AddToken(t, 1);
+        }
+    }
 };
 
-TokenMatcher operator | (TokenMatcher &lhs, TokenMatcher &rhs)
+TokenMatcher
+operator|(TokenMatcher &lhs, TokenMatcher &rhs)
 {
-	return MatchEither{lhs, rhs};
+    return MatchEither{ lhs, rhs };
 }
 
-int main()
+int
+main()
 {
-	auto matcher = 
-	TokenizerState ts{};
-	ts.m_lexemes = { 5, 1, 3, 2, 4, 1, 6 };
-	ts.m_cursor = tx.m_lexemes.begin();
-	
+    auto matcher = TokenizerState ts{};
+    ts.m_lexemes = { 5, 1, 3, 2, 4, 1, 6 };
+    ts.m_cursor = tx.m_lexemes.begin();
 }

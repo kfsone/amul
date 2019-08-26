@@ -8,7 +8,7 @@
 #include "h/amul.type.h"
 
 enum LogLevel {
-    LMORE,      // ultra debug
+    LMORE,  // ultra debug
     LDEBUG,
     LINFO,
     LNOTE,
@@ -18,8 +18,7 @@ enum LogLevel {
     MAX_LOG_LEVEL,
 };
 
-[[noreturn]]
-void Terminate(error_t);
+[[noreturn]] void Terminate(error_t);
 
 size_t GetLogErrorCount() noexcept;
 void SetLogLevel(LogLevel level) noexcept;

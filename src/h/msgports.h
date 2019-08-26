@@ -8,23 +8,17 @@
 #include "h/amigastubs.h"
 #include "h/spinlock.h"
 
-
 struct MsgPort;
 
 struct Message : public Node {
     constexpr Message(MsgPort *replyPort, size_t size)
-        : Node(NT_MESSAGE)
-        , mn_ReplyPort(replyPort)
-        , mn_Length(size)
+        : Node(NT_MESSAGE), mn_ReplyPort(replyPort), mn_Length(size)
     {
     }
-    constexpr Message(size_t size)
-        : Message(nullptr, size)
-    {
-    }
+    constexpr Message(size_t size) : Message(nullptr, size) {}
 
     MsgPort *mn_ReplyPort;  // message reply port
-    size_t   mn_Length;     // total message length, in bytes
+    size_t mn_Length;       // total message length, in bytes
                             // (include the size of the Message
                             // structure in the length)
 };
@@ -35,15 +29,12 @@ struct MsgPort {
     using MsgList = std::deque<MessagePtr>;
 
     const char *m_name;
-    MsgList     m_msgList;
+    MsgList m_msgList;
     /// TODO: Just using simple spinlocks for now
     SpinLock m_spinLock;
 
   public:
-    MsgPort(const char *name)
-        : m_name(name)
-    {
-    }
+    MsgPort(const char *name) : m_name(name) {}
 
     void Put(MessagePtr &&ptr);
     bool IsReady() noexcept;
@@ -51,23 +42,20 @@ struct MsgPort {
 
     MessagePtr Get();   // non-blocking
     MessagePtr Wait();  // blocking
-    void       Clear();
+    void Clear();
 };
 
 struct Aport : public Message {
     Aport(MsgPort *replyPort = nullptr, uint32_t type_ = 0, int32_t from_ = -1, int64_t data_ = 9)
-        : Message(replyPort, sizeof(Aport))
-        , type(type_)
-        , from(from_)
-        , data(data_)
+        : Message(replyPort, sizeof(Aport)), type(type_), from(from_), data(data_)
     {
     }
 
-    uint32_t type{0};
-    int32_t  from{-1};
-    int64_t  data{0};
-    int64_t  p1{0}, p2{0}, p3{0}, p4{0};
-    void *   opaque{nullptr};
+    uint32_t type{ 0 };
+    int32_t from{ -1 };
+    int64_t data{ 0 };
+    int64_t p1{ 0 }, p2{ 0 }, p3{ 0 }, p4{ 0 };
+    void *opaque{ nullptr };
 };
 
 // mp_Flags: Port arrival actions (PutMsg)
@@ -78,7 +66,7 @@ struct Aport : public Message {
 
 MsgPort *FindPort(const char *portName);
 MsgPort *CreatePort(const char *portName);
-void     DeletePort(MsgPort *);
+void DeletePort(MsgPort *);
 
 void ReplyMsg(MessagePtr &&msg);
 

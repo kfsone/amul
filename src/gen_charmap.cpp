@@ -5,7 +5,7 @@
 #include "scanner.h"
 
 const char *atoms[MAX_ATOM] = {
-        "A_INVALID", "A_END", "A_SPACE", "A_LETTER", "A_DIGIT", "A_PUNCT",
+    "A_INVALID", "A_END", "A_SPACE", "A_LETTER", "A_DIGIT", "A_PUNCT",
 };
 
 size_t

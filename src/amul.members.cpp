@@ -1,6 +1,6 @@
-#include "h/amul.type.h"
 #include "h/amul.gcfg.h"
 #include "h/amul.stct.h"
+#include "h/amul.type.h"
 
 roomid_t
 _OBJ_STRUCT::Room(size_t idx) const noexcept

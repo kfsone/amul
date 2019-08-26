@@ -8,9 +8,9 @@
 #include <cstring>
 
 #if !defined(_MSC_VER)
-#    include <strings.h>
-#    define stricmp strcasecmp
-#    define strnicmp strncasecmp
+#include <strings.h>
+#define stricmp strcasecmp
+#define strnicmp strncasecmp
 #endif
 
 using UWORD = uint16_t;
@@ -30,22 +30,17 @@ using APTR = void *;
 
 struct Node {
     constexpr Node(UBYTE type, const char *name = nullptr, BYTE pri = 0)
-        : ln_Type(type)
-        , ln_Name(name)
-        , ln_Pri(pri)
+        : ln_Type(type), ln_Name(name), ln_Pri(pri)
     {
     }
 
-    UBYTE       ln_Type;
-    const char *ln_Name{nullptr};  // ID string, null terminated
-    BYTE        ln_Pri{0};         // Priority, for sorting
+    UBYTE ln_Type;
+    const char *ln_Name{ nullptr };  // ID string, null terminated
+    BYTE ln_Pri{ 0 };                // Priority, for sorting
 };
 
 struct Task : public Node {
-    Task(const char *name = nullptr)
-        : Node(NT_TASK, name)
-    {
-    }
+    Task(const char *name = nullptr) : Node(NT_TASK, name) {}
 
     ULONG tc_SigAlloc;   // sigs allocated
     ULONG tc_SigWait;    // sigs we are waiting for
@@ -62,29 +57,29 @@ struct Unit {
     int i;
 };
 
-#    ifdef NEVER
+#ifdef NEVER
 struct IORequest {
     Message io_Message;
-    Device *io_Device;   // device node pointer
-    Unit *  io_Unit;     // unit (driver private)
-    UWORD   io_Command;  // device command
-    UBYTE   io_Flags;
-    BYTE    io_Error;  // error or warning num
+    Device *io_Device;  // device node pointer
+    Unit *io_Unit;      // unit (driver private)
+    UWORD io_Command;   // device command
+    UBYTE io_Flags;
+    BYTE io_Error;  // error or warning num
 };
 
 struct IOStdReq {
     Message io_Message;
-    Device *io_Device;   // device node pointer
-    Unit *  io_Unit;     // unit (driver private)
-    UWORD   io_Command;  // device command
-    UBYTE   io_Flags;
-    BYTE    io_Error;   // error or warning num
-    ULONG   io_Actual;  // actual number of bytes transferred
-    ULONG   io_Length;  // requested number bytes transferred
-    void *  io_Data;    // points to data area
-    ULONG   io_Offset;  // offset for block structured devices
+    Device *io_Device;  // device node pointer
+    Unit *io_Unit;      // unit (driver private)
+    UWORD io_Command;   // device command
+    UBYTE io_Flags;
+    BYTE io_Error;    // error or warning num
+    ULONG io_Actual;  // actual number of bytes transferred
+    ULONG io_Length;  // requested number bytes transferred
+    void *io_Data;    // points to data area
+    ULONG io_Offset;  // offset for block structured devices
 };
-#    endif
+#endif
 
 // prevent/reallow scheduling
 void Forbid();

@@ -5,7 +5,7 @@
 
 // Argument parsing.
 struct CommandLine {
-    int          argc;
+    int argc;
     const char **argv;
     const char **envp;
 };

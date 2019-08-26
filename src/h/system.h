@@ -7,7 +7,7 @@
 #include "h/amul.type.h"
 
 #if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
-#    define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
+#define S_ISREG(m) (((m) &S_IFMT) == S_IFREG)
 #endif
 
 extern void Yield() noexcept;
@@ -27,11 +27,11 @@ ReleaseMem(void **ptr)
     }
 }
 
-template <typename T>
+template<typename T>
 void
 ReleaseMem(T **ptr)
 {
-    ReleaseMem((void **)ptr);
+    ReleaseMem((void **) ptr);
 }
 
 #endif

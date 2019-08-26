@@ -5,21 +5,21 @@
 
 #include "h/amul.type.h"
 
-template <typename ElementType, size_t NumElements>
+template<typename ElementType, size_t NumElements>
 struct Array {
     using element_t = ElementType;
     static const size_t s_capacity = NumElements;
 
-    element_t                  m_elements[s_capacity];
+    element_t m_elements[s_capacity];
     constexpr const element_t *begin() const noexcept { return &m_elements[0]; }
-    const element_t *          m_end{begin() + s_capacity};
+    const element_t *m_end{ begin() + s_capacity };
     constexpr const element_t *end() const noexcept { return m_end; }
-    element_t *                m_cur{&m_elements[0]};
+    element_t *m_cur{ &m_elements[0] };
     constexpr const element_t *it() const noexcept { return m_cur; }
 
     void Reset() noexcept { m_cur = begin(); }
 
-    constexpr bool   Empty() const noexcept { return it() == begin(); }
+    constexpr bool Empty() const noexcept { return it() == begin(); }
     constexpr size_t Size() const noexcept { return it() - begin(); }
     constexpr size_t Capacity() const noexcept { return s_capacity; }
 

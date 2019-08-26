@@ -22,35 +22,35 @@
 
 #include <random>
 
-#include "h/amulinc.h" /* Main Include file */
-#include "h/amul.cons.h"   /* Predefined Constants etc */
+#include "h/amul.cons.h" /* Predefined Constants etc */
 #include "h/amul.gcfg.h"
-#include "h/amul.version.h"  /* Version info etc. */
-#include "h/amul.vars.h" /* all INTERNAL variables	*/
+#include "h/amul.vars.h"    /* all INTERNAL variables	*/
+#include "h/amul.version.h" /* Version info etc. */
+#include "h/amulinc.h"      /* Main Include file */
 #include "h/msgports.h"
 
 thread_local bool debug;
-thread_local char      llen;
+thread_local char llen;
 
 /* Frame specific variables */
-thread_local char                serop, MyFlag;                         /* SerPort open? What am I? */
-thread_local char *              input;                                 /* 400 bytes, 5 lines */
-thread_local char                str[800], spc[200], mxx[40], mxy[60];  /* Output string */
-thread_local char                iosup;                                 /* What kind of IO support */
+thread_local char serop, MyFlag;                        /* SerPort open? What am I? */
+thread_local char *input;                               /* 400 bytes, 5 lines */
+thread_local char str[800], spc[200], mxx[40], mxy[60]; /* Output string */
+thread_local char iosup;                                /* What kind of IO support */
 thread_local bool failed, addcr, needcr;
-thread_local char                inc, forced, died, fol; /* For parsers use */
-thread_local char                actor, last_him, last_her;             /* People we talked about */
-thread_local char                autoexits;                     /* General flags */
-thread_local long                iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir, lroom;
-thread_local long                wtype[6], word, mins;             /* Type of word... */
-thread_local uint32_t *rescnt;                           /* Reset counter from AMan */
-thread_local short int           donev, skip;                      /* No. of vb's/TT's done */
-thread_local char                exeunt, more, link;               /* If we've linked yet */
-thread_local long                ml, donet, it;                    /* Maximum lines */
-thread_local Aport *      ap, *amanp, *intam;               /* The message pointers */
-thread_local MsgPort *    amanrep;                          /* AMAN reply port */
-thread_local char *              ob, *gp, *ow, *lastres, *lastcrt; /* Pointer to output buffers etc */
-thread_local short int           rset, rclr, ip, csyn;             /* Masks for Room Counter */
+thread_local char inc, forced, died, fol;    /* For parsers use */
+thread_local char actor, last_him, last_her; /* People we talked about */
+thread_local char autoexits;                 /* General flags */
+thread_local long iverb, overb, iadj1, inoun1, iprep, iadj2, inoun2, lverb, ldir, lroom;
+thread_local long wtype[6], word, mins;              /* Type of word... */
+thread_local uint32_t *rescnt;                       /* Reset counter from AMan */
+thread_local short int donev, skip;                  /* No. of vb's/TT's done */
+thread_local char exeunt, more, link;                /* If we've linked yet */
+thread_local long ml, donet, it;                     /* Maximum lines */
+thread_local Aport *ap, *amanp, *intam;              /* The message pointers */
+thread_local MsgPort *amanrep;                       /* AMAN reply port */
+thread_local char *ob, *gp, *ow, *lastres, *lastcrt; /* Pointer to output buffers etc */
+thread_local short int rset, rclr, ip, csyn;         /* Masks for Room Counter */
 
 void
 PutARankInto(char *s, int x)
@@ -64,7 +64,8 @@ PutARankInto(char *s, int x)
             *(s++) = *(p++);
         *(s++) = ' ';
     }
-    char *p = (you->gender == 0) ? g_game.m_ranks[you->rank].male : g_game.m_ranks[you->rank].female;
+    char *p =
+            (you->gender == 0) ? g_game.m_ranks[you->rank].male : g_game.m_ranks[you->rank].female;
     while (*p != 0)
         *(s++) = *(p++);
     if (you2->post[0] != 0) {
@@ -80,7 +81,7 @@ PutARankInto(char *s, int x)
 void
 PutRankInto(char *s)
 {
-	PutARankInto(s, Af);
+    PutARankInto(s, Af);
 }
 
 /****** AMUL3.C/scaled ******************************************
@@ -124,15 +125,15 @@ scaled(long value, short int flags)
 
     // The longer the game runs, the more valuable objects should become.
     auto gameDuration = std::max(double(*rescnt), double(mins) * 60.);
-    auto timeFactor   = double(*rescnt) / gameDuration;
-    auto timeAdjust   = timeFactor * double(g_game.timeScale) / 100.;
+    auto timeFactor = double(*rescnt) / gameDuration;
+    auto timeAdjust = timeFactor * double(g_game.timeScale) / 100.;
 
     // The higher a player's rank, the less points they can get purely from items.
-    auto maxRank      = double(g_game.numRanks - 1);
-    auto rankFactor   = double(me->rank) / maxRank;
-    auto rankAdjust   = rankFactor * double(g_game.rankScale) / 100.;
+    auto maxRank = double(g_game.numRanks - 1);
+    auto rankFactor = double(me->rank) / maxRank;
+    auto rankAdjust = rankFactor * double(g_game.rankScale) / 100.;
 
-    auto adjusted     = double(value) * timeAdjust;
+    auto adjusted = double(value) * timeAdjust;
     adjusted -= adjusted * rankAdjust;
 
     return long(adjusted);
@@ -141,14 +142,14 @@ scaled(long value, short int flags)
 void
 REALiocheck()
 {
-    int   i;
-    long  d, f;
+    int i;
+    long d, f;
     char *pt;
-    int   p[4];
+    int p[4];
 
 loopit:
     long t = 0;
-    if ((ap = (struct Aport *)GetMsg((struct MsgPort *)reply)) == nullptr)
+    if ((ap = (struct Aport *) GetMsg((struct MsgPort *) reply)) == nullptr)
         return;
     ip = 1;
     addcr = true;
@@ -158,22 +159,23 @@ loopit:
         sys(RESETSTART);
         if (MyFlag == am_USER) {
             fopenr("reset.txt");
-			//  Print the Reset Text
-            do
-            {
+            //  Print the Reset Text
+            do {
                 i = fread(block, 1, 800, ifp);
                 block[i] = 0;
                 tx(block);
             } while (i == 800);
             fclose(ifp);
             ifp = nullptr;
-            sprintf(spc, "\n%s is resetting ... Saving at %ld.\n\nPlease call back later.\n\n",
-                    adname, me->score);
+            sprintf(spc,
+                    "\n%s is resetting ... Saving at %ld.\n\nPlease call back later.\n\n",
+                    adname,
+                    me->score);
             tx(spc);
             pressret();
         }
         ap->from = -'O';
-        ReplyMsg((struct Message *)ap);
+        ReplyMsg((struct Message *) ap);
         link = 0;
         quit();
     }
@@ -187,7 +189,7 @@ loopit:
     p[3] = ap->p4;
     if (t == MDAEMON) {
         long p1, p2, p3, p4, v;
-        ReplyMsg((struct Message *)ap);
+        ReplyMsg((struct Message *) ap);
         if (MyFlag == am_DAEM)
             tx("Processing daemon!\n");
         p1 = inoun1;
@@ -213,7 +215,7 @@ loopit:
         strcpy(input, ap->ptr);
     SendIt(MBUSY, nullptr, nullptr);
     if (f != -1 && (linestat + f)->state == PLAYING)
-        ReplyMsg((struct Message *)ap);
+        ReplyMsg((struct Message *) ap);
     else
         ReleaseMem(&ap);
     lockusr(Af);
@@ -244,7 +246,7 @@ loopit:
     }
     if (t == MEXECUTE) {
         tt.condition = 0;
-        act(d, (long *)&p[0]);
+        act(d, (long *) &p[0]);
     }
     if (t == MFORCE) {
         if (d == 0) /* 0=forced, 1=follow */
@@ -285,7 +287,7 @@ iocheck()
     addcr = false;
 }
 
-///TODO: This is not ok
+/// TODO: This is not ok
 void
 fwait(long n)
 {
@@ -304,14 +306,22 @@ timeto(char *s, long secs)
     {
         int x = secs / 3600;       /* Hours */
         int y = secs - (x * 3600); /* Minutes & seconds */
-        if (y < 60)            /* Upto 1 minute? */
+        if (y < 60)                /* Upto 1 minute? */
         {
-            sprintf(s, "%ld %s, %ld %s", x, (x > 1) ? "hours" : "hour", y,
+            sprintf(s,
+                    "%ld %s, %ld %s",
+                    x,
+                    (x > 1) ? "hours" : "hour",
+                    y,
                     (y > 1) ? "seconds" : "second");
             return;
         }
         y = y / 60;
-        sprintf(s, "%ld %s and %ld %s", x, (x > 1) ? "hours" : "hour", y,
+        sprintf(s,
+                "%ld %s and %ld %s",
+                x,
+                (x > 1) ? "hours" : "hour",
+                y,
                 (y > 1) ? "minutes" : "minute");
         return;
     }
@@ -324,7 +334,11 @@ timeto(char *s, long secs)
     if (x == 0 && y != 0)
         sprintf(s, "%ld %s", y, (y > 1) ? "seconds" : "second");
     if (x != 0 && y != 0)
-        sprintf(s, "%ld %s and %ld %s", x, (x > 1) ? "minutes" : "minute", y,
+        sprintf(s,
+                "%ld %s and %ld %s",
+                x,
+                (x > 1) ? "minutes" : "minute",
+                y,
                 (y > 1) ? "seconds" : "second");
 }
 
@@ -334,174 +348,194 @@ esc(char *p, char *s)
 {
     char c = tolower(*(p + 1));
     switch (tolower(*p)) {
-    case 'm':
-        switch (c) {
-        case 'e': strcpy(s, me->name); return 1;
-        case '!': sprintf(s, "%-21s", me->name); return 1;
-        case 'r': PutRankInto(s); return 1;
-        case 'f':
-            if (me2->following == -1)
-                strcpy(s, "no-one");
-            else
-                strcpy(s, (usr + me2->following)->name);
+        case 'm':
+            switch (c) {
+                case 'e':
+                    strcpy(s, me->name);
+                    return 1;
+                case '!':
+                    sprintf(s, "%-21s", me->name);
+                    return 1;
+                case 'r':
+                    PutRankInto(s);
+                    return 1;
+                case 'f':
+                    if (me2->following == -1)
+                        strcpy(s, "no-one");
+                    else
+                        strcpy(s, (usr + me2->following)->name);
+                    return 1;
+                case 'g':
+                    sprintf(s, "%d", int(me2->magicpts));
+                    return 1;
+                default:
+                    return 0;
+            }
+        case 'g':
+            switch (c) {
+                case 'n':
+                    strcpy(s, (me->gender == 0) ? "male" : "female");
+                    return 1;
+                case 'e':
+                    strcpy(s, (me->gender == 0) ? "he" : "she");
+                    return 1;
+                case 'o':
+                    strcpy(s, (me->gender == 0) ? "his" : "her");
+                    return 1;
+                case 'h':
+                    strcpy(s, (me->gender == 0) ? "him" : "her");
+                    return 1;
+                case 'p':
+                    sprintf(s, "%d", int(me->plays));
+                    return 1;
+            }
+        case 's':
+            if (c == 'c') {
+                sprintf(s, "%d", int(me->score));
+                return 1;
+            }
+            if (c == 'g') {
+                sprintf(s, "%d", int(me2->sctg));
+                return 1;
+            }
+            if (c == 'r') {
+                sprintf(s, "%d", int(me2->strength));
+                return 1;
+            }
+            if (c == 't') {
+                sprintf(s, "%d", int(me2->stamina));
+                return 1;
+            }
+            return 0;
+        case 'v':
+            if (c == 'b') {
+                strcpy(s, (vbtab + overb)->id);
+                return 1;
+            }
+            if (c == 'e') {
+                strcpy(s, (vbtab + iverb)->id);
+                return 1;
+            }
+            if (c == '1' && inoun1 >= 0 && wtype[2] == WNOUN) {
+                const auto &state = g_game.m_objects[inoun1].State();
+                sprintf(s, "%ld", scaled(state.value, state.flags));
+                return 1;
+            }
+            if (c == '2' && inoun2 >= 0 && wtype[5] == WNOUN) {
+                const auto &state = g_game.m_objects[inoun2].State();
+                sprintf(s, "%ld", scaled(state.value, state.flags));
+                return 1;
+            }
+        case 'w':
+            if (c == '1' && inoun1 >= 0 && wtype[2] == WNOUN) {
+                const auto &state = g_game.m_objects[inoun1].State();
+                sprintf(s, "%dg", state.weight);
+                return 1;
+            }
+            if (c == '2' && inoun2 >= 0 && wtype[5] == WNOUN) {
+                const auto &state = g_game.m_objects[inoun2].State();
+                sprintf(s, "%dg", state.weight);
+                return 1;
+            }
+            if (c == 'i') {
+                sprintf(s, "%ld", me2->wisdom);
+                return 1;
+            }
+        case 'n':
+            if (c == '1' && inoun1 >= 0 && wtype[2] == WNOUN) {
+                strcpy(s, GetObject(inoun1).id);
+                return 1;
+            }
+            if (c == '1' && wtype[2] == WTEXT) {
+                strcpy(s, (char *) inoun1);
+                return 1;
+            }
+            if (c == '1' && inoun1 >= 0 && wtype[2] == WPLAYER) {
+                strcpy(s, (usr + inoun1)->name);
+                return 1;
+            }
+            if (c == '2' && inoun2 >= 0 && wtype[5] == WNOUN) {
+                strcpy(s, GetObject(inoun2).id);
+                return 1;
+            }
+            if (c == '2' && wtype[5] == WTEXT) {
+                strcpy(s, (char *) inoun2);
+                return 1;
+            }
+            if (c == '2' && inoun2 >= 0 && wtype[5] == WPLAYER) {
+                strcpy(s, (usr + inoun2)->name);
+                return 1;
+            }
+            strcpy(s, "something");
             return 1;
-        case 'g': sprintf(s, "%d", int(me2->magicpts)); return 1;
-        default: return 0;
-        }
-    case 'g':
-        switch (c) {
-        case 'n': strcpy(s, (me->gender == 0) ? "male" : "female"); return 1;
-        case 'e': strcpy(s, (me->gender == 0) ? "he" : "she"); return 1;
-        case 'o': strcpy(s, (me->gender == 0) ? "his" : "her"); return 1;
-        case 'h': strcpy(s, (me->gender == 0) ? "him" : "her"); return 1;
-        case 'p': sprintf(s, "%d", int(me->plays)); return 1;
-        }
-    case 's':
-        if (c == 'c') {
-            sprintf(s, "%d", int(me->score));
+        case 'e':
+            if (c == 'x') {
+                sprintf(s, "%d", me->experience);
+                return 1;
+            }
+        case 'l':
+            if (c == 'r') {
+                strcpy(s, lastres);
+                return 1;
+            }
+            if (c == 'c') {
+                strcpy(s, lastcrt);
+                return 1;
+            }
+        case 'p':
+            if (c == 'l') {
+                strcpy(s, (usr + me2->fighting)->name);
+                return 1;
+            }
+            if (c == 'w') {
+                strcpy(s, me->passwd);
+                return 1;
+            }
+            if (isdigit(c)) {
+                fwait(c - '0');
+                return 1;
+            }
+        case 'r':
+            if (c == 'e') {
+                timeto(s, *rescnt);
+                return 1;
+            }
+        case 'h': /* The person helping you */
+            if (c == 'e' && me2->helped != -1) {
+                strcpy(s, (usr + me2->helped)->name);
+                return 1;
+            }
+        case 'f': /* <friend> - person you are helping */
+            if (c == 'r' && me2->helping != -1) {
+                strcpy(s, (usr + me2->helping)->name);
+                return 1;
+            }
+            if (c == 'm' && me2->followed != -1) {
+                strcpy(s, (usr + me2->followed)->name);
+                return 1;
+            }
+            strcpy(s, "no-one");
             return 1;
-        }
-        if (c == 'g') {
-            sprintf(s, "%d", int(me2->sctg));
+        case 'o':
+            if (c == '1' && me2->wield != -1) {
+                strcpy(s, GetObject(me2->wield).did);
+                return 1;
+            }
+            auto fighting = linestat + me2->fighting;
+            if (c == '2' && fighting->wield != -1) {
+                strcpy(s, GetObject(fighting->wield).id);
+                return 1;
+            }
+            strcpy(s, "bare hands");
             return 1;
-        }
-        if (c == 'r') {
-            sprintf(s, "%d", int(me2->strength));
+        case 'x':
+            if (c == 'x')
+                strcpy(s, mxx);
+            if (c == 'y')
+                strcpy(s, mxy);
             return 1;
-        }
-        if (c == 't') {
-            sprintf(s, "%d", int(me2->stamina));
-            return 1;
-        }
-        return 0;
-    case 'v':
-        if (c == 'b') {
-            strcpy(s, (vbtab + overb)->id);
-            return 1;
-        }
-        if (c == 'e') {
-            strcpy(s, (vbtab + iverb)->id);
-            return 1;
-        }
-        if (c == '1' && inoun1 >= 0 && wtype[2] == WNOUN) {
-            const auto &state = g_game.m_objects[inoun1].State();
-            sprintf(s, "%ld", scaled(state.value, state.flags));
-            return 1;
-        }
-        if (c == '2' && inoun2 >= 0 && wtype[5] == WNOUN) {
-            const auto &state = g_game.m_objects[inoun2].State();
-            sprintf(s, "%ld", scaled(state.value, state.flags));
-            return 1;
-        }
-    case 'w':
-        if (c == '1' && inoun1 >= 0 && wtype[2] == WNOUN) {
-            const auto &state = g_game.m_objects[inoun1].State();
-            sprintf(s, "%dg", state.weight);
-            return 1;
-        }
-        if (c == '2' && inoun2 >= 0 && wtype[5] == WNOUN) {
-            const auto &state = g_game.m_objects[inoun2].State();
-            sprintf(s, "%dg", state.weight);
-            return 1;
-        }
-        if (c == 'i') {
-            sprintf(s, "%ld", me2->wisdom);
-            return 1;
-        }
-    case 'n':
-        if (c == '1' && inoun1 >= 0 && wtype[2] == WNOUN) {
-            strcpy(s, GetObject(inoun1).id);
-            return 1;
-        }
-        if (c == '1' && wtype[2] == WTEXT) {
-            strcpy(s, (char *)inoun1);
-            return 1;
-        }
-        if (c == '1' && inoun1 >= 0 && wtype[2] == WPLAYER) {
-            strcpy(s, (usr + inoun1)->name);
-            return 1;
-        }
-        if (c == '2' && inoun2 >= 0 && wtype[5] == WNOUN) {
-            strcpy(s, GetObject(inoun2).id);
-            return 1;
-        }
-        if (c == '2' && wtype[5] == WTEXT) {
-            strcpy(s, (char *)inoun2);
-            return 1;
-        }
-        if (c == '2' && inoun2 >= 0 && wtype[5] == WPLAYER) {
-            strcpy(s, (usr + inoun2)->name);
-            return 1;
-        }
-        strcpy(s, "something");
-        return 1;
-    case 'e':
-        if (c == 'x') {
-            sprintf(s, "%d", me->experience);
-            return 1;
-        }
-    case 'l':
-        if (c == 'r') {
-            strcpy(s, lastres);
-            return 1;
-        }
-        if (c == 'c') {
-            strcpy(s, lastcrt);
-            return 1;
-        }
-    case 'p':
-        if (c == 'l') {
-            strcpy(s, (usr + me2->fighting)->name);
-            return 1;
-        }
-        if (c == 'w') {
-            strcpy(s, me->passwd);
-            return 1;
-        }
-        if (isdigit(c)) {
-            fwait(c - '0');
-            return 1;
-        }
-    case 'r':
-        if (c == 'e') {
-            timeto(s, *rescnt);
-            return 1;
-        }
-    case 'h': /* The person helping you */
-        if (c == 'e' && me2->helped != -1) {
-            strcpy(s, (usr + me2->helped)->name);
-            return 1;
-        }
-    case 'f': /* <friend> - person you are helping */
-        if (c == 'r' && me2->helping != -1) {
-            strcpy(s, (usr + me2->helping)->name);
-            return 1;
-        }
-        if (c == 'm' && me2->followed != -1) {
-            strcpy(s, (usr + me2->followed)->name);
-            return 1;
-        }
-        strcpy(s, "no-one");
-        return 1;
-    case 'o':
-        if (c == '1' && me2->wield != -1) {
-            strcpy(s, GetObject(me2->wield).did);
-            return 1;
-        }
-        auto fighting = linestat + me2->fighting;
-        if (c == '2' && fighting->wield != -1) {
-            strcpy(s, GetObject(fighting->wield).id);
-            return 1;
-        }
-        strcpy(s, "bare hands");
-        return 1;
-    case 'x':
-        if (c == 'x')
-            strcpy(s, mxx);
-        if (c == 'y')
-            strcpy(s, mxy);
-        return 1;
-    default: return 0;
+        default:
+            return 0;
     }
 }
 
@@ -509,7 +543,7 @@ void
 ioproc(char *s)
 {
     char *p = ow;
-    for ( ;; ) {
+    for (;;) {
         if (*s == 0) {
             *p = 0;
             break;
@@ -526,8 +560,11 @@ void
 txc(char c)
 {
     switch (iosup) {
-    case 0: putchar(c); return;
-    case LOGFILE: return;
+        case 0:
+            putchar(c);
+            return;
+        case LOGFILE:
+            return;
     }
     if (c == '\n') {
         txc('\r');
@@ -539,7 +576,7 @@ txc(char c)
 void
 tx(char *s)
 {
-    int   i, l;
+    int i, l;
     char *p, *ls, *lp;
 
     if (iosup == LOGFILE)
@@ -646,7 +683,7 @@ ainteract(int who)
 {
     actor = -1;
     if ((linestat + who)->state == PLAYING)
-    	actor = who;
+        actor = who;
 }
 
 void
@@ -715,7 +752,7 @@ Inp(char *s, int l)
         if (c == 10 || c == 13) {
             c = '\n';
             *(p++) = 0;
-            txc((char)c);
+            txc((char) c);
             continue;
         }
         if (c == 27 || c > 0 && c < 23 || c == me->rchar) {
@@ -738,9 +775,9 @@ Inp(char *s, int l)
             continue;
         if (p >= s + l - 1)
             continue;
-        *(p++) = (char)c;
+        *(p++) = (char) c;
         *p = 0;
-        txc((char)c);
+        txc((char) c);
         needcr = true;
     } while (c != '\n');
     if (isspace(*(s + strlen(s) - 1)))
@@ -881,7 +918,10 @@ flagbits()
     sprintf(spc,
             "Default settings are:\n\nScreen width = %ld, Lines = %ld, Redo = '%c', Flags = ANSI: "
             "%s, Add LF: %s\n\nChange settings (Y/n): ",
-            (me->llen), (me->slen), me->rchar, (me->flags & ufANSI) ? "On" : "Off",
+            (me->llen),
+            (me->slen),
+            me->rchar,
+            (me->flags & ufANSI) ? "On" : "Off",
             (me->flags & ufCRLF) ? "On" : "Off");
     tx(spc);
     Inp(str, 2);
@@ -1351,34 +1391,34 @@ asyntax(int n1, int n2)
     else if ((n1 & IWORD)) /* Is it an IWORD? */
     {
         switch (n1 & -(1 + IWORD)) {
-        case IVERB:
-            n1 = iverb;
-            t1 = wtype[0];
-            break;
-        case IADJ1:
-            n1 = iadj1;
-            t1 = wtype[1];
-            break;
-        case INOUN1:
-            n1 = inoun1;
-            t1 = wtype[2];
-            break;
-        case IPREP:
-            n1 = iprep;
-            t1 = wtype[3];
-            break;
-        case IADJ2:
-            n1 = iadj2;
-            t1 = wtype[4];
-            break;
-        case INOUN2:
-            n1 = inoun2;
-            t1 = wtype[5];
-            break;
-        default:
-            n1 = inoun1;
-            t1 = wtype[2];
-            break;
+            case IVERB:
+                n1 = iverb;
+                t1 = wtype[0];
+                break;
+            case IADJ1:
+                n1 = iadj1;
+                t1 = wtype[1];
+                break;
+            case INOUN1:
+                n1 = inoun1;
+                t1 = wtype[2];
+                break;
+            case IPREP:
+                n1 = iprep;
+                t1 = wtype[3];
+                break;
+            case IADJ2:
+                n1 = iadj2;
+                t1 = wtype[4];
+                break;
+            case INOUN2:
+                n1 = inoun2;
+                t1 = wtype[5];
+                break;
+            default:
+                n1 = inoun1;
+                t1 = wtype[2];
+                break;
         }
     } else {
         n1 = isnoun((obtab + n1)->id, (obtab + n1)->adj, (vbtab + iverb)->sort);
@@ -1391,34 +1431,34 @@ asyntax(int n1, int n2)
     else if ((n2 & IWORD)) /* Is it an IWORD? */
     {
         switch (n2 & -(1 + IWORD)) {
-        case IVERB:
-            n2 = iverb;
-            t2 = wtype[0];
-            break;
-        case IADJ1:
-            n2 = iadj1;
-            t2 = wtype[1];
-            break;
-        case INOUN1:
-            n2 = inoun1;
-            t2 = wtype[2];
-            break;
-        case IPREP:
-            n2 = iprep;
-            t2 = wtype[3];
-            break;
-        case IADJ2:
-            n2 = iadj2;
-            t2 = wtype[4];
-            break;
-        case INOUN2:
-            n2 = inoun2;
-            t2 = wtype[5];
-            break;
-        default:
-            n2 = inoun1;
-            t2 = wtype[2];
-            break;
+            case IVERB:
+                n2 = iverb;
+                t2 = wtype[0];
+                break;
+            case IADJ1:
+                n2 = iadj1;
+                t2 = wtype[1];
+                break;
+            case INOUN1:
+                n2 = inoun1;
+                t2 = wtype[2];
+                break;
+            case IPREP:
+                n2 = iprep;
+                t2 = wtype[3];
+                break;
+            case IADJ2:
+                n2 = iadj2;
+                t2 = wtype[4];
+                break;
+            case INOUN2:
+                n2 = inoun2;
+                t2 = wtype[5];
+                break;
+            default:
+                n2 = inoun1;
+                t2 = wtype[2];
+                break;
         }
     } else {
         n2 = isnoun((obtab + n2)->id, (obtab + n2)->adj, (vbtab + iverb)->sort2);
@@ -1515,16 +1555,16 @@ void
 DoThis(int x, char *cmd, short int type)
 {
     lockusr(x);
-    if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
+    if ((intam = (struct Aport *) AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
-    IAm.mn_Length = (UWORD)sizeof(*amul);
+    IAm.mn_Length = (UWORD) sizeof(*amul);
     IAf = Af;
     IAm.mn_Node.ln_Type = NT_MESSAGE;
     IAm.mn_ReplyPort = repbk;
     IAt = MFORCE;
     IAd = type;
     IAp = cmd;
-    PutMsg((linestat + x)->rep, (struct Message *)intam);
+    PutMsg((linestat + x)->rep, (struct Message *) intam);
     (linestat + x)->IOlock = -1;
 }
 
@@ -1642,13 +1682,13 @@ internal(char *s)
 
     if (*s == 'a') {
         switch (*(s + 1)) {
-        case 'n':
-            me->flags = me->flags ^ ufANSI;
-            ans("1m");
-            txs("ANSI control codes now %sABLED.\n", (me->flags & ufANSI) ? "EN" : "DIS");
-            ans("0;37m");
-            save_me();
-            return;
+            case 'n':
+                me->flags = me->flags ^ ufANSI;
+                ans("1m");
+                txs("ANSI control codes now %sABLED.\n", (me->flags & ufANSI) ? "EN" : "DIS");
+                ans("0;37m");
+                save_me();
+                return;
         }
     }
 
@@ -1775,7 +1815,7 @@ show:
     fseek(ifp, 0, 2L);
     long fsize = ftell(ifp);
     fseek(ifp, 0, 0L);
-	char *p = (char *)AllocMem(fsize + 2);
+    char *p = (char *) AllocMem(fsize + 2);
     if (p == NULL) {
         txs("\n--+ \x07System memory too low, exiting! +--\n");
         forced = 1;
@@ -1821,7 +1861,7 @@ showin(objid_t objId, bool verbose)
     if ((object.flags & SF_OPAQUE) && !verbose) {
         return "\n";
     }
-    std::string result {};
+    std::string result{};
     if (verbose) {
         if (object.putto == 0)
             result = "The {adj} {noun} contains ";
@@ -1835,7 +1875,7 @@ showin(objid_t objId, bool verbose)
             result += "nothing.\n";
     } else {
         const roomid_t containerId = -(INS + objId);
-        bool first { true };
+        bool first{ true };
         int itemsLeft = object.inside;
         for (int child = 0; child < g_game.numObjects && itemsLeft > 0; child++) {
             if (!isin(child, containerId))
@@ -1884,34 +1924,34 @@ isStatFull(int st, int p)
     you = (usr + p);
     you2 = (linestat + p);
     switch (st) {
-    case STSCORE:
-        return false;
-    case STSCTG:
-        return false;
-    case STSTR:
-        if (you2->strength < you->strength)
+        case STSCORE:
             return false;
-        break;
-    case STDEX:
-        if (you2->dext < you->dext)
+        case STSCTG:
             return false;
-        break;
-    case STSTAM:
-        if (you2->stamina < you->stamina)
-            return false;
-        break;
-    case STWIS:
-        if (you2->wisdom < you->wisdom)
-            return false;
-        break;
-    case STMAGIC:
-        if (you2->magicpts < you->magicpts)
-            return false;
-        break;
-    case STEXP:
-        if (you->experience < g_ranks[you->rank].experience)
-            return false;
-        break;
+        case STSTR:
+            if (you2->strength < you->strength)
+                return false;
+            break;
+        case STDEX:
+            if (you2->dext < you->dext)
+                return false;
+            break;
+        case STSTAM:
+            if (you2->stamina < you->stamina)
+                return false;
+            break;
+        case STWIS:
+            if (you2->wisdom < you->wisdom)
+                return false;
+            break;
+        case STMAGIC:
+            if (you2->magicpts < you->magicpts)
+                return false;
+            break;
+        case STEXP:
+            if (you->experience < g_ranks[you->rank].experience)
+                return false;
+            break;
     }
     return true;
 }
@@ -1947,7 +1987,7 @@ asetstat(int obj, int stat)
     int x = owner(obj);
     bool wasLit = lit(loc(obj));
     /* Remove from owners inventory */
-	int w = -1;
+    int w = -1;
     if (x != -1) {
         w = (linestat + x)->wield;
         rem_obj(x, obj);
@@ -1986,7 +2026,7 @@ asetstat(int obj, int stat)
 void
 awhere(int obj)
 {
-    bool found { false };
+    bool found{ false };
     for (int i = 0; i < g_game.numObjects; i++) {
         if (stricmp((obtab + obj)->id, (obtab + i)->id) == NULL) {
             if (!canSeeObject(i, Af))
@@ -2016,8 +2056,10 @@ awhere(int obj)
                     desc_here(2);
                 } else {
                     int k = -(INS + *(rp + j));
-                    sprintf(block, "There is one %s something known as %s!\n",
-                            obputs[(obtab + k)->putto], (obtab + k)->id);
+                    sprintf(block,
+                            "There is one %s something known as %s!\n",
+                            obputs[(obtab + k)->putto],
+                            (obtab + k)->id);
                     tx(block);
                 }
                 found = true;
@@ -2039,8 +2081,7 @@ osflag(int o, int flag)
         wasLit = lit(loc(o));
     else
         rem_obj(own, o);
-    else
-        wasLit = lit(loc(o));
+    else wasLit = lit(loc(o));
     STATE->flags = flag;
     if (own != -1) {
         add_obj(o);
@@ -2074,47 +2115,47 @@ setmxy(int Flags, int Them)
     }
     if (pROOM(Them) == me2->room) {
         switch (Flags) {
-        case ACTION:
-        case EVENT:
-        case TEXTS:
-            strcpy(mxx, "Someone nearby");
-            strcpy(mxy, "Someone nearby");
-            return;
-        case NOISE:
-            strcpy(mxx, "Someone nearby");
-            ioproc("A @gn voice nearby");
-            strcpy(mxy, ow);
-            return;
+            case ACTION:
+            case EVENT:
+            case TEXTS:
+                strcpy(mxx, "Someone nearby");
+                strcpy(mxy, "Someone nearby");
+                return;
+            case NOISE:
+                strcpy(mxx, "Someone nearby");
+                ioproc("A @gn voice nearby");
+                strcpy(mxy, ow);
+                return;
         }
     }
     /* They aren't in the same room */
     switch (Flags) {
-    case ACTION:
-    case EVENT:
-        strcpy(mxx, "Someone");
-        if (me->rank == ranks - 1)
-            strcpy(mxy, "Someone very powerful");
-        else
+        case ACTION:
+        case EVENT:
+            strcpy(mxx, "Someone");
+            if (me->rank == ranks - 1)
+                strcpy(mxy, "Someone very powerful");
+            else
+                strcpy(mxy, "Someone");
+            return;
+        case TEXTS:
+            ioproc("@me");
+            strcpy(mxx, ow);
+            if (me->rank == ranks - 1)
+                ioproc("@me the @mr");
+            strcpy(mxy, ow);
+            return;
+        case NOISE:
+            strcpy(mxx, "Someone");
+            if (me->rank == ranks - 1)
+                ioproc("A powerful @gn voice somewhere in the distance");
+            else
+                ioproc("A @gn voice in the distance");
+            strcpy(mxy, ow);
+            return;
+        default:
+            strcpy(mxx, "Someone");
             strcpy(mxy, "Someone");
-        return;
-    case TEXTS:
-        ioproc("@me");
-        strcpy(mxx, ow);
-        if (me->rank == ranks - 1)
-            ioproc("@me the @mr");
-        strcpy(mxy, ow);
-        return;
-    case NOISE:
-        strcpy(mxx, "Someone");
-        if (me->rank == ranks - 1)
-            ioproc("A powerful @gn voice somewhere in the distance");
-        else
-            ioproc("A @gn voice in the distance");
-        strcpy(mxy, ow);
-        return;
-    default:
-        strcpy(mxx, "Someone");
-        strcpy(mxy, "Someone");
     }
 }
 
@@ -2336,7 +2377,7 @@ list_what(roomid_t rmId, bool visible)
         sys(NOWTSPECIAL); /* Wizards can see in hideaways! */
         return;
     }
-    bool found { false };
+    bool found{ false };
     for (int o = 0; o < g_game.numObjects; o++) /* All objects */
     {
         /* Only let the right people see the object */
@@ -2370,7 +2411,7 @@ descobj(objid_t objId)
     const auto &state = obj.State();
     if (state.descrip < 0)
         return;
-    ///TODO: Replace %s use with {}
+    /// TODO: Replace %s use with {}
     std::string str = GetString(state.descrip);
     if ((obj.flags & OF_SHOWFIRE) && (state.flags & SF_LIT)) {
         if (str.back() == '\n' || str.back() == '{')
@@ -2380,7 +2421,7 @@ descobj(objid_t objId)
     ReplaceAll(str, "{adj}", obj.adj >= -1 ? GetAdj(obj.adj) : "");
     ReplaceAll(str, "{noun}", obj.id);
     if (obj.contains <= 0) {
-        tx(str.c_str());    ///SV: Direct
+        tx(str.c_str());  /// SV: Direct
         return;
     }
     if (str.back() == '\n' || str.back() == '{')
@@ -2389,7 +2430,7 @@ descobj(objid_t objId)
     str += " ";
     str += showin(Ob, false);
 
-    tx(str.c_str());  ///SV: Direct
+    tx(str.c_str());  /// SV: Direct
 }
 
 void
@@ -2399,33 +2440,33 @@ inflict(int x, int s)
     if (you2->state != PLAYING)
         return;
     switch (s) {
-    case SGLOW:
-        if (!(you2->flags & PFGLOW)) {
-            you2->flags = (you2->flags | PFGLOW);
-            you2->light++;
-        }
-        break;
-    case SINVIS:
-        you2->flags = you2->flags | PFINVIS;
-        break;
-    case SDEAF:
-        you2->flags = you2->flags | PFDEAF;
-        break;
-    case SBLIND:
-        you2->flags = you2->flags | PFBLIND;
-        break;
-    case SCRIPPLE:
-        you2->flags = you2->flags | PFCRIP;
-        break;
-    case SDUMB:
-        you2->flags = you2->flags | PFDUMB;
-        break;
-    case SSLEEP:
-        you2->flags = you2->flags | PFASLEEP;
-        break;
-    case SSINVIS:
-        you2->flags = you2->flags | PFSINVIS;
-        break;
+        case SGLOW:
+            if (!(you2->flags & PFGLOW)) {
+                you2->flags = (you2->flags | PFGLOW);
+                you2->light++;
+            }
+            break;
+        case SINVIS:
+            you2->flags = you2->flags | PFINVIS;
+            break;
+        case SDEAF:
+            you2->flags = you2->flags | PFDEAF;
+            break;
+        case SBLIND:
+            you2->flags = you2->flags | PFBLIND;
+            break;
+        case SCRIPPLE:
+            you2->flags = you2->flags | PFCRIP;
+            break;
+        case SDUMB:
+            you2->flags = you2->flags | PFDUMB;
+            break;
+        case SSLEEP:
+            you2->flags = you2->flags | PFASLEEP;
+            break;
+        case SSINVIS:
+            you2->flags = you2->flags | PFSINVIS;
+            break;
     }
     calcdext();
     lighting(x, AHERE);
@@ -2438,33 +2479,33 @@ cure(int x, int s)
     if (you2->state != PLAYING)
         return;
     switch (s) {
-    case SGLOW:
-        if (you2->flags & PFGLOW) {
-            you2->flags = (you2->flags & (-1 - PFGLOW));
-            you2->light--;
-        }
-        break;
-    case SINVIS:
-        you2->flags = you2->flags & -(1 + PFINVIS);
-        break;
-    case SDEAF:
-        you2->flags = you2->flags & -(1 + PFDEAF);
-        break;
-    case SBLIND:
-        you2->flags = you2->flags & -(1 + PFBLIND);
-        break;
-    case SCRIPPLE:
-        you2->flags = you2->flags & -(1 + PFCRIP);
-        break;
-    case SDUMB:
-        you2->flags = you2->flags & -(1 + PFDUMB);
-        break;
-    case SSLEEP:
-        you2->flags = you2->flags & -(1 + PFASLEEP);
-        break;
-    case SSINVIS:
-        you2->flags = you2->flags & -(1 + PFSINVIS);
-        break;
+        case SGLOW:
+            if (you2->flags & PFGLOW) {
+                you2->flags = (you2->flags & (-1 - PFGLOW));
+                you2->light--;
+            }
+            break;
+        case SINVIS:
+            you2->flags = you2->flags & -(1 + PFINVIS);
+            break;
+        case SDEAF:
+            you2->flags = you2->flags & -(1 + PFDEAF);
+            break;
+        case SBLIND:
+            you2->flags = you2->flags & -(1 + PFBLIND);
+            break;
+        case SCRIPPLE:
+            you2->flags = you2->flags & -(1 + PFCRIP);
+            break;
+        case SDUMB:
+            you2->flags = you2->flags & -(1 + PFDUMB);
+            break;
+        case SSLEEP:
+            you2->flags = you2->flags & -(1 + PFASLEEP);
+            break;
+        case SSINVIS:
+            you2->flags = you2->flags & -(1 + PFSINVIS);
+            break;
     }
     calcdext();
     lighting(x, AHERE);
@@ -2532,7 +2573,7 @@ void
 zapme()
 {
     Forbid();
-    char *p = (char *)me->name;
+    char *p = (char *) me->name;
     exeunt = 1;
     for (int i = 0; i < sizeof(usr); i++)
         *(p++) = 0;
@@ -2576,7 +2617,7 @@ newrank(int plyr, int newRankNo)
         }
     }
 
-    me->rank = newRankNo;   ///TODO: Sync
+    me->rank = newRankNo;  /// TODO: Sync
     sys(MADERANK);
 
     /* Update Current Line Stats */
@@ -2620,43 +2661,43 @@ aadd(int howmuch, int stat, int plyr)
         return;
     if (plyr == Af) {
         switch (stat) {
-        case STSCORE:
-            me->score += howmuch;
-            me2->sctg += howmuch;
-            ans("1m");
-            utxn(plyr, "(%ld)\n", me->score);
-            ans("0;37m");
-            for (int r = ranks - 1; r >= 0; r--) {
-                if (me->score >= g_ranks[r].score) {
-                    if (me->rank == r)
+            case STSCORE:
+                me->score += howmuch;
+                me2->sctg += howmuch;
+                ans("1m");
+                utxn(plyr, "(%ld)\n", me->score);
+                ans("0;37m");
+                for (int r = ranks - 1; r >= 0; r--) {
+                    if (me->score >= g_ranks[r].score) {
+                        if (me->rank == r)
+                            break;
+                        newrank(plyr, r);
                         break;
-                    newrank(plyr, r);
-                    break;
+                    }
                 }
-            }
-            break;
-        case STSTR:
-            me2->strength += howmuch;
-            break;
-        case STSTAM:
-            me2->stamina += howmuch;
-            sprintf(block, "<STAM: %ld/%ld>\n", me2->stamina, me->stamina);
-            ans("1m");
-            tx(block);
-            ans("0;37m");
-            break;
-        case STDEX:
-            me2->dextadj += howmuch;
-            break;
-        case STEXP:
-            me->experience += howmuch;
-            break;
-        case STWIS:
-            me2->wisdom += howmuch;
-            break;
-        case STMAGIC:
-            me2->magicpts += howmuch;
-            break;
+                break;
+            case STSTR:
+                me2->strength += howmuch;
+                break;
+            case STSTAM:
+                me2->stamina += howmuch;
+                sprintf(block, "<STAM: %ld/%ld>\n", me2->stamina, me->stamina);
+                ans("1m");
+                tx(block);
+                ans("0;37m");
+                break;
+            case STDEX:
+                me2->dextadj += howmuch;
+                break;
+            case STEXP:
+                me->experience += howmuch;
+                break;
+            case STWIS:
+                me2->wisdom += howmuch;
+                break;
+            case STMAGIC:
+                me2->magicpts += howmuch;
+                break;
         }
     } else
         sendex(plyr, AADD, howmuch, stat, plyr); /* Tell them to clear up! */
@@ -2671,58 +2712,58 @@ asub(int howmuch, int stat, int plyr)
         return;
     if (plyr == Af) {
         switch (stat) {
-        case STSCORE:
-            me->score -= howmuch;
-            me2->sctg -= howmuch;
-            if (me->score < 0)
-                me->score = 0;
-            ans("1m");
-            utxn(plyr, "(%ld)\n", me->score);
-            ans("0;37m");
-            for (int r = 0; r < ranks - 1; r++) {
-                if (me->score >= g_ranks[r+1].score)
-                    continue;
-                if (me->rank == r)
-                    break;
-                newrank(plyr, r);
-            }
-            break;
-        case STSTR:
-            me2->strength -= howmuch;
-            if (me2->strength < 0)
-                me2->strength = 0;
-            break;
-        case STSTAM:
-            me2->stamina -= howmuch;
-            if (me2->stamina < 0)
-                me2->stamina = 0;
-            sprintf(block, "\n<STAM: %ld/%ld>\n", me2->stamina, me->stamina);
-            ans("1m");
-            tx(block);
-            ans("0;37m");
-            if (me2->stamina <= 0) {
-                akillme();
-                died = 1;
-            }
-            break;
-        case STDEX:
-            me2->dextadj -= howmuch;
-            break;
-        case STWIS:
-            me2->wisdom -= howmuch;
-            if (me2->wisdom < 0)
-                me2->wisdom = 0;
-            break;
-        case STEXP:
-            me->experience -= howmuch;
-            if (me->experience < 0)
-                me->experience = 0;
-            break;
-        case STMAGIC:
-            me2->magicpts -= howmuch;
-            if (me2->magicpts < 0)
-                me2->magicpts = 0;
-            break;
+            case STSCORE:
+                me->score -= howmuch;
+                me2->sctg -= howmuch;
+                if (me->score < 0)
+                    me->score = 0;
+                ans("1m");
+                utxn(plyr, "(%ld)\n", me->score);
+                ans("0;37m");
+                for (int r = 0; r < ranks - 1; r++) {
+                    if (me->score >= g_ranks[r + 1].score)
+                        continue;
+                    if (me->rank == r)
+                        break;
+                    newrank(plyr, r);
+                }
+                break;
+            case STSTR:
+                me2->strength -= howmuch;
+                if (me2->strength < 0)
+                    me2->strength = 0;
+                break;
+            case STSTAM:
+                me2->stamina -= howmuch;
+                if (me2->stamina < 0)
+                    me2->stamina = 0;
+                sprintf(block, "\n<STAM: %ld/%ld>\n", me2->stamina, me->stamina);
+                ans("1m");
+                tx(block);
+                ans("0;37m");
+                if (me2->stamina <= 0) {
+                    akillme();
+                    died = 1;
+                }
+                break;
+            case STDEX:
+                me2->dextadj -= howmuch;
+                break;
+            case STWIS:
+                me2->wisdom -= howmuch;
+                if (me2->wisdom < 0)
+                    me2->wisdom = 0;
+                break;
+            case STEXP:
+                me->experience -= howmuch;
+                if (me->experience < 0)
+                    me->experience = 0;
+                break;
+            case STMAGIC:
+                me2->magicpts -= howmuch;
+                if (me2->magicpts < 0)
+                    me2->magicpts = 0;
+                break;
         }
     } else
         sendex(plyr, ASUB, howmuch, stat, plyr); /* Tell them to clear up! */
@@ -2734,27 +2775,25 @@ afix(int stat, int plyr)
     if (plyr == Af) {
         const auto &rank = g_ranks[me->rank];
         switch (stat) {
-        case STSTR:
-            me2->strength =
-                    (rank.strength * rank.maxweight - me2->weight) /
-                    rank.maxweight;
-            break;
-        case STSTAM:
-            me2->stamina = rank.stamina;
-            break;
-        case STDEX:
-            me2->dextadj = 0;
-            calcdext();
-            break;
-        case STWIS:
-            me2->wisdom = rank.wisdom;
-            break;
-        case STEXP:
-            me->experience = rank.experience;
-            break;
-        case STMAGIC:
-            me2->magicpts = rank.magicpts;
-            break;
+            case STSTR:
+                me2->strength = (rank.strength * rank.maxweight - me2->weight) / rank.maxweight;
+                break;
+            case STSTAM:
+                me2->stamina = rank.stamina;
+                break;
+            case STDEX:
+                me2->dextadj = 0;
+                calcdext();
+                break;
+            case STWIS:
+                me2->wisdom = rank.wisdom;
+                break;
+            case STEXP:
+                me->experience = rank.experience;
+                break;
+            case STMAGIC:
+                me2->magicpts = rank.magicpts;
+                break;
         }
     } else
         sendex(plyr, AFIX, stat, plyr, 0); /* Tell them to clear up! */
@@ -2778,25 +2817,25 @@ announce(char *s, int towho)
             continue;
         int x = 0;
         switch (towho) {
-        case AALL:
-        case AEVERY1:
-            x = 1;
-            break;
-        case AGLOBAL:
-            if (i != Af)
+            case AALL:
+            case AEVERY1:
                 x = 1;
-            break;
-        case AOTHERS:
-            if (i == Af)
                 break;
-        case AHERE:
-            if ((linestat + i)->room == me2->room)
-                x = 1;
-            break;
-        case AOUTSIDE:
-            if ((linestat + i)->room != me2->room)
-                x = 1;
-            break;
+            case AGLOBAL:
+                if (i != Af)
+                    x = 1;
+                break;
+            case AOTHERS:
+                if (i == Af)
+                    break;
+            case AHERE:
+                if ((linestat + i)->room == me2->room)
+                    x = 1;
+                break;
+            case AOUTSIDE:
+                if ((linestat + i)->room != me2->room)
+                    x = 1;
+                break;
         }
         if (x == 1) {
             setmxy(NOISE, i);
@@ -2830,7 +2869,7 @@ announcefrom(int obj, char *s)
             (linestat + i)->room == me2->room)
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-		int o = owner(obj);
+        int o = owner(obj);
         if (o != -1 && (linestat + o)->room != (linestat + i)->room)
             continue;
         if (o == -1 && !isin(obj, (linestat + o)->room))
@@ -2849,7 +2888,7 @@ objannounce(int obj, char *s)
         if (actor == i || ((linestat + i)->state < 2) || ((linestat + i)->flags & PFDEAF))
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-		int o = owner(obj);
+        int o = owner(obj);
         if (o != -1 && (linestat + o)->room != (linestat + i)->room)
             continue;
         if (o == -1 && !isin(obj, (linestat + o)->room))
@@ -2870,25 +2909,25 @@ action(char *s, int towho)
             continue;
         int x = 0;
         switch (towho) {
-        case AALL:
-        case AEVERY1:
-            x = 1;
-            break;
-        case AGLOBAL:
-            if (i != Af)
+            case AALL:
+            case AEVERY1:
                 x = 1;
-            break;
-        case AOTHERS:
-            if (i == Af)
                 break;
-        case AHERE:
-            if ((linestat + i)->room == me2->room && canSee(i, Af))
-                x = 1;
-            break;
-        case AOUTSIDE:
-            if ((linestat + i)->room != me2->room)
-                x = 1;
-            break;
+            case AGLOBAL:
+                if (i != Af)
+                    x = 1;
+                break;
+            case AOTHERS:
+                if (i == Af)
+                    break;
+            case AHERE:
+                if ((linestat + i)->room == me2->room && canSee(i, Af))
+                    x = 1;
+                break;
+            case AOUTSIDE:
+                if ((linestat + i)->room != me2->room)
+                    x = 1;
+                break;
         }
         if (x == 1) {
             setmxy(ACTION, i);
@@ -2921,7 +2960,7 @@ actionfrom(int obj, char *s)
             ((linestat + i)->flags & (PFBLIND + PFASLEEP)) || (linestat + i)->room == me2->room)
             continue;
         /* Check if the player is NEAR to someone carrying the object */
-		int o = owner(obj);
+        int o = owner(obj);
         if (o != -1)
             if ((linestat + o)->room != (linestat + i)->room)
                 continue;
@@ -2991,7 +3030,7 @@ loseobj(int obj)
 {
     objtab = obtab + obj;
 
-	int o = owner(obj);
+    int o = owner(obj);
     if (o != -1) {
         for (int i = 0; i < objtab->nrooms; i++)
             *(objtab->rmlist + i) = -1;
@@ -3019,7 +3058,7 @@ nohelp()
 void
 aforce(int x, char *cmd)
 {
-	DoThis(x, cmd, 0);
+    DoThis(x, cmd, 0);
 }
 
 void
@@ -3071,18 +3110,18 @@ finishfight(int plyr)
 void
 acombat()
 {
-/* Check this out for Stats:
-To hit:  Str=40 Exp=50 Dext=10
-Defence: Dext=70 Exp=20 Str=10
-No hits: Players level different by 2 double attacks etc.
-Damage:  Str / 10 + weapon.		<--- made this random!
+    /* Check this out for Stats:
+    To hit:  Str=40 Exp=50 Dext=10
+    Defence: Dext=70 Exp=20 Str=10
+    No hits: Players level different by 2 double attacks etc.
+    Damage:  Str / 10 + weapon.		<--- made this random!
 
-== Should ALSO go on how crippled a player is... A cripple can't
-strike out at another player! Also, blindness should affect your
-attack/defence. */
+    == Should ALSO go on how crippled a player is... A cripple can't
+    strike out at another player! Also, blindness should affect your
+    attack/defence. */
 
     int aatt, adef, adam, datt, ddef, str;
-    int          oldstr, minpksl;
+    int oldstr, minpksl;
 
     calcdext();
 
@@ -3113,14 +3152,12 @@ attack/defence. */
         aatt = 5;
     else
         aatt = (50 * me->experience) / maxRank.experience +
-               (40 * me2->strength) / maxRank.strength +
-               (10 * me2->dext) / maxRank.dext;
+               (40 * me2->strength) / maxRank.strength + (10 * me2->dext) / maxRank.dext;
 
     if (me->dext == 0)
         adef = 5;
     else
-        adef = (5 * me->experience) / maxRank.experience +
-               (15 * me2->strength) / maxRank.strength +
+        adef = (5 * me->experience) / maxRank.experience + (15 * me2->strength) / maxRank.strength +
                (80 * me2->dext) / maxRank.dext;
 
     /*	if(me2->flags & PFCRIP)  { aatt = aatt / 5; adef = adef / 10; }
@@ -3136,15 +3173,13 @@ attack/defence. */
         datt = 5;
     else
         datt = (50 * you->experience) / maxRank.experience +
-               (40 * you2->strength) / maxRank.strength +
-               (10 * you2->dext) / maxRank.dext;
+               (40 * you2->strength) / maxRank.strength + (10 * you2->dext) / maxRank.dext;
 
     if (you->dext == 0)
         ddef = 5;
     else
         ddef = (5 * you->experience) / maxRank.experience +
-               (15 * you2->strength) / maxRank.strength +
-               (80 * you2->dext) / maxRank.dext;
+               (15 * you2->strength) / maxRank.strength + (80 * you2->dext) / maxRank.dext;
 
     /*	if(you2->flags & PFCRIP)  { datt = datt / 5; ddef = ddef / 10; }
         if(you2->flags & PFBLIND) { datt = datt / 2; ddef = ddef / 4;  } */
@@ -3197,7 +3232,7 @@ attack/defence. */
 void
 exits()
 {
-    int    ac;
+    int ac;
 
     roomtab = rmtab + me2->room;
     if (roomtab->tabptr == -1) {
@@ -3219,7 +3254,7 @@ exits()
         int l = -1;
         int maxl = roomtab->ttlines;
         struct _TT_ENT *tp = ttp + roomtab->tabptr;
-        bool brk { false };
+        bool brk{ false };
         for (int i = 0; i < maxl && !brk; i++) {
             ttabp = tp + i;
             tt.condition = ttabp->condition;
@@ -3237,16 +3272,16 @@ exits()
                 }
                 ac = -1 - ttabp->action;
                 switch (ac) {
-                case AKILLME:
-                    txs("%s: It's difficult to tell...\n", vbptr->id);
-                case AENDPARSE:
-                case AFAILPARSE:
-                case AABORTPARSE:
-                case ARESPOND:
-                    maxl = -1;
-                    break;
-                case ASKIP:
-                    i += TP1;
+                    case AKILLME:
+                        txs("%s: It's difficult to tell...\n", vbptr->id);
+                    case AENDPARSE:
+                    case AFAILPARSE:
+                    case AABORTPARSE:
+                    case ARESPOND:
+                        maxl = -1;
+                        break;
+                    case ASKIP:
+                        i += TP1;
                 }
                 if (tt.condition == CANTEP || tt.condition == CALTEP || tt.condition == CELTEP)
                     maxl = -1;
@@ -3263,16 +3298,16 @@ void
 follow(int x, char *cmd)
 {
     lockusr(x);
-    if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
+    if ((intam = (struct Aport *) AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
-    IAm.mn_Length = (UWORD)sizeof(*amul);
+    IAm.mn_Length = (UWORD) sizeof(*amul);
     IAf = Af;
     IAm.mn_Node.ln_Type = NT_MESSAGE;
     IAm.mn_ReplyPort = repbk;
     IAt = MFORCE;
     IAd = 1;
     IAp = cmd;
-    PutMsg((linestat + x)->rep, (struct Message *)intam);
+    PutMsg((linestat + x)->rep, (struct Message *) intam);
     (linestat + x)->IOlock = -1;
 }
 
@@ -3321,7 +3356,7 @@ show_tasks(int p)
         strcat(block, "None.\n");
     else {
         int i;
-        char         tsk[6];
+        char tsk[6];
         tsk[0] = 0;
         for (i = 0; i < 32; i++) {
             if ((usr + p)->tasks & (1 << i)) {
@@ -3388,14 +3423,22 @@ ascore(int type)
         ioproc("@mr");
         txs("Rank: %-20s  Score: @sc points	This game: @sg points\n", ow);
         const auto &rank = g_ranks[me->rank];
-        sprintf(block, "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity %ld/%ld.\n",
-                rank.strength, rank.stamina, me2->dext, rank.dext);
+        sprintf(block,
+                "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity %ld/%ld.\n",
+                rank.strength,
+                rank.stamina,
+                me2->dext,
+                rank.dext);
         tx(block);
         sprintf(block, "Magic Points: @mg/%ld. Wisdom:  @wi.\n", rank.magicpts);
         tx(block);
 
-        sprintf(block, "\nCurrent Info:\nObjects Carried: %ld/%ld,	Weight Carried: %ld/%ldg\n",
-                me2->numobj, rank.numobj, me2->weight, rank.maxweight);
+        sprintf(block,
+                "\nCurrent Info:\nObjects Carried: %ld/%ld,	Weight Carried: %ld/%ldg\n",
+                me2->numobj,
+                rank.numobj,
+                me2->weight,
+                rank.maxweight);
         tx(block);
         tx("Following: @mf.	");
         if (me2->helping != -1)
@@ -3410,8 +3453,13 @@ ascore(int type)
         show_tasks(Af);
     } else {
         txs("Score: @sc. ", ow);
-        sprintf(block, "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity: %ld/%ld. Magic: @mg/%ld\n",
-                rank.strength, rank.stamina, me2->dext, rank.dext, rank.magicpts);
+        sprintf(block,
+                "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity: %ld/%ld. Magic: @mg/%ld\n",
+                rank.strength,
+                rank.stamina,
+                me2->dext,
+                rank.dext,
+                rank.magicpts);
         tx(block);
     }
 }
@@ -3429,9 +3477,8 @@ calcdext()
     if (!lit(me2->room) || (me2->flags & PFBLIND))
         me2->dext = me2->dext / 5;
 
-    me2->dext -=
-            ((me2->dext / 10) -
-             (((me2->dext / 10) * (rank.maxweight - (me2->weight))) / rank.maxweight));
+    me2->dext -= ((me2->dext / 10) -
+                  (((me2->dext / 10) * (rank.maxweight - (me2->weight))) / rank.maxweight));
 
     if (me2->flags & PFINVIS)
         me2->dext += (me2->dext / 3);
@@ -3478,21 +3525,20 @@ repair(int obj, int howmuch)
     STATE->strength += howmuch;
 }
 
-
 // There are 3 roles the amul client plays:
 // 1- player,
 // 2- background event processing (demon),
 // 3- npc (mobile)
-// 
+//
 // 2 and 3 are "special"s
 
 /* Daemon processing host */
 static void
 demonService()
 {
-	printf("-- Demon processor loaded\n");
-	///AUDIT: while !g_resetInProgress?
-    for ( ;; ) {
+    printf("-- Demon processor loaded\n");
+    /// AUDIT: while !g_resetInProgress?
+    for (;;) {
         Wait(-1);
         iocheck();
     }
@@ -3502,28 +3548,28 @@ static void
 mobileService()
 {
     printf("-- Mobile processor loaded\n");
-	///NOTE: This snapshot is from right before I implemented the mobile
-	/// system in 0.9.00, so there's no actual mobile implementation :(
+    /// NOTE: This snapshot is from right before I implemented the mobile
+    /// system in 0.9.00, so there's no actual mobile implementation :(
 
-	// Most mobiles will probably want an easily accessible list of travel.
-	std::vector<verbid_t> travelVerbs {};
-	for (verbid_t i = 0; i < verbs; ++i) {
-		if (vbtab[i].flags & VB_TRAVEL) {
-			travelVerbs.push_back(i);
-		}
-	}
+    // Most mobiles will probably want an easily accessible list of travel.
+    std::vector<verbid_t> travelVerbs{};
+    for (verbid_t i = 0; i < verbs; ++i) {
+        if (vbtab[i].flags & VB_TRAVEL) {
+            travelVerbs.push_back(i);
+        }
+    }
 
-	for ( ;; ) {
-		Wait(-1);
-		iocheck();
-	}
+    for (;;) {
+        Wait(-1);
+        iocheck();
+    }
 }
 
-///TODO: Rename 'serviceHandler'
+/// TODO: Rename 'serviceHandler'
 void
 Special_Proc()
 {
-	// Invoke a demon or mobile worker
+    // Invoke a demon or mobile worker
     if (ifp != NULL)
         fclose(ifp);
     ifp = NULL;
@@ -3532,16 +3578,16 @@ Special_Proc()
     actor = last_him = last_her = it = -1;
     switch (MyFlag) /* What type of processor ? */
     {
-    case am_DAEM: /* Execute the boot-up daemon */
-        if (verbid_t i = isverb("\"boot"); i != -1)
-            lang_proc(i, 0);
-        demonService(); /* Daemon Processor */
-		break;
-    case am_MOBS:
-		mobileService();
-		break;
-    default:
-        printf("XX Unsupported special processor requested\n");
+        case am_DAEM: /* Execute the boot-up daemon */
+            if (verbid_t i = isverb("\"boot"); i != -1)
+                lang_proc(i, 0);
+            demonService(); /* Daemon Processor */
+            break;
+        case am_MOBS:
+            mobileService();
+            break;
+        default:
+            printf("XX Unsupported special processor requested\n");
     }
     quit();
 }
@@ -3570,7 +3616,6 @@ look(char *s, int f)
         *(rctab + roomno) = *(rctab + roomno) | rset;
     look_here(mod, roomno);
 }
-
 
 /* Add object to players inventory */
 void
@@ -3644,1675 +3689,1774 @@ lit(int r)
                 Permit();
                 return true;
             }
+        }
+        Permit();
+        return false;
     }
-    Permit();
-    return false;
-}
 
-auto
-loc(int o)
-{
-    const auto &obj = GetObject(o);
-    roomid_t room = obj.Room(0);
-    if (room >= -1)
-        return room;
-    if (room > -INS)
-    if (*(obtab + o)->rmlist >= -5 && *(obtab + o)->rmlist <= -(5 + MAXU))
-        return (int)(linestat + owner(o))->room;
-    /* Else its in a container */
-    return -1;
-}
-
-auto
-carrying(int obj)
-{
-    if (me2->numobj == 0)
+    auto loc(int o)
+    {
+        const auto &obj = GetObject(o);
+        roomid_t room = obj.Room(0);
+        if (room >= -1)
+            return room;
+        if (room > -INS)
+            if (*(obtab + o)->rmlist >= -5 && *(obtab + o)->rmlist <= -(5 + MAXU))
+                return (int) (linestat + owner(o))->room;
+        /* Else its in a container */
         return -1;
-    if (owner(obj) == Af)
-        return obj;
-    return -1;
-}
+    }
 
-bool
-nearto(int ob)
-{
-    if (!canSeeObject(ob, Af))
+    auto carrying(int obj)
+    {
+        if (me2->numobj == 0)
+            return -1;
+        if (owner(obj) == Af)
+            return obj;
+        return -1;
+    }
+
+    bool nearto(int ob)
+    {
+        if (!canSeeObject(ob, Af))
+            return false;
+        if (isin(ob, me2->room))
+            return true;
+        if (carrying(ob) != -1)
+            return true;
         return false;
-    if (isin(ob, me2->room))
+    }
+
+    // Can others in this room see me?
+    bool isVisible()
+    {
+        if (!lit(me2->room))
+            return false;
+        if (IamINVIS || IamSINVIS)
+            return false;
         return true;
-    if (carrying(ob) != -1)
+    }
+
+    // If player could manage to carry object
+    bool canGive(int obj, int plyr)
+    {
+        objtab = obtab + obj;
+
+        if ((linestat + plyr)->weight + STATE->weight > (rktab + (usr + plyr)->rank)->maxweight)
+            return false;
+        if ((linestat + plyr)->numobj + 1 > (rktab + (usr + plyr)->rank)->numobj)
+            return false;
+        if ((objtab->flags & OF_SCENERY) || (objtab->flags & OF_COUNTER) || objtab->nrooms != 1)
+            return false;
         return true;
-    return false;
-}
-
-// Can others in this room see me?
-bool
-isVisible()
-{
-    if (!lit(me2->room))
-        return false;
-    if (IamINVIS || IamSINVIS)
-        return false;
-    return true;
-}
-
-// If player could manage to carry object
-bool
-canGive(int obj, int plyr)
-{
-    objtab = obtab + obj;
-
-    if ((linestat + plyr)->weight + STATE->weight > (rktab + (usr + plyr)->rank)->maxweight)
-        return false;
-    if ((linestat + plyr)->numobj + 1 > (rktab + (usr + plyr)->rank)->numobj)
-        return false;
-    if ((objtab->flags & OF_SCENERY) || (objtab->flags & OF_COUNTER) || objtab->nrooms != 1)
-        return false;
-    return true;
-}
-
-verbid_t
-isverb(char *s)
-{
-    vbptr = vbtab;
-    for (verbid_t i = 0; i < verbs; i++, vbptr++)
-        if (match(vbptr->id, s) == NULL)
-            return i;
-    return -1;
-}
-
-verbid_t
-isaverb(char **s)
-{
-    verbid_t ret = isverb(*s);
-    if (ret != -1) {
-        (*s) += strlen((vbtab + ret)->id);
-        return ret;
     }
-    if ((ret = isvsyn(*s)) != -1) {
-        (*s) += ret;
-        return -2 - csyn;
-    }
-    return -1;
-}
 
-// Is VERB syn
-int
-isvsyn(char *s)
-{
-    char *p = synp;
-    for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
-        if (*(synip + i) < -1 && match(p, s) == NULL) {
-            csyn = *(synip + i);
-            return strlen(p);
+    verbid_t isverb(char *s)
+    {
+        vbptr = vbtab;
+        for (verbid_t i = 0; i < verbs; i++, vbptr++)
+            if (match(vbptr->id, s) == NULL)
+                return i;
+        return -1;
+    }
+
+    verbid_t isaverb(char **s)
+    {
+        verbid_t ret = isverb(*s);
+        if (ret != -1) {
+            (*s) += strlen((vbtab + ret)->id);
+            return ret;
         }
-    }
-    return (int)(csyn = -1);
-}
-
-// Is noun syn
-int
-isnsyn(char *s)
-{
-    char *p = synp;
-    for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
-        if (*(synip + i) > -1 && match(p, s) == NULL) {
-            csyn = *(synip + i);
-            return strlen(p);
+        if ((ret = isvsyn(*s)) != -1) {
+            (*s) += ret;
+            return -2 - csyn;
         }
+        return -1;
     }
-    csyn = -1;
-    return -1;
-}
 
-int
-issyn(char *s)
-{
-    char *p = synp;
-    for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
-        if (toupper(*p) == toupper(*s) && match(p, s) == NULL) {
-            csyn = *(synip + i);
-            return strlen(p);
-        }
-    }
-    csyn = -1;
-    return -1;
-}
-
-// Due to the complexity of a multi-ocurance/state environment, I gave up
-// trying to do a 'sort', storing the last, nearest object, and went for
-// an eight pass seek-and-return parse. This may be damned slow with a
-// few thousand objects, but if you only have a thousand, it'll be OK!
-
-int
-isnoun(char *s, int adj, char *pat)
-{
-    int pass, x;
-
-    if (iverb != -1) {
-        verb.sort[0] = *pat;
-        strncpy(verb.sort + 1, pat + 1, 4);
-    } else {
-        strcpy(verb.sort + 1, "CHAE");
-        verb.sort[0] = -1;
-    }
-    if ((obtab + start)->adj == adj && CHAEtype(start) == verb.sort[1] &&
-        (obtab + start)->state == verb.sort[0])
-        return start;
-
-    bool done_e = 0;
-    int lsuc = -1, lobj = -1;
-    int start = isanoun(s);
-    for (int pass = 1; pass < 5; pass++) {
-        /* At this point, we out to try BOTH phases, however, in the
-           second phase, try for the word. Next 'pass', if there is
-           no suitable item, drop back to that from the previous... */
-        if (verb.sort[pass] == 'X')
-            return lobj;
-        if (verb.sort[0] == -1) {
-            if ((x = scan(start, verb.sort[pass], -1, s, adj)) != -1) {
-                if (adj != -1 || (obtab + x)->adj == adj)
-                    return x;
-                if (lsuc == 0)
-                    return lobj;
-                lsuc = 0;
-                lobj = x;
-            } else if (lsuc == 0)
-                return lobj;
-        } else {
-            /* Did we get a match? */
-            if ((x = scan(start, verb.sort[pass], 0, s, adj)) != -1) {
-                /* If adjectives match */
-                if (adj != -1 || (obtab + x)->adj == adj)
-                    return x;
-                if (lsuc == 0)
-                    return lobj;
-                lobj = x;
-                lsuc = 0;
-                continue;
+    // Is VERB syn
+    int isvsyn(char *s)
+    {
+        char *p = synp;
+        for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
+            if (*(synip + i) < -1 && match(p, s) == NULL) {
+                csyn = *(synip + i);
+                return strlen(p);
             }
-            if ((x = scan(start, verb.sort[pass], -1, s, adj)) != -1) {
-                if (adj != -1 || (obtab + x)->adj == adj) {
+        }
+        return (int) (csyn = -1);
+    }
+
+    // Is noun syn
+    int isnsyn(char *s)
+    {
+        char *p = synp;
+        for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
+            if (*(synip + i) > -1 && match(p, s) == NULL) {
+                csyn = *(synip + i);
+                return strlen(p);
+            }
+        }
+        csyn = -1;
+        return -1;
+    }
+
+    int issyn(char *s)
+    {
+        char *p = synp;
+        for (int i = 0; i < syns; i++, p += strlen(p) + 1) {
+            if (toupper(*p) == toupper(*s) && match(p, s) == NULL) {
+                csyn = *(synip + i);
+                return strlen(p);
+            }
+        }
+        csyn = -1;
+        return -1;
+    }
+
+    // Due to the complexity of a multi-ocurance/state environment, I gave up
+    // trying to do a 'sort', storing the last, nearest object, and went for
+    // an eight pass seek-and-return parse. This may be damned slow with a
+    // few thousand objects, but if you only have a thousand, it'll be OK!
+
+    int isnoun(char *s, int adj, char *pat)
+    {
+        int pass, x;
+
+        if (iverb != -1) {
+            verb.sort[0] = *pat;
+            strncpy(verb.sort + 1, pat + 1, 4);
+        } else {
+            strcpy(verb.sort + 1, "CHAE");
+            verb.sort[0] = -1;
+        }
+        if ((obtab + start)->adj == adj && CHAEtype(start) == verb.sort[1] &&
+            (obtab + start)->state == verb.sort[0])
+            return start;
+
+        bool done_e = 0;
+        int lsuc = -1, lobj = -1;
+        int start = isanoun(s);
+        for (int pass = 1; pass < 5; pass++) {
+            /* At this point, we out to try BOTH phases, however, in the
+               second phase, try for the word. Next 'pass', if there is
+               no suitable item, drop back to that from the previous... */
+            if (verb.sort[pass] == 'X')
+                return lobj;
+            if (verb.sort[0] == -1) {
+                if ((x = scan(start, verb.sort[pass], -1, s, adj)) != -1) {
+                    if (adj != -1 || (obtab + x)->adj == adj)
+                        return x;
+                    if (lsuc == 0)
+                        return lobj;
+                    lsuc = 0;
+                    lobj = x;
+                } else if (lsuc == 0)
+                    return lobj;
+            } else {
+                /* Did we get a match? */
+                if ((x = scan(start, verb.sort[pass], 0, s, adj)) != -1) {
+                    /* If adjectives match */
+                    if (adj != -1 || (obtab + x)->adj == adj)
+                        return x;
+                    if (lsuc == 0)
+                        return lobj;
                     lobj = x;
                     lsuc = 0;
                     continue;
-                } /* Must have matched */
+                }
+                if ((x = scan(start, verb.sort[pass], -1, s, adj)) != -1) {
+                    if (adj != -1 || (obtab + x)->adj == adj) {
+                        lobj = x;
+                        lsuc = 0;
+                        continue;
+                    } /* Must have matched */
+                    if (lsuc == 0)
+                        return lobj;
+                }
                 if (lsuc == 0)
                     return lobj;
-            }
-            if (lsuc == 0)
-                return lobj;
-        };
-        if (verb.sort[pass] == 'E')
-            done_e = true;
+            };
+            if (verb.sort[pass] == 'E')
+                done_e = true;
+        }
+        if (!done_e)
+            return scan(0, 'E', -1, s, adj);
+        else
+            return lobj;
     }
-    if (!done_e)
-        return scan(0, 'E', -1, s, adj);
-    else
-        return lobj;
-}
 
-int
-isanoun(char *s)
-{
-    struct _OBJ_STRUCT *obpt = obtab;
-    for (int i = 0; i < g_game.numObjects; i++, obpt++)
-        if (!(obpt->flags & OF_COUNTER) && stricmp(s, obpt->id) == NULL)
-            return i;
-    return -1;
-}
-
-int
-scan(int start, char Type, int tst, char *s, int adj)
-{
-    int last = -1;
-    struct _OBJ_STRUCT *obpt = obtab + start;
-    for (int i = start; i < g_game.numObjects; i++, obpt++) {
-        if ((obpt->flags & OF_COUNTER) || (adj != -1 && obpt->adj != adj))
-            continue;
-        if (match(obpt->id, s) != NULL || CHAEtype(i) != Type)
-            continue;
-        /* If state doesn't matter or states match, we'll try it */
-        if (verb.sort[0] == -1 || tst == -1 || obpt->state == verb.sort[0]) {
-            if (adj == obpt->adj)
+    int isanoun(char *s)
+    {
+        struct _OBJ_STRUCT *obpt = obtab;
+        for (int i = 0; i < g_game.numObjects; i++, obpt++)
+            if (!(obpt->flags & OF_COUNTER) && stricmp(s, obpt->id) == NULL)
                 return i;
-            else
-                last = i;
-        } else if (last == -1)
-            last = i;
-    }
-    return last;
-}
-
-char
-CHAEtype(int obj)
-{
-    if (carrying(obj) != -1)
-        return 'C';
-    if (isin(obj, me2->room))
-        return 'H';
-    int i = owner(obj);
-    if (i != -1 && (linestat + i)->room == me2->room)
-        return 'A';
-    return 'E';
-}
-
-auto
-isadj(char *s)
-{
-    char *p = adtab;
-    for (int i = 0; i < adjs; i++, p += IDL + 1) {
-        if (match(p, s) != -1)
-            return i;
-    }
-    return -1;
-}
-
-auto
-isprep(char *s)
-{
-    for (int i = 0; i < NPREP; i++)
-        if (stricmp(s, prep[i]) == NULL)
-            return i;
-    return -1;
-}
-
-bool
-isin(objid_t objId, roomid_t rmId)
-{
-    const auto &obj = GetObject(objId);
-    for (int i = 0; i < obj.nrooms; i++)
-        if (obj.Room(i) == r)
-            return true;
-    return false;
-}
-
-auto
-isroom(char *s)
-{
-    for (int r = 0; r < rooms; r++)
-        if (stricmp((rmtab + r)->id, s) == 0)
-            return r;
-    return -1;
-}
-
-bool
-isInflicted(int plyr, int spell)
-{
-    you2 = linestat + plyr;
-    switch (spell) {
-    case SGLOW:
-        if (you2->flags & PFGLOW)
-            return true;
-        break;
-    case SINVIS:
-        if (you2->flags & PFINVIS)
-            return true;
-        break;
-    case SDEAF:
-        if (you2->flags & PFDEAF)
-            return true;
-        break;
-    case SBLIND:
-        if (you2->flags & PFBLIND)
-            return true;
-        break;
-    case SCRIPPLE:
-        if (you2->flags & PFCRIP)
-            return true;
-        break;
-    case SDUMB:
-        if (you2->flags & PFDUMB)
-            return true;
-        break;
-    case SSLEEP:
-        if (you2->flags & PFASLEEP)
-            return true;
-        break;
-    case SSINVIS:
-        if (you2->flags & PFSINVIS)
-            return true;
-        break;
-    }
-    return false;
-}
-
-bool
-testStat(int plyr, int st, int x)
-{
-    switch (st) {
-    case STSTR: return isValidNumber((linestat + plyr)->strength, x);
-    case STSTAM: return isValidNumber((linestat + plyr)->stamina, x);
-    case STEXP: return isValidNumber((usr + plyr)->experience, x);
-    case STWIS: return isValidNumber((linestat + plyr)->wisdom, x);
-    case STDEX: return isValidNumber((linestat + plyr)->dext, x);
-    case STMAGIC: return isValidNumber((linestat + plyr)->magicpts, x);
-    case STSCTG: return isValidNumber((linestat + plyr)->sctg, x);
-    default: return false;
-    }
-}
-
-// If <player1> can see <player2>
-bool
-canSee(int p1, int p2)
-{
-    /* You can't see YOURSELF, and check for various other things... */
-    if (*(usr + p2)->name == 0 || p1 == p2)
-        return false;
-    if ((linestat + p2)->state != PLAYING)
-        return false;
-    /* If different rooms, or current room is dark */
-    if (pROOM(p1) != pROOM(p2))
-        return false;
-    /* If p2 is Super Invis, he can't be seen! */
-    if ((linestat + p2)->flags & PFSINVIS)
-        return false;
-    /* If player is blind, obviously can't see p2! */
-    if ((linestat + p1)->flags & PFBLIND)
-        return false;
-    if (!lit(pROOM(p1)))
-        return false;
-    /* If you are in a 'hide' room and he isn't a wizard */
-    if (pRANK(p1) == ranks - 1)
-        return true;
-    if (((rmtab + pROOM(p1))->flags & HIDE))
-        return false;
-    /* If he isn't invisible */
-    if (!isPINVIS(p2))
-        return true;
-    /* Otherwise */
-    if (isPINVIS(p1) && pRANK(p1) >= invis - 1)
-        return true;
-    if (pRANK(p1) >= invis2 - 1)
-        return true;
-    return false;
-}
-
-bool
-canSeeObject(int obj, int who)
-{
-    if (((obtab + obj)->flags & OF_SMELL) && !((linestat + who)->flags & PFBLIND))
-        return false;
-    if ((linestat + who)->flags & PFBLIND &&
-        (!((obtab + obj)->flags & OF_SMELL) || *(obtab + obj)->rmlist != -(5 + who)))
-        return false;
-    if (!isOINVIS(obj))
-        return true;
-    if (isPINVIS(who) && pRANK(who) >= invis - 1)
-        return true;
-    if (pRANK(who) < invis2 - 1)
-        return false;
-    return true;
-}
-
-bool
-castWillSucceed(int rnk, int points, int chance)
-{
-    if (me->rank < rnk - 1) {
-        sys(LOWLEVEL);
-        return false;
-    }
-
-    if (me2->magicpts < points) {
-        sys(NOMAGIC);
-        return false;
-    }
-
-    if (me->rank < rnk)
-        chance = ((me->rank) + 1 - rnk) * ((100 - chance) / (ranks - rnk)) + chance;
-    if (randint(0, 100) < chance) {
-        sys(SPELLFAIL);
-        return false;
-    }
-    me->magicpts -= points;
-    return true;
-}
-
-/* Daemon processing bizness! */
-
-// Start a private (player owned) demon
-void
-dpstart(int d, int seconds)
-{
-	dstart(d, seconds, MDSTART);
-}
-
-// Start a global demon
-void
-dgstart(int d, int seconds)
-{
-	dstart(d, seconds, MGDSTART);
-}
-
-// Start a demon
-void
-dstart(int d, int seconds, int type)
-{
-	// Immediate?
-    if (seconds == 0) {
-        long v = iverb;
-        long lv = lverb;
-        long ld = ldir;
-        long lr = lroom;
-        long a1 = iadj1;
-        long a2 = iadj2;
-        long n1 = inoun1;
-        long n2 = inoun2;
-        long pp = iprep;
-        lang_proc(d, 0);
-        iverb = v;
-        lverb = lv;
-        ldir = ld;
-        lroom = lr;
-        iadj1 = a1;
-        iadj2 = a2;
-        inoun1 = n1;
-        inoun2 = n2;
-        iprep = pp;
-    } else {
-        Apx1 = inoun1;
-        Apx2 = inoun2;
-        Apx3 = wtype[2];
-        Apx4 = wtype[5];
-        SendIt(t, d, (char *)c); /* Inform AMAN... */
-    }
-}
-
-// Force a demon to execute
-void
-dbegin(int d)
-{
-}
-
-void
-dshow(int d)
-{
-    SendIt(MCHECKD, d, NULL);
-    if (Ad == -1) {
-        tx("eventually");
-        return;
-    }
-    timeto(block, Ap1);
-    tx(block);
-}
-
-// Dispatch a demon to the manager
-void
-dsend(int p, int d, int c)
-{
-    if (p == Af)
-        dpstart(d, c);
-    sendex(p, ASTART, d, c, 0, 0); /* Tell THEM to start the daemon */
-}
-
-
-/* What to do when ^C pressed */ 
-int
-CXBRK()
-{
-	return 0;
-}
-
-void
-memfail(char *s)
-{
-    txs("** Unable to allocate memory for %s! **\n", s);
-    quit();
-}
-
-void
-givebackmemory()
-{
-    if (repbk != NULL)
-        DeletePort(repbk);
-    if (reply != NULL)
-        DeletePort(reply);
-    ReleaseMem(&amul);
-    if (amanrep != NULL)
-        DeletePort(amanrep);
-    ReleaseMem(&amanp);
-    ReleaseMem(&ob);
-    ReleaseMem(&ow);
-    ReleaseMem(&input);
-    if (serio != NULL)
-        DeleteExtIO((struct IORequest *)serio);
-    if (wserio != NULL)
-        DeleteExtIO((struct IORequest *)wserio);
-}
-
-void
-fopenr(char *s)
-{
-    if (ifp != NULL)
-        fclose(ifp);
-    sprintf(block, "%s%s", dir, s);
-    if ((ifp = fopen(block, "rb")) == NULL) {
-        sprintf(spc, "\x07** Error: Can't open \"%s\" for %sding!\n\n", block, "rea");
-        tx(spc);
-        quit();
-    }
-}
-
-void
-fopena(char *s)
-{
-    if (afp != NULL)
-        fclose(afp);
-    sprintf(block, "%s%s", dir, s);
-    if ((afp = fopen(block, "rb+")) == NULL) {
-        sprintf(spc, "\x07** Error: Can't open \"%s\" for %sding!\n\n", block, "appen");
-        tx(spc);
-        quit();
-    }
-}
-
-void
-close_ofps()
-{
-    if (ofp1 != NULL)
-        fclose(ofp1);
-    if (ofp2 != NULL)
-        fclose(ofp2);
-    if (ofp3 != NULL)
-        fclose(ofp3);
-    ofp1 = ofp2 = ofp3 = NULL;
-}
-
-void
-kquit(char *s)
-{
-    sprintf(block, "@me just dropped carrier.\n");
-    action(ow, AOTHERS);
-    quit();
-}
-
-void
-quit()
-{
-    txs("\n%s exiting.\n\n", vername);
-    scrend(); /* custom screen */
-    if (link > 0 && amul->from > -1)
-        SendIt(MDISCNCT, 0, me->name);
-    if (ifp != NULL)
-        fclose(ifp);
-    if (afp != NULL)
-        fclose(afp);
-    close_ofps();
-    givebackmemory();
-    exit(0);
-}
-
-void
-SendIt(int t, int d, char *p)
-{
-    if (link == 0)
-        return;
-    AMt = t;
-    AMd = d;
-    AMp = p;
-    PutMsg(port, (struct Message *)amanp);
-    WaitPort(amanrep);
-    GetMsg(amanrep);
-    Af = AMf;
-    Ad = AMd;
-    Ap = AMp;
-    At = AMt;
-    Ap1 = Apx1;
-    Ap2 = Apx2;
-    Ap3 = Apx3;
-    Ap4 = Apx4;
-}
-
-void
-pressret()
-{
-    sys(RETURN);
-    Inp(block, 0);
-    int l = strlen(umsgp + *(umsgip + RETURN));
-    while (l > 0) {
-        txc(8);
-        txc(32);
-        txc(8);
-        l--;
-    }
-}
-
-void
-sys(int n)
-{
-	tx(umsgp + *(umsgip + n));
-}
-
-void
-crsys(int n)
-{
-    txc('\n');
-    tx(umsgp + *(umsgip + n));
-}
-
-/* GetID.C -- Get user name & details. Create record for new users. */
-
-short int start_rm[512];
-
-void
-getid()
-{
-    int   i, nrs;
-    FILE *fp;
-
-    iverb = iadj1 = inoun1 = iprep = iadj2 = inoun2 = actor = -1;
-    *(me2->pre) = *(me2->post) = 0;
-    strcpy(me2->arr, acp(ARRIVED));
-    strcpy(me2->dep, acp(LEFT));
-    last_him = last_her = -1;
-    me->rchar = 0;
-
-    me2->rec = -1;
-    me2->flags = 0;
-    while (!ok) {
-        getname();
-
-        strcpy(him.name, block);
-        sprintf(block, "%s%s", dir, plyrfn);
-
-        /* Ensure the players file has been created */
-        if ((fp = fopen(block, "ab+")) == NULL) {
-            tx("Unable to create new player file...\n");
-            quit();
-        }
-        fclose(fp);
-        fp = afp = NULL;
-
-        fopena(plyrfn); /* See if user is already in file */
-        while (!feof(afp)) {
-            fread(me->name, sizeof(him), 1, afp);
-            if (stricmp(me->name, him.name) == NULL)
-                break;
-        }
-        me2->rec = ftell(afp) / sizeof(him);
-
-        if (stricmp(me->name, him.name) != NULL)
-            ok = newid();
-        else
-            ok = getpasswd();
-    }
-
-    /* Inform AMAN that we have begun! */
-    SendIt(MLOGGED, 0, me->name);
-    for (i = ranks - 1; i >= 0; i--)
-        if (me->score >= (rktab + i)->score) {
-            me->rank = i;
-            break;
-        }
-    refresh();
-    if (me->plays != 1)
-        sys(WELCOMEBAK);
-
-    /* Work out the players start location */
-    roomtab = rmtab;
-    me2->room = -1;
-    lroom = -1;
-    nrs = 0;
-loop:
-    for (i = 0; i < rooms; i++, roomtab++) {
-        if (roomtab->flags & STARTL)
-            start_rm[nrs++] = i;
-    }
-
-    if (nrs == 0)
-        me2->room = 0;
-    if (nrs == 1)
-        me2->room = start_rm[0];
-    if (nrs > 1) {
-        roomid_t dest = randint(0, nrs - 1);
-        me2->room = start_rm[dest];
-    }
-    roomtab = rmtab + me2->room;
-
-    me2->wield = -1;
-    me2->helping = -1;
-    me2->helped = -1;
-    me2->following = -1;
-    me2->followed = -1;
-    me2->fighting = -1;
-    me2->numobj = 0;
-    me2->weight = 0;
-    me2->hadlight = 0;
-    me2->light = 0;
-    me2->flags = 0;
-    me2->sctg = 0;
-    ans("1m");
-    if (me->flags & ufANSI)
-        sys(ANSION);
-    ans("0;37m");
-    me->strength = (rktab + me->rank)->strength;
-    me->stamina = (rktab + me->rank)->stamina;
-    me->magicpts = (rktab + me->rank)->magicpts;
-    if ((i = isverb("\"start")) != -1)
-        lang_proc(i, 0);
-    action(acp(COMMENCED), AOTHERS);
-    look(roomtab->id, me->rdmode);
-}
-
-void
-getname()
-{
-    char *p;
-    int   i;
-
-    do {
-        word = -3;
-
-        crsys(WHATNAME);
-        block[0] = 0;
-        Inp(block, NAMEL + 1);
-        txc('\n');
-        if (block[0] == 0)
-            quit();
-        if (strlen(block) < 3 || strlen(block) > NAMEL) {
-            sys(LENWRONG);
-            continue;
-        }
-
-        p = block;
-        if ((i = type(&p)) > -1 && i != WPLAYER) {
-            sys(NAME_USED);
-            continue;
-        }
-        if (i == WPLAYER && word != Af) {
-            utx(word, acp(LOGINASME));
-            strcpy(me->name, block);
-            sys(ALREADYIN);
-            continue;
-        }
-        word = -2;
-    } while (word != -2);
-}
-
-bool
-newid()
-{
-    strcpy(me->name, him.name);
-    sys(CREATE);
-    *me->name = 0;
-    block[0] = 0;
-    Inp(block, 3);
-    if (toupper(block[0]) != 'Y')
-        return false;
-
-    me->score = 0;
-    me->plays = 1;
-    me->strength = rktab->strength;
-    me->stamina = rktab->stamina;
-    me->dext = rktab->dext;
-    me->wisdom = rktab->wisdom;
-    me->experience = rktab->experience;
-    me->magicpts = rktab->magicpts;
-    me->tasks = 0;
-    me->tries = me->gender = me->rank = me->rdmode = 0;
-    me->llen = DLLEN;
-    me->slen = DSLEN;
-
-    do {
-        crsys(WHATGENDER);
-        block[0] = 0;
-        strcpy(me->name, him.name);
-        Inp(block, 2);
-        block[0] = toupper(block[0]);
-        if (block[0] != 'M' && block[0] != 'F') {
-            crsys(GENDINVALID);
-        }
-    } while (block[0] != 'M' && block[0] != 'F');
-    me->gender = (block[0] == 'M') ? 0 : 1;
-
-    do {
-        crsys(ENTERPASSWD);
-        block[0] = 0;
-        Inp(block, 10);
-        if (strlen(block) < 3 || strlen(block) > 8) {
-            crsys(PASLENWRONG);
-        }
-    } while (strlen(block) < 3 || strlen(block) > 8);
-    strcpy(me->passwd, block);
-
-    me->name[0] = toupper(me->name[0]);
-    for (int i = 1; i < strlen(me->name); i++) {
-        if (me->name[i - 1] == ' ')
-            me->name[i] = toupper(me->name[i]);
-        else
-            me->name[i] = tolower(me->name[i]);
-    }
-
-    crsys(ASK4ANSI);
-    block[0] = 0;
-    Inp(block, 4);
-    me->flags = (toupper(block[0]) == 'Y') ? me->flags | ufANSI : me->flags & -(1 + ufANSI);
-
-    flagbits();
-
-    save_me();
-    txc('\n');
-
-    /* Send them the scenario */
-    ShowFile("scenario");
-
-    crsys(YOUBEGIN);
-    txc('\n');
-
-    return true;
-}
-
-bool
-getpasswd()
-{
-    me2->rec--; /* Move 'back' a record */
-
-    for (int i = 0; i < 4; i++) {
-        if (i == 3) {
-            sys(TRIESOUT); /* Update bad try count */
-            me->tries++;
-            save_me();
-            quit();
-        }
-        txn("\nTry #%d -- ", i + 1);
-        sys(ENTERPASSWD);
-        block[0] = 0;
-        Inp(block, 10);
-        if (stricmp(block, me->passwd) == NULL)
-            break;
-    }
-    me->plays++;
-    if (me->tries > 0) {
-        ans("1m");
-        txc(0x7);
-        txc('\n');
-        txn(acp(FAILEDTRIES), me->tries);
-        txc('\n');
-        ans("0;37m");
-    }
-    me->tries = 0;
-    return true;
-}
-
-void
-lockusr(int u)
-{
-    long t, d, p;
-    do {
-        t = At;
-        d = Ad;
-        p = (long)Ap;
-        SendIt(MLOCK, u, NULL);
-        if (Ad != u && ip == 0) {
-            iocheck();
-            Ad = -1;
-        }
-    } while (Ad != u);
-    At = t;
-    Ad = d;
-    Ap = (char *)p;
-}
-
-void
-interact(int msg, int n, int d)
-{
-    if ((linestat + n)->state < PLAYING)
-        return;
-    lockusr(n);
-    if (msg == MMESSAGE)
-        strcat((linestat + n)->buf, ow);
-    if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
-        memfail("comms port");
-    IAm.mn_Length = (UWORD)sizeof(*amul);
-    IAf = Af;
-    IAm.mn_Node.ln_Type = NT_MESSAGE;
-    IAm.mn_ReplyPort = repbk;
-    IAt = msg;
-    IAd = d;
-    (linestat + n)->IOlock = -1;
-    PutMsg((linestat + n)->rep, (struct Message *)intam);
-}
-
-void
-sendex(int n, int d, int p1, int p2, int p3, int p4)
-{
-    if ((linestat + n)->state < PLAYING)
-        return;
-    lockusr(n);
-    if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
-        memfail("comms port");
-    IAm.mn_Length = (UWORD)sizeof(*amul);
-    IAf = Af;
-    IAm.mn_Node.ln_Type = NT_MESSAGE;
-    IAm.mn_ReplyPort = repbk;
-    IAt = MEXECUTE;
-    IAd = -(1 + d);
-    intam->p1 = p1;
-    intam->p2 = p2;
-    intam->p3 = p3;
-    intam->p4 = p4;
-    (linestat + n)->IOlock = -1;
-    PutMsg((linestat + n)->rep, (struct Message *)intam);
-}
-
-/* The AMUL parser and VT processor */
-
-/* Copy INPUT to BLOCK, taking one sentence at a time, etc */
-void
-grab()
-{
-    char *s = input;
-    more = 10;
-    forced = 0;
-    exeunt = 0;
-    failed = false;;
-    died = 0;
-    donet = -1;
-    ml = 0;
-
-    do {
-        char *d = block;
-        block[0] = 0;
-    loop:
-        *d = 0;
-        while (isspace(*s))
-            s++; /* Skip spaces */
-        if (*s == 0) {
-            *(s + 1) = 0;
-            goto proc;
-        }
-    quotes:
-        if (block[0] != 0)
-            *(d++) = ' '; /* Force spacing */
-        if (*s == '\'' || *s == '\"') {
-            char quote = *(d++) = *(s++);    /* Store which */
-            while (*s != quote && *s != 0)   /* Find match or \0 */
-                *(d++) = *(s++);
-            if (*s == 0)
-                *(s + 1) = 0;
-            *(d++) = *(s++);
-            *d = 0;
-            if (*s != 0)
-                s++; /* Skip " or ' at end */
-            goto loop;
-        }
-
-        char *p = d;
-        while (*s != 0 && !isspace(*s) && *s != '!' && *s != ';' && *s != ',' && *s != '.' &&
-               *s != '\"' && *s != '\'')
-            *(d++) = *(s++);
-        *d = 0;
-        *(d + 1) = 0;
-        if (stricmp(p, "then") == NULL || stricmp(p, "and") == NULL) {
-            *p = 0;
-            goto proc;
-        }
-        if (*s == '\'' || *s == '\"')
-            goto quotes;
-        if (isspace(*s))
-            goto loop;
-    proc:
-        if (*s != 0 && *s != '\'' && *s != '\"')
-            s++;
-        if (block[0] == 0)
-            continue;
-        /* Print the prompt & the line, if not first text */
-        if (more != 10) {
-            ans("3m");
-            tx((rktab + me->rank)->prompt);
-            txs("%s\n", block);
-            ans("0;37m");
-        }
-        if (parser() == -1)
-            return;
-    } while (*s != 0 && more == 0 && exeunt == 0 && forced == 0 && !failed && died == 0);
-    iocheck();
-}
-
-void
-parser()
-{
-    int om = more; /* We need to know if this is phrase one in a mo... */
-    more = 0;
-    if (strlen(block) == 0)
-        return;
-
-    int x;
-phrase:
-    wtype[1] = wtype[2] = wtype[3] = wtype[4] = wtype[5] = WNONE;
-    iadj1 = inoun1 = iprep = iadj2 = inoun2 = -1;
-    actor = -1;
-    char *p = block + strlen(block) - 1;
-    while (p != block && isspace(*p))
-        *(p--) = 0;
-    if (me->rank >= (minsgo - 1) && (x = isroom(block)) != -1) {
-        if (isVisible())
-            action(acp(SGOVANISH), AOTHERS);
-        StopFollow();
-        LoseFollower();
-        sys(SGO);
-        moveto(x);
-        if (isVisible())
-            action(acp(SGOAPPEAR), AOTHERS);
-        return;
-    }
-    iocheck();
-    if (forced != 0 || exeunt != 0 || died != 0)
-        return;
-    p = block;
-    if (*p == '\"' || *p == '\'') {
-        char *p2;
-        if (*(p + 1) == 0)
-            return;
-        if ((iverb = isverb("\"speech")) == -1) {
-            sys(CANTDO);
-            return -1;
-        }
-        p2 = p + 1;
-    loop:
-        while (*p != *p2 && *p2 != 0)
-            p2++;
-        *(p2 + 1) = *(p2) = 0;
-        inoun1 = (long)p + 1;
-        wtype[2] = WTEXT;
-        goto skip;
-    }
-    if ((word = isaverb(&p)) == -1) {
-        char *bp;
-        /*== If not a verb, then check for g_game.numObjects. If they typed
-            > get NounA, NounB, NounC  then allow it.
-             If they typed
-            > kiss PlayerA, NounA
-             don't allow it.
-        */
-
-        bp = p;
-        if (om == 10 || (x = type(&bp)) == -2) {
-            sys(INVALIDVERB);
-            more = 1;
-            return -1;
-        }
-        word = iverb;
-    }
-    x = WVERB;
-    vbptr = vbtab + word;
-    if ((me2->flags & PFASLEEP) && !(vbptr->flags & VB_DREAM)) {
-        tx("You can't do anything until you wake up!\n");
-        failed = true;
         return -1;
     }
-    if (!(vbptr->flags & VB_TRAVEL)) {
-        if ((x = isverb("\"travel")) != -1) {
-            vbptr = vbtab + word;
-            if (lang_proc(x, 1) == 0)
-                return;
-        }
-        vbptr = vbtab + word;
-    }
-    if (iverb >= 0)
-        lverb = iverb;
-    iverb = word;
-    vbptr = vbtab + iverb;
-    wtype[0] = WVERB;
 
-    /* adjectives are optional, so assume next word is a noun */
-l1:
-    if (*p == 0)
-        goto ended;
-    wtype[2] = type(&p);
-    inoun1 = word;
-    if (wtype[2] == WNOUN)
-        it = inoun1;
-    if (wtype[2] == WADJ) {
-        if (wtype[1] != -1) {
-            sys(NONOUN);
-            return -1;
+    int scan(int start, char Type, int tst, char *s, int adj)
+    {
+        int last = -1;
+        struct _OBJ_STRUCT *obpt = obtab + start;
+        for (int i = start; i < g_game.numObjects; i++, obpt++) {
+            if ((obpt->flags & OF_COUNTER) || (adj != -1 && obpt->adj != adj))
+                continue;
+            if (match(obpt->id, s) != NULL || CHAEtype(i) != Type)
+                continue;
+            /* If state doesn't matter or states match, we'll try it */
+            if (verb.sort[0] == -1 || tst == -1 || obpt->state == verb.sort[0]) {
+                if (adj == obpt->adj)
+                    return i;
+                else
+                    last = i;
+            } else if (last == -1)
+                last = i;
         }
-        wtype[1] = WADJ;
-        iadj1 = inoun1;
-        wtype[2] = -1;
-        inoun1 = -1;
-        goto l1;
+        return last;
     }
-    if (wtype[2] == WPREP) {
-        if (wtype[3] != -1) {
-            sys(WORDMIX);
-            return -1;
-        }
-        wtype[3] = WPREP;
-        iprep = inoun1;
-        wtype[2] = -1;
-        inoun1 = -1;
-    }
-l2:
-    if (*p == 0)
-        goto ended;
-    wtype[5] = type(&p);
-    inoun2 = word;
-    if (wtype[5] == WNOUN)
-        it = inoun2;
-    if (wtype[5] == WPREP) {
-        if (wtype[3] != -1) {
-            sys(WORDMIX);
-            return -1;
-        }
-        wtype[3] = WPREP;
-        iprep = inoun2;
-        wtype[5] = -1;
-        inoun2 = -1;
-        goto l2;
-    }
-    if (wtype[5] == WADJ) {
-        if (wtype[4] != -1) {
-            sys(NONOUN);
-            return -1;
-        }
-        wtype[4] = WADJ;
-        iadj2 = inoun2;
-        wtype[5] = -1;
-        inoun2 = -1;
-        goto l2;
-    }
-ended:
-    overb = iverb;
-    vbptr = vbtab + iverb;
-skip:
-    iocheck();
-    if (forced != 0 || exeunt != 0 || died != 0 || failed == true)
-        return;
-    return lang_proc(iverb, 0);
-}
 
-auto
-lang_proc(int v, char e)
-{
-    int j, l, m;
+    char CHAEtype(int obj)
+    {
+        if (carrying(obj) != -1)
+            return 'C';
+        if (isin(obj, me2->room))
+            return 'H';
+        int i = owner(obj);
+        if (i != -1 && (linestat + i)->room == me2->room)
+            return 'A';
+        return 'E';
+    }
 
-    forced = 0;
-    exeunt = 0;
-    failed = false;
-    died = 0;
-    donet = 0;
-    ml = 0;
-    int d = -2;
-    tt.verb = -1;
-    vbptr = vbtab + v;
-caloop:
-    for (int i = 0; i < (vbtab + v)->ents; i++) {
-        int m = 0;
-        stptr = vbptr->ptr + i;
-        donet = 0;
-        ml = stptr->ents;
-        if (stptr->wtype[2] != WANY)
-            for (j = 0; j < 5 && m == 0; j++) {
-                if (stptr->wtype[j] == WANY && (j == 0 || j == 3 || wtype[j + 1] != WNONE))
-                    continue;
-                if (stptr->wtype[j] != wtype[j + 1]) {
-                    m = 1;
-                    continue;
-                }
-                /* We have a match, now see if its the same word! */
-                if (stptr->slot[j] == WANY)
-                    continue;
-                switch (j) {
-                case 0:
-                    if (iadj1 != stptr->slot[j])
-                        m = 1;
-                    break;
-                case 1:
-                    if (stptr->slot[j] == WNONE && inoun1 == WNONE)
-                        break;
-                    if (stptr->wtype[j] == WPLAYER && inoun1 == Af && stptr->slot[j] == -3)
-                        break;
-                    if (stptr->wtype[j] == WTEXT &&
-                        stricmp((char *)inoun1, umsgp + *(umsgip + stptr->slot[j])) == NULL)
-                        break;
-                    if (stptr->wtype[j] == WNOUN &&
-                        stricmp((obtab + inoun1)->id, (obtab + stptr->slot[j])->id) == NULL)
-                        break;
-                    if (inoun1 != stptr->slot[j])
-                        m = 1;
-                    break;
-                case 2:
-                    if (iprep != stptr->slot[j])
-                        m = 1;
-                    break;
-                case 3:
-                    if (iadj2 != stptr->slot[j])
-                        m = 1;
-                    break;
-                case 4:
-                    if (stptr->slot[j] == WNONE && inoun2 == WNONE)
-                        break;
-                    if (stptr->wtype[j] == WPLAYER && inoun2 == Af && stptr->slot[j] == -3)
-                        break;
-                    if (stptr->wtype[j] == WTEXT &&
-                        stricmp((char *)inoun2, umsgp + *(umsgip + stptr->slot[j])) == NULL)
-                        break;
-                    if (stptr->wtype[j] == WNOUN &&
-                        stricmp((obtab + inoun2)->id, (obtab + stptr->slot[j])->id) == NULL)
-                        break;
-                    if (inoun2 != stptr->slot[j])
-                        m = 1;
-                    break;
-                }
+    auto isadj(char *s)
+    {
+        char *p = adtab;
+        for (int i = 0; i < adjs; i++, p += IDL + 1) {
+            if (match(p, s) != -1)
+                return i;
+        }
+        return -1;
+    }
+
+    auto isprep(char *s)
+    {
+        for (int i = 0; i < NPREP; i++)
+            if (stricmp(s, prep[i]) == NULL)
+                return i;
+        return -1;
+    }
+
+    bool isin(objid_t objId, roomid_t rmId)
+    {
+        const auto &obj = GetObject(objId);
+        for (int i = 0; i < obj.nrooms; i++)
+            if (obj.Room(i) == r)
+                return true;
+        return false;
+    }
+
+    auto isroom(char *s)
+    {
+        for (int r = 0; r < rooms; r++)
+            if (stricmp((rmtab + r)->id, s) == 0)
+                return r;
+        return -1;
+    }
+
+    bool isInflicted(int plyr, int spell)
+    {
+        you2 = linestat + plyr;
+        switch (spell) {
+            case SGLOW:
+                if (you2->flags & PFGLOW)
+                    return true;
+                break;
+            case SINVIS:
+                if (you2->flags & PFINVIS)
+                    return true;
+                break;
+            case SDEAF:
+                if (you2->flags & PFDEAF)
+                    return true;
+                break;
+            case SBLIND:
+                if (you2->flags & PFBLIND)
+                    return true;
+                break;
+            case SCRIPPLE:
+                if (you2->flags & PFCRIP)
+                    return true;
+                break;
+            case SDUMB:
+                if (you2->flags & PFDUMB)
+                    return true;
+                break;
+            case SSLEEP:
+                if (you2->flags & PFASLEEP)
+                    return true;
+                break;
+            case SSINVIS:
+                if (you2->flags & PFSINVIS)
+                    return true;
+                break;
+        }
+        return false;
+    }
+
+    bool testStat(int plyr, int st, int x)
+    {
+        switch (st) {
+            case STSTR:
+                return isValidNumber((linestat + plyr)->strength, x);
+            case STSTAM:
+                return isValidNumber((linestat + plyr)->stamina, x);
+            case STEXP:
+                return isValidNumber((usr + plyr)->experience, x);
+            case STWIS:
+                return isValidNumber((linestat + plyr)->wisdom, x);
+            case STDEX:
+                return isValidNumber((linestat + plyr)->dext, x);
+            case STMAGIC:
+                return isValidNumber((linestat + plyr)->magicpts, x);
+            case STSCTG:
+                return isValidNumber((linestat + plyr)->sctg, x);
+            default:
+                return false;
+        }
+    }
+
+    // If <player1> can see <player2>
+    bool canSee(int p1, int p2)
+    {
+        /* You can't see YOURSELF, and check for various other things... */
+        if (*(usr + p2)->name == 0 || p1 == p2)
+            return false;
+        if ((linestat + p2)->state != PLAYING)
+            return false;
+        /* If different rooms, or current room is dark */
+        if (pROOM(p1) != pROOM(p2))
+            return false;
+        /* If p2 is Super Invis, he can't be seen! */
+        if ((linestat + p2)->flags & PFSINVIS)
+            return false;
+        /* If player is blind, obviously can't see p2! */
+        if ((linestat + p1)->flags & PFBLIND)
+            return false;
+        if (!lit(pROOM(p1)))
+            return false;
+        /* If you are in a 'hide' room and he isn't a wizard */
+        if (pRANK(p1) == ranks - 1)
+            return true;
+        if (((rmtab + pROOM(p1))->flags & HIDE))
+            return false;
+        /* If he isn't invisible */
+        if (!isPINVIS(p2))
+            return true;
+        /* Otherwise */
+        if (isPINVIS(p1) && pRANK(p1) >= invis - 1)
+            return true;
+        if (pRANK(p1) >= invis2 - 1)
+            return true;
+        return false;
+    }
+
+    bool canSeeObject(int obj, int who)
+    {
+        if (((obtab + obj)->flags & OF_SMELL) && !((linestat + who)->flags & PFBLIND))
+            return false;
+        if ((linestat + who)->flags & PFBLIND &&
+            (!((obtab + obj)->flags & OF_SMELL) || *(obtab + obj)->rmlist != -(5 + who)))
+            return false;
+        if (!isOINVIS(obj))
+            return true;
+        if (isPINVIS(who) && pRANK(who) >= invis - 1)
+            return true;
+        if (pRANK(who) < invis2 - 1)
+            return false;
+        return true;
+    }
+
+    bool castWillSucceed(int rnk, int points, int chance)
+    {
+        if (me->rank < rnk - 1) {
+            sys(LOWLEVEL);
+            return false;
+        }
+
+        if (me2->magicpts < points) {
+            sys(NOMAGIC);
+            return false;
+        }
+
+        if (me->rank < rnk)
+            chance = ((me->rank) + 1 - rnk) * ((100 - chance) / (ranks - rnk)) + chance;
+        if (randint(0, 100) < chance) {
+            sys(SPELLFAIL);
+            return false;
+        }
+        me->magicpts -= points;
+        return true;
+    }
+
+    /* Daemon processing bizness! */
+
+    // Start a private (player owned) demon
+    void dpstart(int d, int seconds) { dstart(d, seconds, MDSTART); }
+
+    // Start a global demon
+    void dgstart(int d, int seconds) { dstart(d, seconds, MGDSTART); }
+
+    // Start a demon
+    void dstart(int d, int seconds, int type)
+    {
+        // Immediate?
+        if (seconds == 0) {
+            long v = iverb;
+            long lv = lverb;
+            long ld = ldir;
+            long lr = lroom;
+            long a1 = iadj1;
+            long a2 = iadj2;
+            long n1 = inoun1;
+            long n2 = inoun2;
+            long pp = iprep;
+            lang_proc(d, 0);
+            iverb = v;
+            lverb = lv;
+            ldir = ld;
+            lroom = lr;
+            iadj1 = a1;
+            iadj2 = a2;
+            inoun1 = n1;
+            inoun2 = n2;
+            iprep = pp;
+        } else {
+            Apx1 = inoun1;
+            Apx2 = inoun2;
+            Apx3 = wtype[2];
+            Apx4 = wtype[5];
+            SendIt(t, d, (char *) c); /* Inform AMAN... */
+        }
+    }
+
+    // Force a demon to execute
+    void dbegin(int d) {}
+
+    void dshow(int d)
+    {
+        SendIt(MCHECKD, d, NULL);
+        if (Ad == -1) {
+            tx("eventually");
+            return;
+        }
+        timeto(block, Ap1);
+        tx(block);
+    }
+
+    // Dispatch a demon to the manager
+    void dsend(int p, int d, int c)
+    {
+        if (p == Af)
+            dpstart(d, c);
+        sendex(p, ASTART, d, c, 0, 0); /* Tell THEM to start the daemon */
+    }
+
+    /* What to do when ^C pressed */
+    int CXBRK() { return 0; }
+
+    void memfail(char *s)
+    {
+        txs("** Unable to allocate memory for %s! **\n", s);
+        quit();
+    }
+
+    void givebackmemory()
+    {
+        if (repbk != NULL)
+            DeletePort(repbk);
+        if (reply != NULL)
+            DeletePort(reply);
+        ReleaseMem(&amul);
+        if (amanrep != NULL)
+            DeletePort(amanrep);
+        ReleaseMem(&amanp);
+        ReleaseMem(&ob);
+        ReleaseMem(&ow);
+        ReleaseMem(&input);
+        if (serio != NULL)
+            DeleteExtIO((struct IORequest *) serio);
+        if (wserio != NULL)
+            DeleteExtIO((struct IORequest *) wserio);
+    }
+
+    void fopenr(char *s)
+    {
+        if (ifp != NULL)
+            fclose(ifp);
+        sprintf(block, "%s%s", dir, s);
+        if ((ifp = fopen(block, "rb")) == NULL) {
+            sprintf(spc, "\x07** Error: Can't open \"%s\" for %sding!\n\n", block, "rea");
+            tx(spc);
+            quit();
+        }
+    }
+
+    void fopena(char *s)
+    {
+        if (afp != NULL)
+            fclose(afp);
+        sprintf(block, "%s%s", dir, s);
+        if ((afp = fopen(block, "rb+")) == NULL) {
+            sprintf(spc, "\x07** Error: Can't open \"%s\" for %sding!\n\n", block, "appen");
+            tx(spc);
+            quit();
+        }
+    }
+
+    void close_ofps()
+    {
+        if (ofp1 != NULL)
+            fclose(ofp1);
+        if (ofp2 != NULL)
+            fclose(ofp2);
+        if (ofp3 != NULL)
+            fclose(ofp3);
+        ofp1 = ofp2 = ofp3 = NULL;
+    }
+
+    void kquit(char *s)
+    {
+        sprintf(block, "@me just dropped carrier.\n");
+        action(ow, AOTHERS);
+        quit();
+    }
+
+    void quit()
+    {
+        txs("\n%s exiting.\n\n", vername);
+        scrend(); /* custom screen */
+        if (link > 0 && amul->from > -1)
+            SendIt(MDISCNCT, 0, me->name);
+        if (ifp != NULL)
+            fclose(ifp);
+        if (afp != NULL)
+            fclose(afp);
+        close_ofps();
+        givebackmemory();
+        exit(0);
+    }
+
+    void SendIt(int t, int d, char *p)
+    {
+        if (link == 0)
+            return;
+        AMt = t;
+        AMd = d;
+        AMp = p;
+        PutMsg(port, (struct Message *) amanp);
+        WaitPort(amanrep);
+        GetMsg(amanrep);
+        Af = AMf;
+        Ad = AMd;
+        Ap = AMp;
+        At = AMt;
+        Ap1 = Apx1;
+        Ap2 = Apx2;
+        Ap3 = Apx3;
+        Ap4 = Apx4;
+    }
+
+    void pressret()
+    {
+        sys(RETURN);
+        Inp(block, 0);
+        int l = strlen(umsgp + *(umsgip + RETURN));
+        while (l > 0) {
+            txc(8);
+            txc(32);
+            txc(8);
+            l--;
+        }
+    }
+
+    void sys(int n) { tx(umsgp + *(umsgip + n)); }
+
+    void crsys(int n)
+    {
+        txc('\n');
+        tx(umsgp + *(umsgip + n));
+    }
+
+    /* GetID.C -- Get user name & details. Create record for new users. */
+
+    short int start_rm[512];
+
+    void getid()
+    {
+        int i, nrs;
+        FILE *fp;
+
+        iverb = iadj1 = inoun1 = iprep = iadj2 = inoun2 = actor = -1;
+        *(me2->pre) = *(me2->post) = 0;
+        strcpy(me2->arr, acp(ARRIVED));
+        strcpy(me2->dep, acp(LEFT));
+        last_him = last_her = -1;
+        me->rchar = 0;
+
+        me2->rec = -1;
+        me2->flags = 0;
+        while (!ok) {
+            getname();
+
+            strcpy(him.name, block);
+            sprintf(block, "%s%s", dir, plyrfn);
+
+            /* Ensure the players file has been created */
+            if ((fp = fopen(block, "ab+")) == NULL) {
+                tx("Unable to create new player file...\n");
+                quit();
             }
-        if (m != 0)
-            goto after;
-        l = -1;
-        d = -1;
-        for (donet = 0; donet < ml; donet++) {
+            fclose(fp);
+            fp = afp = NULL;
+
+            fopena(plyrfn); /* See if user is already in file */
+            while (!feof(afp)) {
+                fread(me->name, sizeof(him), 1, afp);
+                if (stricmp(me->name, him.name) == NULL)
+                    break;
+            }
+            me2->rec = ftell(afp) / sizeof(him);
+
+            if (stricmp(me->name, him.name) != NULL)
+                ok = newid();
+            else
+                ok = getpasswd();
+        }
+
+        /* Inform AMAN that we have begun! */
+        SendIt(MLOGGED, 0, me->name);
+        for (i = ranks - 1; i >= 0; i--)
+            if (me->score >= (rktab + i)->score) {
+                me->rank = i;
+                break;
+            }
+        refresh();
+        if (me->plays != 1)
+            sys(WELCOMEBAK);
+
+        /* Work out the players start location */
+        roomtab = rmtab;
+        me2->room = -1;
+        lroom = -1;
+        nrs = 0;
+    loop:
+        for (i = 0; i < rooms; i++, roomtab++) {
+            if (roomtab->flags & STARTL)
+                start_rm[nrs++] = i;
+        }
+
+        if (nrs == 0)
+            me2->room = 0;
+        if (nrs == 1)
+            me2->room = start_rm[0];
+        if (nrs > 1) {
+            roomid_t dest = randint(0, nrs - 1);
+            me2->room = start_rm[dest];
+        }
+        roomtab = rmtab + me2->room;
+
+        me2->wield = -1;
+        me2->helping = -1;
+        me2->helped = -1;
+        me2->following = -1;
+        me2->followed = -1;
+        me2->fighting = -1;
+        me2->numobj = 0;
+        me2->weight = 0;
+        me2->hadlight = 0;
+        me2->light = 0;
+        me2->flags = 0;
+        me2->sctg = 0;
+        ans("1m");
+        if (me->flags & ufANSI)
+            sys(ANSION);
+        ans("0;37m");
+        me->strength = (rktab + me->rank)->strength;
+        me->stamina = (rktab + me->rank)->stamina;
+        me->magicpts = (rktab + me->rank)->magicpts;
+        if ((i = isverb("\"start")) != -1)
+            lang_proc(i, 0);
+        action(acp(COMMENCED), AOTHERS);
+        look(roomtab->id, me->rdmode);
+    }
+
+    void getname()
+    {
+        char *p;
+        int i;
+
+        do {
+            word = -3;
+
+            crsys(WHATNAME);
+            block[0] = 0;
+            Inp(block, NAMEL + 1);
+            txc('\n');
+            if (block[0] == 0)
+                quit();
+            if (strlen(block) < 3 || strlen(block) > NAMEL) {
+                sys(LENWRONG);
+                continue;
+            }
+
+            p = block;
+            if ((i = type(&p)) > -1 && i != WPLAYER) {
+                sys(NAME_USED);
+                continue;
+            }
+            if (i == WPLAYER && word != Af) {
+                utx(word, acp(LOGINASME));
+                strcpy(me->name, block);
+                sys(ALREADYIN);
+                continue;
+            }
+            word = -2;
+        } while (word != -2);
+    }
+
+    bool newid()
+    {
+        strcpy(me->name, him.name);
+        sys(CREATE);
+        *me->name = 0;
+        block[0] = 0;
+        Inp(block, 3);
+        if (toupper(block[0]) != 'Y')
+            return false;
+
+        me->score = 0;
+        me->plays = 1;
+        me->strength = rktab->strength;
+        me->stamina = rktab->stamina;
+        me->dext = rktab->dext;
+        me->wisdom = rktab->wisdom;
+        me->experience = rktab->experience;
+        me->magicpts = rktab->magicpts;
+        me->tasks = 0;
+        me->tries = me->gender = me->rank = me->rdmode = 0;
+        me->llen = DLLEN;
+        me->slen = DSLEN;
+
+        do {
+            crsys(WHATGENDER);
+            block[0] = 0;
+            strcpy(me->name, him.name);
+            Inp(block, 2);
+            block[0] = toupper(block[0]);
+            if (block[0] != 'M' && block[0] != 'F') {
+                crsys(GENDINVALID);
+            }
+        } while (block[0] != 'M' && block[0] != 'F');
+        me->gender = (block[0] == 'M') ? 0 : 1;
+
+        do {
+            crsys(ENTERPASSWD);
+            block[0] = 0;
+            Inp(block, 10);
+            if (strlen(block) < 3 || strlen(block) > 8) {
+                crsys(PASLENWRONG);
+            }
+        } while (strlen(block) < 3 || strlen(block) > 8);
+        strcpy(me->passwd, block);
+
+        me->name[0] = toupper(me->name[0]);
+        for (int i = 1; i < strlen(me->name); i++) {
+            if (me->name[i - 1] == ' ')
+                me->name[i] = toupper(me->name[i]);
+            else
+                me->name[i] = tolower(me->name[i]);
+        }
+
+        crsys(ASK4ANSI);
+        block[0] = 0;
+        Inp(block, 4);
+        me->flags = (toupper(block[0]) == 'Y') ? me->flags | ufANSI : me->flags & -(1 + ufANSI);
+
+        flagbits();
+
+        save_me();
+        txc('\n');
+
+        /* Send them the scenario */
+        ShowFile("scenario");
+
+        crsys(YOUBEGIN);
+        txc('\n');
+
+        return true;
+    }
+
+    bool getpasswd()
+    {
+        me2->rec--; /* Move 'back' a record */
+
+        for (int i = 0; i < 4; i++) {
+            if (i == 3) {
+                sys(TRIESOUT); /* Update bad try count */
+                me->tries++;
+                save_me();
+                quit();
+            }
+            txn("\nTry #%d -- ", i + 1);
+            sys(ENTERPASSWD);
+            block[0] = 0;
+            Inp(block, 10);
+            if (stricmp(block, me->passwd) == NULL)
+                break;
+        }
+        me->plays++;
+        if (me->tries > 0) {
+            ans("1m");
+            txc(0x7);
+            txc('\n');
+            txn(acp(FAILEDTRIES), me->tries);
+            txc('\n');
+            ans("0;37m");
+        }
+        me->tries = 0;
+        return true;
+    }
+
+    void lockusr(int u)
+    {
+        long t, d, p;
+        do {
+            t = At;
+            d = Ad;
+            p = (long) Ap;
+            SendIt(MLOCK, u, NULL);
+            if (Ad != u && ip == 0) {
+                iocheck();
+                Ad = -1;
+            }
+        } while (Ad != u);
+        At = t;
+        Ad = d;
+        Ap = (char *) p;
+    }
+
+    void interact(int msg, int n, int d)
+    {
+        if ((linestat + n)->state < PLAYING)
+            return;
+        lockusr(n);
+        if (msg == MMESSAGE)
+            strcat((linestat + n)->buf, ow);
+        if ((intam = (struct Aport *) AllocateMem(sizeof(*amul))) == NULL)
+            memfail("comms port");
+        IAm.mn_Length = (UWORD) sizeof(*amul);
+        IAf = Af;
+        IAm.mn_Node.ln_Type = NT_MESSAGE;
+        IAm.mn_ReplyPort = repbk;
+        IAt = msg;
+        IAd = d;
+        (linestat + n)->IOlock = -1;
+        PutMsg((linestat + n)->rep, (struct Message *) intam);
+    }
+
+    void sendex(int n, int d, int p1, int p2, int p3, int p4)
+    {
+        if ((linestat + n)->state < PLAYING)
+            return;
+        lockusr(n);
+        if ((intam = (struct Aport *) AllocateMem(sizeof(*amul))) == NULL)
+            memfail("comms port");
+        IAm.mn_Length = (UWORD) sizeof(*amul);
+        IAf = Af;
+        IAm.mn_Node.ln_Type = NT_MESSAGE;
+        IAm.mn_ReplyPort = repbk;
+        IAt = MEXECUTE;
+        IAd = -(1 + d);
+        intam->p1 = p1;
+        intam->p2 = p2;
+        intam->p3 = p3;
+        intam->p4 = p4;
+        (linestat + n)->IOlock = -1;
+        PutMsg((linestat + n)->rep, (struct Message *) intam);
+    }
+
+    /* The AMUL parser and VT processor */
+
+    /* Copy INPUT to BLOCK, taking one sentence at a time, etc */
+    void grab()
+    {
+        char *s = input;
+        more = 10;
+        forced = 0;
+        exeunt = 0;
+        failed = false;
+        ;
+        died = 0;
+        donet = -1;
+        ml = 0;
+
+        do {
+            char *d = block;
+            block[0] = 0;
+        loop:
+            *d = 0;
+            while (isspace(*s))
+                s++; /* Skip spaces */
+            if (*s == 0) {
+                *(s + 1) = 0;
+                goto proc;
+            }
+        quotes:
+            if (block[0] != 0)
+                *(d++) = ' '; /* Force spacing */
+            if (*s == '\'' || *s == '\"') {
+                char quote = *(d++) = *(s++);  /* Store which */
+                while (*s != quote && *s != 0) /* Find match or \0 */
+                    *(d++) = *(s++);
+                if (*s == 0)
+                    *(s + 1) = 0;
+                *(d++) = *(s++);
+                *d = 0;
+                if (*s != 0)
+                    s++; /* Skip " or ' at end */
+                goto loop;
+            }
+
+            char *p = d;
+            while (*s != 0 && !isspace(*s) && *s != '!' && *s != ';' && *s != ',' && *s != '.' &&
+                   *s != '\"' && *s != '\'')
+                *(d++) = *(s++);
+            *d = 0;
+            *(d + 1) = 0;
+            if (stricmp(p, "then") == NULL || stricmp(p, "and") == NULL) {
+                *p = 0;
+                goto proc;
+            }
+            if (*s == '\'' || *s == '\"')
+                goto quotes;
+            if (isspace(*s))
+                goto loop;
+        proc:
+            if (*s != 0 && *s != '\'' && *s != '\"')
+                s++;
+            if (block[0] == 0)
+                continue;
+            /* Print the prompt & the line, if not first text */
+            if (more != 10) {
+                ans("3m");
+                tx((rktab + me->rank)->prompt);
+                txs("%s\n", block);
+                ans("0;37m");
+            }
+            if (parser() == -1)
+                return;
+        } while (*s != 0 && more == 0 && exeunt == 0 && forced == 0 && !failed && died == 0);
+        iocheck();
+    }
+
+    void parser()
+    {
+        int om = more; /* We need to know if this is phrase one in a mo... */
+        more = 0;
+        if (strlen(block) == 0)
+            return;
+
+        int x;
+    phrase:
+        wtype[1] = wtype[2] = wtype[3] = wtype[4] = wtype[5] = WNONE;
+        iadj1 = inoun1 = iprep = iadj2 = inoun2 = -1;
+        actor = -1;
+        char *p = block + strlen(block) - 1;
+        while (p != block && isspace(*p))
+            *(p--) = 0;
+        if (me->rank >= (minsgo - 1) && (x = isroom(block)) != -1) {
+            if (isVisible())
+                action(acp(SGOVANISH), AOTHERS);
+            StopFollow();
+            LoseFollower();
+            sys(SGO);
+            moveto(x);
+            if (isVisible())
+                action(acp(SGOAPPEAR), AOTHERS);
+            return;
+        }
+        iocheck();
+        if (forced != 0 || exeunt != 0 || died != 0)
+            return;
+        p = block;
+        if (*p == '\"' || *p == '\'') {
+            char *p2;
+            if (*(p + 1) == 0)
+                return;
+            if ((iverb = isverb("\"speech")) == -1) {
+                sys(CANTDO);
+                return -1;
+            }
+            p2 = p + 1;
+        loop:
+            while (*p != *p2 && *p2 != 0)
+                p2++;
+            *(p2 + 1) = *(p2) = 0;
+            inoun1 = (long) p + 1;
+            wtype[2] = WTEXT;
+            goto skip;
+        }
+        if ((word = isaverb(&p)) == -1) {
+            char *bp;
+            /*== If not a verb, then check for g_game.numObjects. If they typed
+                > get NounA, NounB, NounC  then allow it.
+                 If they typed
+                > kiss PlayerA, NounA
+                 don't allow it.
+            */
+
+            bp = p;
+            if (om == 10 || (x = type(&bp)) == -2) {
+                sys(INVALIDVERB);
+                more = 1;
+                return -1;
+            }
+            word = iverb;
+        }
+        x = WVERB;
+        vbptr = vbtab + word;
+        if ((me2->flags & PFASLEEP) && !(vbptr->flags & VB_DREAM)) {
+            tx("You can't do anything until you wake up!\n");
+            failed = true;
+            return -1;
+        }
+        if (!(vbptr->flags & VB_TRAVEL)) {
+            if ((x = isverb("\"travel")) != -1) {
+                vbptr = vbtab + word;
+                if (lang_proc(x, 1) == 0)
+                    return;
+            }
+            vbptr = vbtab + word;
+        }
+        if (iverb >= 0)
+            lverb = iverb;
+        iverb = word;
+        vbptr = vbtab + iverb;
+        wtype[0] = WVERB;
+
+        /* adjectives are optional, so assume next word is a noun */
+    l1:
+        if (*p == 0)
+            goto ended;
+        wtype[2] = type(&p);
+        inoun1 = word;
+        if (wtype[2] == WNOUN)
+            it = inoun1;
+        if (wtype[2] == WADJ) {
+            if (wtype[1] != -1) {
+                sys(NONOUN);
+                return -1;
+            }
+            wtype[1] = WADJ;
+            iadj1 = inoun1;
+            wtype[2] = -1;
+            inoun1 = -1;
+            goto l1;
+        }
+        if (wtype[2] == WPREP) {
+            if (wtype[3] != -1) {
+                sys(WORDMIX);
+                return -1;
+            }
+            wtype[3] = WPREP;
+            iprep = inoun1;
+            wtype[2] = -1;
+            inoun1 = -1;
+        }
+    l2:
+        if (*p == 0)
+            goto ended;
+        wtype[5] = type(&p);
+        inoun2 = word;
+        if (wtype[5] == WNOUN)
+            it = inoun2;
+        if (wtype[5] == WPREP) {
+            if (wtype[3] != -1) {
+                sys(WORDMIX);
+                return -1;
+            }
+            wtype[3] = WPREP;
+            iprep = inoun2;
+            wtype[5] = -1;
+            inoun2 = -1;
+            goto l2;
+        }
+        if (wtype[5] == WADJ) {
+            if (wtype[4] != -1) {
+                sys(NONOUN);
+                return -1;
+            }
+            wtype[4] = WADJ;
+            iadj2 = inoun2;
+            wtype[5] = -1;
+            inoun2 = -1;
+            goto l2;
+        }
+    ended:
+        overb = iverb;
+        vbptr = vbtab + iverb;
+    skip:
+        iocheck();
+        if (forced != 0 || exeunt != 0 || died != 0 || failed == true)
+            return;
+        return lang_proc(iverb, 0);
+    }
+
+    auto lang_proc(int v, char e)
+    {
+        int j, l, m;
+
+        forced = 0;
+        exeunt = 0;
+        failed = false;
+        died = 0;
+        donet = 0;
+        ml = 0;
+        int d = -2;
+        tt.verb = -1;
+        vbptr = vbtab + v;
+    caloop:
+        for (int i = 0; i < (vbtab + v)->ents; i++) {
+            int m = 0;
             stptr = vbptr->ptr + i;
-            vtabp = stptr->ptr + donet;
-            tt.action = vtabp->action;
-            tt.pptr = vtabp->pptr;
+            donet = 0;
+            ml = stptr->ents;
+            if (stptr->wtype[2] != WANY)
+                for (j = 0; j < 5 && m == 0; j++) {
+                    if (stptr->wtype[j] == WANY && (j == 0 || j == 3 || wtype[j + 1] != WNONE))
+                        continue;
+                    if (stptr->wtype[j] != wtype[j + 1]) {
+                        m = 1;
+                        continue;
+                    }
+                    /* We have a match, now see if its the same word! */
+                    if (stptr->slot[j] == WANY)
+                        continue;
+                    switch (j) {
+                        case 0:
+                            if (iadj1 != stptr->slot[j])
+                                m = 1;
+                            break;
+                        case 1:
+                            if (stptr->slot[j] == WNONE && inoun1 == WNONE)
+                                break;
+                            if (stptr->wtype[j] == WPLAYER && inoun1 == Af && stptr->slot[j] == -3)
+                                break;
+                            if (stptr->wtype[j] == WTEXT &&
+                                stricmp((char *) inoun1, umsgp + *(umsgip + stptr->slot[j])) ==
+                                        NULL)
+                                break;
+                            if (stptr->wtype[j] == WNOUN &&
+                                stricmp((obtab + inoun1)->id, (obtab + stptr->slot[j])->id) == NULL)
+                                break;
+                            if (inoun1 != stptr->slot[j])
+                                m = 1;
+                            break;
+                        case 2:
+                            if (iprep != stptr->slot[j])
+                                m = 1;
+                            break;
+                        case 3:
+                            if (iadj2 != stptr->slot[j])
+                                m = 1;
+                            break;
+                        case 4:
+                            if (stptr->slot[j] == WNONE && inoun2 == WNONE)
+                                break;
+                            if (stptr->wtype[j] == WPLAYER && inoun2 == Af && stptr->slot[j] == -3)
+                                break;
+                            if (stptr->wtype[j] == WTEXT &&
+                                stricmp((char *) inoun2, umsgp + *(umsgip + stptr->slot[j])) ==
+                                        NULL)
+                                break;
+                            if (stptr->wtype[j] == WNOUN &&
+                                stricmp((obtab + inoun2)->id, (obtab + stptr->slot[j])->id) == NULL)
+                                break;
+                            if (inoun2 != stptr->slot[j])
+                                m = 1;
+                            break;
+                    }
+                }
+            if (m != 0)
+                goto after;
+            l = -1;
+            d = -1;
+            for (donet = 0; donet < ml; donet++) {
+                stptr = vbptr->ptr + i;
+                vtabp = stptr->ptr + donet;
+                tt.action = vtabp->action;
+                tt.pptr = vtabp->pptr;
+                if (skip != 0) {
+                    skip--;
+                    continue;
+                }
+                if ((l = cond(vtabp->condition, l)) == -1)
+                    continue;
+                inc = 1;
+                act(tt.action, vtabp->pptr);
+                if (inc == 1)
+                    d = 0;
+                if (ml < -1) {
+                    d = lang_proc(iverb, e);
+                    donet = ml + 1;
+                    break;
+                }
+                if (ml < 0 || failed == true || forced != 0 || died != 0 || exeunt != 0)
+                    break;
+            }
+            if (failed == true || forced != 0 || died != 0 || exeunt != 0)
+                break;
+        after:
+            if (donet > ml)
+                break;
+        }
+        if (d > -1)
+            return 0; /* If we processed something... */
+
+        vbptr = vbtab + v;
+        if (!(vbptr->flags & VB_TRAVEL)) {
+            int iv;
+            iv = iverb;
+            iverb = v;
+            if (ttproc() == 0)
+                return 0;
+            else
+                d = -1;
+            iverb = iv;
+        }
+        if (d == -2 && e == 0)
+            sys(ALMOST);
+        if (d == -1 && e == 0) {
+            if (!(vbptr->flags & VB_TRAVEL))
+                sys(CANTGO);
+            else
+                sys(CANTDO);
+        }
+        return -1;
+    }
+
+    /* Phrase/sentence processing */
+
+    int ttproc()
+    {
+        exeunt = died = donet = skip = 0;
+        failed = false;
+        roomtab = rmtab + me2->room;
+        int l = -1;
+        tt.verb = iverb;
+        if (roomtab->tabptr == -1) {
+            sys(CANTGO);
+            return 0;
+        }
+        int dun = -1;
+        ml = roomtab->ttlines;
+        struct _TT_ENT *tp = ttp + roomtab->tabptr;
+
+        iocheck();
+        if (forced != 0 || died != 0 || exeunt != 0)
+            return 0;
+    more:
+        for (int i = donet; i < ml; i++) {
+            ttabp = tp + i;
+            int match = -1;
+            donet++;
+            tt.pptr = ttabp->pptr;
             if (skip != 0) {
                 skip--;
                 continue;
             }
-            if ((l = cond(vtabp->condition, l)) == -1)
-                continue;
-            inc = 1;
-            act(tt.action, vtabp->pptr);
-            if (inc == 1)
-                d = 0;
-            if (ml < -1) {
-                d = lang_proc(iverb, e);
-                donet = ml + 1;
+            if (ttabp->verb == iverb && (l = cond(ttabp->condition, l)) != -1) {
+                match = i;
                 break;
             }
-            if (ml < 0 || failed == true || forced != 0 || died != 0 || exeunt != 0)
-                break;
         }
-        if (failed == true || forced != 0 || died != 0 || exeunt != 0)
-            break;
-    after:
-        if (donet > ml)
-            break;
-    }
-    if (d > -1)
-        return 0; /* If we processed something... */
-
-    vbptr = vbtab + v;
-    if (!(vbptr->flags & VB_TRAVEL)) {
-        int iv;
-        iv = iverb;
-        iverb = v;
-        if (ttproc() == 0)
+        skip = 0;
+        if (ttabp->condition == CSPELL && match == -1)
             return 0;
-        else
-            d = -1;
-        iverb = iv;
-    }
-    if (d == -2 && e == 0)
-        sys(ALMOST);
-    if (d == -1 && e == 0) {
-        if (!(vbptr->flags & VB_TRAVEL))
-            sys(CANTGO);
-        else
-            sys(CANTDO);
-    }
-    return -1;
-}
-
-/* Phrase/sentence processing */
-
-int
-ttproc()
-{
-    exeunt = died = donet = skip = 0;
-    failed = false;
-    roomtab = rmtab + me2->room;
-    int l = -1;
-    tt.verb = iverb;
-    if (roomtab->tabptr == -1) {
-        sys(CANTGO);
+        if (match == -1)
+            return dun;
+        tt.condition = ttabp->condition;
+        inc = 1;
+        act(ttabp->action, ttabp->pptr);
+        if (inc == 1)
+            dun = 0;
+        if (ml < -1) {
+            ml = roomtab->ttlines;
+            donet = 0;
+        }
+        if (donet < ml && exeunt == 0 && died == 0)
+            goto more;
         return 0;
     }
-    int dun = -1;
-    ml = roomtab->ttlines;
-    struct _TT_ENT *tp = ttp + roomtab->tabptr;
 
-    iocheck();
-    if (forced != 0 || died != 0 || exeunt != 0)
-        return 0;
-more:
-    for (int i = donet; i < ml; i++) {
-        ttabp = tp + i;
-        int match = -1;
-        donet++;
-        tt.pptr = ttabp->pptr;
-        if (skip != 0) {
-            skip--;
-            continue;
-        }
-        if (ttabp->verb == iverb && (l = cond(ttabp->condition, l)) != -1) {
-            match = i;
-            break;
-        }
-    }
-    skip = 0;
-    if (ttabp->condition == CSPELL && match == -1)
-        return 0;
-    if (match == -1)
-        return dun;
-    tt.condition = ttabp->condition;
-    inc = 1;
-    act(ttabp->action, ttabp->pptr);
-    if (inc == 1)
-        dun = 0;
-    if (ml < -1) {
-        ml = roomtab->ttlines;
-        donet = 0;
-    }
-    if (donet < ml && exeunt == 0 && died == 0)
-        goto more;
-    return 0;
-}
+    void act(long ac, long *pt)
+    {
+        long x1, x2;
+        int i;
+        tt.action = ac;
+        tt.pptr = pt;
+        if (tt.condition < 0)
+            tt.condition = -1 - tt.condition;
 
-void
-act(long ac, long *pt)
-{
-    long x1, x2;
-    int  i;
-    tt.action = ac;
-    tt.pptr = pt;
-    if (tt.condition < 0)
-        tt.condition = -1 - tt.condition;
-
-    if (ac < 0) {
-        ac = -1 - ac;
-        switch (ac) {
-        case ASAVE: asave(); break;
-        case ASCORE: ascore(TP1); break;
-        case ASETSTAT: asetstat(TP1, TP2); break;
-        case ALOOK: look((rmtab + me2->room)->id, 1); break;
-        case AWHAT: list_what(me2->room, true); break;
-        case AWHERE: awhere(TP1); break;
-        case AWHO: awho(TP1); break;
-        case ATREATAS: atreatas(TP1); return;
-        case ASKIP: skip += TP1; break;
-        case ATRAVEL:
-            x1 = donet;
-            x2 = ml;
-            if (ttproc() == 0)
-                donet = ml = x2;
-            else {
-                ml = x2;
-                donet = x1;
-            };
-            break;
-        case AQUIT: aquit();
-        case AENDPARSE: donet = ml + 1; break;
-        case AKILLME: akillme(); break;
-        case AFAILPARSE: afailparse(); break;
-        case AFINISHPARSE: afinishparse(); break;
-        case AABORTPARSE: aabortparse(); break;
-        case AWAIT: fwait(TP1); break;
-        case ABLEEP: ableep(TP1); break;
-        case AWHEREAMI: txs("Current room is known as \"%s\".\n", (rmtab + me2->room)->id); break;
-        case ASEND: send(TP1, TP2); break;
-        case AERROR: afailparse();     /* Set those flags! */
-        case ARESPOND: donet = ml + 1; /* Then do reply etc */
-        case AREPLY:
-        case AMESSAGE: tx(AP1); break;
-        case AANOUN: announce(AP2, TP1); break;
-        case ACHANGESEX: achange(TP1); break;
-        case ASLEEP: me2->flags = me2->flags | PFASLEEP; break;
-        case AWAKE: me2->flags = me2->flags & (-1 - PFASLEEP); break;
-        case ASIT:
-            me2->flags = me2->flags | PFSITTING;
-            me2->flags = me2->flags & (-1 - PFLYING);
-            break;
-        case ASTAND: me2->flags = me2->flags & (-1 - PFSITTING - PFLYING); break;
-        case ALIE:
-            me2->flags = me2->flags | PFLYING;
-            me2->flags = me2->flags & (-1 - PFSITTING);
-            break;
-        case ARDMODE:
-            me->rdmode = TP1;
-            txs("%s mode selected.\n",
-                (me->rdmode == RDRC) ? "Roomcount" : (me->rdmode == RDVB) ? "Verbose" : "Brief");
-            break;
-        case ARESET: SendIt(MRESET, 0, NULL); break; /* Tell AMAN that we want a reset! */
-        case AACTION: action(AP2, TP1); break;
-        case AMOVE: moveto(TP1); break;
-        case AMSGIN: announcein(TP1, AP2); break;
-        case AACTIN: actionin(TP1, AP2); break;
-        case AMSGFROM: announcefrom(TP1, AP2); break;
-        case AACTFROM: actionfrom(TP1, AP2); break;
-        case ATELL:
-            if (!((linestat + TP1)->flags & PFDEAF)) {
-                setmxy(NOISE, TP1);
-                utx(TP1, AP2);
-            }
-            break;
-        case AADDVAL: aadd(scaled(State(TP1)->value, State(TP1)->flags), STSCORE, Af); break;
-        case AGET: agive(TP1, Af); break;
-        case ADROP: adrop(TP1, me2->room); break;
-        case AINVENT:
-            strcpy(block, "You are ");
-            invent(Af);
-            break;
-        case AGIVE: agive(TP1, TP2); break;
-        case AINFLICT: inflict(TP1, TP2); break;
-        case ACURE: cure(TP1, TP2); break;
-        case ASUMMON: summon(TP1); break;
-        case AADD: aadd(TP1, TP2, TP3); break;
-        case ASUB: asub(TP1, TP2, TP3); break;
-        case ACHECKNEAR: achecknear(TP1); break;
-        case ACHECKGET: acheckget(TP1); break;
-        case ADESTROY: adestroy(TP1); break;
-        case ARECOVER: arecover(TP1); break;
-        case ASTART: dpstart(TP1, TP2); break;
-        case AGSTART: dgstart(TP1, TP2); break;
-        case ACANCEL: SendIt(MDCANCEL, TP1, NULL); break;
-        case ABEGIN: dbegin(TP1); break;
-        case ASHOWTIMER: dshow(TP1); break;
-        case AOBJAN: objannounce(TP1, AP2); break;
-        case AOBJACT: objaction(TP1, AP2); break;
-        case ACONTENTS:
-            tx(showin(TP1, true).c_str());  ///SV: Direct
-            break;
-        case AFORCE: aforce(TP1, TP2); break;
-        case AHELP:
-            me2->helping = TP1;
-            (linestat + TP1)->helped = Af;
-            break;
-        case ASTOPHELP:
-            (linestat + me2->helping)->helped = -1;
-            me2->helping = -1;
-            break;
-        case AFIX: afix(TP1, TP2); break;
-        case AOBJINVIS: (obtab + TP1)->flags = (obtab + TP1)->flags | OF_INVIS; break;
-        case AOBJSHOW: (obtab + TP1)->flags = (obtab + TP1)->flags & (-1 - OF_INVIS); break;
-        case AFIGHT: afight(TP1); break;
-        case AFLEE:
-            dropall((linestat + me2->fighting)->room);
-            clearfight();
-            break;
-        case ALOG: log(AP1); break;
-        case ACOMBAT: acombat(); break;
-        case AWIELD:
-            me2->wield = TP1;
-            break;
-        /* - */ case AFOLLOW:
-            (linestat + TP1)->followed = me2->unum;
-            me2->following = TP1;
-            break;
-        /* - */ case ALOSE:
-            LoseFollower();
-            break;
-        /* - */ case ASTOPFOLLOW:
-            StopFollow();
-            break;
-        case AEXITS: exits(); break;
-        case ATASK: me->tasks = me->tasks | (1 << (TP1 - 1)); break;
-        case ASHOWTASK: show_tasks(Af); break;
-        case ASYNTAX:
-            asyntax(*(tt.pptr + ncop[tt.condition]), *(tt.pptr + ncop[tt.condition] + 1));
-            break;
-        case ASETPRE: iocopy((linestat + TP1)->pre, AP2, 79); break;
-        case ASETPOST: iocopy((linestat + TP1)->post, AP2, 79); break;
-        case ASETARR:
-            qcopy((linestat + TP1)->arr, AP2, 79);
-            strcat((linestat + TP1)->arr, "\n");
-            break;
-        case ASETDEP:
-            qcopy((linestat + TP1)->dep, AP2, 79);
-            strcat((linestat + TP1)->dep, "\n");
-            break;
-        case ASENDDAEMON: dsend(TP1, TP2, TP3); break;
-        case ADO: ado(TP1); break;
-        case AINTERACT: ainteract(TP1); break;
-        case AAUTOEXITS: autoexits = (char)TP1; break;
-        case ABURN: osflag(CP1, State(CP1)->flags | SF_LIT); break;
-        case ADOUSE: osflag(CP1, State(CP1)->flags & -(1 + SF_LIT)); break;
-        case AINC:
-            if ((obtab + CP1)->state != ((obtab + CP1)->nstates - 1))
-                asetstat(CP1, (obtab + CP1)->state + 1);
-            break;
-        case ADEC:
-            if ((obtab + CP1)->state != 0)
-                asetstat(CP1, (obtab + CP1)->state - 1);
-            break;
-        case ATOPRANK: toprank(); break;
-        case ADEDUCT: deduct(TP1, TP2); break;
-        case ADAMAGE: damage(TP1, TP2); break;
-        case AREPAIR: repair(TP1, TP2); break;
-        default: txn("** Internal error - illegal action %ld!\n", ac);
-        }
-    } else {
-        bool flag { false };
-
-        needcr = false;
-        iocheck();
-        if (exeunt != 0 || died != 0)
-            return;
-        if (fol == 0)
-            StopFollow();
-        Forbid();
-        if ((rmtab + ac)->flags & SMALL) /* Allow for losing follower! */
-        {
-            for (i = 0; i < MAXU; i++)
-                if ((linestat + i)->room == ac) {
-                    Permit();
-                    sys(NOROOM);
-                    actionin(ac, acp(NOROOMIN));
-                    LoseFollower();
+        if (ac < 0) {
+            ac = -1 - ac;
+            switch (ac) {
+                case ASAVE:
+                    asave();
+                    break;
+                case ASCORE:
+                    ascore(TP1);
+                    break;
+                case ASETSTAT:
+                    asetstat(TP1, TP2);
+                    break;
+                case ALOOK:
+                    look((rmtab + me2->room)->id, 1);
+                    break;
+                case AWHAT:
+                    list_what(me2->room, true);
+                    break;
+                case AWHERE:
+                    awhere(TP1);
+                    break;
+                case AWHO:
+                    awho(TP1);
+                    break;
+                case ATREATAS:
+                    atreatas(TP1);
                     return;
-                };
-        }
-        me2->flags = me2->flags | PFMOVING; /* As of now I'm out of here. */
-        if (isVisible()) {
-            Permit();
-            action(me2->dep, AOTHERS);
-            Forbid();
-        }
-        ldir = iverb;
-        lroom = me2->room;
-        i = me2->light;
-        me2->light = 0;
-        Permit();
-        lighting(Af, AOTHERS);
-        StopFollow();
-        me2->room = ac;
-        me2->light = i;
-        me2->hadlight = 0;
-        lighting(Af, AOTHERS);
-        if (isVisible())
-            action(me2->arr, AOTHERS);
-        me2->flags = me2->flags & -(1 + PFMOVING);
-        if (me2->followed > -1 && me2->followed != Af && (!IamINVIS) && (!IamSINVIS)) {
-            /* If we didn't just execute a travel verb, we've lost them.
-               If the other player hasn't caught up with us, lose them! */
-            if (((vbtab + overb)->flags & VB_TRAVEL) || (linestat + me2->followed)->room != lroom ||
-                ((linestat + me2->followed)->flags & PFMOVING))
-                LoseFollower();
-            else {
-                DoThis(me2->followed, (vbtab + overb)->id, 1);
-                flag = true;
+                case ASKIP:
+                    skip += TP1;
+                    break;
+                case ATRAVEL:
+                    x1 = donet;
+                    x2 = ml;
+                    if (ttproc() == 0)
+                        donet = ml = x2;
+                    else {
+                        ml = x2;
+                        donet = x1;
+                    };
+                    break;
+                case AQUIT:
+                    aquit();
+                case AENDPARSE:
+                    donet = ml + 1;
+                    break;
+                case AKILLME:
+                    akillme();
+                    break;
+                case AFAILPARSE:
+                    afailparse();
+                    break;
+                case AFINISHPARSE:
+                    afinishparse();
+                    break;
+                case AABORTPARSE:
+                    aabortparse();
+                    break;
+                case AWAIT:
+                    fwait(TP1);
+                    break;
+                case ABLEEP:
+                    ableep(TP1);
+                    break;
+                case AWHEREAMI:
+                    txs("Current room is known as \"%s\".\n", (rmtab + me2->room)->id);
+                    break;
+                case ASEND:
+                    send(TP1, TP2);
+                    break;
+                case AERROR:
+                    afailparse(); /* Set those flags! */
+                case ARESPOND:
+                    donet = ml + 1; /* Then do reply etc */
+                case AREPLY:
+                case AMESSAGE:
+                    tx(AP1);
+                    break;
+                case AANOUN:
+                    announce(AP2, TP1);
+                    break;
+                case ACHANGESEX:
+                    achange(TP1);
+                    break;
+                case ASLEEP:
+                    me2->flags = me2->flags | PFASLEEP;
+                    break;
+                case AWAKE:
+                    me2->flags = me2->flags & (-1 - PFASLEEP);
+                    break;
+                case ASIT:
+                    me2->flags = me2->flags | PFSITTING;
+                    me2->flags = me2->flags & (-1 - PFLYING);
+                    break;
+                case ASTAND:
+                    me2->flags = me2->flags & (-1 - PFSITTING - PFLYING);
+                    break;
+                case ALIE:
+                    me2->flags = me2->flags | PFLYING;
+                    me2->flags = me2->flags & (-1 - PFSITTING);
+                    break;
+                case ARDMODE:
+                    me->rdmode = TP1;
+                    txs("%s mode selected.\n",
+                        (me->rdmode == RDRC) ? "Roomcount"
+                                             : (me->rdmode == RDVB) ? "Verbose" : "Brief");
+                    break;
+                case ARESET:
+                    SendIt(MRESET, 0, NULL);
+                    break; /* Tell AMAN that we want a reset! */
+                case AACTION:
+                    action(AP2, TP1);
+                    break;
+                case AMOVE:
+                    moveto(TP1);
+                    break;
+                case AMSGIN:
+                    announcein(TP1, AP2);
+                    break;
+                case AACTIN:
+                    actionin(TP1, AP2);
+                    break;
+                case AMSGFROM:
+                    announcefrom(TP1, AP2);
+                    break;
+                case AACTFROM:
+                    actionfrom(TP1, AP2);
+                    break;
+                case ATELL:
+                    if (!((linestat + TP1)->flags & PFDEAF)) {
+                        setmxy(NOISE, TP1);
+                        utx(TP1, AP2);
+                    }
+                    break;
+                case AADDVAL:
+                    aadd(scaled(State(TP1)->value, State(TP1)->flags), STSCORE, Af);
+                    break;
+                case AGET:
+                    agive(TP1, Af);
+                    break;
+                case ADROP:
+                    adrop(TP1, me2->room);
+                    break;
+                case AINVENT:
+                    strcpy(block, "You are ");
+                    invent(Af);
+                    break;
+                case AGIVE:
+                    agive(TP1, TP2);
+                    break;
+                case AINFLICT:
+                    inflict(TP1, TP2);
+                    break;
+                case ACURE:
+                    cure(TP1, TP2);
+                    break;
+                case ASUMMON:
+                    summon(TP1);
+                    break;
+                case AADD:
+                    aadd(TP1, TP2, TP3);
+                    break;
+                case ASUB:
+                    asub(TP1, TP2, TP3);
+                    break;
+                case ACHECKNEAR:
+                    achecknear(TP1);
+                    break;
+                case ACHECKGET:
+                    acheckget(TP1);
+                    break;
+                case ADESTROY:
+                    adestroy(TP1);
+                    break;
+                case ARECOVER:
+                    arecover(TP1);
+                    break;
+                case ASTART:
+                    dpstart(TP1, TP2);
+                    break;
+                case AGSTART:
+                    dgstart(TP1, TP2);
+                    break;
+                case ACANCEL:
+                    SendIt(MDCANCEL, TP1, NULL);
+                    break;
+                case ABEGIN:
+                    dbegin(TP1);
+                    break;
+                case ASHOWTIMER:
+                    dshow(TP1);
+                    break;
+                case AOBJAN:
+                    objannounce(TP1, AP2);
+                    break;
+                case AOBJACT:
+                    objaction(TP1, AP2);
+                    break;
+                case ACONTENTS:
+                    tx(showin(TP1, true).c_str());  /// SV: Direct
+                    break;
+                case AFORCE:
+                    aforce(TP1, TP2);
+                    break;
+                case AHELP:
+                    me2->helping = TP1;
+                    (linestat + TP1)->helped = Af;
+                    break;
+                case ASTOPHELP:
+                    (linestat + me2->helping)->helped = -1;
+                    me2->helping = -1;
+                    break;
+                case AFIX:
+                    afix(TP1, TP2);
+                    break;
+                case AOBJINVIS:
+                    (obtab + TP1)->flags = (obtab + TP1)->flags | OF_INVIS;
+                    break;
+                case AOBJSHOW:
+                    (obtab + TP1)->flags = (obtab + TP1)->flags & (-1 - OF_INVIS);
+                    break;
+                case AFIGHT:
+                    afight(TP1);
+                    break;
+                case AFLEE:
+                    dropall((linestat + me2->fighting)->room);
+                    clearfight();
+                    break;
+                case ALOG:
+                    log(AP1);
+                    break;
+                case ACOMBAT:
+                    acombat();
+                    break;
+                case AWIELD:
+                    me2->wield = TP1;
+                    break;
+                /* - */ case AFOLLOW:
+                    (linestat + TP1)->followed = me2->unum;
+                    me2->following = TP1;
+                    break;
+                /* - */ case ALOSE:
+                    LoseFollower();
+                    break;
+                /* - */ case ASTOPFOLLOW:
+                    StopFollow();
+                    break;
+                case AEXITS:
+                    exits();
+                    break;
+                case ATASK:
+                    me->tasks = me->tasks | (1 << (TP1 - 1));
+                    break;
+                case ASHOWTASK:
+                    show_tasks(Af);
+                    break;
+                case ASYNTAX:
+                    asyntax(*(tt.pptr + ncop[tt.condition]), *(tt.pptr + ncop[tt.condition] + 1));
+                    break;
+                case ASETPRE:
+                    iocopy((linestat + TP1)->pre, AP2, 79);
+                    break;
+                case ASETPOST:
+                    iocopy((linestat + TP1)->post, AP2, 79);
+                    break;
+                case ASETARR:
+                    qcopy((linestat + TP1)->arr, AP2, 79);
+                    strcat((linestat + TP1)->arr, "\n");
+                    break;
+                case ASETDEP:
+                    qcopy((linestat + TP1)->dep, AP2, 79);
+                    strcat((linestat + TP1)->dep, "\n");
+                    break;
+                case ASENDDAEMON:
+                    dsend(TP1, TP2, TP3);
+                    break;
+                case ADO:
+                    ado(TP1);
+                    break;
+                case AINTERACT:
+                    ainteract(TP1);
+                    break;
+                case AAUTOEXITS:
+                    autoexits = (char) TP1;
+                    break;
+                case ABURN:
+                    osflag(CP1, State(CP1)->flags | SF_LIT);
+                    break;
+                case ADOUSE:
+                    osflag(CP1, State(CP1)->flags & -(1 + SF_LIT));
+                    break;
+                case AINC:
+                    if ((obtab + CP1)->state != ((obtab + CP1)->nstates - 1))
+                        asetstat(CP1, (obtab + CP1)->state + 1);
+                    break;
+                case ADEC:
+                    if ((obtab + CP1)->state != 0)
+                        asetstat(CP1, (obtab + CP1)->state - 1);
+                    break;
+                case ATOPRANK:
+                    toprank();
+                    break;
+                case ADEDUCT:
+                    deduct(TP1, TP2);
+                    break;
+                case ADAMAGE:
+                    damage(TP1, TP2);
+                    break;
+                case AREPAIR:
+                    repair(TP1, TP2);
+                    break;
+                default:
+                    txn("** Internal error - illegal action %ld!\n", ac);
             }
-        } else
-            me2->followed = -1;
-        look((rmtab + me2->room)->id, me->rdmode);
-        if (exeunt != 0 || died != 0)
-            return;
-        if (autoexits != 0)
-            exits();
-    }
-    if (tt.condition == CANTEP || tt.condition == CALTEP || tt.condition == CELTEP)
-        donet = ml + 1;
-}
+        } else {
+            bool flag{ false };
 
-// Execute a condition on me
-int
-cond(long n, int l)
-{
-    int mult = 1;
-    int ret = 1;
-    tt.condition = (n < 0) ? -1 - n : n;
-    if (n < 0) {
-        n = -1 - n;
-        mult = -1;
+            needcr = false;
+            iocheck();
+            if (exeunt != 0 || died != 0)
+                return;
+            if (fol == 0)
+                StopFollow();
+            Forbid();
+            if ((rmtab + ac)->flags & SMALL) /* Allow for losing follower! */
+            {
+                for (i = 0; i < MAXU; i++)
+                    if ((linestat + i)->room == ac) {
+                        Permit();
+                        sys(NOROOM);
+                        actionin(ac, acp(NOROOMIN));
+                        LoseFollower();
+                        return;
+                    };
+            }
+            me2->flags = me2->flags | PFMOVING; /* As of now I'm out of here. */
+            if (isVisible()) {
+                Permit();
+                action(me2->dep, AOTHERS);
+                Forbid();
+            }
+            ldir = iverb;
+            lroom = me2->room;
+            i = me2->light;
+            me2->light = 0;
+            Permit();
+            lighting(Af, AOTHERS);
+            StopFollow();
+            me2->room = ac;
+            me2->light = i;
+            me2->hadlight = 0;
+            lighting(Af, AOTHERS);
+            if (isVisible())
+                action(me2->arr, AOTHERS);
+            me2->flags = me2->flags & -(1 + PFMOVING);
+            if (me2->followed > -1 && me2->followed != Af && (!IamINVIS) && (!IamSINVIS)) {
+                /* If we didn't just execute a travel verb, we've lost them.
+                   If the other player hasn't caught up with us, lose them! */
+                if (((vbtab + overb)->flags & VB_TRAVEL) ||
+                    (linestat + me2->followed)->room != lroom ||
+                    ((linestat + me2->followed)->flags & PFMOVING))
+                    LoseFollower();
+                else {
+                    DoThis(me2->followed, (vbtab + overb)->id, 1);
+                    flag = true;
+                }
+            } else
+                me2->followed = -1;
+            look((rmtab + me2->room)->id, me->rdmode);
+            if (exeunt != 0 || died != 0)
+                return;
+            if (autoexits != 0)
+                exits();
+        }
+        if (tt.condition == CANTEP || tt.condition == CALTEP || tt.condition == CELTEP)
+            donet = ml + 1;
     }
 
-    /* Do the conditions */
-    switch (n) {
-    case CALTEP:
-    case CSTAR:
-    case CALWAYS: break;
-    case CANTEP:
-    case CAND: ret = l; break;
-    case CELTEP:
-    case CELSE: ret = -l; break;
-    case CLIGHT:
-        if (!lit(me2->room))
-            ret = -1;
-        break;
-    case CISHERE:
-        if (!isin(CP1, me2->room))
-            ret = -1;
-        break;
-    case CMYRANK:
-        if (!isValidNumber(me->rank + 1, CP1))
-            ret = -1;
-        break;
-    case CSTATE:
-        if ((obtab + CP1)->flags & OF_ZONKED)
-            ret = -1;
-        if (!isValidNumber((obtab + CP1)->state, CP2))
-            ret = -1;
-        break;
-    case CMYSEX:
-        if (me->gender != CP1)
-            ret = -1;
-        break;
-    case CLASTVB:
-        if (lverb != CP1)
-            ret = -1;
-        break;
-    case CLASTDIR:
-        if (ldir != CP1)
-            ret = -1;
-        break;
-    case CLASTROOM:
-        if (lroom != CP1)
-            ret = -1;
-        break;
-    case CASLEEP:
-        if (!(me2->flags & PFASLEEP))
-            ret = -1;
-        break;
-    case CSITTING:
-        if (!(me2->flags & PFSITTING))
-            ret = -1;
-        break;
-    case CLYING:
-        if (!(me2->flags & PFLYING))
-            ret = -1;
-        break;
-    case CRAND:
+    // Execute a condition on me
+    int cond(long n, int l)
+    {
+        int mult = 1;
+        int ret = 1;
+        tt.condition = (n < 0) ? -1 - n : n;
+        if (n < 0) {
+            n = -1 - n;
+            mult = -1;
+        }
+
+        /* Do the conditions */
+        switch (n) {
+            case CALTEP:
+            case CSTAR:
+            case CALWAYS:
+                break;
+            case CANTEP:
+            case CAND:
+                ret = l;
+                break;
+            case CELTEP:
+            case CELSE:
+                ret = -l;
+                break;
+            case CLIGHT:
+                if (!lit(me2->room))
+                    ret = -1;
+                break;
+            case CISHERE:
+                if (!isin(CP1, me2->room))
+                    ret = -1;
+                break;
+            case CMYRANK:
+                if (!isValidNumber(me->rank + 1, CP1))
+                    ret = -1;
+                break;
+            case CSTATE:
+                if ((obtab + CP1)->flags & OF_ZONKED)
+                    ret = -1;
+                if (!isValidNumber((obtab + CP1)->state, CP2))
+                    ret = -1;
+                break;
+            case CMYSEX:
+                if (me->gender != CP1)
+                    ret = -1;
+                break;
+            case CLASTVB:
+                if (lverb != CP1)
+                    ret = -1;
+                break;
+            case CLASTDIR:
+                if (ldir != CP1)
+                    ret = -1;
+                break;
+            case CLASTROOM:
+                if (lroom != CP1)
+                    ret = -1;
+                break;
+            case CASLEEP:
+                if (!(me2->flags & PFASLEEP))
+                    ret = -1;
+                break;
+            case CSITTING:
+                if (!(me2->flags & PFSITTING))
+                    ret = -1;
+                break;
+            case CLYING:
+                if (!(me2->flags & PFLYING))
+                    ret = -1;
+                break;
+            case CRAND:
         if (!isValidNumber(randint(0, CP1), *(tt.pptr + 1))
             ret = -1;
         break;
@@ -5443,26 +5587,26 @@ cond(long n, int l)
         break;
     case CNOUN1:
         if (wtype[2] != WNOUN) {
-            ret = -1;
-            break;
+                    ret = -1;
+                    break;
         }
         if (CP1 == inoun1)
             break;
         if (CP1 == WNONE) {
-            ret = -1;
-            break;
+                    ret = -1;
+                    break;
         }
         if (stricmp((obtab + CP1)->id, (obtab + inoun1)->id) != NULL)
             ret = -1;
         break;
     case CNOUN2:
         if (wtype[5] != WNOUN) {
-            ret = -1;
-            break;
+                    ret = -1;
+                    break;
         }
         if (CP1 == WNONE) {
-            ret = -1;
-            break;
+                    ret = -1;
+                    break;
         }
         if (stricmp((obtab + CP1)->id, (obtab + inoun2)->id) != NULL)
             ret = -1;
@@ -5518,460 +5662,483 @@ cond(long n, int l)
             ret = -1;
         break;
     default: ret = -1;
-    }
-
-    return mult * ret;
-}
-
-int
-type(char **s)
-{
-strip:
-    char *p = *s;
-    while (isspace(*p))
-        p++;
-    *s = p;
-    if (*p == 0) {
-        word = -1;
-        return -1;
-    } /* none */
-
-    /* Check for a players name BEFORE checking for white words! */
-
-    for (word = 0; word < MAXU; word++)
-        if ((linestat + word)->state == PLAYING && match((usr + word)->name, p) == NULL) {
-            *s += strlen((usr + word)->name);
-            return WPLAYER;
         }
 
-    /* cut any white words out */
-    if (tolower(*p) == 'a') {
-        if (match("an", p) == NULL) {
+        return mult * ret;
+    }
+
+    int type(char **s)
+    {
+    strip:
+        char *p = *s;
+        while (isspace(*p))
+            p++;
+        *s = p;
+        if (*p == 0) {
+            word = -1;
+            return -1;
+        } /* none */
+
+        /* Check for a players name BEFORE checking for white words! */
+
+        for (word = 0; word < MAXU; word++)
+            if ((linestat + word)->state == PLAYING && match((usr + word)->name, p) == NULL) {
+                *s += strlen((usr + word)->name);
+                return WPLAYER;
+            }
+
+        /* cut any white words out */
+        if (tolower(*p) == 'a') {
+            if (match("an", p) == NULL) {
+                *s += 2;
+                goto strip;
+            }
+            if (match("at", p) == NULL) {
+                *s += 2;
+                goto strip;
+            }
+            if (match("a", p) == NULL) {
+                *s++;
+                goto strip;
+            }
+        }
+        if (tolower(*p) == 't') {
+            if (match("the", p) == NULL) {
+                *s += 3;
+                goto strip;
+            }
+            if (match("to", p) == NULL) {
+                *s += 2;
+                goto strip;
+            }
+        }
+        if (tolower(*p) == 'f') {
+            if (match("for", p) == NULL) {
+                *s += 3;
+                goto strip;
+            }
+            if (match("from", p) == NULL) {
+                *s += 4;
+                goto strip;
+            }
+        }
+        if (match("is", p) == NULL) {
             *s += 2;
             goto strip;
         }
-        if (match("at", p) == NULL) {
-            *s += 2;
+        if (match("using", p) == NULL) {
+            *s += 5;
             goto strip;
         }
-        if (match("a", p) == NULL) {
-            *s++;
-            goto strip;
-        }
-    }
-    if (tolower(*p) == 't') {
-        if (match("the", p) == NULL) {
-            *s += 3;
-            goto strip;
-        }
-        if (match("to", p) == NULL) {
-            *s += 2;
-            goto strip;
-        }
-    }
-    if (tolower(*p) == 'f') {
-        if (match("for", p) == NULL) {
-            *s += 3;
-            goto strip;
-        }
-        if (match("from", p) == NULL) {
+        if (match("with", p) == NULL) {
             *s += 4;
             goto strip;
         }
-    }
-    if (match("is", p) == NULL) {
-        *s += 2;
-        goto strip;
-    }
-    if (match("using", p) == NULL) {
-        *s += 5;
-        goto strip;
-    }
-    if (match("with", p) == NULL) {
-        *s += 4;
-        goto strip;
-    }
 
-    if (*p == '\"' || *p == '\'') {
-        char c;
-        c = *p;
-        char *p2 = ++p;
-        word = (int)p;
-        while (*p2 != 0 && *p2 != c)
-            p2++;
-        if (*p2 != 0)
-            *(p2++) = 0;
-        else
-            *(p2 + 1) = 0;
-        *s = p2;
-        return WTEXT;
-    }
-
-    if (match("it", p) == NULL) {
-        word = it;
-        *s += 2;
-        return (it != -1) ? WNOUN : -2;
-        ;
-    }
-
-    if (tolower(*p) == 'm') {
-        if (match("me", p) == NULL) {
-            word = Af;
-            *s += 2;
-            return WPLAYER;
+        if (*p == '\"' || *p == '\'') {
+            char c;
+            c = *p;
+            char *p2 = ++p;
+            word = (int) p;
+            while (*p2 != 0 && *p2 != c)
+                p2++;
+            if (*p2 != 0)
+                *(p2++) = 0;
+            else
+                *(p2 + 1) = 0;
+            *s = p2;
+            return WTEXT;
         }
-        if (match("myself", p) == NULL) {
-            word = Af;
+
+        if (match("it", p) == NULL) {
+            word = it;
             *s += 2;
-            return WPLAYER;
+            return (it != -1) ? WNOUN : -2;
+            ;
         }
-    }
 
-    /* inoun/sort crap is related to object chae patterns */
+        if (tolower(*p) == 'm') {
+            if (match("me", p) == NULL) {
+                word = Af;
+                *s += 2;
+                return WPLAYER;
+            }
+            if (match("myself", p) == NULL) {
+                word = Af;
+                *s += 2;
+                return WPLAYER;
+            }
+        }
 
-    if ((word = issyn(*s)) != -1) {
-        *s += word;
-        if (csyn < -1) {
-            word = -2 - csyn;
-            return WVERB;
+        /* inoun/sort crap is related to object chae patterns */
+
+        if ((word = issyn(*s)) != -1) {
+            *s += word;
+            if (csyn < -1) {
+                word = -2 - csyn;
+                return WVERB;
+            }
+            if (inoun1 == inoun2 == -1) {
+                word = csyn;
+                return WNOUN;
+            }
+            if ((word = isnoun((obtab + csyn)->id,
+                               (inoun1 == -1) ? iadj1 : iadj2,
+                               (inoun1 == -1) ? (vbtab + iverb)->sort : (vbtab + iverb)->sort2)) !=
+                -1)
+                return WNOUN;
+            return -1;
         }
         if (inoun1 == inoun2 == -1) {
-            word = csyn;
-            return WNOUN;
-        }
-        if ((word =
-                     isnoun((obtab + csyn)->id, (inoun1 == -1) ? iadj1 : iadj2,
-                            (inoun1 == -1) ? (vbtab + iverb)->sort : (vbtab + iverb)->sort2)) != -1)
-            return WNOUN;
-        return -1;
-    }
-    if (inoun1 == inoun2 == -1) {
-        if ((word = isanoun(*s)) != -1) {
+            if ((word = isanoun(*s)) != -1) {
+                *s += strlen((obtab + word)->id);
+                return WNOUN;
+            }
+        } else if ((word = isnoun(*s,
+                                  (inoun1 == -1) ? iadj1 : iadj2,
+                                  (inoun1 == -1) ? (vbtab + iverb)->sort
+                                                 : (vbtab + iverb)->sort2)) != -1) {
             *s += strlen((obtab + word)->id);
             return WNOUN;
         }
-    } else if (
-            (word = isnoun(
-                     *s, (inoun1 == -1) ? iadj1 : iadj2,
-                     (inoun1 == -1) ? (vbtab + iverb)->sort : (vbtab + iverb)->sort2)) != -1) {
-        *s += strlen((obtab + word)->id);
-        return WNOUN;
-    }
-    if ((word = isadj(*s)) != -1) {
-        *s += strlen(adtab + (word * (IDL + 1)));
-        return WADJ;
-    }
-    if ((word = isroom(*s)) != -1) {
-        *s += strlen((rmtab + word)->id);
-        return WROOM;
-    }
-    if ((word = isprep(*s)) != -1) {
-        *s += strlen(prep[word]);
-        goto strip;
-    }
-    if ((word = isverb(*s)) != -1) {
-        *s += strlen(vbptr->id);
-        return WVERB;
-    }
-    while (!isspace(*p) && *p != 0)
-        p++;
-    word = -1;
-    return -2; /* Unknown */
-}
-
-int
-actual(unsigned long n)
-{
-    // Rand 0 is a simple rand(N)
-    if (n & RAND0)
-        return randint(0, n ^ RAND0);
-    // Rand 1 is N +/- .5N
-    if (n & RAND1) {
-        auto nval = n ^ RAND1;
-        return nval / 2 + randint(nval);
-    }
-    if (n & PRANK)
-        return pRANK(actual(n & -(1 + PRANK)));
-
-    if ((n & (OBVAL + OBDAM + OBWHT)) != 0) {
-        int x;
-        x = actual(n & (-1 - (OBVAL + OBDAM + OBWHT)));
-        switch (n & (OBVAL + OBDAM + OBWHT)) {
-        case OBVAL: return (int)scaled(State(x)->value, State(x)->flags);
-        case OBWHT: return (int)State(x)->weight;
-        case OBDAM: return (int)State(x)->strength;
-        case OBLOC: return (int)loc(x);
+        if ((word = isadj(*s)) != -1) {
+            *s += strlen(adtab + (word * (IDL + 1)));
+            return WADJ;
         }
-        return -1;
-    }
-    if ((n & IWORD) == IWORD) {
-        /* Replace with no. of a users word */
-        switch (n & (-1 - IWORD)) {
-        case IVERB: return iverb;
-        case IADJ1: return iadj1;
-        case INOUN1: return inoun1;
-        case IPREP: return iprep;
-        case IADJ2: return iadj2;
-        case INOUN2: return inoun2;
+        if ((word = isroom(*s)) != -1) {
+            *s += strlen((rmtab + word)->id);
+            return WROOM;
         }
-        return -1;
-    }
-    if ((n & MEPRM) == MEPRM) {
-        /* Replace with details of self */
-        switch (n & (-1 - MEPRM)) {
-        case LOCATE: return -1; /* Not implemented */
-        case SELF: return (int)Af;
-        case HERE: return (int)me2->room;
-        case RANK: return (int)me->rank;
-        case FRIEND: return (int)me2->helping;
-        case HELPER: return (int)me2->helped;
-        case ENEMY: return (int)me2->fighting;
-        case WEAPON: return (int)me2->wield;
-        case SCORE: return (int)me->score;
-        case SCTG: return (int)me2->sctg;
-        case STR: return (int)me2->strength;
-        case LASTROOM: return (int)lroom;
-        case LASTDIR: return (int)ldir;
-        case LASTVB: return (int)lverb;
+        if ((word = isprep(*s)) != -1) {
+            *s += strlen(prep[word]);
+            goto strip;
         }
-        return -1;
-    }
-    return (int)n;
-}
-
-int
-actptr(unsigned long n)
-{
-    if (n == -1 || n == -2)
-        return (int)&"\0";
-    if ((n & IWORD) == IWORD) {
-        /* Replace with no. of a users word */
-        switch (n & (-1 - IWORD)) {
-        case INOUN2: return (int)&"@n2\n";
-        default: return (int)&"@n1\n";
+        if ((word = isverb(*s)) != -1) {
+            *s += strlen(vbptr->id);
+            return WVERB;
         }
+        while (!isspace(*p) && *p != 0)
+            p++;
+        word = -1;
+        return -2; /* Unknown */
     }
-    return (int)umsgp + *(umsgip + n);
-}
 
-void
-deduct(int plyr, int howmuch)
-{
-    if (howmuch < 0)
-        return;
-    if (plyr == Af) {
-        int amount = me->score * howmuch / 100;
-        asub(amount, STSCORE, Af);
-    } else
-        sendex(plyr, ADEDUCT, plyr, howmuch, 0, 0); /* Tell them to clear up! */
-}
-
-// Original AMUL entry point
-int
-amul_main(int argc, char *argv[])
-{
-    int i;
-
-    lverb = -1;
-    iverb = -1;
-    ip = 1;
-    needcr = false;
-    addcr = false;
-    MyFlag = am_USER;
-
-    sprintf(vername, "AMUL v%d.%d (%s)", VERSION, REVISION, DATE);
-
-    if (argc > 1 && argv[1][0] != '-') {
-        printf("\n\x07!! Invalid argument, %s!\n", argv[1]);
-        quit();
-    }
-    if (argc > 1) {
-        switch (toupper(*(argv[1] + 1))) {
-        case 3: /* Daemon processor */
-            MyFlag = am_DAEM;
-            iosup = LOGFILE;
-            break;
-        case 4:
-            MyFlag = am_MOBS;
-            iosup = LOGFILE;
-            break;
-        case 'C': /* Custom screen */
-            switchC(argc, *(argv[1] + 2));
-            break;
-        case 'S': /* Serial Device */
-            switchS((argc > 2) ? argv[2] : NULL, (argc > 3) ? argv[3] : NULL,
-                    (argc > 4) ? argv[4] : "0", (argc > 5) ? argv[5] : "Y");
-            break;
-        case 'N': /* NTSC Screen */
-            switchC(argc, 'N');
-            break;
-        default
-            : /* None specified */
-        {
-            txs("\nInvalid parameter '%s'!\n", argv[1]);
-            quit();
-        }
-        }
-    } else
-        switchC(argc, 0);
-    if ((ob = (char *)AllocateMem(5000)) == NULL)
-        memfail("IO buffers");
-    if ((ow = (char *)AllocateMem(3000)) == NULL)
-        memfail("IO buffers");
-    if ((input = (char *)AllocateMem(400)) == NULL)
-        memfail("IO buffers");
-    if ((port = FindPort(mannam)) == NULL) {
-        tx("Manager not running!\n");
-        quit();
-    }
-    if ((reply = CreatePort(0L, 0L)) == NULL)
-        memfail("user port");
-    if ((repbk = CreatePort(0L, 0L)) == NULL)
-        memfail("comms reply");
-    if ((amanrep = CreatePort(0L, 0L)) == NULL)
-        memfail("aman port");
-    if ((amul = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
-        memfail("comms port");
-    if ((amanp = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
-        memfail("comms port");
-    Am.mn_Length = (UWORD)sizeof(*amul);
-    Am.mn_Node.ln_Type = NT_MESSAGE;
-    Am.mn_ReplyPort = amanrep;
-    switch (MyFlag) /* What type of line? */
+    int actual(unsigned long n)
     {
-    case am_DAEM:
-        Af = MAXU;
-        break;
-    case am_MOBS:
-        Af = MAXU + 1;
-        break;
-    }
-    *amanp = *amul;
-    link = 1;
-    SendIt(MCNCT, -10, NULL); /* Go for a connection! */
-    linestat = (struct LS *)Ad;
-    me2 = linestat + Af;
-    me2->IOlock = Af;
-    ip = 0;
-    usr = (struct _PLAYER *)Ap;
-    me = usr + Af;
-    me2->rep = reply;
-    if (Ad == -'R') {
-        tx("\n...Reset In Progress...\n");
-        Delay(50);
-        quit();
-    }
-    reset(); /* Read in data files */
-    if (Af < 0) {
-        sys(NOSLOTS);
-        pressret();
-        quit();
-    }
-    if (iosup == CUSSCREEN) {
-        sprintf(wtil, "%s   Line: %2d  ", vername, Af);
-        strcat(wtil, "Logging in!");
-        SetWindowTitles(wG, wtil, wtil);
-    }
-    me2->unum = Af;
-    me2->sup = iosup;
-    me2->buf = ob;
-    *ob = 0;
-    me2->IOlock = -1;
-    *ob = 0;
-    SendIt(MFREE, NULL, NULL);
-    iocheck();
+        // Rand 0 is a simple rand(N)
+        if (n & RAND0)
+            return randint(0, n ^ RAND0);
+        // Rand 1 is N +/- .5N
+        if (n & RAND1) {
+            auto nval = n ^ RAND1;
+            return nval / 2 + randint(nval);
+        }
+        if (n & PRANK)
+            return pRANK(actual(n & -(1 + PRANK)));
 
-    /* Special processors go HERE: */
+        if ((n & (OBVAL + OBDAM + OBWHT)) != 0) {
+            int x;
+            x = actual(n & (-1 - (OBVAL + OBDAM + OBWHT)));
+            switch (n & (OBVAL + OBDAM + OBWHT)) {
+                case OBVAL:
+                    return (int) scaled(State(x)->value, State(x)->flags);
+                case OBWHT:
+                    return (int) State(x)->weight;
+                case OBDAM:
+                    return (int) State(x)->strength;
+                case OBLOC:
+                    return (int) loc(x);
+            }
+            return -1;
+        }
+        if ((n & IWORD) == IWORD) {
+            /* Replace with no. of a users word */
+            switch (n & (-1 - IWORD)) {
+                case IVERB:
+                    return iverb;
+                case IADJ1:
+                    return iadj1;
+                case INOUN1:
+                    return inoun1;
+                case IPREP:
+                    return iprep;
+                case IADJ2:
+                    return iadj2;
+                case INOUN2:
+                    return inoun2;
+            }
+            return -1;
+        }
+        if ((n & MEPRM) == MEPRM) {
+            /* Replace with details of self */
+            switch (n & (-1 - MEPRM)) {
+                case LOCATE:
+                    return -1; /* Not implemented */
+                case SELF:
+                    return (int) Af;
+                case HERE:
+                    return (int) me2->room;
+                case RANK:
+                    return (int) me->rank;
+                case FRIEND:
+                    return (int) me2->helping;
+                case HELPER:
+                    return (int) me2->helped;
+                case ENEMY:
+                    return (int) me2->fighting;
+                case WEAPON:
+                    return (int) me2->wield;
+                case SCORE:
+                    return (int) me->score;
+                case SCTG:
+                    return (int) me2->sctg;
+                case STR:
+                    return (int) me2->strength;
+                case LASTROOM:
+                    return (int) lroom;
+                case LASTDIR:
+                    return (int) ldir;
+                case LASTVB:
+                    return (int) lverb;
+            }
+            return -1;
+        }
+        return (int) n;
+    }
 
-    if (Af >= MAXU)
-        Special_Proc();
-
-    /* Clear room flags, and send scenario */
-    rset = (1 << Af);
-    rclr = -1 - rset;
-    for (i = 0; i < rooms; i++)
-        *(rctab + i) = (*(rctab + i) & rclr);
-
-    do /* Print the title */
+    int actptr(unsigned long n)
     {
-        i = fread(block, 1, 900, ifp);
-        block[i] = 0;
-        tx(block);
-    } while (i == 900);
-    fclose(ifp);
-    ifp = NULL;
-
-    getid(); /*  GET USERS INFO */
-
-    if (iosup == CUSSCREEN) {
-        sprintf(wtil, "%s   Line: %2d  ", vername, Af);
-        strcat(wtil, "Player: ");
-        strcat(wtil, me->name);
-        SetWindowTitles(wG, wtil, wtil);
+        if (n == -1 || n == -2)
+            return (int) &"\0";
+        if ((n & IWORD) == IWORD) {
+            /* Replace with no. of a users word */
+            switch (n & (-1 - IWORD)) {
+                case INOUN2:
+                    return (int) &"@n2\n";
+                default:
+                    return (int) &"@n1\n";
+            }
+        }
+        return (int) umsgp + *(umsgip + n);
     }
 
-    last_him = last_her = it = -1;
+    void deduct(int plyr, int howmuch)
+    {
+        if (howmuch < 0)
+            return;
+        if (plyr == Af) {
+            int amount = me->score * howmuch / 100;
+            asub(amount, STSCORE, Af);
+        } else
+            sendex(plyr, ADEDUCT, plyr, howmuch, 0, 0); /* Tell them to clear up! */
+    }
 
-    do {
-        died = 0;
-        actor = -1;
-        fol = 0;
+    // Original AMUL entry point
+    int amul_main(int argc, char *argv[])
+    {
+        int i;
+
+        lverb = -1;
+        iverb = -1;
+        ip = 1;
         needcr = false;
         addcr = false;
-        if (last_him != -1 && (linestat + last_him)->state != PLAYING)
-            last_him = -1;
-        if (last_her != -1 && (linestat + last_her)->state != PLAYING)
-            last_her = -1;
+        MyFlag = am_USER;
+
+        sprintf(vername, "AMUL v%d.%d (%s)", VERSION, REVISION, DATE);
+
+        if (argc > 1 && argv[1][0] != '-') {
+            printf("\n\x07!! Invalid argument, %s!\n", argv[1]);
+            quit();
+        }
+        if (argc > 1) {
+            switch (toupper(*(argv[1] + 1))) {
+                case 3: /* Daemon processor */
+                    MyFlag = am_DAEM;
+                    iosup = LOGFILE;
+                    break;
+                case 4:
+                    MyFlag = am_MOBS;
+                    iosup = LOGFILE;
+                    break;
+                case 'C': /* Custom screen */
+                    switchC(argc, *(argv[1] + 2));
+                    break;
+                case 'S': /* Serial Device */
+                    switchS((argc > 2) ? argv[2] : NULL,
+                            (argc > 3) ? argv[3] : NULL,
+                            (argc > 4) ? argv[4] : "0",
+                            (argc > 5) ? argv[5] : "Y");
+                    break;
+                case 'N': /* NTSC Screen */
+                    switchC(argc, 'N');
+                    break;
+                default
+                    : /* None specified */
+                {
+                    txs("\nInvalid parameter '%s'!\n", argv[1]);
+                    quit();
+                }
+            }
+        } else
+            switchC(argc, 0);
+        if ((ob = (char *) AllocateMem(5000)) == NULL)
+            memfail("IO buffers");
+        if ((ow = (char *) AllocateMem(3000)) == NULL)
+            memfail("IO buffers");
+        if ((input = (char *) AllocateMem(400)) == NULL)
+            memfail("IO buffers");
+        if ((port = FindPort(mannam)) == NULL) {
+            tx("Manager not running!\n");
+            quit();
+        }
+        if ((reply = CreatePort(0L, 0L)) == NULL)
+            memfail("user port");
+        if ((repbk = CreatePort(0L, 0L)) == NULL)
+            memfail("comms reply");
+        if ((amanrep = CreatePort(0L, 0L)) == NULL)
+            memfail("aman port");
+        if ((amul = (struct Aport *) AllocateMem(sizeof(*amul))) == NULL)
+            memfail("comms port");
+        if ((amanp = (struct Aport *) AllocateMem(sizeof(*amul))) == NULL)
+            memfail("comms port");
+        Am.mn_Length = (UWORD) sizeof(*amul);
+        Am.mn_Node.ln_Type = NT_MESSAGE;
+        Am.mn_ReplyPort = amanrep;
+        switch (MyFlag) /* What type of line? */
+        {
+            case am_DAEM:
+                Af = MAXU;
+                break;
+            case am_MOBS:
+                Af = MAXU + 1;
+                break;
+        }
+        *amanp = *amul;
+        link = 1;
+        SendIt(MCNCT, -10, NULL); /* Go for a connection! */
+        linestat = (struct LS *) Ad;
+        me2 = linestat + Af;
+        me2->IOlock = Af;
+        ip = 0;
+        usr = (struct _PLAYER *) Ap;
+        me = usr + Af;
+        me2->rep = reply;
+        if (Ad == -'R') {
+            tx("\n...Reset In Progress...\n");
+            Delay(50);
+            quit();
+        }
+        reset(); /* Read in data files */
+        if (Af < 0) {
+            sys(NOSLOTS);
+            pressret();
+            quit();
+        }
+        if (iosup == CUSSCREEN) {
+            sprintf(wtil, "%s   Line: %2d  ", vername, Af);
+            strcat(wtil, "Logging in!");
+            SetWindowTitles(wG, wtil, wtil);
+        }
+        me2->unum = Af;
+        me2->sup = iosup;
+        me2->buf = ob;
+        *ob = 0;
+        me2->IOlock = -1;
+        *ob = 0;
+        SendIt(MFREE, NULL, NULL);
         iocheck();
-        tx(g_ranks[me->rank].prompt);
-        needcr = true;
-        block[0] = 0;
-        Inp(input, 390);
-        if (exeunt != 0)
-            break;
-        if (stricmp(input, "help") == NULL) {
-            sys(HELP);
-            continue;
+
+        /* Special processors go HERE: */
+
+        if (Af >= MAXU)
+            Special_Proc();
+
+        /* Clear room flags, and send scenario */
+        rset = (1 << Af);
+        rclr = -1 - rset;
+        for (i = 0; i < rooms; i++)
+            *(rctab + i) = (*(rctab + i) & rclr);
+
+        do /* Print the title */
+        {
+            i = fread(block, 1, 900, ifp);
+            block[i] = 0;
+            tx(block);
+        } while (i == 900);
+        fclose(ifp);
+        ifp = NULL;
+
+        getid(); /*  GET USERS INFO */
+
+        if (iosup == CUSSCREEN) {
+            sprintf(wtil, "%s   Line: %2d  ", vername, Af);
+            strcat(wtil, "Player: ");
+            strcat(wtil, me->name);
+            SetWindowTitles(wG, wtil, wtil);
         }
-        if (input[0] == '/') {
-            internal(input + 1);
-            continue;
-        }
-        if (stricmp(input, "***debug") == NULL) {
-            debug = !debug;
-            continue;
-        }
-        if (input[0] == 0)
-            continue;
-    gloop:
-        failed = false;
+
+        last_him = last_her = it = -1;
+
+        do {
+            died = 0;
+            actor = -1;
+            fol = 0;
+            needcr = false;
+            addcr = false;
+            if (last_him != -1 && (linestat + last_him)->state != PLAYING)
+                last_him = -1;
+            if (last_her != -1 && (linestat + last_her)->state != PLAYING)
+                last_her = -1;
+            iocheck();
+            tx(g_ranks[me->rank].prompt);
+            needcr = true;
+            block[0] = 0;
+            Inp(input, 390);
+            if (exeunt != 0)
+                break;
+            if (stricmp(input, "help") == NULL) {
+                sys(HELP);
+                continue;
+            }
+            if (input[0] == '/') {
+                internal(input + 1);
+                continue;
+            }
+            if (stricmp(input, "***debug") == NULL) {
+                debug = !debug;
+                continue;
+            }
+            if (input[0] == 0)
+                continue;
+        gloop:
+            failed = false;
+            forced = 0;
+            died = 0;
+            exeunt = 0;
+            if (grab() == -1)
+                break;
+            iocheck();
+            if (forced != 0 && died == 0 && exeunt == 0)
+                goto gloop;
+        } while (exeunt == 0 && died == 0);
+
+    quitgame: /* Quite the game, tidily. */
+        if (died == 0)
+            action(acp(EXITED), AGLOBAL);
+        else
+            action(acp(HEDIED), AGLOBAL);
         forced = 0;
-        died = 0;
         exeunt = 0;
-        if (grab() == -1)
-            break;
-        iocheck();
-        if (forced != 0 && died == 0 && exeunt == 0)
-            goto gloop;
-    } while (exeunt == 0 && died == 0);
-
-quitgame: /* Quite the game, tidily. */
-    if (died == 0)
-        action(acp(EXITED), AGLOBAL);
-    else
-        action(acp(HEDIED), AGLOBAL);
-    forced = 0;
-    exeunt = 0;
-    died = 0;
-    if (me->plays == 1)
-        sys(BYEPASSWD);
-    if (dmove[0] != 0)
-        dropall(isroom(dmove));
-    else
-        dropall(me2->room);
-    LoseFollower(); /* Lose who ever is following us. */
-    if (iosup == CUSSCREEN)
-        pressret();
-    quit();
-}
-
+        died = 0;
+        if (me->plays == 1)
+            sys(BYEPASSWD);
+        if (dmove[0] != 0)
+            dropall(isroom(dmove));
+        else
+            dropall(me2->room);
+        LoseFollower(); /* Lose who ever is following us. */
+        if (iosup == CUSSCREEN)
+            pressret();
+        quit();
+    }

@@ -13,22 +13,22 @@
 #include "h/sourcefile.h"
 #include "h/svparse.h"
 
-using IDCheckFn = bool(*)(std::string_view);
+using IDCheckFn = bool (*)(std::string_view);
 
 static error_t
 consumeMessageFile(std::string_view name, std::string_view prefix, IDCheckFn checkerFn) noexcept
 {
     char filepath[MAX_PATH_LENGTH];
-    MakeTextFileName(std::string{name}, filepath);
+    MakeTextFileName(std::string{ name }, filepath);
 
-    SourceFile src{filepath};
+    SourceFile src{ filepath };
     if (error_t err = src.Open(); err != 0) {
         LogFatal("Aborting due to file error: ", filepath);
     }
 
-    std::string text {};
+    std::string text{};
     text.reserve(4096);
-    
+
     while (!src.Eof()) {
         checkErrorCount();
 
@@ -69,12 +69,12 @@ check_smsg(std::string_view token)
     }
     int messageID = [&]() {
         try {
-           return std::stoi(token.data() + 1);
-        } catch (const std::invalid_argument& e) {
+            return std::stoi(token.data() + 1);
+        } catch (const std::invalid_argument &e) {
             return 0;
         }
-    } ();
-    if (messageID < 1 || messageID > NSMSGS){
+    }();
+    if (messageID < 1 || messageID > NSMSGS) {
         LogError("Invalid sysmsg ID (expected $1-$", NSMSGS, "): ", token);
         return false;
     }
@@ -84,8 +84,8 @@ check_smsg(std::string_view token)
 void
 smsg_proc()
 {
-    ///TODO: Name should be constexpr
-    (void)consumeMessageFile("SysMsg", "msgid=", check_smsg);
+    /// TODO: Name should be constexpr
+    (void) consumeMessageFile("SysMsg", "msgid=", check_smsg);
     for (size_t i = 1; i <= NSMSGS; ++i) {
         std::string msgId = "$" + std::to_string(i);
         if (LookupTextString(msgId.c_str()) != 0) {
@@ -98,7 +98,7 @@ smsg_proc()
 void
 umsg_proc()
 {
-    ///TODO: Name should be constexpr
+    /// TODO: Name should be constexpr
     error_t err = consumeMessageFile("UMsg", "msgid=", nullptr);
     if (err == ENOENT) {
         LogInfo("No long user messages");

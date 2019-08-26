@@ -47,7 +47,8 @@ NewFileMapping(std::string_view filepath, void **datap, size_t *sizep) noexcept
     if (fd < 0)
         return ENOENT;
 
-    struct stat sb {};
+    struct stat sb {
+    };
     if (fstat(fd, &sb) < 0)
         return errno;
 

@@ -3,7 +3,8 @@
 
 #include <iostream>
 
-static inline std::ostream &operator<<(std::ostream &os, const Demon &demon) noexcept
+static inline std::ostream &
+operator<<(std::ostream &os, const Demon &demon) noexcept
 {
     os << "demon:" << demon.m_id << ":owner:" << demon.m_owner << ":action:" << demon.m_action;
     return os;

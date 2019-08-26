@@ -5,7 +5,7 @@
 
 extern FILE *ifp;
 
-extern char Word[64];    ///TODO: Pass
+extern char Word[64];  /// TODO: Pass
 
 bool nextc(bool required);
 char *getTidyBlock(FILE *fp);

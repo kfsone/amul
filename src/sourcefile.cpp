@@ -1,15 +1,13 @@
+#include "h/sourcefile.h"
 #include "h/amul.defs.h"
 #include "h/amul.type.h"
 #include "h/buffer.h"
 #include "h/filemapping.h"
 #include "h/filesystem.h"
 #include "h/logging.h"
-#include "h/sourcefile.h"
 #include "h/svparse.h"
 
-SourceFile::SourceFile(std::string_view filepath)
-	: filepath{filepath}
-{}
+SourceFile::SourceFile(std::string_view filepath) : filepath{ filepath } {}
 
 error_t
 SourceFile::Open()
@@ -35,7 +33,7 @@ void
 SourceFile::Close()
 {
     line.clear();
-	buffer.Close();
+    buffer.Close();
     CloseFileMapping(&mapping, size);
 }
 
@@ -52,7 +50,7 @@ SourceFile::GetLineTerms() noexcept
         auto end = buffer.ReadLine();
         if (cur == end || end == nullptr)
             return false;
-        LogMore("reading: ", std::string_view{cur, size_t(end - cur)});
+        LogMore("reading: ", std::string_view{ cur, size_t(end - cur) });
 
         continuation = false;
         while (cur != end) {
@@ -68,7 +66,7 @@ SourceFile::GetLineTerms() noexcept
             if (*start == '\'' || *start == '\"') {
                 while (cur != end) {
                     if (cur + 1 != end && (*cur == '\\' || *cur == *start)) {
-                        if (*cur+1 == *start) {
+                        if (*cur + 1 == *start) {
                             cur += 2;
                             continue;
                         }

@@ -14,18 +14,17 @@
 #include "h/logging.h"
 #include "h/modules.h"
 
-
 // Offsets of strings by string id.
 using StringMap = std::unordered_map<std::string, stringid_t>;
 
-static StringMap   stringMap;
+static StringMap stringMap;
 
 std::string &
 StringLower(std::string &str)
 {
-	std::transform(str.cbegin(), str.cend(), str.begin(),
-			[](unsigned char c) { return std::tolower(c); });
-	return str;
+    std::transform(
+            str.cbegin(), str.cend(), str.begin(), [](unsigned char c) { return std::tolower(c); });
+    return str;
 }
 
 static inline bool
@@ -43,13 +42,13 @@ nextStringId() noexcept
 static bool /*ok*/
 registerStringLabel(std::string_view label_)
 {
-    std::string label{label_};
-	StringLower(label);
-	auto [it, ins] = stringMap.insert(std::make_pair(label, nextStringId()));
-	if (!ins)
-		return false;
-	LogDebug("registered ", label, " as ", nextStringId());
-	return true;
+    std::string label{ label_ };
+    StringLower(label);
+    auto [it, ins] = stringMap.insert(std::make_pair(label, nextStringId()));
+    if (!ins)
+        return false;
+    LogDebug("registered ", label, " as ", nextStringId());
+    return true;
 }
 
 error_t
@@ -65,7 +64,7 @@ AddTextString(std::string_view text, bool isLine, stringid_t *idp)
         isLine = false;
     }
 
-	*idp = nextStringId();
+    *idp = nextStringId();
 
     g_game.m_stringIndex.push_back(GetStringBytes());
 
@@ -85,11 +84,11 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
     REQUIRE(!label || *label);
 
     // string's id will be the current position, so snag it now.
-    stringid_t id { nextStringId() };
+    stringid_t id{ nextStringId() };
 
     if (label && !registerStringLabel(label)) {
-		return EEXIST;
-	}
+        return EEXIST;
+    }
 
     char indent = 0;
     char line[2048];
@@ -134,19 +133,18 @@ TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool toEof)
 }
 
 error_t
-RegisterTextString(
-        std::string_view label, std::string_view text, bool isLine, stringid_t *idp)
+RegisterTextString(std::string_view label, std::string_view text, bool isLine, stringid_t *idp)
 {
-	REQUIRE(!label.empty());
+    REQUIRE(!label.empty());
 
-    stringid_t id { 0 };
+    stringid_t id{ 0 };
     if (!idp) {
         idp = &id;
     }
-	*idp = nextStringId();
-	if (!registerStringLabel(label)) {
-		return EEXIST;
-	}
+    *idp = nextStringId();
+    if (!registerStringLabel(label)) {
+        return EEXIST;
+    }
 
     error_t err = AddTextString(label, isLine, idp);
     if (err != 0)
@@ -159,14 +157,14 @@ error_t
 LookupTextString(std::string_view label, stringid_t *idp)
 {
     REQUIRE(!label.empty());
-    std::string labelId { label };
+    std::string labelId{ label };
     StringLower(labelId);
-	auto it = stringMap.find(labelId);
-	if (it == stringMap.end())
-		return ENOENT;
+    auto it = stringMap.find(labelId);
+    if (it == stringMap.end())
+        return ENOENT;
     if (idp)
-	    *idp = it->second;
-	return 0;
+        *idp = it->second;
+    return 0;
 }
 
 size_t
@@ -227,7 +225,7 @@ initStringModule(Module *module)
 error_t
 startStringModule(Module *module)
 {
-	REQUIRE(stringMap.empty());
+    REQUIRE(stringMap.empty());
 
     return 0;
 }
@@ -235,7 +233,7 @@ startStringModule(Module *module)
 error_t
 closeStringModule(Module *module, error_t err)
 {
-	LogDebug("Strings: ", GetStringCount(), ", Bytes: ", GetStringBytes());
+    LogDebug("Strings: ", GetStringCount(), ", Bytes: ", GetStringBytes());
 
     return 0;
 }

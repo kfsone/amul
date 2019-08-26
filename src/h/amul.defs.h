@@ -476,14 +476,14 @@ enum {
 #define TP2 actual(*(tt.pptr + ncop[tt.condition] + 1))
 #define TP3 actual(*(tt.pptr + ncop[tt.condition] + 2))
 #define TP4 actual(*(tt.pptr + ncop[tt.condition] + 3))
-#define AP1 (char *)actptr(*(tt.pptr + ncop[tt.condition]))
-#define AP2 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 1))
-#define AP3 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 2))
-#define AP4 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 3))
+#define AP1 (char *) actptr(*(tt.pptr + ncop[tt.condition]))
+#define AP2 (char *) actptr(*(tt.pptr + ncop[tt.condition] + 1))
+#define AP3 (char *) actptr(*(tt.pptr + ncop[tt.condition] + 2))
+#define AP4 (char *) actptr(*(tt.pptr + ncop[tt.condition] + 3))
 #define ItsState it->State()
 #define xLIGHT(x) (linestat + (x))->light
 #define xHADLIGHT(x) (linestat + (x))->hadlight
 
-#define acp (char *)actptr
+#define acp (char *) actptr
 
 #endif

@@ -14,8 +14,8 @@ enum { MAX_VMOP_PARAMS = 3 };
 
 struct VMOP {
     const char *name;
-    uint8_t     parameterCount;
-    oparg_t     parameters[MAX_VMOP_PARAMS];
+    uint8_t parameterCount;
+    oparg_t parameters[MAX_VMOP_PARAMS];
 };
 
 extern const struct VMOP conditions[NCONDS];

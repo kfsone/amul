@@ -39,25 +39,25 @@ TokenStream::Atomize()
     Atom *comment = nullptr;
     do {
         const char *start = buffer.it();
-        AtomType    at{NextAtomType(buffer)};
+        AtomType at{ NextAtomType(buffer) };
         switch (at) {
-        case A_END:
-            if (*start) {
-                atoms.Push(Atom{A_END, "\n", 1});
-            } else {
-                atoms.Push(Atom{A_END, "", 0});
-            }
-            break;
-        case A_SPACE:
-            atoms.Push(Atom{A_SPACE, " ", 1});
-            break;
-        case A_PUNCT:
-            if (*start == ';' && !comment)
-                comment = atoms.m_cur;
-            /*FALLTHROUGH*/
-        default:
-            size_t len = buffer.it() - start;
-            atoms.Push(Atom{at, start, len});
+            case A_END:
+                if (*start) {
+                    atoms.Push(Atom{ A_END, "\n", 1 });
+                } else {
+                    atoms.Push(Atom{ A_END, "", 0 });
+                }
+                break;
+            case A_SPACE:
+                atoms.Push(Atom{ A_SPACE, " ", 1 });
+                break;
+            case A_PUNCT:
+                if (*start == ';' && !comment)
+                    comment = atoms.m_cur;
+                /*FALLTHROUGH*/
+            default:
+                size_t len = buffer.it() - start;
+                atoms.Push(Atom{ at, start, len });
         }
     } while (*atoms.Back() != A_END);
 
@@ -78,8 +78,8 @@ TokenStream::ScanLine()
 void
 testme()
 {
-    Buffer      buffer{"r=a b1 \n"};
-    TokenStream ts{buffer};
+    Buffer buffer{ "r=a b1 \n" };
+    TokenStream ts{ buffer };
     ts.SetPattern(nullptr /*tbd*/);
     ts.ScanLine();
 }

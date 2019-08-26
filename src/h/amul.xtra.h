@@ -6,8 +6,8 @@
 #include "h/amul.type.h"
 
 const char *extractLine(const char *from, char *to);
-char *      getword(char *from);
-bool        striplead(const char *lead, char *from);
+char *getword(char *from);
+bool striplead(const char *lead, char *from);
 
 // Test for comment marker
 static inline bool

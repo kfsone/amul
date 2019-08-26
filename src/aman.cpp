@@ -17,8 +17,8 @@
 #define TRQ timerequest
 
 #define UINFO                                                                                      \
-    (((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_game.numRooms * sizeof(short)) +       \
-            (sizeof(mob) * g_game.numMobs))
+    (((sizeof(*usr) + sizeof(*linestat)) * MAXNODE) + (g_game.numRooms * sizeof(short)) +          \
+     (sizeof(mob) * g_game.numMobs))
 
 #include <cassert>
 #include <cctype>
@@ -45,26 +45,26 @@
 #include "h/msgports.h"
 #include "h/system.h"
 
-FILE *   ifp;
+FILE *ifp;
 Game g_game;
-time_t   s_nextReset;
+time_t s_nextReset;
 
 using DemonList = std::list<Demon>;
 DemonList demons{};
-demonid_t Demon::s_nextID { 1 };
+demonid_t Demon::s_nextID{ 1 };
 
-char      lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE];
-char      vername[128];
+char lastres[24], lastcrt[24], bid[MAXNODE], busy[MAXNODE];
+char vername[128];
 
-Aport *   am;
-MsgPort * trport;                // Timer port
-long      invis, invis2, calls;  // Invisibility Stuff & # of calls
-long      ded;                   // ded = deduct
+Aport *am;
+MsgPort *trport;            // Timer port
+long invis, invis2, calls;  // Invisibility Stuff & # of calls
+long ded;                   // ded = deduct
 
 long online;
-bool    g_resetInProgress { false };    // replaces: resety
-bool    g_forceReset { false };         // replaces: forcereset
-bool    g_quiet { false };              // replaces: quiet
+bool g_resetInProgress{ false };  // replaces: resety
+bool g_forceReset{ false };       // replaces: forcereset
+bool g_quiet{ false };            // replaces: quiet
 
 // Prevent CTRL-C'ing
 int
@@ -78,7 +78,7 @@ static char *
 now()
 {
     time_t timenow = time(nullptr);
-    char * ttxt = (char *)ctime(&timenow) + 4;
+    char *ttxt = (char *) ctime(&timenow) + 4;
     *(ttxt + strlen(ttxt) - 1) = 0;  // Strip cr/lf
     return ttxt;
 }
@@ -115,24 +115,21 @@ quit()
 }
 
 // Report memory allocation error
-[[noreturn]]
-static void
+[[noreturn]] static void
 memfail(const char *s)
 {
     LogFatal("Out of memory for ", s);
 }
 
 // Report a read failure
-[[noreturn]]
-static void
+[[noreturn]] static void
 readfail(const char *s, size_t got, size_t wanted)
 {
     LogFatal("Expected ", wanted, " ", s, ", got ", got);
 }
 
 // report open error
-[[noreturn]]
-static void
+[[noreturn]] static void
 openError(const char *filepath, const char *activity)
 {
     LogFatal("Unable to open '", filepath, "' for ", activity, "ing");
@@ -159,7 +156,8 @@ xread(const char *s, size_t *countInto, const char *t)
     if (fd == -1) {
         LogFatal("Unable to open file: ", filepath, ": ", strerror(errno));
     }
-    struct stat sb {};
+    struct stat sb {
+    };
     if (fstat(fd, &sb) == -1) {
         LogFatal("Error accessing file: ", filepath, ": ", strerror(errno));
     }
@@ -170,7 +168,8 @@ xread(const char *s, size_t *countInto, const char *t)
     if (data == nullptr)
         memfail(filepath);
     if (size_t bytes = read(fd, data, sb.st_size); bytes != sb.st_size) {
-        LogFatal("Unexpected end of file: ", filepath, ": Expected: ", sb.st_size, ", Got: ", bytes);
+        LogFatal(
+                "Unexpected end of file: ", filepath, ": Expected: ", sb.st_size, ", Got: ", bytes);
     }
     close(fd);
     *countInto = sb.st_size;
@@ -188,10 +187,10 @@ readf(const char *s, char *p)
 }
 
 static void
-execute(const char*)
+execute(const char *)
 {
-	/// TODO: Remove
-	// run a command in the background
+    /// TODO: Remove
+    // run a command in the background
 }
 
 static void
@@ -224,7 +223,7 @@ reset_users()
         (linestat + i)->rep->Put(MessagePtr(am));
     }
     while (online > 0) {
-        MessagePtr amsg{port->Wait()};
+        MessagePtr amsg{ port->Wait() };
         am = static_cast<Aport *>(amsg.get());
         if (am == nullptr)
             break;
@@ -239,7 +238,7 @@ reset_users()
     }
 
     for (;;) {
-        MessagePtr amsg{reply->Get()};
+        MessagePtr amsg{ reply->Get() };
         am = static_cast<Aport *>(amsg.get());
         if (am == nullptr)
             break;
@@ -251,7 +250,7 @@ reset_users()
     online = 0;
 }
 
-template <typename... Args>
+template<typename... Args>
 void
 warn(const char *fmt, Args... args)
 {
@@ -294,8 +293,8 @@ kill()
 static void
 cnct()
 {
-    amul->data = (long)linestat;
-    amul->opaque = (char *)usr;
+    amul->data = (long) linestat;
+    amul->opaque = (char *) usr;
     if (Af >= MAXU) {
         if (Af == MAXU + 1)
             LogInfo("Mobile processor connected.");
@@ -342,7 +341,7 @@ void
 Demon::Kill(slot_t owner, verbid_t action)
 {
     demons.remove_if([=](const Demon &demon) {
-            return demon.m_owner == owner && (action == -1 || demon.m_action == action);
+        return demon.m_owner == owner && (action == -1 || demon.m_action == action);
     });
 }
 
@@ -359,8 +358,9 @@ void
 checkDemon(verbid_t action)
 {
     int i = 0;
-    for (auto && demon : demons) {
-        if (demon.m_action == action && (demon.m_owner == Demon::GlobalOwner || demon.m_owner == Af)) {
+    for (auto &&demon : demons) {
+        if (demon.m_action == action &&
+            (demon.m_owner == Demon::GlobalOwner || demon.m_owner == Af)) {
             Ad = i;
             Ap1 = demon.GetSecondsRemaining();
             return;
@@ -404,23 +404,23 @@ data()
 {
     At = MDATAREQ;
     switch (Ad) {
-    case -1:
-        Ad = online;
-        amul->opaque = usr;
-        Ap1 = calls;
-        Ap2 = (uintptr_t)vername;
-        Ap3 = (uintptr_t)g_game.gameName;
-        Ap4 = (uintptr_t)linestat;
-        break;
-    case 0:
-        amul->opaque = gameDir;
-        amul->p1 = GetResetCountdown();
-        break;
-    case 1:
-        amul->opaque = &g_game;
-        break;
-    default:
-        amul->opaque = nullptr;
+        case -1:
+            Ad = online;
+            amul->opaque = usr;
+            Ap1 = calls;
+            Ap2 = (uintptr_t) vername;
+            Ap3 = (uintptr_t) g_game.gameName;
+            Ap4 = (uintptr_t) linestat;
+            break;
+        case 0:
+            amul->opaque = gameDir;
+            amul->p1 = GetResetCountdown();
+            break;
+        case 1:
+            amul->opaque = &g_game;
+            break;
+        default:
+            amul->opaque = nullptr;
     }
 }
 
@@ -445,30 +445,30 @@ asend(int type, int data)
     port->Wait();
     if (!g_quiet) {
         switch (Ad) {
-        case 'R':
-            LogNote("*-- Reset Invoked --*");
-            break;
-        case 'O':
-            LogNote("AMUL Manager removed");
-            break;
-        case 'X':
-            LogError("Cannot reset manager with users connected");
-            break;
-        case 'U':
-            LogError("AMAN error at other end");
-            break;
-        case -'X':
-            LogNote("... Reset set for ", Ap1, " seconds ...");
-            break;
-        case -'R':
-            LogNote("... Reset in progress ...");
-            break;
-        case 'E':
-            LogNote("... Reset delayed by ", Ap1, " seconds ...");
-            break;
-        default:
-            LogError("** Internal AMUL error: Return '", char(Ad), "')");
-            break;
+            case 'R':
+                LogNote("*-- Reset Invoked --*");
+                break;
+            case 'O':
+                LogNote("AMUL Manager removed");
+                break;
+            case 'X':
+                LogError("Cannot reset manager with users connected");
+                break;
+            case 'U':
+                LogError("AMAN error at other end");
+                break;
+            case -'X':
+                LogNote("... Reset set for ", Ap1, " seconds ...");
+                break;
+            case -'R':
+                LogNote("... Reset in progress ...");
+                break;
+            case 'E':
+                LogNote("... Reset delayed by ", Ap1, " seconds ...");
+                break;
+            default:
+                LogError("** Internal AMUL error: Return '", char(Ad), "')");
+                break;
         }
     }
     ReleaseMem(&amul);
@@ -514,8 +514,11 @@ extend(int32_t seconds)
     s_nextReset += seconds;
     auto countdown = GetResetCountdown();
     if (countdown > 120) {
-        LogNote("...Game time extended - reset will now occur in ", countdown / 60, " minutes and ",
-                countdown % 60, " seconds");
+        LogNote("...Game time extended - reset will now occur in ",
+                countdown / 60,
+                " minutes and ",
+                countdown % 60,
+                " seconds");
     } else {
         LogNote("...Reset postponed - it will now occur in ", countdown, " seconds");
     }
@@ -529,7 +532,9 @@ res()
 {
     int onwas;
     warn("][ (%c) %s: Reset requested! %ld user(s) online...\n",
-         (Af >= 0 && Af < 11) ? '0' + Af : '#', now(), online);
+         (Af >= 0 && Af < 11) ? '0' + Af : '#',
+         now(),
+         online);
     onwas = online;
     reset_users();
     if (onwas != 0)
@@ -555,8 +560,15 @@ lock()
 void
 logwiz(int who)
 {
-    LogNote("@@ ]", char(Af + '0'), "[ ", now(), ": User \"", (usr + Af)->name,
-            "\" achieved top rank (", (usr + Af)->rank + 1, ")");
+    LogNote("@@ ]",
+            char(Af + '0'),
+            "[ ",
+            now(),
+            ": User \"",
+            (usr + Af)->name,
+            "\" achieved top rank (",
+            (usr + Af)->rank + 1,
+            ")");
 }
 
 void
@@ -568,7 +580,7 @@ logit(const char *s)
 static void
 filesize(const char *filename, size_t *intop)
 {
-    char filepath[MAX_PATH_LENGTH] {};
+    char filepath[MAX_PATH_LENGTH]{};
     safe_gamedir_joiner(filename);
     GetFilesSize(filepath, intop, true);
 }
@@ -577,42 +589,42 @@ filesize(const char *filename, size_t *intop)
 static void
 setup()
 {
-    long  l, act, j, k;
+    long l, act, j, k;
     long *pt;
     char *p;
 
     if ((p = (char *) AllocateMem(UINFO)) == nullptr)
         memfail("User tables");
-    usr = (_PLAYER *)p;
+    usr = (_PLAYER *) p;
     p += sizeof(*usr) * MAXNODE;
-    linestat = (LS *)p;
+    linestat = (LS *) p;
     p += sizeof(*linestat) * MAXNODE;
-    rctab = (short *)p;
+    rctab = (short *) p;
 
-    size_t verblen{0};
-    vbtab = (_VERB_STRUCT*)xread(verbDataFile, &verblen, "verb list");
+    size_t verblen{ 0 };
+    vbtab = (_VERB_STRUCT *) xread(verbDataFile, &verblen, "verb list");
     assert(verblen / sizeof(_VERB_STRUCT) == g_game.numVerbs);
 
-    size_t stlen{0}, vtlen{0}, vtplen{0};
+    size_t stlen{ 0 }, vtlen{ 0 }, vtplen{ 0 };
 
     filesize(verbSlotFile, &stlen);
     filesize(verbTableFile, &vtlen);
     filesize(verbParamFile, &vtplen);
 
     // 9: Read the travel table
-    size_t ttlen{0};
-    ttp = (_TT_ENT *)xread(travelTableFile, &ttlen, "travel table");
+    size_t ttlen{ 0 };
+    ttp = (_TT_ENT *) xread(travelTableFile, &ttlen, "travel table");
     assert(ttlen / sizeof(_TT_ENT) == g_game.numTTEnts);
 
     // 12: Read parameters
-    size_t ttplen{0};
-    ttpp = (long *)xread(travelParamFile, &ttplen, "TT parameter table");
+    size_t ttplen{ 0 };
+    ttpp = (long *) xread(travelParamFile, &ttplen, "TT parameter table");
     ttabp = ttp;
     pt = ttpp;
     for (size_t i = 0; i < g_game.numTTEnts; i++) {
         ttabp = ttp + i;
-        k = (long)ttabp->pptr;
-        ttabp->pptr = (int *)pt;
+        k = (long) ttabp->pptr;
+        ttabp->pptr = (int *) pt;
         if (k == -2)
             continue;
         act = ttabp->condition;
@@ -629,9 +641,9 @@ setup()
     // 14: Load Slot table
     if ((p = (char *) AllocateMem(stlen + vtlen + vtplen)) == nullptr)
         memfail("language data");
-    slottab = (_SLOTTAB *)readf(verbSlotFile, p);
-    vtp = (_VBTAB *)readf(verbTableFile, p + stlen);
-    vtpp = (long *)readf(verbParamFile, p + stlen + vtlen);
+    slottab = (_SLOTTAB *) readf(verbSlotFile, p);
+    vtp = (_VBTAB *) readf(verbTableFile, p + stlen);
+    vtpp = (long *) readf(verbParamFile, p + stlen + vtlen);
 
     // 18: Get last reset time
     strcpy(lastres, now());
@@ -647,7 +659,7 @@ setup()
         for (j = 0; j < vbptr->ents; j++, stptr++) {
             stptr->ptr = vtabp;
             for (k = 0; k < stptr->ents; k++, vtabp++) {
-                vtabp->pptr = (int *)vtpp + l;
+                vtabp->pptr = (int *) vtpp + l;
                 act = vtabp->condition;
                 if (act < 0)
                     act = -1 - act;
@@ -672,7 +684,7 @@ demonTicker()
 {
     demons.sort([](auto &lhs, auto &rhs) noexcept { return lhs.m_trigger < rhs.m_trigger; });
     time_t now = time(nullptr);
-    for (auto cnt = 0; cnt < 10 &&  !demons.empty() && demons.front().m_trigger <= now; ++cnt) {
+    for (auto cnt = 0; cnt < 10 && !demons.empty() && demons.front().m_trigger <= now; ++cnt) {
         auto demon = demons.front();
         demons.pop_front();
         auto amp = GetNewAport(MDAEMON, demon.m_trigger);
@@ -686,7 +698,6 @@ demonTicker()
         (linestat + owner)->rep->Put(std::move(amp));
     }
 }
-
 
 void
 resetTicker()
@@ -741,73 +752,79 @@ kernel()
         demonTicker();
         resetTicker();
 
-        MessagePtr amsg{port->Get()};
+        MessagePtr amsg{ port->Get() };
         if (amul = static_cast<Aport *>(amsg.get()); !amul)
             continue;
 
         switch (At) {
-        case MKILL:
-            kill();
-            break;
-        case MCNCT:
-            cnct();
-            break;
-        case MDISCNCT:
-            discnct();
-            break;
-        case MDATAREQ:
-            data();
-            break;
-        case MLOGGED:
-            login();
-            break;
-        case MRESET:
-            rest();
-            break;
-        case MLOCK:
-            lock();
-            break;
-        case MBUSY:
-            busy[Af] = 1;
-            break;
-        case MFREE:
-            busy[Af] = 0;
-            break;
-        case MDSTART:
-            Demon::Start(amul->from, time_t(amul->opaque), amul->data,
-                         {amul->p1, amul->p2}, {amul->p3, amul->p4});
-            break;  // Priv. demon
-        case MDCANCEL:
-            Demon::Kill(Af, Ad);
-            break;
-        case MCHECKD:
-            checkDemon(Ad);
-            break;
-        case MMADEWIZ:
-            logwiz(Af);
-            break;
-        case MLOG:
-            logit(static_cast<const char *>(amul->opaque));
-            break;
-        case MEXTEND:
-            extend(Ad);
-            g_forceReset = false;
-            break;
-        case MGDSTART:
-            Demon::Start(Demon::GlobalOwner, time_t(amul->opaque), amul->data,
-                         {amul->p1, amul->p2}, {amul->p3, amul->p4});
-            break;  // Global demon
-        default:
-            At = -1;
-            LogError("$$ (X) ", now(), ": *INVALID Message Type: ", At);
-            break;
+            case MKILL:
+                kill();
+                break;
+            case MCNCT:
+                cnct();
+                break;
+            case MDISCNCT:
+                discnct();
+                break;
+            case MDATAREQ:
+                data();
+                break;
+            case MLOGGED:
+                login();
+                break;
+            case MRESET:
+                rest();
+                break;
+            case MLOCK:
+                lock();
+                break;
+            case MBUSY:
+                busy[Af] = 1;
+                break;
+            case MFREE:
+                busy[Af] = 0;
+                break;
+            case MDSTART:
+                Demon::Start(amul->from,
+                             time_t(amul->opaque),
+                             amul->data,
+                             { amul->p1, amul->p2 },
+                             { amul->p3, amul->p4 });
+                break;  // Priv. demon
+            case MDCANCEL:
+                Demon::Kill(Af, Ad);
+                break;
+            case MCHECKD:
+                checkDemon(Ad);
+                break;
+            case MMADEWIZ:
+                logwiz(Af);
+                break;
+            case MLOG:
+                logit(static_cast<const char *>(amul->opaque));
+                break;
+            case MEXTEND:
+                extend(Ad);
+                g_forceReset = false;
+                break;
+            case MGDSTART:
+                Demon::Start(Demon::GlobalOwner,
+                             time_t(amul->opaque),
+                             amul->data,
+                             { amul->p1, amul->p2 },
+                             { amul->p3, amul->p4 });
+                break;  // Global demon
+            default:
+                At = -1;
+                LogError("$$ (X) ", now(), ": *INVALID Message Type: ", At);
+                break;
         }
 
         ReplyMsg(std::move(amsg));
     }
 
     for (;;) {
-        MessagePtr amsg{port->Get()};
+        MessagePtr amsg{ port->Get() };
         amul = static_cast<Aport *>(amsg.get());
         if (!amul)
             break;
@@ -836,27 +853,26 @@ executeCommand(int argc, const char *argv[])
     if (!port) {
         LogFatal("AMAN is not running");
     }
-    size_t seconds{0};
+    size_t seconds{ 0 };
     if (argc == 3)
         sscanf(argv[2], "%zu", &seconds);
     switch (toupper(*(argv[1] + 1))) {
-    case 'K':
-        shutreq(true, seconds);
-        break;
-    case 'R':
-        shutreq(false, seconds);
-        break;
-    case 'X':
-        if (argc != 3)
-            LogFatal("Missing minute value after -x option");
-        sendext(seconds);
-        break;
+        case 'K':
+            shutreq(true, seconds);
+            break;
+        case 'R':
+            shutreq(false, seconds);
+            break;
+        case 'X':
+            if (argc != 3)
+                LogFatal("Missing minute value after -x option");
+            sendext(seconds);
+            break;
     }
     exit(0);
 }
 
-[[noreturn]]
-void
+[[noreturn]] void
 usage(const char *argv[], error_t err)
 {
     printf("Usage: %s [-h|-?|--help] [-v|--verbose] [-q|--quiet] [game directory]\n", argv[0]);
@@ -921,16 +937,14 @@ parseArguments(int argc, const char *argv[])
     LogDebug("Game Path: ", gameDir);
 }
 
-constexpr auto
-checkedRead = [](int fd, auto *into, size_t count) noexcept
+constexpr auto checkedRead = [](int fd, auto *into, size_t count) noexcept
 {
     auto expected = sizeof(*into) * count;
     if (auto bytes = read(fd, into, expected); size_t(bytes) != expected)
         LogFatal("Read error: expected ", expected, " bytes, got ", bytes);
 };
 
-constexpr auto
-checkedLoad = [](const char *label, int fd, auto &into, size_t count) noexcept
+constexpr auto checkedLoad = [](const char *label, int fd, auto &into, size_t count) noexcept
 {
     into.resize(count);
     LogDebug("reading ", label, ": ", count, ": ", sizeof(*into.data()) * count);
@@ -973,7 +987,7 @@ Game::Load()
     close(fd);
 
     // Fix the object 'inside' flags
-    for (auto & obj : m_objects) {
+    for (auto &obj : m_objects) {
         // Look for objects that have a negative room id which is below the 'INS' value
         objid_t container = m_objectLocations[obj.rooms];
         if (container <= -INS)
@@ -992,7 +1006,7 @@ main(int argc, const char *argv[])
     mytask = FindTask(0L);
     mytask->tc_Node.ln_Name = vername;
 #else
-    (void)vername;
+    (void) vername;
 #endif
 
     parseArguments(argc, argv);
@@ -1020,7 +1034,7 @@ main(int argc, const char *argv[])
 
 #if defined(__AMIGA__)
     /// TODO: Replace
-    if (OpenDevice(TIMERNAME, UNIT_VBLANK, (IORequest *)&ResReq, 0L) != NULL) {
+    if (OpenDevice(TIMERNAME, UNIT_VBLANK, (IORequest *) &ResReq, 0L) != NULL) {
         printf("Can't open timer.device!\n");
         quit();
     }

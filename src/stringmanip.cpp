@@ -1,6 +1,6 @@
+#include "h/stringmanip.h"
 #include <string>
 #include <string_view>
-#include "h/stringmanip.h"
 
 using std::string;
 using std::string_view;
@@ -15,10 +15,10 @@ ReplaceAll(std::string &text, string_view pattern, string_view replacement) noex
     if (pos == text.nos)
         return;
 
-    size_t lastPos { 0 };
+    size_t lastPos{ 0 };
 
     // Switch the string to a backup buffer so we can build it in-place.
-    std::string oldText {};
+    std::string oldText{};
     oldText.swap(text);
     text.reserve(oldText.size());
 

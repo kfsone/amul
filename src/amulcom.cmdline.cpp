@@ -19,8 +19,15 @@ CXBRK()
 error_t
 misuse(const char **argv, const char *issue, const char *arg, error_t err)
 {
-    LogError(argv[0], ": ", issue, ": ", arg, "\n",
-            "Try '", argv[0], " -help' for usage information.\n");
+    LogError(argv[0],
+             ": ",
+             issue,
+             ": ",
+             arg,
+             "\n",
+             "Try '",
+             argv[0],
+             " -help' for usage information.\n");
     return err;
 }
 
@@ -41,9 +48,9 @@ usage(const char **argv)
 error_t
 ParseCommandLine(const CommandLine *cmdline)
 {
-    const int    argc = cmdline->argc;
+    const int argc = cmdline->argc;
     const char **argv = cmdline->argv;
-    struct stat  sb;
+    struct stat sb;
 
     int desiredLogLevel = LWARN;
 
@@ -87,7 +94,7 @@ ParseCommandLine(const CommandLine *cmdline)
         path_copier(gameDir, pwd);
     }
 
-    SetLogLevel((LogLevel)desiredLogLevel);
+    SetLogLevel((LogLevel) desiredLogLevel);
 
     return 0;
 }
@@ -95,7 +102,7 @@ ParseCommandLine(const CommandLine *cmdline)
 error_t
 initCommandLine(Module *module)
 {
-    return ParseCommandLine((CommandLine *)(module->context));
+    return ParseCommandLine((CommandLine *) (module->context));
 }
 
 error_t

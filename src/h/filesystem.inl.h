@@ -8,7 +8,7 @@
 
 // Inline / template functions that would otherwise clutter up filesystem.h
 
-template <size_t Size>
+template<size_t Size>
 error_t
 MakeTextFileName(const std::string &name, char (&into)[Size])
 {

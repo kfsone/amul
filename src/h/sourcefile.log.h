@@ -5,7 +5,8 @@
 
 #include "h/sourcefile.h"
 
-std::ostream &operator << (std::ostream &os, const SourceFile &sf) noexcept
+std::ostream &
+operator<<(std::ostream &os, const SourceFile &sf) noexcept
 {
     os << sf.filepath << ":" << sf.lineNo << ":";
     return os;

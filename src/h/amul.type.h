@@ -4,8 +4,8 @@
 
 #include <cerrno>     // for error numbers
 #include <cinttypes>  // for PRIu64 etc
-#include <cstdint>  // for sized types
-#include <cstdlib>  // for size_t
+#include <cstdint>    // for sized types
+#include <cstdlib>    // for size_t
 
 #include "amulconfig.h"
 

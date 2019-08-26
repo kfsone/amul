@@ -6,12 +6,12 @@
 #include "h/amul.type.h"
 
 #ifndef FRIEND_TEST
-#    define FRIEND_TEST(...)
+#define FRIEND_TEST(...)
 #endif
 
 class SpinLock final
 {
-    std::atomic_bool m_lock{false};
+    std::atomic_bool m_lock{ false };
     FRIEND_TEST(SpinLockTest, Lock);
     FRIEND_TEST(SpinLockTest, Unlock);
     FRIEND_TEST(SpinLockTest, SpinLock);
@@ -36,11 +36,7 @@ class SpinGuard
     SpinLock &m_spin;
 
   public:
-    SpinGuard(SpinLock &spin)
-        : m_spin(spin)
-    {
-        m_spin.Lock();
-    }
+    SpinGuard(SpinLock &spin) : m_spin(spin) { m_spin.Lock(); }
     ~SpinGuard() { m_spin.Unlock(); }
 };
 

@@ -1,6 +1,6 @@
+#include "h/filesystem.h"
 #include "h/amul.file.h"
 #include "h/amul.test.h"
-#include "h/filesystem.h"
 #include "h/filesystem.inl.h"
 #include "h/logging.h"
 
@@ -35,7 +35,7 @@ PathCopy(char *into, size_t limit, size_t *offsetp, const char *path)
     size_t offset = offsetp ? *offsetp : 0;
 
     const char *end = into + limit;
-    char *      dst = into + offset;
+    char *dst = into + offset;
     REQUIRE(dst < end);
 
     bool wantSlash = offset > 0 && !isSeparator(dst - 1);
@@ -77,7 +77,7 @@ PathJoin(char *into, size_t limit, const char *lhs, const char *rhs)
     REQUIRE(*rhs);
     REQUIRE(*lhs);
 
-    size_t  length = 0;
+    size_t length = 0;
     error_t err = PathCopy(into, limit, &length, lhs);
     if (err != 0)
         return err;
@@ -118,7 +118,7 @@ GetFilesSize(std::string_view filepath, size_t *sizep, bool required)
     REQUIRE(!filepath.empty() && sizep);
 
     struct stat sb = {};
-    error_t     err = stat(filepath.data(), &sb);
+    error_t err = stat(filepath.data(), &sb);
     if (err != 0) {
         if (required)
             LogFatal("Could not access file (", errno, "): ", filepath);

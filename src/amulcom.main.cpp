@@ -8,7 +8,7 @@ extern int amulcom_main();
 int
 main(int argc, const char **argv)
 {
-    CommandLine cmdline = {argc, argv, nullptr};
+    CommandLine cmdline = { argc, argv, nullptr };
 
     InitModules();
 
