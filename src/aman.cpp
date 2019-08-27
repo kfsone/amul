@@ -719,6 +719,12 @@ resetTicker()
     }
 }
 
+static void
+launchWorker(int workerType)
+{
+
+}
+
 void
 kernel()
 {
@@ -742,7 +748,8 @@ kernel()
 
     // Activate the demon processor
 
-    execute("amul -\03");
+    launchWorker(am_DAEM);
+    launchWorker(am_MOBS);
 
     while (!g_resetInProgress) {
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
