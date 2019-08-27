@@ -29,6 +29,7 @@
 #include <thread>
 #include <vector>
 
+#include "h/amul.h"
 #include "h/aman.version.h"
 #include "h/amigastubs.h"
 #include "h/amul.cons.h"
@@ -719,12 +720,6 @@ resetTicker()
     }
 }
 
-static void
-launchWorker(int workerType)
-{
-
-}
-
 void
 kernel()
 {
@@ -748,8 +743,8 @@ kernel()
 
     // Activate the demon processor
 
-    launchWorker(am_DAEM);
-    launchWorker(am_MOBS);
+    launchWorker(am_DAEM, nullptr);
+    launchWorker(am_MOBS, nullptr);
 
     while (!g_resetInProgress) {
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -1056,6 +1051,8 @@ main(int argc, const char *argv[])
         kernel();
     }
     LogInfo("[ ", vername, " KILLED]");
+
+	shutdownWorkers();
 
     quit();
 }
