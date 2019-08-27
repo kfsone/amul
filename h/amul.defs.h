@@ -1,5 +1,6 @@
 #ifndef H_AMUL_DEFS_H
-#define H_AMUL_DEFS_H 1
+#define H_AMUL_DEFS_H
+
 /*
  ****    AMUL.DEFS.H.....Adventure Compiler    ****
  ****                #defines!                 ****
@@ -13,20 +14,26 @@ enum {
     NPUTS = 4,
     NPREP = 6,
     NSYNTS = 12,
+
+    // Each client takes up a "slot" in an array of users, including the non-user
+    // workers. These are then mapped to a 0-indexed bit array (player 5 = 1 << 4).
+    // Original AMUL was on a 16-bit machine.
+    MAXU = 14,                  // Maximum player 'node's at once
+    SYSNODES = 2,               // Daemon and NPC processors
+    MAXNODE = MAXU + SYSNODES,  // Total nodes
 };
 
-#define MAXU 14             // Max users at 1 time
-#define MAXNODE (MAXU + 2)  // + 1 mobiles+1 daemons
-
-enum VolumeLevel {
+enum Audibility {
     LOUD = 1,
     QUIET = 2,
 };
 
-#define ACTION 0
-#define NOISE 1
-#define EVENT 2
-#define TEXTS 3
+enum BroadcastType {
+    ACTION,     // involves motion so restricted to visibility and requires sight
+    NOISE,      // something you hear so can be heard afar and requires hearing
+    EVENT,      // ignores sight/hearing tests,
+    TEXTS,      // hadn't been implemented as of the snapshot
+};
 
 // Get AMUL, AMAN and AMULCOM versions from relevant .H
 #define PV "0.99d"       // Parser version
@@ -36,20 +43,26 @@ enum VolumeLevel {
 #define ALWAYSEP "---"   // Always Endparse
 #define INS (MAXU + 10)  // Start of insides!
 
-// Modes
-#define OFFLINE 0
-#define LOGGING 1
-#define PLAYING 2
+// state of client slots
+enum SlotState {
+    OFFLINE,            // not in-use
+    LOGGING,            // as in: logging in
+    PLAYING,            // in-use
+};
 
-#define am_USER 0  // This AMUL is for a user
-#define am_DAEM 1  // the daemon processor
-#define am_MOBS 2  // Am the mobiles!
+enum WorkerType {
+    am_USER,            // User client
+    am_DAEM,            // Demon handler
+    am_MOBS,            // NPC handler
+};
 
 // IO Support types
-#define CLIWINDOW 0              // Def */   /* Use CLI window
-#define CUSSCREEN CLIWINDOW + 1  // Provide Custm Screen
-#define SERIO CUSSCREEN + 1      // Serial IO
-#define LOGFILE 99               // Output ONLY to log
+enum IoType {
+    CLIWINDOW,          // Default: Use the console
+    CUSSCREEN,          // Local GUI/window (e.g 3rd party exe)
+    SERIO,              // Serial port/tty
+    LOGFILE = 99,       // Headless (log only)
+};
 
 // Room bit-flags
 #define DMOVE 1        // When players die, move rooms to...
@@ -95,11 +108,13 @@ enum VolumeLevel {
 #define SF_SCALED 32  // Scale the value
 #define SF_ALIVE 64   // Mobile/Animated
 
-// 'put to' flags
-#define PUT_IN 0      // put in
-#define PUT_ON 1      // on...
-#define PUT_BEHIND 2  // behind...
-#define PUT_UNDER 3   // under!
+// Preposition flags
+enum PrepositionType {
+    PUT_IN,
+    PUT_ON,
+    PUT_BEHIND,
+    PUT_UNDER,
+};
 
 // verb flags!
 #define VB_TRAVEL 1  // Verb is travel verb
