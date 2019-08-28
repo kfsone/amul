@@ -40,10 +40,10 @@ dstart(int d, int seconds, int type)
         inoun2 = n2;
         iprep = pp;
     } else {
-        Apx1 = inoun1;
-        Apx2 = inoun2;
-        Apx3 = wtype[2];
-        Apx4 = wtype[5];
+        amanp->p1 = inoun1;
+        amanp->p2 = inoun2;
+        amanp->p3 = wtype[2];
+        amanp->p4 = wtype[5];
         SendIt(t, d, (char *)c); /* Inform AMAN... */
     }
 }
@@ -58,11 +58,11 @@ void
 dshow(int d)
 {
     SendIt(MCHECKD, d, NULL);
-    if (Ad == -1) {
+    if (amul->data == -1) {
         tx("eventually");
         return;
     }
-    timeto(block, Ap1);
+    timeto(block, amul->p1);
     tx(block);
 }
 
@@ -70,7 +70,7 @@ dshow(int d)
 void
 dsend(int p, int d, int c)
 {
-    if (p == Af)
+    if (p == amul->from)
         dpstart(d, c);
     sendex(p, ASTART, d, c, 0, 0); /* Tell THEM to start the daemon */
 }

@@ -71,11 +71,11 @@ moveto(int r)
     lroom = me2->room;
     int i = me2->light;
     me2->light = 0;
-    lighting(Af, AOTHERS);
+    lighting(amul->from, AOTHERS);
     me2->room = r;
     me2->light = i;
     me2->hadlight = 0;
-    lighting(Af, AOTHERS);
+    lighting(amul->from, AOTHERS);
     look((rmtab + me2->room)->id, me->rdmode);
     me2->flags = me2->flags & -(1 + PFMOVING);
 }
@@ -115,7 +115,7 @@ gotin(int obj, int st)
 {
     for (int i = 0; i < nouns; i++) {
         if (stricmp((obtab + i)->id, (obtab + obj)->id) == NULL &&
-            	((obtab + i)->state == st || st == -1) && owner(i) == Af)
+            	((obtab + i)->state == st || st == -1) && owner(i) == amul->from)
             return true;
     }
     return false;
@@ -271,7 +271,7 @@ list_what(int r, int i)
     for (int o = 0; o < nouns; o++) /* All objects */
     {
         /* Only let the right people see the object */
-        if (!canSeeObject(o, Af))
+        if (!canSeeObject(o, amul->from))
             continue;
         if (((rmtab + r)->flags & HIDEWY) && (i == 0 || (i == 1 && me->rank != ranks - 1)) &&
             !((obtab + o)->flags & OF_SCENERY))
@@ -430,7 +430,7 @@ arecover(int obj)
     for (int i = 0; i < (obtab + obj)->nrooms; i++)
         *((obtab + obj)->rmlist + i) = me2->room;
     (obtab + obj)->flags = (obtab + obj)->flags & -(1 + OF_ZONKED);
-    lighting(Af, AHERE);
+    lighting(amul->from, AHERE);
 }
 
 // Refresh the player's stats
@@ -486,7 +486,7 @@ send(int o, int to)
 void
 achange(int u)
 {
-    if (u == Af) {
+    if (u == amul->from) {
         me->sex = 1 - me->sex;
         sys(CHANGESEX);
     } else
@@ -547,7 +547,7 @@ aadd(int howmuch, int stat, int plyr)
         return asub(-howmuch, stat, plyr);
     if (howmuch == 0)
         return;
-    if (plyr == Af) {
+    if (plyr == amul->from) {
         switch (stat) {
         case STSCORE:
             me->score += howmuch;
@@ -598,7 +598,7 @@ asub(int howmuch, int stat, int plyr)
         return asub(-howmuch, stat, plyr);
     if (howmuch == 0)
         return;
-    if (plyr == Af) {
+    if (plyr == amul->from) {
         switch (stat) {
         case STSCORE:
             me->score -= howmuch;
@@ -661,7 +661,7 @@ asub(int howmuch, int stat, int plyr)
 void
 afix(int stat, int plyr)
 {
-    if (plyr == Af) {
+    if (plyr == amul->from) {
         switch (stat) {
         case STSTR:
             me2->strength =
@@ -702,7 +702,7 @@ announce(char *s, int towho)
             if this is another player, and he's in another room,
             and the room is a silent room, ignore him.
         */
-        if (i != Af && (linestat + i)->room != me2->room && /* --v */
+        if (i != amul->from && (linestat + i)->room != me2->room && /* --v */
             ((rmtab + (linestat + i)->room)->flags & SILENT))
             continue;
         int x = 0;
@@ -712,11 +712,11 @@ announce(char *s, int towho)
             x = 1;
             break;
         case AGLOBAL:
-            if (i != Af)
+            if (i != amul->from)
                 x = 1;
             break;
         case AOTHERS:
-            if (i == Af)
+            if (i == amul->from)
                 break;
         case AHERE:
             if ((linestat + i)->room == me2->room)
@@ -804,14 +804,14 @@ action(char *s, int towho)
             x = 1;
             break;
         case AGLOBAL:
-            if (i != Af)
+            if (i != amul->from)
                 x = 1;
             break;
         case AOTHERS:
-            if (i == Af)
+            if (i == amul->from)
                 break;
         case AHERE:
-            if ((linestat + i)->room == me2->room && canSee(i, Af))
+            if ((linestat + i)->room == me2->room && canSee(i, amul->from))
                 x = 1;
             break;
         case AOUTSIDE:
@@ -949,7 +949,7 @@ nohelp()
     me2->helping = -1;
     you2 = linestat;
     for (int i = 0; i < MAXU; i++, you2++)
-        if (you2->helping == Af) {
+        if (you2->helping == amul->from) {
             utx(i, "You are no longer able to help @me.\n");
             you2->helping = -1;
         }
@@ -965,13 +965,13 @@ aforce(int x, char *cmd)
 void
 afight(int plyr)
 {
-    if (plyr == Af)
+    if (plyr == amul->from)
         return;
     if ((rmtab + me2->room)->flags & PEACEFUL) {
         sys(NOFIGHT);
         return;
     }
-    if ((linestat + plyr)->fighting == Af) {
+    if ((linestat + plyr)->fighting == amul->from) {
         txs("You are already fighting %s!\n", (usr + plyr)->name);
         donet = ml + 1;
         return;
@@ -984,7 +984,7 @@ afight(int plyr)
     you2 = linestat + plyr;
     you2->flags = you2->flags | PFFIGHT;
     me2->flags = me2->flags | PFFIGHT | PFATTACKER;
-    you2->fighting = Af;
+    you2->fighting = amul->from;
     me2->fighting = plyr;
     Permit();
 }
@@ -993,10 +993,10 @@ void
 clearfight()
 {
     Forbid();
-    if (me2->fighting != -1 && me2->fighting != Af) {
+    if (me2->fighting != -1 && me2->fighting != amul->from) {
         finishfight(me2->fighting);
     }
-    finishfight(Af);
+    finishfight(amul->from);
     Permit();
 }
 
@@ -1026,9 +1026,9 @@ attack/defence. */
 
     calcdext();
 
-    if (me2->fighting == Af || me2->fighting == -1 || me2->state < PLAYING || me2->stamina <= 0) {
+    if (me2->fighting == amul->from || me2->fighting == -1 || me2->state < PLAYING || me2->stamina <= 0) {
         donet = ml + 1; /* End parse */
-        finishfight(Af);
+        finishfight(amul->from);
         return; /* Macro : Permit(); return */
     }
 
@@ -1038,7 +1038,7 @@ attack/defence. */
 
     if (you2->state < PLAYING || you2->room != me2->room || you2->stamina <= 0) {
         donet = ml + 1;
-        finishfight(Af);
+        finishfight(amul->from);
         return;
     }
 
@@ -1128,8 +1128,8 @@ attack/defence. */
     if (oldstr <= 0) {
         donet = ml + 1; /* End parse */
         tx("You have defeated @pl!\n");
-        aadd(minpksl, STSCORE, Af);
-        finishfight(Af);
+        aadd(minpksl, STSCORE, amul->from);
+        finishfight(amul->from);
     }
 }
 
@@ -1214,13 +1214,13 @@ follow(int x, char *cmd)
     lockusr(x);
     if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
-    IAm.mn_Length = (UWORD)sizeof(*amul);
-    IAf = Af;
-    IAm.mn_Node.ln_Type = NT_MESSAGE;
-    IAm.mn_ReplyPort = repbk;
-    IAt = MFORCE;
-    IAd = 1;
-    IAp = cmd;
+    intam->msg.mn_Length = (UWORD)sizeof(*amul);
+    intam->from = amul->from;
+    intam->msg.mn_Node.ln_Type = NT_MESSAGE;
+    intam->msg.mn_ReplyPort = repbk;
+    intam->type = MFORCE;
+    intam->data = 1;
+    intam->ptr = cmd;
     PutMsg((linestat + x)->rep, (struct Message *)intam);
     (linestat + x)->IOlock = -1;
 }
@@ -1243,7 +1243,7 @@ log(char *s)
 void
 PutRankInto(char *s)
 {
-	PutARankInto(s, Af);
+	PutARankInto(s, amul->from);
 }
 
 void
@@ -1292,7 +1292,7 @@ void
 show_tasks(int p)
 {
     sprintf(block, "Tasks completed by ");
-    if (p != Af)
+    if (p != amul->from)
         strcat(block, (usr + p)->name);
     else
         strcat(block, "you");
@@ -1322,7 +1322,7 @@ void
 dropall(int torm)
 {
     for (int i = 0; i < nouns && me2->numobj > 0; i++)
-        if (*(obtab + i)->rmlist == -(5 + Af))
+        if (*(obtab + i)->rmlist == -(5 + amul->from))
             adrop(i, torm);
     me2->numobj = 0;
 }
@@ -1342,7 +1342,7 @@ invent(int plyr)
     int j = 0;
     int pr = -(5 + plyr);
     for (int i = 0; i < nouns; i++, objtab++)
-        if (*objtab->rmlist == pr && canSeeObject(i, Af)) {
+        if (*objtab->rmlist == pr && canSeeObject(i, amul->from)) {
             if (j++ != 0)
                 strcat(p, ", ");
             strcat(p, objtab->id);
@@ -1388,7 +1388,7 @@ ascore(int type)
         /*== Current weapon */
         if (me2->wield != -1)
             txs("Currently wielding: %s.\n", (obtab + me2->wield)->id);
-        show_tasks(Af);
+        show_tasks(amul->from);
     } else {
         txs("Score: @sc. ", ow);
         sprintf(block, "Strength: @sr/%ld. Stamina: @st/%ld. Dexterity: %ld/%ld. Magic: @mg/%ld\n",
@@ -1432,7 +1432,7 @@ toprank()
             me->tasks = me->tasks | (1 << ((rktab + i)->tasks - 1));
         }
     }
-    aadd((rktab + ranks - 1)->score - me->score + 1, STSCORE, Af);
+    aadd((rktab + ranks - 1)->score - me->score + 1, STSCORE, amul->from);
 }
 
 void

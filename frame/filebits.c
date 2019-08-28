@@ -99,20 +99,20 @@ SendIt(int t, int d, char *p)
 {
     if (link == 0)
         return;
-    AMt = t;
-    AMd = d;
-    AMp = p;
+    amanp->type = t;
+    amanp->data = d;
+    amanp->ptr = p;
     PutMsg(port, (struct Message *)amanp);
     WaitPort(amanrep);
     GetMsg(amanrep);
-    Af = AMf;
-    Ad = AMd;
-    Ap = AMp;
-    At = AMt;
-    Ap1 = Apx1;
-    Ap2 = Apx2;
-    Ap3 = Apx3;
-    Ap4 = Apx4;
+    amul->from = amanp->from;
+    amul->data = amanp->data;
+    amul->ptr = amanp->ptr;
+    amul->type = amanp->type;
+    amul->p1 = amanp->p1;
+    amul->p2 = amanp->p2;
+    amul->p3 = amanp->p3;
+    amul->p4 = amanp->p4;
 }
 
 void

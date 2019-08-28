@@ -11,63 +11,63 @@ reset()
            &minsgo, &mobs, &rscale, &tscale, &mobchars);
 
     SendIt(MDATAREQ, 1, NULL); /* Get rooms data */
-    rooms = Ad;
-    rmtab = (struct room *)Ap;
-    rescnt = (short *)Ap1;
+    rooms = amul->data;
+    rmtab = (struct room *)amul->ptr;
+    rescnt = (short *)amul->p1;
 
     SendIt(MDATAREQ, 2, NULL); /* Get ranks data */
-    ranks = Ad;
-    rktab = (struct rank *)Ap;
+    ranks = amul->data;
+    rktab = (struct rank *)amul->ptr;
 
     SendIt(MDATAREQ, 3, NULL); /* Get object headers */
-    nouns = Ad;
-    obtab = (struct obj *)Ap;
+    nouns = amul->data;
+    obtab = (struct obj *)amul->ptr;
 
     SendIt(MDATAREQ, 4, NULL); /* Get verbs */
-    verbs = Ad;
-    vbtab = (struct verb *)Ap;
+    verbs = amul->data;
+    vbtab = (struct verb *)amul->ptr;
 
     SendIt(MDATAREQ, 5, NULL); /* Get descriptions */
-    desctab = Ap;
+    desctab = amul->ptr;
 
     SendIt(MDATAREQ, 6, NULL); /* Get room table data */
-    ormtab = (long)Ap;
+    ormtab = (long)amul->ptr;
 
     SendIt(MDATAREQ, 7, NULL); /* Get states! */
-    statab = (struct state *)Ap;
+    statab = (struct state *)amul->ptr;
 
     SendIt(MDATAREQ, 8, NULL); /* Get adjectives */
-    adtab = Ap;
+    adtab = amul->ptr;
 
     SendIt(MDATAREQ, 9, NULL); /* Get travel table */
-    ttp = (struct tt *)Ap;
+    ttp = (struct tt *)amul->ptr;
 
     SendIt(MDATAREQ, 10, NULL); /* Get UMsg Indexes */
-    umsgip = (long *)Ap;
+    umsgip = (long *)amul->ptr;
 
     SendIt(MDATAREQ, 11, NULL); /* Get UMsg Text */
-    umsgp = Ap;
+    umsgp = amul->ptr;
 
     SendIt(MDATAREQ, 12, NULL); /* Get TT Params */
-    ttpp = (long *)Ap;
+    ttpp = (long *)amul->ptr;
 
     SendIt(MDATAREQ, 13, NULL); /* Get roomcount table */
-    rctab = (short *)Ap;
+    rctab = (short *)amul->ptr;
 
     SendIt(MDATAREQ, 14, NULL); /* Get slot table */
-    slottab = (struct vbslot *)Ap;
+    slottab = (struct vbslot *)amul->ptr;
 
     SendIt(MDATAREQ, 15, NULL); /* Get vt table */
-    vtp = (struct vt *)Ap;
+    vtp = (struct vt *)amul->ptr;
 
     SendIt(MDATAREQ, 16, NULL); /* Get vtp table */
-    vtpp = (long *)Ap;
+    vtpp = (long *)amul->ptr;
 
     SendIt(MDATAREQ, 17, NULL); /* Get syn data */
-    synp = Ap;
-    synip = (short int *)Ad;
+    synp = amul->ptr;
+    synip = (short int *)amul->data;
 
     SendIt(MDATAREQ, 18, NULL); /* Get last reset & create times */
-    lastres = Ap;
-    lastcrt = (char *)Ad;
+    lastres = amul->ptr;
+    lastcrt = (char *)amul->data;
 }

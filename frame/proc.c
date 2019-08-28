@@ -130,12 +130,12 @@ act(long ac, long *pt)
                 utx(TP1, AP2);
             }
             break;
-        case AADDVAL: aadd(scaled(State(TP1)->value, State(TP1)->flags), STSCORE, Af); break;
-        case AGET: agive(TP1, Af); break;
+        case AADDVAL: aadd(scaled(State(TP1)->value, State(TP1)->flags), STSCORE, amul->from); break;
+        case AGET: agive(TP1, amul->from); break;
         case ADROP: adrop(TP1, me2->room); break;
         case AINVENT:
             strcpy(block, "You are ");
-            invent(Af);
+            invent(amul->from);
             break;
         case AGIVE: agive(TP1, TP2); break;
         case AINFLICT: inflict(TP1, TP2); break;
@@ -161,7 +161,7 @@ act(long ac, long *pt)
         case AFORCE: aforce(TP1, TP2); break;
         case AHELP:
             me2->helping = TP1;
-            (linestat + TP1)->helped = Af;
+            (linestat + TP1)->helped = amul->from;
             break;
         case ASTOPHELP:
             (linestat + me2->helping)->helped = -1;
@@ -192,7 +192,7 @@ act(long ac, long *pt)
             break;
         case AEXITS: exits(); break;
         case ATASK: me->tasks = me->tasks | (1 << (TP1 - 1)); break;
-        case ASHOWTASK: show_tasks(Af); break;
+        case ASHOWTASK: show_tasks(amul->from); break;
         case ASYNTAX:
             asyntax(*(tt.pptr + ncop[tt.condition]), *(tt.pptr + ncop[tt.condition] + 1));
             break;
@@ -258,16 +258,16 @@ act(long ac, long *pt)
         i = me2->light;
         me2->light = 0;
         Permit();
-        lighting(Af, AOTHERS);
+        lighting(amul->from, AOTHERS);
         StopFollow();
         me2->room = ac;
         me2->light = i;
         me2->hadlight = 0;
-        lighting(Af, AOTHERS);
+        lighting(amul->from, AOTHERS);
         if (isVisible())
             action(me2->arr, AOTHERS);
         me2->flags = me2->flags & -(1 + PFMOVING);
-        if (me2->followed > -1 && me2->followed != Af && (!IamINVIS) && (!IamSINVIS)) {
+        if (me2->followed > -1 && me2->followed != amul->from && (!IamINVIS) && (!IamSINVIS)) {
             /* If we didn't just execute a travel verb, we've lost them.
                If the other player hasn't caught up with us, lose them! */
             if (((vbtab + overb)->flags & VB_TRAVEL) || (linestat + me2->followed)->room != lroom ||
@@ -371,7 +371,7 @@ cond(long n, int l)
         break;
     case CALONE:
         for (int i = 0; i < MAXU; i++)
-            if (((linestat + i)->room == me2->room) && i != Af)
+            if (((linestat + i)->room == me2->room) && i != amul->from)
                 ret = -1;
         break;
     case CINROOM:
@@ -425,12 +425,12 @@ cond(long n, int l)
         break;
     case CACTIVE:
         SendIt(MCHECKD, CP1, NULL);
-        if (Ad == -1)
+        if (amul->data == -1)
             ret = -1;
         break;
     case CTIMER:
         SendIt(MCHECKD, CP1, NULL);
-        if (Ad == -1 || !isValidNumber(Ap1, CP2))
+        if (amul->data == -1 || !isValidNumber(amul->p1, CP2))
             ret = -1;
         break;
     case CBURNS:
@@ -478,11 +478,11 @@ cond(long n, int l)
             ret = -1;
         break;
     case CCANSEE:
-        if (!canSee(Af, CP1))
+        if (!canSee(amul->from, CP1))
             ret = -1;
         break;
     case CVISIBLETO:
-        if (!canSee(CP1, Af))
+        if (!canSee(CP1, amul->from))
             ret = -1;
         break;
     case CNOUN1:
@@ -660,12 +660,12 @@ strip:
 
     if (tolower(*p) == 'm') {
         if (match("me", p) == NULL) {
-            word = Af;
+            word = amul->from;
             *s += 2;
             return WPLAYER;
         }
         if (match("myself", p) == NULL) {
-            word = Af;
+            word = amul->from;
             *s += 2;
             return WPLAYER;
         }
@@ -760,7 +760,7 @@ actual(unsigned long n)
         /* Replace with details of self */
         switch (n & (-1 - MEPRM)) {
         case LOCATE: return -1; /* Not implemented */
-        case SELF: return (int)Af;
+        case SELF: return (int)amul->from;
         case HERE: return (int)me2->room;
         case RANK: return (int)me->rank;
         case FRIEND: return (int)me2->helping;
@@ -779,7 +779,7 @@ actual(unsigned long n)
     return (int)n;
 }
 
-int
+const char*
 actptr(unsigned long n)
 {
     if (n == -1 || n == -2)
@@ -787,11 +787,11 @@ actptr(unsigned long n)
     if ((n & IWORD) == IWORD) {
         /* Replace with no. of a users word */
         switch (n & (-1 - IWORD)) {
-        case INOUN2: return (int)&"@n2\n";
-        default: return (int)&"@n1\n";
+        case INOUN2: return "@n2\n";
+        default: return "@n1\n";
         }
     }
-    return (int)umsgp + *(umsgip + n);
+    return umsgp + umsgip[n];
 }
 
 void
@@ -799,9 +799,9 @@ deduct(int plyr, int howmuch)
 {
     if (howmuch < 0)
         return;
-    if (plyr == Af) {
+    if (plyr == amul->from) {
         int amount = me->score * howmuch / 100;
-        asub(amount, STSCORE, Af);
+        asub(amount, STSCORE, amul->from);
     } else
         sendex(plyr, ADEDUCT, plyr, howmuch, 0, 0); /* Tell them to clear up! */
 }

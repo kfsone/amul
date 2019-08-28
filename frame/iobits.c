@@ -90,11 +90,11 @@ loopit:
         ReplyMsg((struct Message *)ap);
     else
         ReleaseMem(&ap);
-    lockusr(Af);
+    lockusr(amul->from);
     /* Any messages we receive should wake us up. */
 
     if (me2->flags & PFASLEEP) {
-        cure(Af, SSLEEP);
+        cure(amul->from, SSLEEP);
         sys(IWOKEN);
         i = 1;
     } else
@@ -157,18 +157,18 @@ lockusr(int u)
 {
     long t, d, p;
     do {
-        t = At;
-        d = Ad;
-        p = (long)Ap;
+        t = amul->type;
+        d = amul->data;
+        p = (long)amul->ptr;
         SendIt(MLOCK, u, NULL);
-        if (Ad != u && ip == 0) {
+        if (amul->data != u && ip == 0) {
             iocheck();
-            Ad = -1;
+            amul->data = -1;
         }
-    } while (Ad != u);
-    At = t;
-    Ad = d;
-    Ap = (char *)p;
+    } while (amul->data != u);
+    amul->type = t;
+    amul->data = d;
+    amul->ptr = (char *)p;
 }
 
 char *
@@ -370,12 +370,12 @@ interact(int msg, int n, int d)
         strcat((linestat + n)->buf, ow);
     if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
-    IAm.mn_Length = (UWORD)sizeof(*amul);
-    IAf = Af;
-    IAm.mn_Node.ln_Type = NT_MESSAGE;
-    IAm.mn_ReplyPort = repbk;
-    IAt = msg;
-    IAd = d;
+    intam->msg.mn_Length = (UWORD)sizeof(*amul);
+    intam->from = amul->from;
+    intam->msg.mn_Node.ln_Type = NT_MESSAGE;
+    intam->msg.mn_ReplyPort = repbk;
+    intam->type = msg;
+    intam->data = d;
     (linestat + n)->IOlock = -1;
     PutMsg((linestat + n)->rep, (struct Message *)intam);
 }
@@ -388,12 +388,12 @@ sendex(int n, int d, int p1, int p2, int p3, int p4)
     lockusr(n);
     if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
-    IAm.mn_Length = (UWORD)sizeof(*amul);
-    IAf = Af;
-    IAm.mn_Node.ln_Type = NT_MESSAGE;
-    IAm.mn_ReplyPort = repbk;
-    IAt = MEXECUTE;
-    IAd = -(1 + d);
+    intam->msg.mn_Length = (UWORD)sizeof(*amul);
+    intam->from = amul->from;
+    intam->msg.mn_Node.ln_Type = NT_MESSAGE;
+    intam->msg.mn_ReplyPort = repbk;
+    intam->type = MEXECUTE;
+    intam->data = -(1 + d);
     intam->p1 = p1;
     intam->p2 = p2;
     intam->p3 = p3;

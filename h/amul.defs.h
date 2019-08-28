@@ -406,49 +406,30 @@ enum AnnounceType {
 #define PFMOVING 0x02000    // If you are 'in transit'
 #define PFSINVIS 0x04000    // Player is Super Invis
 
-#define RDRC 0  // RC Mode
-#define RDVB 1  // Verbose mode
-#define RDBF 2  // Brief mode
+enum RoomDescMode {
+    RDRC,           // Room count mode (only describe on first visit)
+    RDVB,           // Verbose (always describe)
+    RDBF,           // Brief mode (only show short description)
+};
 
-#define TYPEV 0  // Brief mode
-#define TYPEB 1  // Verbose mode
+enum Verbosity {
+    TYPEV,          // Verbose
+    TYPEB,          // Brief
+};
 
-#define At amul->type
-#define Am amul->msg
-#define Af amul->from
-#define Ad amul->data
-#define Ap amul->ptr
-#define Ap1 amul->p1
-#define Ap2 amul->p2
-#define Ap3 amul->p3
-#define Ap4 amul->p4
+enum UserFlag {
+    ufANSI  =   0x01,   // Enable ANSI
+    ufCRLF  =   0x02,   // Add linefeeds
+    ufARDO  =   0x04,   // Auto redo (experimental readline type behavior)
+};
 
-#define AMt amanp->type
-#define AMm amanp->msg
-#define AMf amanp->from
-#define AMd amanp->data
-#define AMp amanp->ptr
-#define Apx1 amanp->p1
-#define Apx2 amanp->p2
-#define Apx3 amanp->p3
-#define Apx4 amanp->p4
-
-#define IAt intam->type
-#define IAm intam->msg
-#define IAf intam->from
-#define IAd intam->data
-#define IAp intam->ptr
-
-// -- User Flags --
-
-#define ufANSI 0x001  // ANSI bit
-#define ufCRLF 0x002  // Add LineFeeds
-#define ufARDO 0x004  // Auto Redo
-
-#define DLLEN 80       // Default line length
-#define DSLEN 24       // Default screen length
-#define DRCHAR '|'     // Default redo-char
-#define DFLAGS ufCRLF  // Default = cr/lf ON
+// Default user settings
+enum {
+    DLLEN = 80,         // Default line length
+    DSLEN = 24,         // Default screen length
+    DRCHAR = '|',       // Default redo chararacter,
+    DFLAGS = ufCRLF,    // Default = cr/lf ON
+};
 
 // -- Useful defines --
 
@@ -465,24 +446,25 @@ enum AnnounceType {
     Permit();                                                                                      \
     return
 
-#define CP1 actual(*(tt.pptr))
-#define CP2 actual(*(tt.pptr + 1))
-#define CP3 actual(*(tt.pptr + 2))
-#define CP4 actual(*(tt.pptr + 3))
-#define TP1 actual(*(tt.pptr + ncop[tt.condition]))
-#define TP2 actual(*(tt.pptr + ncop[tt.condition] + 1))
-#define TP3 actual(*(tt.pptr + ncop[tt.condition] + 2))
-#define TP4 actual(*(tt.pptr + ncop[tt.condition] + 3))
-#define AP1 (char *)actptr(*(tt.pptr + ncop[tt.condition]))
-#define AP2 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 1))
-#define AP3 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 2))
-#define AP4 (char *)actptr(*(tt.pptr + ncop[tt.condition] + 3))
+#define ConditionParam(n) actual(tt.pptr[(n)-1])
+#define CP1 ConditionParam(1)
+#define CP2 ConditionParam(2)
+#define CP3 ConditionParam(3)
+#define CP4 ConditionParam(4)
+#define TravelActionParam(n) actual(tt.pptr[ncop[tt.condition]+(n)-1])
+#define TP1 TravelActionParam(1)
+#define TP2 TravelActionParam(2)
+#define TP3 TravelActionParam(3)
+#define TP4 TravelActionParam(4)
+#define VerbActionParam(n) actual(tt.pptr[ncop[tt.condition]+(n)-1])
+#define AP1 VerbActionParam(1)
+#define AP2 VerbActionParam(2)
+#define AP3 VerbActionParam(3)
+#define AP4 VerbActionParam(4)
 #define STATE (objtab->states + (long)objtab->state)
 #define State(i) ((obtab + i)->states + (long)(obtab + i)->state)
 #define ItsState (it->states + (long)it->state)
 #define xLIGHT(x) (linestat + x)->light
 #define xHADLIGHT(x) (linestat + x)->hadlight
-
-#define acp (char *)actptr
 
 #endif

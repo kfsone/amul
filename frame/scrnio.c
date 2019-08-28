@@ -137,7 +137,7 @@ void
 utx(int n, char *s)
 {
     ioproc(s);
-    if (n == Af)
+    if (n == amul->from)
         tx(s);
     else
         interact(MMESSAGE, n, -1);

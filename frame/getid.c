@@ -128,7 +128,7 @@ getname()
             sys(NAME_USED);
             continue;
         }
-        if (i == WPLAYER && word != Af) {
+        if (i == WPLAYER && word != amul->from) {
             utx(word, acp(LOGINASME));
             strcpy(me->name, block);
             sys(ALREADYIN);

@@ -42,7 +42,7 @@ carrying(int obj)
 {
     if (me2->numobj == 0)
         return -1;
-    if (owner(obj) == Af)
+    if (owner(obj) == amul->from)
         return obj;
     return -1;
 }
@@ -50,7 +50,7 @@ carrying(int obj)
 bool
 nearto(int ob)
 {
-    if (!canSeeObject(ob, Af))
+    if (!canSeeObject(ob, amul->from))
         return false;
     if (isin(ob, me2->room))
         return true;

@@ -265,7 +265,7 @@ caloop:
                 case 1:
                     if (stptr->slot[j] == WNONE && inoun1 == WNONE)
                         break;
-                    if (stptr->wtype[j] == WPLAYER && inoun1 == Af && stptr->slot[j] == -3)
+                    if (stptr->wtype[j] == WPLAYER && inoun1 == amul->from && stptr->slot[j] == -3)
                         break;
                     if (stptr->wtype[j] == WTEXT &&
                         stricmp((char *)inoun1, umsgp + *(umsgip + stptr->slot[j])) == NULL)
@@ -287,7 +287,7 @@ caloop:
                 case 4:
                     if (stptr->slot[j] == WNONE && inoun2 == WNONE)
                         break;
-                    if (stptr->wtype[j] == WPLAYER && inoun2 == Af && stptr->slot[j] == -3)
+                    if (stptr->wtype[j] == WPLAYER && inoun2 == amul->from && stptr->slot[j] == -3)
                         break;
                     if (stptr->wtype[j] == WTEXT &&
                         stricmp((char *)inoun2, umsgp + *(umsgip + stptr->slot[j])) == NULL)

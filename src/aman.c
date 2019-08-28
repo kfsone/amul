@@ -257,18 +257,18 @@ kill()
 {
     sprintf(block, "!! (X) %s: shutdown request, from ", now());
     log(block);
-    if (Af != -1) {
-        sprintf(block, "line %ld.\n", Af + 1);
+    if (amul->from != -1) {
+        sprintf(block, "line %ld.\n", amul->from + 1);
         log(block);
     } else
         log("the void!\n");
     if (online != 0) {
         sprintf(block, "&&%25s: Request denied, %ld users on-line!\n", " ", online);
         log(block);
-        Ad = At = 'X';
+        amul->data = amul->type = 'X';
     } else {
         reset_users();
-        Ad = At = 'O';
+        amul->data = amul->type = 'O';
         resety = -1;
     }
 }
@@ -279,24 +279,24 @@ cnct()
 {
     int i;
 
-    Ad = (long)linestat;
-    Ap = (char *)usr;
-    if (Af >= MAXU) {
-        if (Af == MAXU + 1)
+    amul->data = (long)linestat;
+    amul->ptr = (char *)usr;
+    if (amul->from >= MAXU) {
+        if (amul->from == MAXU + 1)
             printf("** Mobile processor connected.\n");
-        if ((linestat + Af)->state != 0)
-            Af = -1;
+        if ((linestat + amul->from)->state != 0)
+            amul->from = -1;
         else
-            (linestat + Af)->state = PLAYING;
+            (linestat + amul->from)->state = PLAYING;
         return;
     }
-    Af = -1;
+    amul->from = -1;
 	// Allow for daemons & mobiles
     for (i = 0; i < MAXU; i++)
     {
         if ((linestat + i)->state != 0)
             continue;
-        Af = i;
+        amul->from = i;
         (linestat + i)->state = LOGGING;
         online++;
         calls++;
@@ -339,7 +339,7 @@ dkill(short int d)
 
     nextdaem = mins * 60;
     for (i = 1; i < daemons; i++) {
-        if (((d != -1 && globflg[i] == TRUE) || own[i] == Af) && (num[i] == d || d == -1))
+        if (((d != -1 && globflg[i] == TRUE) || own[i] == amul->from) && (num[i] == d || d == -1))
             pack(i);
         if (i != daemons && count[i] < nextdaem)
             nextdaem = count[i];
@@ -350,15 +350,15 @@ dkill(short int d)
 void
 start(char owner)
 {
-    /* Ad=#, p1=inoun1, p2=inoun2, p3=wtype[2], p4=wtype[5], Ap=count */
+    /* amul->data=#, p1=inoun1, p2=inoun2, p3=wtype[2], p4=wtype[5], amul->ptr=count */
 
-    val[daemons][0] = Ap1;
-    val[daemons][1] = Ap2;
-    typ[daemons][0] = Ap3;
-    typ[daemons][1] = Ap4;
+    val[daemons][0] = amul->p1;
+    val[daemons][1] = amul->p2;
+    typ[daemons][0] = amul->p3;
+    typ[daemons][1] = amul->p4;
     own[daemons] = owner;
-    count[daemons] = (short int)Ap;
-    num[daemons] = Ad;
+    count[daemons] = (short int)amul->ptr;
+    num[daemons] = amul->data;
     daemons++;
     if (count[daemons - 1] < nextdaem)
         nextdaem = count[daemons - 1];
@@ -377,7 +377,7 @@ void
 pstart()
 {
     globflg[daemons] = FALSE;
-    start(Af);
+    start(amul->from);
 }
 
 // Check if daemon is active
@@ -385,12 +385,12 @@ void
 check(int d)
 {
     int i;
-    Ad = -1;
-    Ap1 = -1;
+    amul->data = -1;
+    amul->p1 = -1;
     for (i = 1; i < daemons; i++)
-        if ((own[i] == Af || globflg[i] == TRUE) && num[i] == d) {
-            Ad = i;
-            Ap1 = count[i];
+        if ((own[i] == amul->from || globflg[i] == TRUE) && num[i] == d) {
+            amul->data = i;
+            amul->p1 = count[i];
             break;
         }
 }
@@ -399,103 +399,103 @@ check(int d)
 void
 discnct()
 {
-    if (Af < MAXU && (linestat + Af)->state == PLAYING) {
-        sprintf(block, "<- (%d) %s: user disconnected.\n", Af, now());
+    if (amul->from < MAXU && (linestat + amul->from)->state == PLAYING) {
+        sprintf(block, "<- (%d) %s: user disconnected.\n", amul->from, now());
         log(block);
     }
-    if (Af < MAXU)
+    if (amul->from < MAXU)
         online--;
-    (usr + Af)->name[0] = 0;
-    (linestat + Af)->room = -1;
-    (linestat + Af)->helping = -1;
-    (linestat + Af)->following = -1;
+    (usr + amul->from)->name[0] = 0;
+    (linestat + amul->from)->room = -1;
+    (linestat + amul->from)->helping = -1;
+    (linestat + amul->from)->following = -1;
     dkill(-1);
-    (linestat + Af)->state = 0;
-    Af = -1;
-    Ad = -1;
+    (linestat + amul->from)->state = 0;
+    amul->from = -1;
+    amul->data = -1;
 }
 
 // Sends pointers to database
 static void
 data()
 {
-    At = MDATAREQ;
-    switch (Ad) {
+    amul->type = MDATAREQ;
+    switch (amul->data) {
     case -1:
-        Ad = online;
-        Ap = (char *)usr;
-        Ap1 = calls;
-        Ap2 = (long)vername;
-        Ap3 = (long)adname;
-        Ap4 = (long)linestat;
+        amul->data = online;
+        amul->ptr = (char *)usr;
+        amul->p1 = calls;
+        amul->p2 = (long)vername;
+        amul->p3 = (long)adname;
+        amul->p4 = (long)linestat;
         break;
     case 0:
-        strcpy(Ap, dir);
+        strcpy(amul->ptr, dir);
         amul->p1 = count[0];
-        Ap1 = (long)&count[0];
+        amul->p1 = (long)&count[0];
         break;
     case 1:
-        Ad = rooms;
-        Ap = (char *)rmtab;
+        amul->data = rooms;
+        amul->ptr = (char *)rmtab;
         break;
     case 2:
-        Ad = ranks;
-        Ap = (char *)rktab;
+        amul->data = ranks;
+        amul->ptr = (char *)rktab;
         break;
     case 3:
-        Ad = nouns;
-        Ap = (char *)obtab;
+        amul->data = nouns;
+        amul->ptr = (char *)obtab;
         break;
     case 4:
-        Ad = verbs;
-        Ap = (char *)vbtab;
+        amul->data = verbs;
+        amul->ptr = (char *)vbtab;
         break;
     case 5:
-        Ap = (char *)desctab;
+        amul->ptr = (char *)desctab;
         break;
     case 6:
-        Ap = (char *)ormtab;
+        amul->ptr = (char *)ormtab;
         break;
     case 7:
-        Ap = (char *)statab;
+        amul->ptr = (char *)statab;
         break;
     case 8:
-        Ap = (char *)adtab;
+        amul->ptr = (char *)adtab;
         break;
     case 9:
-        Ap = (char *)ttp;
+        amul->ptr = (char *)ttp;
         break;
     case 10:
-        Ap = (char *)umsgip;
+        amul->ptr = (char *)umsgip;
         break;
     case 11:
-        Ap = (char *)umsgp;
+        amul->ptr = (char *)umsgp;
         break;
     case 12:
-        Ap = (char *)ttpp;
+        amul->ptr = (char *)ttpp;
         break;
     case 13:
-        Ap = (char *)rctab;
+        amul->ptr = (char *)rctab;
         break;
     case 14:
-        Ap = (char *)slottab;
+        amul->ptr = (char *)slottab;
         break;
     case 15:
-        Ap = (char *)vtp;
+        amul->ptr = (char *)vtp;
         break;
     case 16:
-        Ap = (char *)vtpp;
+        amul->ptr = (char *)vtpp;
         break;
     case 17:
-        Ap = (char *)synp;
-        Ad = (long)synip;
+        amul->ptr = (char *)synp;
+        amul->data = (long)synip;
         break;
     case 18:
-        Ap = lastres;
-        Ad = (long)lastcrt;
+        amul->ptr = lastres;
+        amul->data = (long)lastcrt;
         break;
     default:
-        Ap = (char *)-1;
+        amul->ptr = (char *)-1;
     }
 }
 
@@ -503,8 +503,8 @@ data()
 static void
 login()
 {
-    sprintf(block, "-> (%d) %s: \"%s\" logged in.\n", Af, now(), (usr + Af)->name);
-    (linestat + Af)->state = PLAYING;
+    sprintf(block, "-> (%d) %s: \"%s\" logged in.\n", amul->from, now(), (usr + amul->from)->name);
+    (linestat + amul->from)->state = PLAYING;
     log(block);
 }
 
@@ -522,17 +522,17 @@ asend(int type, int data)
         DeletePort(reply);
         return;
     }
-    At = type;
-    Ad = data;
-    Af = -1;
-    Am.mn_Node.ln_Type = NT_MESSAGE;
-    Am.mn_ReplyPort = reply;
-    Am.mn_Length = (UWORD)sizeof(*amul);
+    amul->type = type;
+    amul->data = data;
+    amul->from = -1;
+    amul->msg.mn_Node.ln_Type = NT_MESSAGE;
+    amul->msg.mn_ReplyPort = reply;
+    amul->msg.mn_Length = (UWORD)sizeof(*amul);
     PutMsg(port, amul);
     WaitPort(reply);
     GetMsg((struct MsgPort *)reply);
     if (quiet == 0)
-        switch (Ad) {
+        switch (amul->data) {
         case 'R':
             printf("\x07*-- Reset Invoked --*\n\n");
             break;
@@ -545,16 +545,16 @@ asend(int type, int data)
         case 'U':
             printf("AMAN error at other end!\n");
         case -'X':
-            printf("... Reset set for %ld seconds ...\n", Ap1);
+            printf("... Reset set for %ld seconds ...\n", amul->p1);
             break;
         case -'R':
             printf("... Reset in progress ...\n");
             break;
         case 'E':
-            printf("... Game extended by %ld seconds ...\n", Ap1);
+            printf("... Game extended by %ld seconds ...\n", amul->p1);
             break;
         default:
-            printf("** Internal AMUL error ** (Returned '%c')\n", Ad);
+            printf("** Internal AMUL error ** (Returned '%c')\n", amul->data);
             break;
         }
     ReleaseMem(&amul);
@@ -580,15 +580,15 @@ static void
 rest()
 {
     forcereset = 1;
-    if (Ad > 0) {
-        Ap1 = Ad;
-        count[0] = Ad + 1;
-        sprintf(block, "** System reset invoked - %ld seconds remaining...\n", Ad);
+    if (amul->data > 0) {
+        amul->p1 = amul->data;
+        count[0] = amul->data + 1;
+        sprintf(block, "** System reset invoked - %ld seconds remaining...\n", amul->data);
         warn(block);
-        Ad = At = -'X';
+        amul->data = amul->type = -'X';
         return;
     }
-    Ad = At = 'R';
+    amul->data = amul->type = 'R';
     count[0] = 1;
 }
 
@@ -598,7 +598,7 @@ extend(short int tics)
 {
     short int newtime;
 
-    Ad = At = 'U';
+    amul->data = amul->type = 'U';
     if (tics == 0)
         return;
 
@@ -609,9 +609,9 @@ extend(short int tics)
     else
         sprintf(block, "...Reset postponed - it will now occur in %ld %s...\n", newtime, "seconds");
     warn(block);
-    Ap1 = tics;
+    amul->p1 = tics;
     count[0] = newtime;
-    Ad = 'E';
+    amul->data = 'E';
 }
 
 // Reset <receiver>
@@ -620,7 +620,7 @@ res()
 {
     int onwas;
     sprintf(block, "][ (%c) %s: Reset requested! %ld user(s) online...\n",
-            (Af >= 0 && Af < 11) ? '0' + Af : '#', now(), online);
+            (amul->from >= 0 && amul->from < 11) ? '0' + amul->from : '#', now(), online);
     log(block);
     onwas = online;
     reset_users();
@@ -636,13 +636,13 @@ res()
 static void
 lock()
 {
-    bid[Af] = Ad;
-    if ((linestat + Ad)->IOlock != -1 || (busy[Ad] != 0 && Ad != Af && bid[Ad] != Af)) {
-        Ad = -1;
+    bid[amul->from] = amul->data;
+    if ((linestat + amul->data)->IOlock != -1 || (busy[amul->data] != 0 && amul->data != amul->from && bid[amul->data] != amul->from)) {
+        amul->data = -1;
         return;
     }
-    (linestat + Ad)->IOlock = Af;
-    bid[Af] = -1;
+    (linestat + amul->data)->IOlock = amul->from;
+    bid[amul->from] = -1;
 }
 
 // Log data to AMUL.Log
@@ -661,15 +661,15 @@ log(char *s)
 static void
 logwiz(int who)
 {
-    sprintf(block, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)!!!\n", Af + '0', now(),
-            (usr + Af)->name, (usr + Af)->rank + 1);
+    sprintf(block, "@@ ]%c[ %s: User \"%s\" achieved top rank (%ld)!!!\n", amul->from + '0', now(),
+            (usr + amul->from)->name, (usr + amul->from)->rank + 1);
     log(block);
 }
 
 static void
 logit(char *s)
 {
-    sprintf(block, "@@ (%c) %s: %s\n", Af + '0', now(), s);
+    sprintf(block, "@@ (%c) %s: %s\n", amul->from + '0', now(), s);
     log(block);
 }
 
@@ -927,7 +927,7 @@ kernel()
         }
         if ((amul = (struct Aport *)GetMsg((struct MsgPort *)port)) == NULL)
             continue;
-        switch (At) {
+        switch (amul->type) {
         case MKILL:
             kill();
             break;
@@ -950,36 +950,36 @@ kernel()
             lock();
             break;
         case MBUSY:
-            busy[Af] = 1;
+            busy[amul->from] = 1;
             break;
         case MFREE:
-            busy[Af] = 0;
+            busy[amul->from] = 0;
             break;
         case MDSTART:
             pstart();
             break; /* Priv. daemon */
         case MDCANCEL:
-            dkill(Ad);
+            dkill(amul->data);
             break;
         case MCHECKD:
-            check(Ad);
+            check(amul->data);
             break;
         case MMADEWIZ:
-            logwiz(Af);
+            logwiz(amul->from);
             break;
         case MLOG:
-            logit(Ap);
+            logit(amul->ptr);
             break;
         case MEXTEND:
-            extend(Ad);
+            extend(amul->data);
             forcereset = 0;
             break;
         case MGDSTART:
             gstart();
             break; /* Global daemon */
         default:
-            At = -1;
-            sprintf(block, "$$ (X) %s: *INVALID Message Type, %ld!*\n", now(), At);
+            amul->type = -1;
+            sprintf(block, "$$ (X) %s: *INVALID Message Type, %ld!*\n", now(), amul->type);
             log(block);
             break;
         }
@@ -989,7 +989,7 @@ kernel()
         goto readport;
     }
     while ((amul = (struct Aport *)GetMsg((struct MsgPort *)port)) != NULL) {
-        Ad = At = -'R';
+        amul->data = amul->type = -'R';
         ReplyMsg((struct Message *)amul);
     }
     AbortIO(&ResReq.tr_node);

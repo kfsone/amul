@@ -93,45 +93,45 @@ main(int argc, char *argv[])
         memfail("comms port");
     if ((amanp = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
-    Am.mn_Length = (UWORD)sizeof(*amul);
-    Am.mn_Node.ln_Type = NT_MESSAGE;
-    Am.mn_ReplyPort = amanrep;
+    amul->msg.mn_Length = (UWORD)sizeof(*amul);
+    amul->msg.mn_Node.ln_Type = NT_MESSAGE;
+    amul->msg.mn_ReplyPort = amanrep;
     switch (MyFlag) /* What type of line? */
     {
     case am_DAEM:
-        Af = MAXU;
+        amul->from = MAXU;
         break;
     case am_MOBS:
-        Af = MAXU + 1;
+        amul->from = MAXU + 1;
         break;
     }
     *amanp = *amul;
     link = 1;
     SendIt(MCNCT, -10, NULL); /* Go for a connection! */
-    linestat = (struct LS *)Ad;
-    me2 = linestat + Af;
-    me2->IOlock = Af;
+    linestat = (struct LS *)amul->data;
+    me2 = linestat + amul->from;
+    me2->IOlock = amul->from;
     ip = 0;
-    usr = (struct _PLAYER *)Ap;
-    me = usr + Af;
+    usr = (struct _PLAYER *)amul->ptr;
+    me = usr + amul->from;
     me2->rep = reply;
-    if (Ad == -'R') {
+    if (amul->data == -'R') {
         tx("\n...Reset In Progress...\n");
         Delay(40);
         quit();
     }
     reset(); /* Read in data files */
-    if (Af < 0) {
+    if (amul->from < 0) {
         sys(NOSLOTS);
         pressret();
         quit();
     }
     if (iosup == CUSSCREEN) {
-        sprintf(wtil, "%s   Line: %2d  ", vername, Af);
+        sprintf(wtil, "%s   Line: %2d  ", vername, amul->from);
         strcat(wtil, "Logging in!");
         SetWindowTitles(wG, wtil, wtil);
     }
-    me2->unum = Af;
+    me2->unum = amul->from;
     me2->sup = iosup;
     me2->buf = ob;
     *ob = 0;
@@ -142,11 +142,11 @@ main(int argc, char *argv[])
 
     /* Special processors go HERE: */
 
-    if (Af >= MAXU)
+    if (amul->from >= MAXU)
         Special_Proc();
 
     /* Clear room flags, and send scenario */
-    rset = (1 << Af);
+    rset = (1 << amul->from);
     rclr = -1 - rset;
     for (i = 0; i < rooms; i++)
         *(rctab + i) = (*(rctab + i) & rclr);
@@ -163,7 +163,7 @@ main(int argc, char *argv[])
     getid(); /*  GET USERS INFO */
 
     if (iosup == CUSSCREEN) {
-        sprintf(wtil, "%s   Line: %2d  ", vername, Af);
+        sprintf(wtil, "%s   Line: %2d  ", vername, amul->from);
         strcat(wtil, "Player: ");
         strcat(wtil, me->name);
         SetWindowTitles(wG, wtil, wtil);
@@ -296,14 +296,14 @@ adrop(int ob, int r)
 {
     objtab = obtab + ob;
     *objtab->rmlist = r;
-    rem_obj(Af, ob);
-    lighting(Af, AHERE);
+    rem_obj(amul->from, ob);
+    lighting(amul->from, AHERE);
 
     /* If the room IS a 'swamp', give em points */
     if ((rmtab + me2->room)->flags & SANCTRY) {
         /*== Only give points if player hasn't quit. */
         if (exeunt == 0)
-            aadd(scaled(STATE->value, STATE->flags), STSCORE, Af);
+            aadd(scaled(STATE->value, STATE->flags), STSCORE, amul->from);
         *objtab->rmlist = -1;
     }
 }

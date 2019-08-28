@@ -119,7 +119,7 @@ whohere()
         return;
     }
     for (int i = 0; i < MAXU; i++) {
-        if (i != Af && canSee(Af, i) && !((linestat + i)->flags & PFMOVING)) {
+        if (i != amul->from && canSee(amul->from, i) && !((linestat + i)->flags & PFMOVING)) {
             PutARankInto(str, i);
             sprintf(block, acp(ISHERE), (usr + i)->name, str);
             if (((linestat + i)->flags & PFSITTING) != 0)
@@ -155,7 +155,7 @@ awho(int type)
                 strcat(str, " the ");
                 PutARankInto(str + strlen(str), i);
                 strcat(str, acp(ISPLAYING));
-                if (i == Af)
+                if (i == amul->from)
                     strcat(str, " (you)");
                 if (isPINVIS(i))
                     strcat(str, ").\n");
@@ -169,7 +169,7 @@ awho(int type)
         for (int i = 0; i < MAXU; i++)
             if ((usr + i)->name[0] != 0 && (linestat + i)->state > 1 &&
                 (!((linestat + i)->flags & PFSINVIS))) {
-                if (i != Af) {
+                if (i != amul->from) {
                     if (j++ != 0)
                         strcat(str, ", ");
                     if (isPINVIS(i))
@@ -873,13 +873,13 @@ DoThis(int x, char *cmd, short int type)
     lockusr(x);
     if ((intam = (struct Aport *)AllocateMem(sizeof(*amul))) == NULL)
         memfail("comms port");
-    IAm.mn_Length = (UWORD)sizeof(*amul);
-    IAf = Af;
-    IAm.mn_Node.ln_Type = NT_MESSAGE;
-    IAm.mn_ReplyPort = repbk;
-    IAt = MFORCE;
-    IAd = type;
-    IAp = cmd;
+    intam->msg.mn_Length = (UWORD)sizeof(*amul);
+    intam->from = amul->from;
+    intam->msg.mn_Node.ln_Type = NT_MESSAGE;
+    intam->msg.mn_ReplyPort = repbk;
+    intam->type = MFORCE;
+    intam->data = type;
+    intam->ptr = cmd;
     PutMsg((linestat + x)->rep, (struct Message *)intam);
     (linestat + x)->IOlock = -1;
 }
@@ -912,7 +912,7 @@ StopFollow()
         return;
     }
     if ((linestat + me2->following)->state != PLAYING ||
-        (linestat + me2->following)->followed != Af) {
+        (linestat + me2->following)->followed != amul->from) {
         me2->following = -1;
         Permit();
         return;
@@ -1398,11 +1398,11 @@ awhere(int obj)
     bool found { false };
     for (int i = 0; i < nouns; i++) {
         if (stricmp((obtab + obj)->id, (obtab + i)->id) == NULL) {
-            if (!canSeeObject(i, Af))
+            if (!canSeeObject(i, amul->from))
                 continue;
             if (int j = owner(i); j != -1) {
                 if (lit((linestat + j)->room)) {
-                    if (j != Af) {
+                    if (j != amul->from) {
                         tx("You see ");
                         ans("1m");
                         tx((usr + j)->name);
@@ -1470,7 +1470,7 @@ osflag(int o, int flag)
 void
 setmxy(int Flags, int Them)
 {
-    if (Them == Af || canSee(Them, Af)) /* If he can see me */
+    if (Them == amul->from || canSee(Them, amul->from)) /* If he can see me */
     {
         ioproc("@me");
         strcpy(mxx, ow);
