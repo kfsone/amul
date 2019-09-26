@@ -8,8 +8,6 @@ std::string gameDir{};
 
 // File names
 const char *gameFile = "Data/GameData.amulo";
-const char *npcDataFile = "Data/npcd.amulo";
-const char *npcCmdFile = "Data/npcc.amulo";
 
 constexpr bool
 isSeparator(char ptr)

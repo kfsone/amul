@@ -24,7 +24,6 @@ thread_local prepid_t iprep;
 thread_local verbid_t lverb, ldir;
 thread_local roomid_t lroom;
 thread_local WType wtype[6];
-thread_local amulid_t word;
 thread_local amulid_t last_it;
 thread_local slotid_t actor, last_him, last_her; /* People we talked about */
 

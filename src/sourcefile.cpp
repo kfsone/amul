@@ -55,27 +55,28 @@ SourceFile::GetLineTerms() noexcept
     bool result = true;
     bool continuation = false;
     do {
-        auto cur = buffer.it();
+        // buffer cursor
+        auto bcur = buffer.it();
         if (buffer.Eof()) {
             result = false;
             break;
         }
         ++lineNo;
         auto end = buffer.ReadLine();
-        if (cur == end || end == nullptr) {
+        if (bcur == end || end == nullptr) {
             result = false;
             break;
         }
-        LogMore("reading: ", string_view{ cur, size_t(end - cur) });
+        LogMore("reading: ", string_view{ bcur, size_t(end - bcur) });
 
         continuation = false;
-        while (cur != end) {
-            if (*cur == ' ' || *cur == '\t') {
-                ++cur;
+        while (bcur != end) {
+            if (*bcur == ' ' || *bcur == '\t') {
+                ++bcur;
                 continue;
             }
-            const char *start = cur++;
-            if (*start == '+' && cur == end) {
+            const char *start = bcur++;
+            if (*start == '+' && bcur == end) {
                 continuation = true;
                 break;
             }
@@ -85,36 +86,36 @@ SourceFile::GetLineTerms() noexcept
             char startChar = *start;
             bool alterCase = false;
             if (!isQuote(*start)) {
-                while (cur != end && !isspace(*cur)) {
-                    if (*cur == '=' && isQuote(*(cur + 1))) {
-                        ++cur;
-                        startChar = *(cur++);
+                while (bcur != end && !isspace(*bcur)) {
+                    if (*bcur == '=' && isQuote(*(bcur + 1))) {
+                        ++bcur;
+                        startChar = *(bcur++);
                         break;
                     }
-                    alterCase = alterCase || (isalpha(*cur) && isupper(*cur));
-                    ++cur;
+                    alterCase = alterCase || (isalpha(*bcur) && isupper(*bcur));
+                    ++bcur;
                 }
             }
-            const size_t prefixLength = cur - start;
+            const size_t prefixLength = bcur - start;
             if (isQuote(startChar)) {
-                while (cur != end) {
-                    if (cur + 1 != end && (*cur == '\\' || *cur == startChar)) {
-                        if (*cur + 1 == startChar) {
-                            cur += 2;
+                while (bcur != end) {
+                    if (bcur + 1 != end && (*bcur == '\\' || *bcur == startChar)) {
+                        if (*bcur + 1 == startChar) {
+                            bcur += 2;
                             continue;
                         }
                     }
-                    if (*(cur++) == startChar)
+                    if (*(bcur++) == startChar)
                         break;
                 }
             }
             if (alterCase) {
-                alterations.emplace_back(start, cur - start);
+                alterations.emplace_back(start, bcur - start);
                 auto abegin = alterations.back().begin(), aend = alterations.back().begin() + prefixLength;
                 std::transform(abegin, aend, abegin, [](unsigned char c) { return std::tolower(c); });
                 line.emplace_back(alterations.back());
             } else {
-                line.emplace_back(start, cur - start);
+                line.emplace_back(start, bcur - start);
             }
         }
     } while (continuation || line.empty());

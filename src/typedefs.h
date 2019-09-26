@@ -25,6 +25,8 @@ using std::shared_ptr;
 using std::string_view;
 using std::unique_ptr;
 
+using namespace std::literals::string_view_literals;
+
 using amulid_t = intptr_t;  // so it can double as a pointer
 
 using adjid_t = amulid_t;

@@ -24,8 +24,9 @@ class FileParser
   public:
     FileParser(const std::string &filepath) : src(filepath) {}
 
-    static constexpr auto Error = [=](auto &&... args) {
-        LogError(src.filepath, ":", src.lineNo, ":", id, ": ", args...);
+    template<typename... Args>
+    auto Error(Args &&... args) {
+        LogError(src.filepath, ":", src.lineNo, ":", id, ": ", std::forward<Args>(args)...);
     };
 
     void Parse();

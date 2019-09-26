@@ -134,8 +134,8 @@ struct TravelLine : public VMLine {
 
 // NPC is the "live" representation of a runtime NPC
 struct NPC {
-    int16_t dmove;                        /* Move to when it dies	*/
-    char deadstate;                       /* State flags		*/
+    int16_t dmove{ WNONE };               /* Move to when it dies	*/
+    char deadstate{ WNONE };              /* State flags		*/
     char speed, travel, fight, act, wait; /* speed & %ages	*/
     char fear, attack;                    /* others		*/
     int8_t flags;                         /* -- none yet --	*/
@@ -150,9 +150,8 @@ struct NPC {
 };
 
 // NPCClass is the compile-time 'class' definition of an NPC
-struct NPCClass {
+struct NPCClass : public NPC {
     char id[IDL + 1]; /* Name of npc	*/
-    struct NPC npc;
 };
 
 // NPCStats is a component of runtime association of a npc with its controller.

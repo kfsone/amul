@@ -22,7 +22,5 @@ extern const char *syntaxes[NSYNTS];
 
 constexpr const char *managerPortName = "AMUL Server";
 extern const char *gameFile;
-extern const char *npcDataFile;
-extern const char *npcCmdFile;
 
 #endif

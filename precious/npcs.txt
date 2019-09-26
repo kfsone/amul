@@ -6,10 +6,10 @@
 
 ; -- Firstly we need to tell AMUL what you've called your verbs!
 
-fight=none			; Haven't defined it yet...
-flee=none			; That neither!
-travel=north northeast east southeast south southwest west northwest +
-       up down in out
+;fight=none			; Haven't defined it yet...
+;flee=none			; That neither!
+;travel=north northeast east southeast south southwest west northwest +
+;       up down in out
 
 
 ; -- First npc class... 'The Cat'
@@ -32,7 +32,7 @@ travel=north northeast east southeast south southwest west northwest +
 ; miss=		description when it misses you (ALWAYS)
 ; dies=		when the cat is killed
 
-!cat	dead=1 dmove=heaven
+npc=cat	dead=1 dmove=heaven
 ; will it tolerate this?
 	speed=10 travel=50 fight=0 act=40 wait=10 fear=0 attack=99 hitpower=0
 	arrive="A cute little cat slinks into a corner of the room."
@@ -50,7 +50,7 @@ commands:		; actions this npc can perform
 ;	ishere bowl do "lapmilk		; drink the milk
 
 
-!dog	dead=1 dmove=heaven
+npc=dog	dead=1 dmove=heaven
 	speed=9 travel=40 fight=5 act=40 wait=15 fear=50 attack=0 hitpower=5
 	arrive="A small, fat dog has just arrived."
 	depart="The dog jumps up and scampers off into the distance."

@@ -602,6 +602,7 @@ Game::Load()
     checkedLoad("verbs", fd, m_verbs, numVerbs);
     checkedLoad("syntax lines", fd, m_verbSlots, numVerbSlots);
     checkedLoad("language code", fd, m_vmLines, numVerbOps);
+    checkedLoad("npc classes", fd, m_npcClasses, numNPCClasses);
 
     close(fd);
 

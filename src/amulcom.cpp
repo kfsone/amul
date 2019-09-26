@@ -65,7 +65,6 @@ constexpr string_view compilerVersion{ AMULCOM_VSTRING };
 char Word[64]; /* For internal use only <grin>	*/
 int proc;      /* What we are processing	*/
 long wizstr;   /* Wizards strength		*/
-NPCClass npc, *npcp;
 
 char scratch[4096];  // scratch pad
 
@@ -266,19 +265,6 @@ getTidiedLineToScratch(FILE *fp)
     }
 }
 
-/* Return size of current file */
-long
-filesize()
-{
-    long now, s;
-
-    now = ftell(ifp);
-    fseek(ifp, 0, 2L);
-    s = ftell(ifp) - now;
-    fseek(ifp, now, 0L);
-    return s;
-}
-
 /* Check to see if s is a room flag */
 int
 isRoomFlag(string_view name)
@@ -361,8 +347,7 @@ checkRankLine(const char *p)
 }
 
 [[noreturn]] void
-stateInvalid(const Object &obj, const char *s)
-{
+stateInvalid(const Object &obj, const char *s) {
     LogFatal("Object #",
              g_game.numObjects + 1,
              ": ",
@@ -373,8 +358,7 @@ stateInvalid(const Object &obj, const char *s)
              scratch);
 }
 
-int
-getObjectDescriptionID(const char *text)
+int getObjectDescriptionID(const char *text)
 {
     if (stricmp(text, "none") == 0)
         return -2;
@@ -627,7 +611,9 @@ getTextString(string_view string)
         RemovePrefix(string, "msg=");
         RemovePrefix(string, "msgid=");
         error_t err = LookupTextString(string, &id);
-        if (err != 0 && err != ENOENT)
+        if (err == ENOENT)
+            id = WNONE;
+        else if (err != 0)
             LogFatal("Error looking up string '", string, "': ", err);
     }
     return id;
@@ -1079,45 +1065,6 @@ vbprob(const Verb &verb, const char *s, const char *s2)
     LogError("Verb: ", verb.id, " line: '", s2, "': ", s);
 }
 
-void
-npcMissing(const char *s)
-{
-    LogError("npc: ", npc.id, ": missing field: ", s);
-    skipParagraph();
-}
-
-/* Fetch npc message line */
-stringid_t
-getNpcMessage(const char *s)
-{
-    for (;;) {
-        char *p = getTidiedLineToScratch(ifp);
-        if (feof(ifp))
-            LogFatal("npc:", npc.id, ": Unexpected end of file");
-        if (*p == 0 || isEol(*p)) {
-            LogFatal("npc:", npc.id, ": Unexpected end of definition");
-        }
-        p = skipspc(p);
-        if (*p == 0 || isEol(*p) || isCommentChar(*p))
-            continue;
-
-        if (!canSkipLead(s, &p)) {
-            npcMissing(s);
-            return -1;
-        }
-        if (toupper(*p) == 'N') {
-            p = skipline(p);
-            return -2;
-        }
-        stringid_t n = getTextString(p, true);
-        p = skipline(p);
-        if (n == -1) {
-            LogError("npc:", npc.id, ": Invalid '", s, "' line");
-        }
-        return n;
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 
 // Process ROOMS.TXT
@@ -1381,8 +1328,10 @@ constexpr auto StateError = [](const SourceFile &src, const Object &obj, const a
     return false;
 };
 
-constexpr auto parseObjectStateAttribute =
-        []<typename T>(SourceFile & src, Object &obj, string_view prefix, T *into)
+/// TODO: constexpr lambda
+template<typename T>
+bool
+parseObjectStateAttribute(SourceFile &src, Object &obj, string_view prefix, T *into)
 {
     if (src.Eol()) {
         return StateError(src, obj, "Premature end of state line (expected ", prefix, " value)");
@@ -1447,8 +1396,7 @@ parseObjectState(SourceFile &src, Object &obj)
     state.description = getTextString(cur);
 
     while (!src.Eol()) {
-        std::string cur = std::string{ src.PopFront() };
-        StringLower(cur);
+        cur = src.PopFront();
         if (int flag = IsObjectStateFlag(cur); flag != WNONE) {
             state.flags |= bitset(flag);
         } else {
@@ -1550,7 +1498,7 @@ bool
 processObjectMob(const SourceFile &src, Object &obj, string_view cur)
 {
     for (int i = 0; i < int(g_game.numNPCClasses); i++) {
-        if (cur == npcp[i].id) {
+        if (cur == g_game.m_npcClasses[i].id) {
             obj.npc = i;
             return true;
         }
@@ -1667,8 +1615,7 @@ objs_proc(const std::string &filepath)
         if (!src.GetIDLine("object="))
             continue;
 
-        std::string id{ src.PopFront() };
-        StringLower(id);
+        auto id = src.PopFront();
 
         Object obj{};
         obj.adj = obj.npc = WNONE;
@@ -1680,7 +1627,7 @@ objs_proc(const std::string &filepath)
         obj.flags = 0;
         obj.putto = 0;
         obj.roomsOffset = g_game.m_objectLocations.size();
-        strncpy(obj.id, id.c_str(), sizeof(obj.id));
+        strncpy(obj.id, id.data(), std::min(sizeof(obj.id), id.size()));
 
         if (!processObjectFlags(src, obj)) {
             src.SkipBlock();
@@ -2525,139 +2472,179 @@ syn_proc(const std::string &filepath)
 
 /* Pass 1: Indexes npc names */
 
-void
-npc_proc(const std::string & /*filepath*/)
+constexpr auto NpcError = [](const SourceFile &src, const NPCClass &npc, const auto &... args) {
+    LogError(src.filepath, ":", src.lineNo, ":", npc.id, ": ", args...);
+    CheckErrorCount();
+    return false;
+};
+
+bool
+consumeNpcIDLine(SourceFile &src, NPCClass &npc)
 {
-    fopenw(npcDataFile);
-    if (!nextc(false))
-        return;
+    auto id = src.PopFront();
+    strncpy(npc.id, id.data(), std::min(sizeof(npc.id), id.length()));
 
-    // "npc" is the npc entity
-    // "npcp" is a pointer to the runtime portion
-    NPC *npcd = &npc.npc;
-
-    while (!feof(ifp) && nextc(false)) {
-        CheckErrorCount();
-
-        char *p = getTidiedLineToScratch(ifp);
-        if (!p || *p != '!')
-            continue;
-
-        // skip the '!'
-        p = getword(p + 1);
-        new (&npc) NPCClass{};
-        strcpy(npc.id, Word);
-
-        for (;;) {
-            p = skipspc(p);
-            if (!*p)
-                break;
-
-            if (canSkipLead("dead=", &p)) {
-                p = getword(p);
-                npcd->deadstate = atoi(Word);
+    while (!src.Eol()) {
+        auto flag = src.PopFront();
+        if (RemovePrefix(flag, "dead=")) {
+            if (npc.deadstate != WNONE) {
+                NpcError(src, npc, "Multiple dead= entries");
                 continue;
             }
-            if (canSkipLead("dmove=", &p)) {
-                p = getword(p);
-                npcd->dmove = isRoomName(Word);
-                if (npcd->dmove == -1) {
-                    LogError("Mobile:", npc.id, ": invalid dmove: ", Word);
-                }
+            int64_t state = WNONE;
+            if (!ToInt(flag, state) || state < 0 || state > 127) {
+                NpcError(src,
+                         npc,
+                         "Expected positive integer value between 0 and ",
+                         127,
+                         " for dead=, got ",
+                         flag);
                 continue;
             }
-        }
-
-        p = getTidiedLineToScratch(ifp);
-        if (!p)
-            LogFatal("npc:!", npc.id, ": unexpected end of file");
-
-        if (!canSkipLead("speed=", &p)) {
-            npcMissing("speed=");
+            npc.deadstate = char(state);
             continue;
         }
-        p = getword(p);
-        npcd->speed = atoi(Word);
-
-        if (!canSkipLead("travel=", &p)) {
-            npcMissing("travel=");
+        if (RemovePrefix(flag, "dmove=")) {
+            if (npc.dmove != WNONE) {
+                NpcError(src, npc, "Multiple dmove= entries");
+                continue;
+            }
+            if (npc.dmove = isRoomName(flag); npc.dmove == -1) {
+                NpcError(src, npc, "Unrecognized room after dmove=: ", flag);
+                continue;
+            }
             continue;
         }
-        p = getword(p);
-        npcd->travel = atoi(Word);
-
-        if (!canSkipLead("fight=", &p)) {
-            npcMissing("speed=");
-            continue;
-        }
-        p = getword(p);
-        npcd->fight = atoi(Word);
-
-        if (!canSkipLead("act=", &p)) {
-            npcMissing("act=");
-            continue;
-        }
-        p = getword(p);
-        npcd->act = atoi(Word);
-
-        if (!canSkipLead("wait=", &p)) {
-            npcMissing("wait=");
-            continue;
-        }
-        p = getword(p);
-        npcd->wait = atoi(Word);
-
-        if (npcd->travel + npcd->fight + npcd->act + npcd->wait != 100) {
-            LogError("Mobile:", npc.id, ": Travel+Fight+Act+Wait values not equal to 100%.");
-        }
-
-        if (!canSkipLead("fear=", &p)) {
-            npcMissing("fear=");
-            continue;
-        }
-        p = getword(p);
-        npcd->fear = atoi(Word);
-
-        if (!canSkipLead("attack=", &p)) {
-            npcMissing("attack=");
-            continue;
-        }
-        p = getword(p);
-        npcd->attack = atoi(Word);
-
-        if (!canSkipLead("hitpower=", &p)) {
-            npcMissing("hitpower=");
-            continue;
-        }
-        p = getword(p);
-        npcd->hitpower = atoi(Word);
-
-        if ((npcd->arr = getNpcMessage("arrive=")) == -1)
-            continue;
-        if ((npcd->dep = getNpcMessage("depart=")) == -1)
-            continue;
-        if ((npcd->flee = getNpcMessage("flee=")) == -1)
-            continue;
-        if ((npcd->hit = getNpcMessage("strike=")) == -1)
-            continue;
-        if ((npcd->miss = getNpcMessage("miss=")) == -1)
-            continue;
-        if ((npcd->death = getNpcMessage("dies=")) == -1)
-            continue;
-
-        checkedfwrite(ofp1, &npc, 1);
-        g_game.numNPCClasses++;
+        NpcError(src, npc, "Unrecognized NPC flag: ", flag);
     }
 
-    if (g_game.numNPCClasses != 0) {
-        npcp = (NPCClass *) AllocateMem(sizeof(npc) * g_game.numNPCClasses);
-        if (npcp == nullptr) {
-            LogFatal("Out of memory");
-        }
-        CloseOutFiles();
+    return true;
+}
 
-        fopenr(npcDataFile);
-        checkedfread(ifp, npcp, g_game.numNPCClasses);
+bool
+consumeNpcStatsLine(SourceFile &src, NPCClass &npc)
+{
+    constexpr auto getValue =
+            [](SourceFile &src, NPCClass &npc, string_view prefix, int max, auto &into) {
+                if (src.Eol()) {
+                    return NpcError(src, npc, "Premature end of line, expected ", prefix);
+                }
+                auto text = src.PopFront();
+                if (!RemovePrefix(text, prefix)) {
+                    return NpcError(src,
+                                    npc,
+                                    "Expected ",
+                                    prefix,
+                                    " (prefixes are not optional here), got: ",
+                                    text);
+                }
+                int64_t value{ 0 };
+                if (!ToInt(text, value) || value < 0 || value > max) {
+                    return NpcError(src,
+                                    npc,
+                                    "Error parsing ",
+                                    prefix,
+                                    ", expcted number between 0 and ",
+                                    max,
+                                    ", got: ",
+                                    text);
+                }
+                into = char(value);
+                return true;
+            };
+
+    if (!src.GetLineTerms()) {
+        return NpcError(src, npc, "Unexpected end of NPC");
+    }
+
+    if (!getValue(src, npc, "speed="sv, 127, npc.speed))
+        return false;
+
+    if (!getValue(src, npc, "travel=", 100, npc.travel))
+        return false;
+
+    if (!getValue(src, npc, "fight=", 100, npc.fight))
+        return false;
+    if (!getValue(src, npc, "act=", 100, npc.act))
+        return false;
+    if (!getValue(src, npc, "wait=", 100, npc.wait))
+        return false;
+    auto sum = int64_t(npc.travel) + int64_t(npc.fight) + int64_t(npc.act) + int64_t(npc.wait);
+    if (sum != 100) {
+        NpcError(src, npc, "Travel+Fight+Act+Wait values add up to ", sum, "%, must add to 100% ");
+        return false;
+    }
+
+    if (!getValue(src, npc, "fear=", 100, npc.fear))
+        return false;
+    if (!getValue(src, npc, "attack=", 100, npc.attack))
+        return false;
+    if (!getValue(src, npc, "hitpower=", 100, npc.hitpower))
+        return false;
+
+    return true;
+}
+
+bool
+/* Fetch npc message line */
+consumeNpcMessageLine(SourceFile &src, NPCClass &npc, string_view prefix, stringid_t &into)
+{
+    if (!src.GetLineTerms()) {
+        return NpcError(src, npc, "Unexpected end of NPC: Expected ", prefix);
+    }
+    auto value = src.PopFront();
+    if (!RemovePrefix(value, prefix)) {
+        return NpcError(
+                src, npc, "Expected ", prefix, "\"text\" or prefix=<msg id> (prefixes are not optional here), got: ", value);
+    }
+    if (value == "none") {
+        into = WNONE;
+        return true;
+    }
+    into = getTextString(value);
+    if (into == WNONE) {
+        return NpcError(src, npc, "UUnrecognized ", prefix, " message id: ", value);
+    }
+    return true;
+}
+
+void
+npc_proc(const std::string &filepath)
+{
+    SourceFile src{ filepath };
+    if (auto err = src.Open(); err != 0) {
+        LogFatal("Aborting due to file error: ", filepath, ": ", err);
+    }
+
+    while (!src.Eof()) {
+        CheckErrorCount();
+        if (!src.GetIDLine("npc="))
+            continue;
+
+        NPCClass npc{};
+        if (!consumeNpcIDLine(src, npc)) {
+            src.SkipBlock();
+            continue;
+        }
+        if (!consumeNpcStatsLine(src, npc)) {
+            src.SkipBlock();
+            continue;
+        }
+        if (!consumeNpcMessageLine(src, npc, "arrive=", npc.arr) ||
+            !consumeNpcMessageLine(src, npc, "depart=", npc.dep) ||
+            !consumeNpcMessageLine(src, npc, "flee=", npc.flee) ||
+            !consumeNpcMessageLine(src, npc, "strike=", npc.hit) ||
+            !consumeNpcMessageLine(src, npc, "miss=", npc.miss) ||
+            !consumeNpcMessageLine(src, npc, "dies=", npc.death)) {
+            src.SkipBlock();
+            continue;
+        }
+
+        LogWarn("///TODO: NPC Commands");
+        src.SkipBlock();
+
+        g_game.m_npcClasses.emplace_back(npc);
+        g_game.numNPCClasses++;
     }
 }
 
@@ -2705,13 +2692,13 @@ struct CompilePhase {
     { "sysmsg", false, smsg_proc },   // system messages
     { "umsg", false, umsg_proc },     // user-defined string messages
     { "obdescs", false, obds_proc },  // object description strings
-    { "rooms", true, room_proc },     // room table
+    { "rooms", false, room_proc },    // room table
     { "ranks", true, rank_proc },     // rank table
-    { "npcs", true, npc_proc },       // npc classes so we can apply to objects
-    { "objects", true, objs_proc },   // objects
+    { "npcs", false, npc_proc },      // npc classes so we can apply to objects
+    { "objects", false, objs_proc },  // objects
     { "lang", true, lang_proc },      // language
     { "travel", false, trav_proc },   // travel table
-    { "syns", true, syn_proc },       // synonyms for other things
+    { "syns", false, syn_proc },      // synonyms for other things
     { nullptr, false, nullptr }       // terminator
 };
 
@@ -2826,8 +2813,6 @@ compilerModuleClose(Module * /*module*/, error_t err)
         UnlinkGameFile(gameFile);
     }
 
-    ReleaseMem((void **) &npcp);
-
     return 0;
 }
 
@@ -2888,6 +2873,7 @@ Game::Save()
     checkedSave("verbs", m_verbs);
     checkedSave("syntax lines", m_verbSlots);
     checkedSave("language code", m_vmLines);
+    checkedSave("npc classes", m_npcClasses);
 
     CloseOutFiles();
 
