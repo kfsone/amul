@@ -36,7 +36,7 @@ struct SourceFile {
 
     void SkipBlock() noexcept
     {
-        while (!GetLine() && !line.empty() && !line.front().empty())
+        while (GetLine() && !line.empty() && !line.front().empty())
             ;
     }
 
