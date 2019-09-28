@@ -10,7 +10,7 @@
 SpinLock s_tablesLock{};
 SpinLock s_criticalSection{};
 
-using PortTable = std::map<string_view, MsgPortPtr>;
+using PortTable = std::map<std::string, MsgPortPtr>;
 using PortMap = std::map<MsgPort *, MsgPortPtr>;
 
 PortTable s_portTable;
@@ -19,7 +19,7 @@ PortMap s_portMap;
 CriticalSection::CriticalSection() noexcept : SpinGuard(s_criticalSection) {}
 
 MsgPortPtr
-FindPort(string_view portName) noexcept
+FindPort(std::string portName) noexcept
 {
     SpinGuard guard(s_tablesLock);
     auto it = s_portTable.find(portName);
@@ -33,7 +33,7 @@ FindPort(slotid_t slotId) noexcept
 }
 
 MsgPortPtr
-CreatePort(string_view portName)
+CreatePort(std::string portName)
 {
     SpinGuard guard(s_tablesLock);
 

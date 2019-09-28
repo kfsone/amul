@@ -170,7 +170,8 @@ void
 StartClient(WorkerType type, slotid_t slotId, void *context)
 {
     /// TODO: Find a slotId for this worker *before* we we trigger a thread.
-    auto clientReplyPort = CreatePort(std::to_string(slotId));
+    auto portName = std::to_string(slotId);
+    auto clientReplyPort = CreatePort(portName);
     if (clientReplyPort == nullptr)
         LogFatal("Unable to spin up worker's reply port");
     LogDebug(

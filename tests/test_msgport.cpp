@@ -8,7 +8,7 @@
 #include "msgports.h"
 #include "system.h"
 
-using PortTable = std::map<string_view, MsgPortPtr>;
+using PortTable = std::map<std::string, MsgPortPtr>;
 using PortMap = std::map<MsgPort *, MsgPortPtr>;
 
 extern PortTable s_portTable;
@@ -41,7 +41,7 @@ TEST(MsgPortTest, Test01_CreatePortNamed)
     EXPECT_TRUE(s_portTable.empty());
     EXPECT_TRUE(s_portMap.empty());
 
-    constexpr const string_view portName = "testing";
+    const std::string portName = "testing";
     auto port = CreatePort(portName);
     EXPECT_NE(port, nullptr);
     EXPECT_EQ(port->m_name, portName);
@@ -62,7 +62,7 @@ TEST(MsgPortTest, Test01_CreatePortNamed)
 
 TEST(MsgPortTest, Test02_DeletePort)
 {
-    constexpr const string_view portName = "test2";
+    const std::string portName = "test2";
 
     auto port1 = CreatePort("");
     EXPECT_NE(port1, nullptr);

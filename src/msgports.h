@@ -4,6 +4,7 @@
 #include <atomic>
 #include <list>
 #include <memory>
+#include <string>
 
 #include "amigastubs.h"
 #include "spinlock.h"
@@ -39,7 +40,7 @@ struct Message {
 struct MsgPort {
     using MsgList = std::list<MessagePtr>;
 
-    const string_view m_name{ "" };
+    const std::string m_name{ "" };
 
     /// TODO: Just using simple spinlocks for now
     SpinLock m_spinLock{};
@@ -48,7 +49,7 @@ struct MsgPort {
 
   public:
     MsgPort() = default;
-    MsgPort(string_view name) : m_name(name) {}
+    MsgPort(std::string name) : m_name(name) {}
     ~MsgPort() noexcept { Close(); }
 
     void Put(MessagePtr &&ptr);
@@ -61,8 +62,8 @@ struct MsgPort {
     void Close() noexcept;
 };
 
-MsgPortPtr CreatePort(string_view portName = "");
-MsgPortPtr FindPort(string_view portName) noexcept;
+MsgPortPtr CreatePort(std::string portName = "");
+MsgPortPtr FindPort(std::string portName) noexcept;
 MsgPortPtr FindPort(slotid_t slotId) noexcept;
 
 void ReplyMsg(MessagePtr &&msg);
