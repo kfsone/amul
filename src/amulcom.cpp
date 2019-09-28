@@ -669,8 +669,6 @@ user is referring too.							     */
 amulid_t
 actualval(string_view token, amulid_t n)
 {
-    int i;
-
     // you can prefix runtime-variable references with these characters to modify the
     // resulting value, e.g. choosing a random number based on your rank.
     /// TODO: replace with something akin to SQL aggregate functions.
@@ -686,7 +684,7 @@ actualval(string_view token, amulid_t n)
         if (front == '`')
             return RAND1 + atoi(token.data() + 1);
         // then it's a modifier: recurse and add our flags.
-        i = actualval(token.substr(1), PREAL);
+        auto i = actualval(token.substr(1), PREAL);
         if (i == WNONE)
             return WNONE;
         // The remaining prefixes can only be attached to properties of the player.
@@ -708,7 +706,7 @@ actualval(string_view token, amulid_t n)
     }
     if (!isalpha(front))
         return -2;
-    for (i = 0; i < NACTUALS; i++) {
+    for (int i = 0; i < int(NACTUALS); i++) {
         auto &cur = actual[i];
         if (cur.m_name != token)
             continue;
@@ -1338,8 +1336,8 @@ parseObjectStateAttribute(SourceFile &src, Object &obj, string_view prefix, T *i
     }
     auto cur = src.PopFront();
     int64_t value{ 0 };
-    auto result = std::from_chars(cur.data(), cur.data() + cur.size(), value);
-    if (value > std::numeric_limits<T>::max()) {
+    bool valid = ToInt(cur, value);
+    if (!valid || value > std::numeric_limits<T>::max()) {
         return StateError(src,
                           obj,
                           "Invalid attribute value: ",
@@ -2408,8 +2406,8 @@ lang_proc(const std::string & /*filepath*/)
 
 /* Routines to process/handle Synonyms */
 
-constexpr auto AliasError = [](const SourceFile &src, string_view actual, const auto &... args) {
-    LogError(src.filepath, ":", src.lineNo, ":", actual, ": ", args...);
+constexpr auto AliasError = [](const SourceFile &src, string_view original, const auto &... args) {
+    LogError(src.filepath, ":", src.lineNo, ":", original, ": ", args...);
     return false;
 };
 
@@ -2521,53 +2519,53 @@ consumeNpcIDLine(SourceFile &src, NPCClass &npc)
     return true;
 }
 
+constexpr auto getNpcStatValue =
+		[](SourceFile &src, NPCClass &npc, string_view prefix, int max, auto &into) {
+			if (src.Eol()) {
+				return NpcError(src, npc, "Premature end of line, expected ", prefix);
+			}
+			auto text = src.PopFront();
+			if (!RemovePrefix(text, prefix)) {
+				return NpcError(src,
+								npc,
+								"Expected ",
+								prefix,
+								" (prefixes are not optional here), got: ",
+								text);
+			}
+			int64_t value{ 0 };
+			if (!ToInt(text, value) || value < 0 || value > max) {
+				return NpcError(src,
+								npc,
+								"Error parsing ",
+								prefix,
+								", expcted number between 0 and ",
+								max,
+								", got: ",
+								text);
+			}
+			into = char(value);
+			return true;
+		};
+
 bool
 consumeNpcStatsLine(SourceFile &src, NPCClass &npc)
 {
-    constexpr auto getValue =
-            [](SourceFile &src, NPCClass &npc, string_view prefix, int max, auto &into) {
-                if (src.Eol()) {
-                    return NpcError(src, npc, "Premature end of line, expected ", prefix);
-                }
-                auto text = src.PopFront();
-                if (!RemovePrefix(text, prefix)) {
-                    return NpcError(src,
-                                    npc,
-                                    "Expected ",
-                                    prefix,
-                                    " (prefixes are not optional here), got: ",
-                                    text);
-                }
-                int64_t value{ 0 };
-                if (!ToInt(text, value) || value < 0 || value > max) {
-                    return NpcError(src,
-                                    npc,
-                                    "Error parsing ",
-                                    prefix,
-                                    ", expcted number between 0 and ",
-                                    max,
-                                    ", got: ",
-                                    text);
-                }
-                into = char(value);
-                return true;
-            };
-
     if (!src.GetLineTerms()) {
         return NpcError(src, npc, "Unexpected end of NPC");
     }
 
-    if (!getValue(src, npc, "speed="sv, 127, npc.speed))
+    if (!getNpcStatValue(src, npc, "speed="sv, 127, npc.speed))
         return false;
 
-    if (!getValue(src, npc, "travel=", 100, npc.travel))
+    if (!getNpcStatValue(src, npc, "travel=", 100, npc.travel))
         return false;
 
-    if (!getValue(src, npc, "fight=", 100, npc.fight))
+    if (!getNpcStatValue(src, npc, "fight=", 100, npc.fight))
         return false;
-    if (!getValue(src, npc, "act=", 100, npc.act))
+    if (!getNpcStatValue(src, npc, "act=", 100, npc.act))
         return false;
-    if (!getValue(src, npc, "wait=", 100, npc.wait))
+    if (!getNpcStatValue(src, npc, "wait=", 100, npc.wait))
         return false;
     auto sum = int64_t(npc.travel) + int64_t(npc.fight) + int64_t(npc.act) + int64_t(npc.wait);
     if (sum != 100) {
@@ -2575,11 +2573,11 @@ consumeNpcStatsLine(SourceFile &src, NPCClass &npc)
         return false;
     }
 
-    if (!getValue(src, npc, "fear=", 100, npc.fear))
+    if (!getNpcStatValue(src, npc, "fear=", 100, npc.fear))
         return false;
-    if (!getValue(src, npc, "attack=", 100, npc.attack))
+    if (!getNpcStatValue(src, npc, "attack=", 100, npc.attack))
         return false;
-    if (!getValue(src, npc, "hitpower=", 100, npc.hitpower))
+    if (!getNpcStatValue(src, npc, "hitpower=", 100, npc.hitpower))
         return false;
 
     return true;

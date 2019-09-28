@@ -76,6 +76,7 @@ MsgPingServer::Dispatch()
     LogInfo("Ping RX from ", m_sender);
 }
 
+#ifdef MESSAGE_CODE
 // Force users to log-out & kill extra lines
 static void
 reset_users()
@@ -85,12 +86,9 @@ reset_users()
         if (g_game.m_avatars[i].state <= 0)
             continue;
         online++;
-#ifdef MESSAGE_CODE
         auto msg = GetNewMessage(MCLOSEING, 0, t_managerPort);
         g_game.m_avatars[i].m_replyPort->Put(move(msg));
-#endif
     }
-#ifdef MESSAGE_CODE
     while (online > 0) {
         MessagePtr amsg{ t_managerPort->Wait() };
         am = amsg.get();
@@ -105,22 +103,20 @@ reset_users()
             online--;
         }
     }
-#endif
 
     for (;;) {
         MessagePtr amsg{ t_replyPort->Get() };
         am = amsg.get();
         if (!am)
             break;
-#ifdef MESSAGE_CODE
             /// TODO: Need to notify the client we're shutting down
-#endif
         ReplyMsg(move(amsg));
     }
     t_managerPort->Clear();
     t_replyPort->Clear();
     online = 0;
 }
+#endif
 
 template<typename... Args>
 void
@@ -139,16 +135,6 @@ warn(const char *fmt, Args... args)
 #endif
         }
     }
-}
-
-static slotid_t
-getFirstFreeSlot() noexcept
-{
-    for (slotid_t i = 0; i < MAXU; ++i) {
-        if (g_game.m_avatars[i].state != OFFLINE)
-            return i;
-    }
-    return -1;
 }
 
 // User connecting

@@ -369,7 +369,7 @@ PlayerLogin()
 #ifdef MESSAGE_CODE
     /* Inform AMAN that we have begun! */
     SendIt(MLOGGED, 0, t_character->name);
-    for (int i = g_game.numRanks - 1; i >= 0; i--)
+    for (int i = g_game.MaxRank(); i >= 0; i--)
         if (t_character->score >= GetRank(i).score) {
             t_character->rank = i;
             break;

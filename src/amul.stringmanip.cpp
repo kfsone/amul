@@ -423,21 +423,21 @@ SetMxxMxy(BroadcastType style, slotid_t slotid) noexcept
         case ACTION:
         case EVENT:
             strcpy(t_mxx, "Someone");
-            if (t_character->rank == g_game.numRanks - 1)
+            if (t_character->rank == g_game.MaxRank())
                 strcpy(t_mxy, "Someone very powerful");
             else
                 strcpy(t_mxy, "Someone");
             return;
         case TEXTS:
             strcpy(t_mxx, ProcessString("@me"));
-            if (t_character->rank == g_game.numRanks - 1)
+            if (t_character->rank == g_game.MaxRank())
                 strcpy(t_mxy, ProcessString("@me the @mr"));
             else
                 strcpy(t_mxy, t_mxx);
             return;
         case NOISE:
             strcpy(t_mxx, "Someone");
-            if (t_character->rank == g_game.numRanks - 1)
+            if (t_character->rank == g_game.MaxRank())
                 strcpy(t_mxy, ProcessString("A powerful @gn voice somewhere in the distance"));
             else
                 strcpy(t_mxy, ProcessString("A @gn voice in the distance"));

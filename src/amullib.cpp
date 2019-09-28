@@ -72,14 +72,14 @@ pair<size_t /*length*/, objid_t /*aliasTo*/>
 IsNounSynonym(const char *s) noexcept
 {
     return std::pair<size_t, objid_t>(findSynonym(
-            s, [](auto &syn) noexcept { return syn.type == SYN_NOUN; }));
+            s, [](const Synonym &syn) noexcept { return syn.type == SYN_NOUN; }));
 }
 
 pair<size_t /*length*/, verbid_t /*aliasTo*/>
 IsVerbSynonym(const char *s) noexcept
 {
     return std::pair<size_t, verbid_t>(findSynonym(
-            s, [](auto &syn) noexcept { return syn.type == SYN_VERB; }));
+            s, [](const Synonym &syn) noexcept { return syn.type == SYN_VERB; }));
 }
 
 verbid_t

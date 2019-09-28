@@ -117,8 +117,8 @@ strip:
         }
     }
 
-    if (skipNoiseWords(tokenWord, s))
-        goto strip;
+	if (skipNoiseWords(tokenWord, s))
+		goto strip;
 
 	constexpr auto returnPair = [](WType wt, amulid_t id) noexcept {
 		return id != WNONE ? make_pair(wt, id) : make_pair(WNONE, WNONE);

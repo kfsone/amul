@@ -117,7 +117,7 @@ npcMain(void * /*context*/)
 
     // Most npcs will probably want an easily accessible list of travel.
     std::vector<verbid_t> travelVerbs{};
-    for (verbid_t i = 0; i < g_game.numVerbs; ++i) {
+    for (verbid_t i = 0; i < verbid_t(g_game.numVerbs); ++i) {
         if (GetVerb(i).flags & VB_TRAVEL) {
             travelVerbs.push_back(i);
         }

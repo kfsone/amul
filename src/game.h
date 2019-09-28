@@ -55,6 +55,8 @@ struct GameConfig {
     size_t numSynonyms;      // Size of synonym table
     size_t numNPCs;          // Size of npc table
     size_t numNPCClasses;    // Size of npc persona table
+
+	constexpr rankid_t MaxRank() const noexcept { return rankid_t(numRanks - 1); }
 };
 
 struct Game final : public GameConfig {

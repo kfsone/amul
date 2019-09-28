@@ -189,7 +189,7 @@ PrintText(amulid_t id)
     }
 
     id = GetConcreteValue(id);
-    if (id == -1 || id == -2 || id > g_game.numStrings)
+    if (id == -1 || id == -2 || id > amulid_t(g_game.numStrings))
         return;
     auto text = GetString(id);
     Print(text);

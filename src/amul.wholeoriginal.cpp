@@ -163,7 +163,7 @@ scaled(long value, flag_t flags)
     auto timeAdjust = timeFactor * double(g_game.timeScale) / 100.;
 
     // The higher a player's rank, the less points they can get purely from items.
-    auto maxRank = double(g_game.numRanks - 1);
+    auto maxRank = double(g_game.MaxRank());
     auto rankFactor = double(t_character->rank) / maxRank;
     auto rankAdjust = rankFactor * double(g_game.rankScale) / 100.;
 
@@ -398,7 +398,7 @@ whohere()
     if (!lit(t_avatar->room))
         return;
     if ((GetRoom(t_avatar->room).flags & HIDE) == HIDE &&
-        t_character->rank != g_game.numRanks - 1) {
+        t_character->rank != g_game.MaxRank()) {
         Print(WHO_HIDE);
         return;
     }
@@ -842,7 +842,7 @@ void
 qcopy(char *dst, const char *src, size_t size) noexcept
 {
     CriticalSection cs{};
-    for (int i = 0; *src && i < size && *src != '\n'; i++)
+    for (size_t i = 0; *src && i < size && *src != '\n'; i++)
         *(dst++) = *(src++);
     *dst = 0;
 }
@@ -1009,7 +1009,7 @@ showin(objid_t objId, bool verbose)
         const roomid_t containerId = -(INS + objId);
         bool first{ true };
         int itemsLeft = object.inside;
-        for (int child = 0; child < g_game.numObjects && itemsLeft > 0; child++) {
+        for (objid_t child = 0; child < objid_t(g_game.numObjects) && itemsLeft > 0; child++) {
             if (!IsObjectIn(child, containerId))
                 continue;
             if (!first)
@@ -1153,7 +1153,7 @@ describe_room(roomid_t roomNo, RoomDescMode mode) noexcept
 {
     const auto &room = GetRoom(roomNo);
     Print(GetString(room.shortDesc));
-    if (t_character->rank == g_game.numRanks - 1)
+    if (t_character->rank == g_game.MaxRank())
         Printf(" (%s)", room.id);
     Printc('\n');
     if (room.longDesc != -1 && (mode == RDVB || !g_game.m_visited[t_slotId][roomNo])) {
@@ -1168,7 +1168,7 @@ void
 awhere(objid_t objId)
 {
     bool found{ false };
-    for (int i = 0; i < g_game.numObjects; i++) {
+    for (objid_t i = 0; i < objid_t(g_game.numObjects); i++) {
         if (stricmp(GetObject(objId).id, GetObject(i).id) == 0) {
             if (!canSeeObject(i, t_slotId))
                 continue;
@@ -1355,7 +1355,7 @@ look_here(roomid_t roomNo, RoomDescMode f)
         list_what(roomNo, false);
     }
 
-    if ((GetRoom(roomNo).flags & DEATH) && t_character->rank != g_game.numRanks - 1) {
+    if ((GetRoom(roomNo).flags & DEATH) && t_character->rank != g_game.MaxRank()) {
         if (dmove[0] == 0)
             strcpy(dmove, GetRoom(lroom).id);
         akillme();
@@ -1402,13 +1402,13 @@ list_what(roomid_t roomNo, bool visible)
     if (t_avatar->flags & PFBLIND)
         Print(YOURBLIND);
     const bool isHideaway = (GetRoom(roomNo).flags & HIDEWY);
-    const bool isTopRank = t_character->rank == g_game.numRanks - 1;
+    const bool isTopRank = t_character->rank == g_game.MaxRank();
     if (isHideaway && visible && !isTopRank) {
         Print(NOWTSPECIAL);  // Wizards can see in hideaways!
         return;
     }
     bool found{ false };
-    for (int o = 0; o < g_game.numObjects; o++)  // All objects
+    for (objid_t o = 0; o < objid_t(g_game.numObjects); o++)  // All objects
     {
         // Only let the right people see the object
         if (!canSeeObject(o, t_slotId))
@@ -1418,7 +1418,7 @@ list_what(roomid_t roomNo, bool visible)
             continue;
         if (!lit(t_avatar->room) && !(obj.flags & OF_SMELL))
             continue;
-        for (size_t orIdx = 0; orIdx < obj.nrooms; orIdx++) {
+        for (int orIdx = 0; orIdx < obj.nrooms; orIdx++) {
             if (obj.Room(orIdx) == roomNo && obj.State().description >= 0) {
                 found = true;
                 if (obj.flags & OF_INVIS)
@@ -1666,7 +1666,7 @@ newrank(slotid_t slotId, rankid_t newRankNo)
     t_character->experience += newRank.experience - oldRank.experience;
     t_character->magicpts = newRank.magicpts;
 
-    if (newRankNo == g_game.numRanks - 1) {
+    if (newRankNo == g_game.MaxRank()) {
         Print(TOPRANK);
 #ifdef MESSAGE_CODE
         SendIt(MMADEWIZ, 0, t_character->name);
@@ -1691,7 +1691,7 @@ asub(int howmuch, StatID stat, slotid_t plyr)
                 Ansify("1m");
                 PrintSlot(plyr, "(%ld)\n", t_character->score);
                 Ansify("0;37m");
-                for (int r = 0; r < g_game.numRanks - 1; r++) {
+                for (int r = 0; r < g_game.MaxRank(); r++) {
                     if (t_character->score >= GetRank(r + 1).score)
                         continue;
                     if (t_character->rank == r)
@@ -1757,7 +1757,7 @@ aadd(int howmuch, StatID stat, slotid_t plyr)
                 Ansify("1m");
                 PrintSlot(plyr, "(%d)\n", t_character->score);
                 Ansify("m");
-                for (int r = g_game.numRanks - 1; r >= 0; r--) {
+                for (int r = g_game.MaxRank(); r >= 0; r--) {
                     if (t_character->score >= GetRank(r).score) {
                         if (t_character->rank == r)
                             break;
@@ -2488,7 +2488,7 @@ look(roomid_t roomNo, RoomDescMode mode)
     }
     // If we're not showing you the brief description and you haven't
     // been here, then you are now considered as having visited it.
-    if (!RDBF && !visited)
+    if (mode != RDBF && !visited)
         g_game.m_visited[t_slotId][roomNo] = true;
 
     look_here(roomNo, mode);
@@ -2555,7 +2555,7 @@ lit(roomid_t roomNo)
             return true;
         }
     }
-    for (objid_t i = 0; i < g_game.numObjects; i++) {
+    for (objid_t i = 0; i < objid_t(g_game.numObjects); i++) {
         const auto &object = GetObject(i);
         if ((object.State().flags & SF_LIT) != SF_LIT)
             continue;
@@ -2695,7 +2695,7 @@ CanSee(slotid_t viewer, slotid_t subject) noexcept
     if (!lit(pROOM(viewer)))
         return false;
     // If you are in a 'hide' room and he isn't a wizard
-    if (pRANK(viewer) == g_game.numRanks - 1)
+    if (pRANK(viewer) == g_game.MaxRank())
         return true;
     if (GetRoom(pROOM(viewer)).flags & HIDE)
         return false;
@@ -2730,7 +2730,7 @@ castWillSucceed(int rnk, int points, int chance)
     }
 
     if (t_character->rank < rnk)
-        chance = ((t_character->rank) + 1 - rnk) * ((100 - chance) / (g_game.numRanks - rnk)) +
+        chance = ((t_character->rank) + 1 - rnk) * ((100 - chance) / rankid_t(g_game.numRanks - rnk)) +
                  chance;
     if (RandomInt(0, 100) < chance) {
         Print(SPELLFAIL);
@@ -2963,8 +2963,8 @@ l1:
     if (*p == 0)
         goto ended;
 
-    static constexpr auto tokenize = [](char *&p, WType &wt, auto &into) {
-        auto result = GetTokenType(&p);
+    static constexpr auto tokenize = [](char *&ptr, WType &wt, auto &into) {
+        auto result = GetTokenType(&ptr);
         wt = result.first, into = result.second;
     };
 
@@ -3278,7 +3278,6 @@ void
 ActionGoToRoom(roomid_t roomId)
 {
     auto &room = GetRoom(roomId);
-    bool flag{ false };
 
     t_needCR = false;
     if (t_follow)
@@ -3327,7 +3326,6 @@ ActionGoToRoom(roomid_t roomId)
             Action::LoseFollower();
         else {
             DoThis(t_avatar->followed, GetVerb(overb).id, 1);
-            flag = true;
         }
     } else
         t_avatar->followed = -1;
@@ -3827,7 +3825,7 @@ cond(const VMLine &line, bool lastResult)
             result = GetAvatar(CA1).room == t_avatar->room;
             break;
         case CTOPRANK:
-            result = t_character->rank == g_game.numRanks - 1;
+            result = t_character->rank == g_game.MaxRank();
             break;
         case CSOMEONEHAS:
             result = GetObject(CA1).IsOwned();

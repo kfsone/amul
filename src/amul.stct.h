@@ -87,7 +87,7 @@ struct Rank {
 
 // Object: State specific properties
 struct ObjState {
-    uint32_t weight{ 0 };    // In grammes
+    int32_t weight{ 0 };     // In grammes
     int32_t value{ 0 };      // Base points for dropping in a swamp
     uint16_t strength{ 0 };  // } Unclear: May be health of the item,
     uint16_t damage{ 0 };    // } damage it does or damage done to it
@@ -117,7 +117,7 @@ struct Object {
         size_t roomsOffset;
     };
 
-    roomid_t Room(size_t idx) const noexcept { return idx < nrooms ? rooms[idx] : -1; }
+    roomid_t Room(size_t idx) const noexcept { return idx < size_t(nrooms) ? rooms[idx] : -1; }
     slotid_t Owner() const noexcept;
     void SetOwner(slotid_t slot) noexcept;
     bool IsOwned() const noexcept;
