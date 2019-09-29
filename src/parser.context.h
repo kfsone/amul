@@ -2,15 +2,12 @@
 #ifndef AMUL_PARSER_CONTEXT_H
 #define AMUL_PARSER_CONTEXT_H
 
-#include <optional>
-#include <string_view>
-
-#include "typedefs.h"
 #include "parser.expression.h"
 #include "parser.token.h"
 #include "parser.wtype.h"
+#include "typedefs.h"
 
-namespace Parse
+namespace Parser
 {
 
 struct Context {
@@ -29,19 +26,19 @@ struct Context {
     Expression m_expression;
 
     // What was the previous command.
-    std::optional<verbid_t> m_lastVerb;
+    optional<verbid_t> m_lastVerb;
 
     // The parser actually needs to know this for certain contexts.
-    std::optional<roomid_t> m_previousRoom;
+    optional<roomid_t> m_previousRoom;
 
     // The last direction you travelled in so it can be exposed to the condition system,
     // and people can do things like make one-way passages.
     //  verb=east
     //    if lastdir is west then error "You can't turn around"
-    std::optional<verbid_t> m_lastDir;
+    optional<verbid_t> m_lastDir;
 };
 
-}
+}  // namespace Parser
 
 extern thread_local verbid_t iverb;
 extern thread_local verbid_t overb;
@@ -54,14 +51,14 @@ extern thread_local WType wtype[6];
 extern thread_local amulid_t last_it;
 extern thread_local slotid_t actor, last_him, last_her; /* People we talked about */
 
-extern thread_local bool failed;              // Current parse failed/aborted
-extern thread_local bool t_forced;            // current action was forced on us
-extern thread_local bool t_follow;            // current action is result of a follow
-extern thread_local char inc, died;           // For parsers use
-extern thread_local char autoexits;           // General flags
-extern thread_local short int donev, skip;    // No. of vb's/TT's done
+extern thread_local bool failed;            // Current parse failed/aborted
+extern thread_local bool t_forced;          // current action was forced on us
+extern thread_local bool t_follow;          // current action is result of a follow
+extern thread_local char inc, died;         // For parsers use
+extern thread_local char autoexits;         // General flags
+extern thread_local short int donev, skip;  // No. of vb's/TT's done
 extern thread_local char exeunt, more;
-extern thread_local long ml, donet;           // Maximum lines
+extern thread_local long ml, donet;  // Maximum lines
 
 pair<WType, amulid_t> GetTokenType(char **s);
 adjid_t IsAdjective(string_view name) noexcept;

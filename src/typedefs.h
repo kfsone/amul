@@ -8,6 +8,7 @@
 #include <cstdint>    // for sized types
 #include <cstdlib>    // for size_t
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <utility>
 
@@ -20,6 +21,7 @@ using std::make_pair;
 using std::make_shared;
 using std::make_unique;
 using std::move;
+using std::optional;
 using std::pair;
 using std::shared_ptr;
 using std::string_view;
@@ -42,10 +44,10 @@ using verbid_t = amulid_t;
 using vmopid_t = int32_t;
 
 using demonid_t = int64_t;
-using slotid_t = int32_t;		// identifies one of the login 'slot's
-using slotmask_t = uint64_t;	// Identifies players by their slot, by bit
+using slotid_t = int32_t;     // identifies one of the login 'slot's
+using slotmask_t = uint64_t;  // Identifies players by their slot, by bit
 
-using stat_t = int32_t;			// Character "stat" attributes
+using stat_t = int32_t;  // Character "stat" attributes
 
 #ifndef HAVE_ERROR_T
 using error_t = int;

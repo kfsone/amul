@@ -1,15 +1,15 @@
 #pragma once
+#ifndef AMUL_PARSER_EXPRESSION_H
+#define AMUL_PARSER_EXPRESSION_H
 
-#include <optional>
-
-#include "typedefs.h"
 #include "parser.token.h"
+#include "typedefs.h"
 
-namespace Parse
+namespace Parser
 {
 
 struct Term {
-    std::optional<adjid_t> m_adj;
+    optional<adjid_t> m_adj;
     Token m_token;
 };
 
@@ -18,4 +18,6 @@ struct Expression {
     Term m_terms[2];
 };
 
-}
+}  // namespace Parser
+
+#endif  // AMUL_PARSER_EXPRESSION_H

@@ -4,7 +4,6 @@
 
 #include <cctype>
 #include <iterator>
-#include <optional>
 
 #include "tokenstream.h"
 
@@ -37,7 +36,7 @@
 void
 TokenStream::Atomize()
 {
-    std::optional<size_t> comment {};
+    optional<size_t> comment {};
 
     do {
         const char *start = buffer.it();

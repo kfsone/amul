@@ -9,7 +9,7 @@ struct Demon {
     demonid_t m_id{ WNONE };
     slotid_t m_owner{ WNONE };  // Which connection owns this demon: replaces own[MAXD]
     time_t m_trigger{ 0 };   // Next event time: replaces count[MAXD]
-    Parse::Expression m_expression {};
+    Parser::Expression m_expression {};
 
   private:
     static demonid_t s_nextID;
@@ -19,7 +19,7 @@ struct Demon {
 
   public:
     Demon() = default;
-    Demon(demonid_t id, slotid_t owner, time_t trigger, Parse::Expression expression)
+    Demon(demonid_t id, slotid_t owner, time_t trigger, Parser::Expression expression)
         : m_id{ id }, m_owner{ owner }, m_trigger{ trigger }, m_expression{ expression }
     {
     }
@@ -30,7 +30,7 @@ struct Demon {
     constexpr bool IsGlobal() const { return m_owner == GlobalOwner; }
 
     static demonid_t
-    Start(slotid_t owner, time_t seconds, Parse::Expression expression);
+    Start(slotid_t owner, time_t seconds, Parser::Expression expression);
     static void Kill(slotid_t owner, verbid_t action);
 };
 

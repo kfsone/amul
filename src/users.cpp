@@ -3,9 +3,7 @@
 #include "users.h"
 
 #include <cstring>
-#include <optional>
 #include <string>
-using namespace std::string_literals;
 
 #include "amul.defs.h"
 #include "amul.msgs.h"
@@ -42,13 +40,14 @@ LoadPlayers(string_view filepath)
     return 0;
 }
 
-std::optional<const Character *>
+optional<const Character *>
 lookupPlayer(std::string name)
 {
     SpinGuard lock(s_characterListLock);
     /// ISSUE: Need a lock to look this up, you should need a ref count on the entry.
-    auto it = g_game.m_characterIndex.find(name);
-    return (it != g_game.m_characterIndex.cend()) ? &(it->second) : std::optional<Character *>();
+    if (auto it = g_game.m_characterIndex.find(name); it != g_game.m_characterIndex.cend())
+        return &(it->second);
+    return {};
 }
 
 void

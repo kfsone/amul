@@ -2832,7 +2832,7 @@ actionSuperGo(roomid_t roomId)
         action(GetString(SGOAPPEAR), AOTHERS);
 }
 
-std::optional<bool>
+optional<bool>
 parseSuperGo(string_view text)
 {
     if (text.front() == '*' && t_character->rank >= g_game.superGoRank) {
@@ -2850,15 +2850,15 @@ parseSuperGo(string_view text)
         Action::FailParse();
         return false;
     }
-    return std::optional<bool>{};
+    return {};
 }
 
-std::optional<bool>
+optional<bool>
 parseSpeech(string_view text)
 {
     const char quote = text.front();
     if (quote != '\"' && quote != '\'') {
-        return std::optional<bool>{};
+        return {};
     }
 
     // Ignore an empty string.

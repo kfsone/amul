@@ -178,7 +178,7 @@ MsgConnectClient::Dispatch()
 }
 
 demonid_t
-Demon::Start(slotid_t owner, time_t seconds, Parse::Expression expression)
+Demon::Start(slotid_t owner, time_t seconds, Parser::Expression expression)
 {
     const demonid_t id = s_nextID++;
     const time_t trigger = time(nullptr) + seconds;

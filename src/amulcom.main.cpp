@@ -348,7 +348,8 @@ checkRankLine(const char *p)
 }
 
 [[noreturn]] void
-stateInvalid(const Object &obj, const char *s) {
+stateInvalid(const Object &obj, const char *s)
+{
     LogFatal("Object #",
              g_game.numObjects + 1,
              ": ",
@@ -359,7 +360,8 @@ stateInvalid(const Object &obj, const char *s) {
              scratch);
 }
 
-int getObjectDescriptionID(const char *text)
+int
+getObjectDescriptionID(const char *text)
 {
     if (stricmp(text, "none") == 0)
         return -2;
@@ -507,96 +509,94 @@ skipOptionalPrefixes(char *p)
 }
 
 int
-isgen(char c)
+parseGender(string_view token) noexcept
 {
-    if (c == 'M')
-        return 0;
-    if (c == 'F')
-        return 1;
-    return -1;
+    if (!token.empty()) {
+        switch (token.front()) {
+            case 'm':
+                return 0;
+            case 'f':
+                return 1;
+        }
+    }
+    return WNONE;
 }
-
-constexpr std::array<string_view, MAX_ANNOUNCE_TYPE> announceTypes{ "global", "everyone", "outside",
-                                                                    "here",   "others",   "all",
-                                                                    "cansee", "notsee" };
 
 int
 announceType(string_view typeName)
 {
+    constexpr std::array<string_view, MAX_ANNOUNCE_TYPE> announceTypes{
+        "global", "everyone", "outside", "here", "others", "all", "cansee", "notsee"
+    };
+
     auto it = std::find(announceTypes.begin(), announceTypes.end(), typeName);
     if (it != announceTypes.end()) {
         return std::distance(announceTypes.begin(), it);
     }
+
     LogError("Invalid announcement target: ", typeName);
     return WNONE;
 }
 
 int
-rdmode(char c)
+rdmode(string_view token)
 {
-    if (c == 'R')
-        return RDRC;
-    if (c == 'V')
-        return RDVB;
-    if (c == 'B')
-        return RDBF;
+    if (!token.empty()) {
+        switch (token.front()) {
+            case 'r':
+                return RDRC;
+            case 'v':
+                return RDVB;
+            case 'b':
+                return RDBF;
+        }
+    }
     return WNONE;
 }
 
 int
-spell(string_view spellName)
+parseSpellName(string_view spellName) noexcept
 {
-    if (spellName == "glow")
-        return SGLOW;
-    if (spellName == "invis")
-        return SINVIS;
-    if (spellName == "deaf")
-        return SDEAF;
-    if (spellName == "dumb")
-        return SDUMB;
-    if (spellName == "blind")
-        return SBLIND;
-    if (spellName == "cripple")
-        return SCRIPPLE;
-    if (spellName == "sleep")
-        return SSLEEP;
-    if (spellName == "sinvis")
-        return SSINVIS;
+    static const std::map<std::string_view, int> spellNameIndex{
+        { "glow", SGLOW },   { "invis", SINVIS },   { "deaf", SDEAF },
+        { "dumb", SDUMB },   { "blind", SBLIND },   { "cripple", SCRIPPLE },
+        { "sleep", SSLEEP }, { "sinvis", SSINVIS }, { "superinvis", SSINVIS },
+    };
+
+    if (auto it = spellNameIndex.find(spellName); it != spellNameIndex.end())
+        return it->second;
+
     return WNONE;
 }
 
 int
-is_stat(string_view statName)
+is_stat(string_view statName) noexcept
 {
-    if (statName == "sctg")
-        return STSCTG;
-    if (statName == "score")
-        return STSCORE;
-    if (statName == "poi" || statName == "points")
-        return STSCORE;
-    if (statName == "str" || statName == "strength")
-        return STSTR;
-    if (statName == "sta" || statName == "stamina")
-        return STSTAM;
-    if (statName == "dex" || statName == "dexterity")
-        return STDEX;
-    if (statName == "wis" || statName == "wisdom")
-        return STWIS;
-    if (statName == "exp" || statName == "experience")
-        return STEXP;
-    if (statName == "mag" || statName == "magic")
-        return STMAGIC;
+    static const std::map<std::string_view, int> statNameToId{
+        { "sctg"sv, STSCTG },      { "score"sv, STSCORE },  { "points"sv, STSCORE },
+        { "str"sv, STSTR },        { "strength"sv, STSTR }, { "sta"sv, STSTAM },
+        { "stamina"sv, STSTAM },   { "dex"sv, STDEX },      { "dexterity"sv, STDEX },
+        { "wis"sv, STWIS },        { "wisdom"sv, STWIS },   { "exp"sv, STEXP },
+        { "experience"sv, STEXP }, { "mag"sv, STMAGIC },    { "magic"sv, STMAGIC },
+    };
+
+    if (auto it = statNameToId.find(statName); it != statNameToId.end())
+        return it->second;
     return WNONE;
 }
 
 int
-bvmode(char c)
+parseVerbosity(string_view token) noexcept
 {
-    if (c == 'V')
-        return TYPEV;
-    if (c == 'B')
-        return TYPEB;
-    return -1;
+    if (!token.empty()) {
+        switch (token.front()) {
+            case 'v':
+                return TYPEV;
+            case 'b':
+                return TYPEB;
+        }
+    }
+    return WNONE;
 }
 
 stringid_t
@@ -670,13 +670,14 @@ user is referring too.							     */
 amulid_t
 actualval(string_view token, amulid_t n)
 {
-    // you can prefix runtime-variable references with these characters to modify the
-    // resulting value, e.g. choosing a random number based on your rank.
+    // you can prefix runtime-variable references with these characters to modify
+    // the resulting value, e.g. choosing a random number based on your rank.
     /// TODO: replace with something akin to SQL aggregate functions.
     /// TODO: rand(myrank)
     char front = token.front();
     if (n != PREAL && strchr("?%^~`*#", front)) {
-        // These can only be applied to numbers except '*' which can be applied to rooms
+        // These can only be applied to numbers except '*' which can be applied to
+        // rooms
         if (n != WNUMBER && !(n == WROOM && front == '*'))
             return -1;
         // calculate random numbers based on the parameter
@@ -825,16 +826,16 @@ checkParameter(string_view srcId,
             value = onoff(token) ? 1 : 0;
             break;
         case -5:
-            value = bvmode(toupper(token.front()));
+            value = parseVerbosity(token);
             break;
         case -4:
             value = is_stat(token);
             break;
         case -3:
-            value = spell(token);
+            value = parseSpellName(token);
             break;
         case -2:
-            value = rdmode(toupper(token.front()));
+            value = rdmode(token);
             break;
         case -1:
             value = announceType(token);
@@ -867,7 +868,7 @@ checkParameter(string_view srcId,
             value = IsObjectStateFlag(token);
             break;
         case PSEX:
-            value = isgen(toupper(token.front()));
+            value = parseGender(token);
             break;
         case PDAEMON:
             if ((value = IsVerb(token)) == -1 || token.front() != '.')
@@ -1870,12 +1871,14 @@ processTravelRoom(SourceFile &src, std::string roomName)
 //    verb=north
 //        error "You can't go further north."
 //    verb=south
-//        if got umbrella in state 1 then error "Can't get the umbrella thru the door."
+//        if got umbrella in state 1 then error "Can't get the umbrella thru the
+//        door."
 //		  goto southroom
 //
 //    room=southroom
 //    verbs=north out
-//        if got umbrella in state 1 then error "Can't get the umbrella thru the door."
+//        if got umbrella in state 1 then error "Can't get the umbrella thru the
+//        door."
 //		  goto northroom
 
 void
@@ -2520,34 +2523,33 @@ consumeNpcIDLine(SourceFile &src, NPCClass &npc)
     return true;
 }
 
-constexpr auto getNpcStatValue =
-		[](SourceFile &src, NPCClass &npc, string_view prefix, int max, auto &into) {
-			if (src.Eol()) {
-				return NpcError(src, npc, "Premature end of line, expected ", prefix);
-			}
-			auto text = src.PopFront();
-			if (!RemovePrefix(text, prefix)) {
-				return NpcError(src,
-								npc,
-								"Expected ",
-								prefix,
-								" (prefixes are not optional here), got: ",
-								text);
-			}
-			int64_t value{ 0 };
-			if (!ToInt(text, value) || value < 0 || value > max) {
-				return NpcError(src,
-								npc,
-								"Error parsing ",
-								prefix,
-								", expcted number between 0 and ",
-								max,
-								", got: ",
-								text);
-			}
-			into = char(value);
-			return true;
-		};
+constexpr auto getNpcStatValue = [](SourceFile &src,
+                                    NPCClass &npc,
+                                    string_view prefix,
+                                    int max,
+                                    auto &into) {
+    if (src.Eol()) {
+        return NpcError(src, npc, "Premature end of line, expected ", prefix);
+    }
+    auto text = src.PopFront();
+    if (!RemovePrefix(text, prefix)) {
+        return NpcError(
+                src, npc, "Expected ", prefix, " (prefixes are not optional here), got: ", text);
+    }
+    int64_t value{ 0 };
+    if (!ToInt(text, value) || value < 0 || value > max) {
+        return NpcError(src,
+                        npc,
+                        "Error parsing ",
+                        prefix,
+                        ", expcted number between 0 and ",
+                        max,
+                        ", got: ",
+                        text);
+    }
+    into = char(value);
+    return true;
+};
 
 bool
 consumeNpcStatsLine(SourceFile &src, NPCClass &npc)
@@ -2593,8 +2595,13 @@ consumeNpcMessageLine(SourceFile &src, NPCClass &npc, string_view prefix, string
     }
     auto value = src.PopFront();
     if (!RemovePrefix(value, prefix)) {
-        return NpcError(
-                src, npc, "Expected ", prefix, "\"text\" or prefix=<msg id> (prefixes are not optional here), got: ", value);
+        return NpcError(src,
+                        npc,
+                        "Expected ",
+                        prefix,
+                        "\"text\" or prefix=<msg id> (prefixes are not optional "
+                        "here), got: ",
+                        value);
     }
     if (value == "none") {
         into = WNONE;
@@ -2671,8 +2678,8 @@ NewContext(const char *filename)
         LogFatal("Out of memory for context");
     }
 
-    if (EINVAL == path_join(context->filename, sizeof(context->filename), gameDir, filename)) {
-        LogFatal("Path length exceeds limit for %s/%s", gameDir, filename);
+    if (EINVAL == path_join(context->filename, sizeof(context->filename), gameDir,
+filename)) { LogFatal("Path length exceeds limit for %s/%s", gameDir, filename);
     }
 
     return context;

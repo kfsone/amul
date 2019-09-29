@@ -1,12 +1,11 @@
 #pragma once
+#ifndef AMUL_PARSER_TOKEN_H
+#define AMUL_PARSER_TOKEN_H
 
-#include <optional>
-#include <string_view>
-
-#include "typedefs.h"
 #include "parser.wtype.h"
+#include "typedefs.h"
 
-namespace Parse
+namespace Parser
 {
 
 // Disambiguate the different wtype-specific values a token can have.
@@ -22,13 +21,13 @@ union TokenValue {
 // A token is a combination of a type and an (optional) value.
 struct Token {
     WType m_wtype;
-    std::optional<TokenValue> m_value;
+    optional<TokenValue> m_value;
 
-    Token() : m_wtype{WNONE}, m_value{} {}
-    Token(WType wtype) : m_wtype{wtype}, m_value{} {}
-    Token(WType wtype, TokenValue value) : m_wtype{wtype}, m_value{value} {}
+    Token() : m_wtype{ WNONE }, m_value{} {}
+    Token(WType wtype) : m_wtype{ wtype }, m_value{} {}
+    Token(WType wtype, TokenValue value) : m_wtype{ wtype }, m_value{ value } {}
 
-    bool operator() () const noexcept { return m_value.has_value(); }
+    bool operator()() const noexcept { return m_value.has_value(); }
 
     // Helper accessors
     bool HasWType() const noexcept { return m_wtype != WNONE; }
@@ -41,4 +40,6 @@ struct Token {
     string_view Text() const noexcept { return m_value ? m_value->um_text : string_view{}; }
 };
 
-}
+}  // namespace Parser
+
+#endif  // AMUL_PARSER_TOKEN_H
