@@ -36,7 +36,6 @@ SET(AMUL_LIB_HEADERS
 )
 
 SET(AMULCOM_SOURCES
-        amulcom.cpp
 		amulcom.cmdline.cpp
         amulcom.main.cpp
 		amulcom.extras.cpp
