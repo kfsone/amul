@@ -85,7 +85,7 @@ IsANoun(string_view name) noexcept
 
 /// TODO: Convert to string_view.
 /// TODO: Convert to returning a Token.
-std::pair<WType, amulid_t>
+pair<WType, amulid_t>
 GetTokenType(char **s)
 {
 strip:

@@ -1,9 +1,7 @@
 #ifndef AMUL_SVPARSE_H
 #define AMUL_SVPARSE_H
 
-#include <string_view>
-
-using std::string_view;
+#include "typedefs.h"
 
 constexpr bool
 StartsWith(const string_view source, const string_view prefix)

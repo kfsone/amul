@@ -1,9 +1,11 @@
 #include "stringmanip.h"
+
 #include <string>
 #include <string_view>
 
 using std::string;
-using std::string_view;
+
+#include "typedefs.h"
 
 
 void

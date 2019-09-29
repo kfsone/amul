@@ -4,10 +4,10 @@
 #include <random>
 
 #include "amul.cons.h"
-#include "game.h"
 #include "amul.stct.h"
-#include "typedefs.h"
 #include "amullib.h"
+#include "game.h"
+#include "typedefs.h"
 
 static auto &
 getRandomEngine() noexcept
@@ -55,7 +55,7 @@ IsSynonym(const char *s) noexcept
         if (Match(s, syn.word))
             return true;
     }
-	return false;
+    return false;
 }
 
 static pair<size_t /*length*/, amulid_t /*aliasTo*/>
@@ -71,14 +71,14 @@ findSynonym(const char *s, bool (*predicate)(const Synonym &)) noexcept
 pair<size_t /*length*/, objid_t /*aliasTo*/>
 IsNounSynonym(const char *s) noexcept
 {
-    return std::pair<size_t, objid_t>(findSynonym(
+    return pair<size_t, objid_t>(findSynonym(
             s, [](const Synonym &syn) noexcept { return syn.type == SYN_NOUN; }));
 }
 
 pair<size_t /*length*/, verbid_t /*aliasTo*/>
 IsVerbSynonym(const char *s) noexcept
 {
-    return std::pair<size_t, verbid_t>(findSynonym(
+    return pair<size_t, verbid_t>(findSynonym(
             s, [](const Synonym &syn) noexcept { return syn.type == SYN_VERB; }));
 }
 
