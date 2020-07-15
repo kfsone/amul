@@ -85,7 +85,7 @@ registry.
 ```
 	> docker build --tag kfsone/amulu --file Docker.ubuntu .
 	> docker run --rm -it -v /path/to/this/dir:/amul kfsone/amulu
-	$ mkdir build ; cd build ; cmake -G Ninja .. ; cp ../Makefile . ; make
+	$ mkdir build ; cd build ; cmake -G Ninja .. ; cp ../etc/Makefile . ; make
 ```
 
 ## Linuxes
@@ -93,7 +93,7 @@ registry.
 As per Docker:
 
 ```
-	$ mkdir build ; cd build ; cmake -G Ninja .. ; cp ../Makefile . ; make
+	$ mkdir build ; cd build ; cmake -G Ninja .. ; cp ../etc/Makefile . ; make
 ```
 
 I'm using GCC and Clang versions >= 7, and also have it configured to use
