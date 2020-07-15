@@ -52,3 +52,4 @@ FileParser::consumeLines()
 	}
     return true;
 }
+

@@ -52,6 +52,8 @@ Schedule(verbid_t verbId, int delay, bool global)
         amanp->p3 = wtype[2];
         amanp->p4 = wtype[5];
         SendIt(type, action, seconds);  // Inform AMAN...
+#else
+		(void)global;
 #endif
     }
 }
@@ -60,12 +62,16 @@ Schedule(verbid_t verbId, int delay, bool global)
 void
 Cancel(verbid_t verbId)
 {
+	///TODO: Implement
+	(void)verbId;
 }
 
 // Force a demon to execute
 void
 ForceExecute(verbid_t verbId)
 {
+	///TODO: Implement
+	(void)verbId;
 }
 
 int
@@ -79,6 +85,8 @@ Status(verbid_t verbId)
     }
     FormatTimeInterval(block, amul->p1);
     Print(block);
+#else
+	(void)verbId;
 #endif
     return -1;
 }

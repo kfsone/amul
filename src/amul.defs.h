@@ -319,7 +319,7 @@ enum {
 #define mySCORE t_character->score
 #define myROOM t_avatar->room
 
-#define ConditionArg(n) condition.m_args[n]
+#define ConditionArg(n) GetConcreteValue(condition.m_args[n])
 #define CA1 ConditionArg(0)
 #define CA2 ConditionArg(1)
 #define CA3 ConditionArg(2)
@@ -334,3 +334,4 @@ enum {
 #define xHADLIGHT(slot) (GetAvatar(slot).hadlight)
 
 #endif
+

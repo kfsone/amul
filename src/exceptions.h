@@ -11,7 +11,10 @@ class EndThread : public std::exception
     EndThread() noexcept : error{nullptr} {}
     EndThread(const char *reason) noexcept : error(reason) {}
 
+	virtual ~EndThread() noexcept override;
+
     const char *what() const noexcept override { return error; }
 };
 
 #endif  // AMUL_EXCEPTIONS_H
+

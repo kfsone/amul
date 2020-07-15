@@ -138,3 +138,4 @@ LogFinish(LogLevel level)
         exit(1);
     }
 }
+

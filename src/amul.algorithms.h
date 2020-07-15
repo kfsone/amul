@@ -18,3 +18,4 @@ constexpr auto HasAny = [](const auto &container, auto predicate) noexcept -> bo
     }
     return false;
 };
+

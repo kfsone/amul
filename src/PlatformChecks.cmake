@@ -6,6 +6,8 @@ INCLUDE(CheckTypeSize)
 
 FIND_PACKAGE(Threads REQUIRED)
 
+SET(AMUL_CXX_FLAGS "")
+
 # Compiler identification
 IF (MSVC)
     ADD_COMPILE_DEFINITIONS("_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE")
@@ -18,7 +20,10 @@ ELSE ()
     ENDIF ()
 
 	STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -O0 -g3")
-	STRING(APPEND CMAKE_CXX_FLAGS " -Wall -Wshadow -Wwrite-strings -Wno-unused-variable -Wno-unused-label -Wno-int-to-pointer-cast")
+	IF (CLANG)
+		STRING(APPEND AMUL_CXX_FLAGS " -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-undef -Wno-padded -Wno-sign-conversion -Wno-missing-prototypes -Wno-global-constructors -Wno-exit-time-destructors -Wno-shorten-64-to-32 -Wno-missing-variable-declarations -Wno-implicit-int-conversion -Wno-switch-enum -Wno-format-nonliteral")
+	ENDIF ()
+	STRING(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wshadow -Wwrite-strings -Wno-unused-variable -Wno-unused-label -Wno-int-to-pointer-cast")
 ENDIF()
 
 # Check for various include files.

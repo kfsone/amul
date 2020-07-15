@@ -60,7 +60,6 @@ getBlock(const char *linetype, void (*callback)(const char *, const char *))
 static void
 getBlockNo(const char *prefix, int *into)
 {
-	std::cout << "prefix = " << prefix << ", into = " << into << "\n";
     static int blockValue{ 0 };
     // TODO: This is awful, use a context.
     getBlock(prefix, [](const char *pfx, const char *value) { blockValue = getNo(pfx, value); });

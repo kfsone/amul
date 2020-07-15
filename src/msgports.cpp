@@ -3,6 +3,8 @@
 #include <string>
 
 //#include "amigastubs.h"
+#include "message.base.h"
+#include "message.execfn.h"
 #include "msgports.h"
 #include "spinlock.h"
 #include "system.h"
@@ -15,6 +17,13 @@ using PortMap = std::map<MsgPort *, MsgPortPtr>;
 
 PortTable s_portTable;
 PortMap s_portMap;
+
+
+// Out-of-line dtor for Message.
+Message::~Message() noexcept {}
+DispatchMessage::~DispatchMessage() noexcept {}
+ReplyableMessage::~ReplyableMessage() noexcept {}
+MsgExecuteFn::~MsgExecuteFn() noexcept {}
 
 CriticalSection::CriticalSection() noexcept : SpinGuard(s_criticalSection) {}
 

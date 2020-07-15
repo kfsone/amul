@@ -18,3 +18,4 @@ enum SpellID {
 };
 
 #endif  // AMUL_SPELLID_H
+

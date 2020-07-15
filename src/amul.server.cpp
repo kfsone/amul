@@ -432,11 +432,11 @@ demonTicker()
     // Ensure the demons are ordered by firing time and consume all the ones that have come due.
     demons.sort([](auto &lhs, auto &rhs) noexcept { return lhs.m_trigger < rhs.m_trigger; });
     while (!demons.empty() && demons.front().m_trigger <= time(nullptr)) {
-        auto demon = demons.front();
-        demons.pop_front();
+        auto& demon = demons.front();
         if (auto port = FindPort(demon.m_owner); port) {
             port->Put(make_unique<MsgExecDemon>(demon.m_expression));
         }
+        demons.pop_front();
     }
 }
 

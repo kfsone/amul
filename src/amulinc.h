@@ -28,3 +28,4 @@ amulid_t GetConcreteValue(amulid_t id);
 string_view GetNamedString(string_view name, string_view defaultValue) noexcept;
 
 #endif  // AMUL_H_AMULINC_H
+

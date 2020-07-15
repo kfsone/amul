@@ -2,6 +2,7 @@ SET(AMUL_LIB_SOURCES
 		amullib.cpp
 		atom.cpp
 		cmdline.cpp
+		exceptions.cpp
 		filemapping.cpp
         filesystem.cpp
 		constants.cpp

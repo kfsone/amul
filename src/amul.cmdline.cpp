@@ -21,18 +21,23 @@ constexpr const char DefaultGamePath[] = ".";
 extern void asend(int type, int data);
 
 static void
-shutreq(bool kill, int seconds)
+shutreq(bool kill, unsigned int seconds)
 {
 #ifdef MESSAGE_CODE
     asend(kill ? MKILL : MRESET, seconds);
+#else
+	(void)kill;
+	(void)seconds;
 #endif
 }
 
 static void
-sendext(int seconds)
+sendext(unsigned int seconds)
 {
 #ifdef MESSAGE_CODE
     asend(MEXTEND, seconds);
+#else
+	(void)seconds;
 #endif
 }
 
@@ -42,9 +47,9 @@ executeCommand(int argc, const char *argv[])
     if (!t_managerPort) {
         LogFatal("AMAN is not running");
     }
-    size_t seconds{ 0 };
+    unsigned int seconds{ 0 };
     if (argc == 3)
-        sscanf(argv[2], "%zu", &seconds);
+        sscanf(argv[2], "%u", &seconds);
     switch (toupper(*(argv[1] + 1))) {
         case 'K':
             shutreq(true, seconds);

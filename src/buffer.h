@@ -34,7 +34,7 @@ struct Buffer {
     constexpr const char *it() const noexcept { return m_cur; }
 
     constexpr bool Eof() const noexcept { return it() >= end(); }
-    constexpr size_t Size() const noexcept { return end() - begin(); }
+    constexpr size_t Size() const noexcept { return size_t(end() - begin()); }
 
     uint8_t Peek() const noexcept { return !Eof() ? *m_cur : 0; }
     uint8_t Read() noexcept { return (!Eof()) ? *(m_cur++) : 0; }

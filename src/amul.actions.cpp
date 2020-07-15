@@ -167,7 +167,7 @@ MovePlayerTo(roomid_t roomId)
     t_avatar->light = i;
     t_avatar->hadlight = 0;
     lighting(t_slotId, AOTHERS);
-    look(t_avatar->room, (RoomDescMode) t_character->rdmode);
+    look(t_avatar->room, t_character->rdmode);
     t_avatar->flags &= ~PFMOVING;
 }
 
@@ -182,8 +182,10 @@ PrintText(amulid_t id)
         switch (id ^ IWORD) {
             case INOUN2:
                 Print("@n2\n");
+				break;
             default:
                 Print("@n1\n");
+				break;
         }
         return;
     }

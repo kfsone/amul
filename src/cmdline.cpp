@@ -6,6 +6,7 @@
 int g_desiredLogLevel = LWARN;
 
 // For systems that support it: CTRL-C handler.
+[[noreturn]]
 void
 CXBRK()
 {
@@ -45,5 +46,6 @@ initCommandLine(Module *module)
 error_t
 InitCommandLine(const CommandLine *cmdline)
 {
-    return NewModule(MOD_CMDLINE, initCommandLine, nullptr, nullptr, (void *) cmdline, nullptr);
+	void *cmdlinePtr = reinterpret_cast<void*>(const_cast<CommandLine*>(cmdline));
+    return NewModule(MOD_CMDLINE, initCommandLine, nullptr, nullptr, cmdlinePtr, nullptr);
 }

@@ -86,7 +86,8 @@ skiplead(const char *lead, char *from)
     while (*lead && *cur) {
         if (tolower(*lead) != tolower(*cur))
             return from;
-        ++lead, ++cur;
+        ++lead;
+		++cur;
     }
     // if lead == 0, we reached the end of the prefix, which
     // means 'from' matched as much as it needed to
@@ -102,6 +103,15 @@ canSkipLead(const char *lead, char **from)
     }
     *from = end;
     return true;
+}
+
+static inline const char *
+strstop(const char *in, char stop)
+{
+    while (*in && *in != stop) {
+        ++in;
+    }
+    return in;
 }
 
 static inline char *

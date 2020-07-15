@@ -25,3 +25,4 @@ namespace Action
     void TreatAsVerb(verbid_t verbId);
     void Who(Verbosity verbosity);
 }
+

@@ -39,7 +39,7 @@ InitModules()
 error_t
 StartModules()
 {
-    for (Module *cur = s_modulesHead; cur; cur = (Module *) cur->links.next) {
+    for (Module *cur = s_modulesHead; cur; cur = reinterpret_cast<Module*>(cur->links.next)) {
         if (cur->start) {
             LogDebug("Starting Module #", cur->id, ": ", cur->name);
             error_t err = cur->start(cur);
@@ -59,7 +59,7 @@ CloseModules(error_t err)
     Module *prev = nullptr;
     for (Module *cur = s_modulesTail; cur; cur = prev) {
         LogDebug("Closing Module #", cur->id, ": ", cur->name);
-        prev = (Module *) cur->links.prev;
+        prev = reinterpret_cast<Module*>(cur->links.prev);
         error_t reterr = CloseModule(cur, err);
         if (reterr != 0) {
             // NOTE: Use
@@ -87,7 +87,7 @@ NewModule(ModuleID id,
         return EEXIST;
     }
 
-    Module *cur = (Module *) AllocateMem(sizeof(Module));
+    Module *cur = AllocateInstances<Module>(1);
     if (!cur) {
         LogFatal("Out of memory");
     }
@@ -96,7 +96,7 @@ NewModule(ModuleID id,
     cur->id = id;
     cur->name = moduleNames[id];
     cur->links.next = nullptr;
-    cur->links.prev = (DoubleLinkedNode *) s_modulesTail;
+    cur->links.prev = reinterpret_cast<DoubleLinkedNode*>(s_modulesTail);
     cur->init = init;
     cur->start = start;
     cur->close = close;
@@ -106,8 +106,8 @@ NewModule(ModuleID id,
         s_modulesHead = cur;
         s_modulesTail = cur;
     } else {
-        s_modulesTail->links.next = (DoubleLinkedNode *) cur;
-        cur->links.prev = (DoubleLinkedNode *) s_modulesTail;
+        s_modulesTail->links.next = reinterpret_cast<DoubleLinkedNode*>(cur);
+        cur->links.prev = reinterpret_cast<DoubleLinkedNode*>(s_modulesTail);
         s_modulesTail = cur;
     }
 
@@ -126,7 +126,7 @@ NewModule(ModuleID id,
 Module *
 GetModule(ModuleID id)
 {
-    for (Module *cur = s_modulesHead; cur; cur = (Module *) cur->links.next) {
+    for (Module *cur = s_modulesHead; cur; cur = reinterpret_cast<Module*>(cur->links.next)) {
         if (id == cur->id)
             return cur;
     }
@@ -141,7 +141,7 @@ CloseModule(Module *module, error_t err)
     // Make sure this is a registered module
     Module *cur = s_modulesHead;
     while (cur && cur != module)
-        cur = (Module *) cur->links.next;
+        cur = reinterpret_cast<Module*>(cur->links.next);
     if (cur != module)
         return EFAULT;
 
@@ -154,13 +154,13 @@ CloseModule(Module *module, error_t err)
     if (module->links.next)
         module->links.next->prev = module->links.prev;
     if (s_modulesHead == module)
-        s_modulesHead = (Module *) module->links.next;
+        s_modulesHead = reinterpret_cast<Module*>(module->links.next);
     if (s_modulesTail == module)
-        s_modulesTail = (Module *) module->links.prev;
+        s_modulesTail = reinterpret_cast<Module*>(module->links.prev);
 
     memset(module, 0, sizeof(*module));
 
-    ReleaseMem((void **) &module);
+    ReleaseMem(&module);
 
     return reterr;
 }

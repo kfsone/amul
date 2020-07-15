@@ -11,3 +11,4 @@ void Schedule(verbid_t verbId, int delay, bool global);
 int Status(verbid_t verbId);
 
 }  // namespace Action::Demon
+

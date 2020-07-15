@@ -20,7 +20,7 @@
 #define OBDAM 0x00800000  // Object damage
 #define OBWHT 0x01000000  // Object weight
 #define RAND0 0x02000000  // Range 0 to <num>
-#define RAND1 0x04000000  //<num/2> to <num*1.5>
+#define RAND1 0x04000000  // <num/2> to <num*1.5>
 #define OBLOC 0x08000000  // Location of obj
 #define PRANK 0x10000000  // Rank of player
 
@@ -33,7 +33,7 @@ enum IWord { IVERB, IADJ1, INOUN1, IPREP, IADJ2, INOUN2 };
 #define LOCATE 0     // Value of locate
 #define SELF 1       // My user no.
 #define HERE 2       // My room
-#define RANK 3       //# of my rank
+#define RANK 3       // # of my rank
 #define FRIEND 4     // Who I am helping
 #define HELPER 5     // People helping me
 #define ENEMY 6      // Who I'm fighting
@@ -46,8 +46,8 @@ enum IWord { IVERB, IADJ1, INOUN1, IPREP, IADJ2, INOUN2 };
 #define LASTVB 13    // Last verb I did!
 
 // Numbers
-#define LESS 0x40000000  //<Beyond max lim>
-#define MORE 0x80000000  //<Beyond max lim>
+#define LESS 0x40000000  // <Beyond max lim>
+#define MORE 0x80000000  // <Beyond max lim>
 #define NONE                                                                                       \
     {                                                                                              \
         0, 0, 0                                                                                    \
@@ -82,3 +82,4 @@ constexpr ACTUAL actual[NACTUALS] = {
 };
 
 #endif
+

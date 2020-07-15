@@ -11,6 +11,8 @@ struct MsgExecuteFn final : public ParameterizedDispatch<ExecuteFn> {
         : ParameterizedDispatch(fn, replyPort)
     {
     }
+	virtual ~MsgExecuteFn() noexcept;
 
     void Dispatch() { m_param(); }
 };
+

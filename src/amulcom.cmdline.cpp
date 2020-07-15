@@ -8,7 +8,7 @@
 #include "modules.h"
 #include "system.h"
 
-error_t
+static error_t
 usage(const char **argv)
 {
     printf("Usage: %s [-h|-?] [-v|-q] [game directory]\n", argv[0]);
@@ -75,3 +75,4 @@ ParseCommandLine(const CommandLine *cmdline)
 
     return 0;
 }
+

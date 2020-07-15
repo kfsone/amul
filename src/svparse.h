@@ -20,3 +20,4 @@ RemovePrefix(string_view &source, const string_view prefix)
 }
 
 #endif  // AMUL_SVPARSE_H
+

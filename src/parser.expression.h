@@ -21,3 +21,4 @@ struct Expression {
 }  // namespace Parser
 
 #endif  // AMUL_PARSER_EXPRESSION_H
+

@@ -476,3 +476,4 @@ CreateDefaultFiles()
         fclose(fp);
     }
 }
+

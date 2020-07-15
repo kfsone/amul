@@ -28,6 +28,7 @@ and the plan is to gradually migrate it back into this file.
 
 #include "amul.actions.h"
 #include "amul.stct.h"
+#include "amul.vars.h"
 #include "amulinc.h"
 #include "amullib.h"
 #include "client.io.h"
@@ -66,7 +67,7 @@ thread_local MsgPortPtr t_replyPort;
 thread_local Message *amul;
 thread_local slotid_t t_slotId;
 
-Avatar::Avatar() : m_outputBuffer((char *) AllocateMem(4096)) {}
+Avatar::Avatar() : m_outputBuffer(static_cast<char*>(AllocateMem(4096))) {}
 
 extern error_t PlayerClientUp();
 extern void PlayerClientDown();
@@ -240,3 +241,4 @@ InitClient()
     NewModule(MOD_CLIENT, clientModuleInit, clientModuleStart, clientModuleClose, nullptr, nullptr);
     return 0;
 }
+

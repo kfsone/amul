@@ -34,7 +34,9 @@ Trim(string_view *view) noexcept
 std::string
 Meld(string_view prefix, string_view content, string_view suffix)
 {
-    Trim(&prefix), Trim(&content), Trim(&suffix);
+    Trim(&prefix);
+	Trim(&content);
+	Trim(&suffix);
     std::string result { prefix };
     if (!result.empty() && !content.empty()) {
         result += " ";
@@ -202,7 +204,7 @@ ProcessEscape(const char *escape, char *s)
                 return true;
             }
             if (c == '1' && wtype[2] == WTEXT) {
-                strcpy(s, (const char *) inoun1);
+                strcpy(s, reinterpret_cast<const char*>(inoun1));
                 return true;
             }
             if (c == '1' && inoun1 >= 0 && wtype[2] == WPLAYER) {
@@ -214,7 +216,7 @@ ProcessEscape(const char *escape, char *s)
                 return true;
             }
             if (c == '2' && wtype[5] == WTEXT) {
-                strcpy(s, (const char *) inoun2);
+                strcpy(s, reinterpret_cast<const char*>(inoun2));
                 return true;
             }
             if (c == '2' && inoun2 >= 0 && wtype[5] == WPLAYER) {
@@ -442,8 +444,5 @@ SetMxxMxy(BroadcastType style, slotid_t slotid) noexcept
             else
                 strcpy(t_mxy, ProcessString("A @gn voice in the distance"));
             return;
-        default:
-            strcpy(t_mxx, "Someone");
-            strcpy(t_mxy, "Someone");
     }
 }

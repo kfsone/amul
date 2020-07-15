@@ -118,6 +118,7 @@ SendMsg(Args &&... args)
     t_managerPort->Put(make_unique<MsgType>(forward<Args>(args)...));
 }
 
+[[noreturn]]
 void
 memfail(const char *s)
 {
@@ -725,7 +726,7 @@ isnoun(const char *s, adjid_t adj, const char *precedence)
             }
             if (lsuc == 0)
                 return lobj;
-        };
+        }
         if (precedence[pass] == 'E')
             done_e = true;
     }
@@ -807,8 +808,10 @@ asyntax(amulid_t n1, amulid_t n2)
     auto [in1, wt1] = expandNounToken(n1, 0);
     auto [in2, wt2] = expandNounToken(n2, 1);
 
-    inoun1 = in1, wtype[2] = wt1;
-    inoun2 = in2, wtype[5] = wt2;
+    inoun1 = in1;
+	wtype[2] = wt1;
+    inoun2 = in2;
+	wtype[5] = wt2;
     ml = -(iverb + 1);
 }
 
@@ -883,6 +886,10 @@ DoThis(slotid_t slotId, const char *cmd, short int type)
         msg->m_data = type;
         msg->m_ptrs[0] = strdup(cmd);
     });
+#else
+	(void)slotId;
+	(void)cmd;
+	(void)type;
 #endif
 }
 
@@ -949,7 +956,7 @@ ShowFile(const char *filename)
     fseek(fp, 0, 2L);
     auto fsize = ftell(fp);
     fseek(fp, 0, 0L);
-    char *p = (char *) AllocateMem(fsize + 2);
+    char *p = AllocateInstances<char>(fsize + 2);
     if (p == nullptr) {
         fclose(fp);
         Print("\n--+ \x07System memory too low, exiting! +--\n");
@@ -1623,7 +1630,7 @@ ChangeGender(slotid_t slotId)
 
 // Fixed to allow increase/decrease
 void
-newrank(slotid_t slotId, rankid_t newRankNo)
+newrank(rankid_t newRankNo)  // applies to t_character
 {
     const auto &oldRank = GetRank(t_character->rank);
     const auto &newRank = GetRank(newRankNo);
@@ -1681,65 +1688,65 @@ asub(int howmuch, StatID stat, slotid_t plyr)
         return asub(-howmuch, stat, plyr);
     if (howmuch == 0)
         return;
-    if (plyr == t_slotId) {
-        switch (stat) {
-            case STSCORE:
-                t_character->score -= howmuch;
-                t_avatar->sessionScore -= howmuch;
-                if (t_character->score < 0)
-                    t_character->score = 0;
-                Ansify("1m");
-                PrintSlot(plyr, "(%ld)\n", t_character->score);
-                Ansify("0;37m");
-                for (int r = 0; r < g_game.MaxRank(); r++) {
-                    if (t_character->score >= GetRank(r + 1).score)
-                        continue;
-                    if (t_character->rank == r)
-                        break;
-                    newrank(plyr, r);
-                }
-                break;
-            case STSTR:
-                t_avatar->strength -= howmuch;
-                if (t_avatar->strength < 0)
-                    t_avatar->strength = 0;
-                break;
-            case STSTAM:
-                t_avatar->stamina -= howmuch;
-                if (t_avatar->stamina < 0)
-                    t_avatar->stamina = 0;
-                Printf("\n<STAM: %ld/%ld>\n", t_avatar->stamina, t_character->stamina);
-                if (t_avatar->stamina <= 0) {
-                    akillme();
-                    died = 1;
-                }
-                break;
-            case STDEX:
-                t_avatar->dextadj -= howmuch;
-                break;
-            case STWIS:
-                t_avatar->wisdom -= howmuch;
-                if (t_avatar->wisdom < 0)
-                    t_avatar->wisdom = 0;
-                break;
-            case STEXP:
-                t_character->experience -= howmuch;
-                if (t_character->experience < 0)
-                    t_character->experience = 0;
-                break;
-            case STMAGIC:
-                t_avatar->magicpts -= howmuch;
-                if (t_avatar->magicpts < 0)
-                    t_avatar->magicpts = 0;
-                break;
-            default:
-                LogError("asub got invalid stat: ", stat);
-        }
-    } else {
+    if (plyr != t_slotId) {
 #ifdef MESSAGE_CODE
         sendex(plyr, ASUB, howmuch, stat, plyr);  // Tell them to clear up!
 #endif
-    }
+		return;
+	}
+	switch (stat) {
+		case STSCORE:
+			t_character->score -= howmuch;
+			t_avatar->sessionScore -= howmuch;
+			if (t_character->score < 0)
+				t_character->score = 0;
+			Ansify("1m");
+			PrintSlot(plyr, "(%ld)\n", t_character->score);
+			Ansify("0;37m");
+			for (int r = 0; r < g_game.MaxRank(); r++) {
+				if (t_character->score >= GetRank(r + 1).score)
+					continue;
+				if (t_character->rank == r)
+					break;
+				newrank(r);
+			}
+			break;
+		case STSTR:
+			t_avatar->strength -= howmuch;
+			if (t_avatar->strength < 0)
+				t_avatar->strength = 0;
+			break;
+		case STSTAM:
+			t_avatar->stamina -= howmuch;
+			if (t_avatar->stamina < 0)
+				t_avatar->stamina = 0;
+			Printf("\n<STAM: %ld/%ld>\n", t_avatar->stamina, t_character->stamina);
+			if (t_avatar->stamina <= 0) {
+				akillme();
+				died = 1;
+			}
+			break;
+		case STDEX:
+			t_avatar->dextadj -= howmuch;
+			break;
+		case STWIS:
+			t_avatar->wisdom -= howmuch;
+			if (t_avatar->wisdom < 0)
+				t_avatar->wisdom = 0;
+			break;
+		case STEXP:
+			t_character->experience -= howmuch;
+			if (t_character->experience < 0)
+				t_character->experience = 0;
+			break;
+		case STMAGIC:
+			t_avatar->magicpts -= howmuch;
+			if (t_avatar->magicpts < 0)
+				t_avatar->magicpts = 0;
+			break;
+		default:
+			LogError("asub got invalid stat: ", stat);
+	}
 }
 
 void
@@ -1749,87 +1756,86 @@ aadd(int howmuch, StatID stat, slotid_t plyr)
         return asub(-howmuch, stat, plyr);
     if (howmuch == 0)
         return;
-    if (plyr == t_slotId) {
-        switch (stat) {
-            case STSCORE:
-                t_character->score += howmuch;
-                t_avatar->sessionScore += howmuch;
-                Ansify("1m");
-                PrintSlot(plyr, "(%d)\n", t_character->score);
-                Ansify("m");
-                for (int r = g_game.MaxRank(); r >= 0; r--) {
-                    if (t_character->score >= GetRank(r).score) {
-                        if (t_character->rank == r)
-                            break;
-                        newrank(plyr, r);
-                        break;
-                    }
-                }
-                break;
-            case STSTR:
-                t_avatar->strength += howmuch;
-                break;
-            case STSTAM:
-                t_avatar->stamina += howmuch;
-                Printf("<STAM: %d/%d>\n", t_avatar->stamina, t_character->stamina);
-                break;
-            case STDEX:
-                t_avatar->dextadj += howmuch;
-                break;
-            case STEXP:
-                t_character->experience += howmuch;
-                break;
-            case STWIS:
-                t_avatar->wisdom += howmuch;
-                break;
-            case STMAGIC:
-                t_avatar->magicpts += howmuch;
-                break;
-            default:
-                LogError("aadd got invalid stat: ", stat);
-        }
-    }
+    if (plyr != t_slotId) {
 #ifdef MESSAGE_CODE
-    else {
         sendex(plyr, AADD, howmuch, stat, plyr);  // Tell them to clear up!
-    }
 #endif
+		return;
+    }
+	switch (stat) {
+		case STSCORE:
+			t_character->score += howmuch;
+			t_avatar->sessionScore += howmuch;
+			Ansify("1m");
+			PrintSlot(plyr, "(%d)\n", t_character->score);
+			Ansify("m");
+			for (int r = g_game.MaxRank(); r >= 0; r--) {
+				if (t_character->score >= GetRank(r).score) {
+					if (t_character->rank == r)
+						break;
+					newrank(r);
+					break;
+				}
+			}
+			break;
+		case STSTR:
+			t_avatar->strength += howmuch;
+			break;
+		case STSTAM:
+			t_avatar->stamina += howmuch;
+			Printf("<STAM: %d/%d>\n", t_avatar->stamina, t_character->stamina);
+			break;
+		case STDEX:
+			t_avatar->dextadj += howmuch;
+			break;
+		case STEXP:
+			t_character->experience += howmuch;
+			break;
+		case STWIS:
+			t_avatar->wisdom += howmuch;
+			break;
+		case STMAGIC:
+			t_avatar->magicpts += howmuch;
+			break;
+		default:
+			LogError("aadd got invalid stat: ", stat);
+	}
 }
 
 void
 afix(StatID stat, slotid_t plyr)
 {
-    if (plyr == t_slotId) {
-        const auto &rank = GetRank(t_character->rank);
-        switch (stat) {
-            case STSTR:
-                t_avatar->strength =
-                        (rank.strength * rank.maxweight - t_avatar->weight) / rank.maxweight;
-                break;
-            case STSTAM:
-                t_avatar->stamina = rank.stamina;
-                break;
-            case STDEX:
-                t_avatar->dextadj = 0;
-                calcdext();
-                break;
-            case STWIS:
-                t_avatar->wisdom = rank.wisdom;
-                break;
-            case STEXP:
-                t_character->experience = rank.experience;
-                break;
-            case STMAGIC:
-                t_avatar->magicpts = rank.magicpts;
-                break;
-            default:
-                LogError("afix got invalid stat: ", stat);
-        }
-    } else {
+    if (plyr != t_slotId) {
 #ifdef MESSAGE_CODE
         sendex(plyr, AFIX, stat, plyr, 0);  // Tell them to clear up!
 #endif
+		return;
     }
+	const auto &rank = GetRank(t_character->rank);
+	switch (stat) {
+		case STSTR:
+			t_avatar->strength =
+					(rank.strength * rank.maxweight - t_avatar->weight) / rank.maxweight;
+			break;
+		case STSTAM:
+			t_avatar->stamina = rank.stamina;
+			break;
+		case STDEX:
+			t_avatar->dextadj = 0;
+			calcdext();
+			break;
+		case STWIS:
+			t_avatar->wisdom = rank.wisdom;
+			break;
+		case STEXP:
+			t_character->experience = rank.experience;
+			break;
+		case STMAGIC:
+			t_avatar->magicpts = rank.magicpts;
+			break;
+		default:
+			LogError("afix got invalid stat: ", stat);
+	}
 }
 
 // Loud noises/events
@@ -1837,40 +1843,51 @@ void
 announce(const char *s, int towho)
 {
     for (int i = 0; i < MAXU; i++) {
-        // If the player is deaf, ignore him
+        // If the player is deaf, ignore them
         if (actor == i || (GetAvatar(i).state < 2) || (GetAvatar(i).flags & PFDEAF))
             continue;
         /*
            The next line says:
-            if this is another player, and he's in another room,
-            and the room is a silent room, ignore him.
+            if this is another player, and they're in another room,
+            and the room is a silent room, ignore them.
         */
         if (i != t_slotId && GetAvatar(i).room != t_avatar->room &&  // --v
             (GetRoom(GetAvatar(i).room).flags & SILENT))
             continue;
+		bool skipPlayer = false;
         int x = 0;
         switch (towho) {
             case AALL:
             case AEVERY1:
-                x = 1;
+				// everyone in the world.
                 break;
+
             case AGLOBAL:
-                if (i != t_slotId)
-                    x = 1;
+				// everyone in the game world, except me.
+				skipPlayer = (i == t_slotId);
                 break;
+
             case AOTHERS:
-                if (i == t_slotId)
-                    break;
+				// everyone in the room, except me.
+                if (i == t_slotId) {
+					skipPlayer = true;
+					break;
+				}
+				[[fallthrough]];
             case AHERE:
-                if (GetAvatar(i).room == t_avatar->room)
-                    x = 1;
+				// everyone in the room.
+                if (GetAvatar(i).room != t_avatar->room) {
+					skipPlayer = true;
+				}
                 break;
             case AOUTSIDE:
-                if (GetAvatar(i).room != t_avatar->room)
-                    x = 1;
+				// everyone outside the room.
+                if (GetAvatar(i).room == t_avatar->room) {
+					skipPlayer = true;
+				}
                 break;
         }
-        if (x == 1) {
+        if (!skipPlayer) {
             SetMxxMxy(NOISE, i);
             PrintSlot(i, s);
         }
@@ -1882,7 +1899,7 @@ void
 announcein(roomid_t toroom, const char *s)
 {
     for (int i = 0; i < MAXU; i++) {
-        // If the player is deaf, ignore him
+        // If the player is deaf, ignore them
         if (actor == i || (GetAvatar(i).state < 2) || (GetAvatar(i).flags & PFDEAF) ||
             GetAvatar(i).room != toroom)
             continue;
@@ -1896,7 +1913,7 @@ void
 announcefrom(objid_t obj, const char *s)
 {
     for (int i = 0; i < MAXU; i++) {
-        // If the player is deaf or can see me, ignore him
+        // If the player is deaf or can see me, ignore them
         if (actor == i || (GetAvatar(i).state < 2) || (GetAvatar(i).flags & PFDEAF) ||
             GetAvatar(i).room == t_avatar->room)
             continue;
@@ -1916,7 +1933,7 @@ void
 objannounce(objid_t obj, const char *s)
 {
     for (int i = 0; i < MAXU; i++) {
-        // If the player is deaf or can see me, ignore him
+        // If the player is deaf or can see me, ignore them
         if (actor == i || (GetAvatar(i).state < 2) || (GetAvatar(i).flags & PFDEAF))
             continue;
         // Check if the player is NEAR to someone carrying the object
@@ -1935,33 +1952,36 @@ void
 action(const char *s, slotid_t towho)
 {
     for (slotid_t i = 0; i < MAXU; i++) {
-        // If the player is asleep, or blind, skip him
+        // If the player is asleep, or blind, skip them
         if (actor == i || (GetAvatar(i).state < 2) ||
             (GetAvatar(i).flags & (PFBLIND + PFASLEEP)) != 0)
             continue;
-        int x = 0;
+        bool skipPlayer = false;
         switch (towho) {
             case AALL:
             case AEVERY1:
-                x = 1;
                 break;
             case AGLOBAL:
-                if (i != t_slotId)
-                    x = 1;
+				skipPlayer = (i == t_slotId);
                 break;
             case AOTHERS:
-                if (i == t_slotId)
-                    break;
+                if (i == t_slotId) {
+					skipPlayer = true;
+					break;
+				}
+				[[fallthrough]];
             case AHERE:
-                if (GetAvatar(i).room == t_avatar->room && CanSee(i, t_slotId))
-                    x = 1;
+                if (GetAvatar(i).room != t_avatar->room && CanSee(i, t_slotId)) {
+					skipPlayer = true;
+				}
                 break;
             case AOUTSIDE:
-                if (GetAvatar(i).room != t_avatar->room)
-                    x = 1;
+                if (GetAvatar(i).room == t_avatar->room) {
+					skipPlayer = true;
+				}
                 break;
         }
-        if (x == 1) {
+        if (!skipPlayer) {
             SetMxxMxy(ACTION, i);
             PrintSlot(i, s);
         }
@@ -1973,7 +1993,7 @@ void
 actionin(roomid_t toroom, const char *s)
 {
     for (int i = 0; i < MAXU; i++) {
-        // If the player is asleep, or blind, skip him
+        // If the player is asleep, or blind, skip them
         if (actor == i || (GetAvatar(i).state < PLAYING) ||
             (GetAvatar(i).flags & (PFBLIND + PFASLEEP)) || GetAvatar(i).room != toroom)
             continue;
@@ -1987,7 +2007,7 @@ void
 actionfrom(objid_t obj, const char *s)
 {
     for (int i = 0; i < MAXU; i++) {
-        // If the player is asleep, or blind, skip him
+        // If the player is asleep, or blind, skip them
         if (actor == i || (GetAvatar(i).state < 2) || (GetAvatar(i).flags & (PFBLIND + PFASLEEP)) ||
             GetAvatar(i).room == t_avatar->room)
             continue;
@@ -2008,7 +2028,7 @@ void
 objaction(objid_t obj, const char *s)
 {
     for (int i = 0; i < MAXU; i++) {
-        // If the player is asleep, or blind, skip him
+        // If the player is asleep, or blind, skip them
         if (actor == i || (GetAvatar(i).state < 2) || (GetAvatar(i).flags & (PFBLIND + PFASLEEP)))
             continue;
         // Check if the player is NEAR to someone carrying the object
@@ -2450,9 +2470,11 @@ damage(objid_t objId, int howmuch)
     auto &object = GetObject(objId);
     if (object.flags & OF_SCENERY)
         return;
-    object.State().strength -= howmuch;
-    if (object.State().strength >= 0)
+    if (howmuch < object.State().strength) {
+    	object.State().strength -= howmuch;
         return;
+	}
+	object.State().strength = 0;
     if (object.flags & OF_SHOWFIRE) {
         Printf("The %s has burnt away.", object.id);
         loseobj(objId);
@@ -3179,7 +3201,7 @@ lang_proc(verbid_t verbId, char e)
                             syntaxp->slot[j] == -3)
                             break;
                         if (syntaxp->wtype[j] == WTEXT &&
-                            stricmp((const char *) inoun1, GetString(syntaxp->slot[j])) == 0)
+                            stricmp(reinterpret_cast<const char*>(inoun1), GetString(syntaxp->slot[j])) == 0)
                             break;
                         if (syntaxp->wtype[j] == WNOUN &&
                             stricmp(GetObject(inoun1).id, GetObject(syntaxp->slot[j]).id) == 0)
@@ -3202,7 +3224,7 @@ lang_proc(verbid_t verbId, char e)
                             syntaxp->slot[j] == -3)
                             break;
                         if (syntaxp->wtype[j] == WTEXT &&
-                            stricmp((const char *) inoun2, GetString(syntaxp->slot[j])) == 0)
+                            stricmp(reinterpret_cast<const char *>(inoun2), GetString(syntaxp->slot[j])) == 0)
                             break;
                         if (syntaxp->wtype[j] == WNOUN &&
                             stricmp(GetObject(inoun2).id, GetObject(syntaxp->slot[j]).id) == 0)
@@ -3465,7 +3487,8 @@ executeAction(const VMLine &vmline)
             if (ttproc() == 0)
                 donet = ml = mlSave;
             else
-                donet = donetSave, ml = mlSave;
+                donet = donetSave;
+				ml = mlSave;
             break;
         }
         case AKILLME:
@@ -3485,7 +3508,7 @@ executeAction(const VMLine &vmline)
 
         case AANOUN:
             /// TODO: PARSER_CODE: Make sure we actually get a string
-            announce((const char *) GetConcreteValue(args[1]), args[0]);
+            announce(reinterpret_cast<const char*>(GetConcreteValue(args[1])), args[0]);
             break;
 
 #ifdef MESSAGE_CODE
@@ -3502,27 +3525,27 @@ executeAction(const VMLine &vmline)
 
         case AACTION:
             /// TODO: PARSER_CODE: Check that's what we actually get
-            action((const char *) GetConcreteValue(args[1]), args[0]);
+            action(reinterpret_cast<const char*>(GetConcreteValue(args[1])), args[0]);
             break;
 
         case AMSGIN:
-            announcein(args[0], (const char *) GetConcreteValue(args[1]));
+            announcein(args[0], reinterpret_cast<const char *>(GetConcreteValue(args[1])));
             break;
         case AACTIN:
-            actionin(args[0], (const char *) GetConcreteValue(args[1]));
+            actionin(args[0], reinterpret_cast<const char*>(GetConcreteValue(args[1])));
             break;
         case AMSGFROM:
-            announcefrom(args[0], (const char *) GetConcreteValue(args[1]));
+            announcefrom(args[0], reinterpret_cast<const char *>(GetConcreteValue(args[1])));
             break;
         case AACTFROM:
-            actionfrom(args[0], (const char *) GetConcreteValue(args[1]));
+            actionfrom(args[0], reinterpret_cast<const char*>(GetConcreteValue(args[1])));
             break;
 
         case ATELL:
             if (!(GetAvatar(args[0]).flags & PFDEAF)) {
                 SetMxxMxy(NOISE, args[0]);
                 /// TODO: PARSER_CODE: FIX
-                PrintSlot((slotid_t) args[0], (const char *) GetConcreteValue(args[1]));
+                PrintSlot(static_cast<slotid_t>(args[0]), reinterpret_cast<const char *>(GetConcreteValue(args[1])));
             }
             break;
 
@@ -3586,16 +3609,16 @@ executeAction(const VMLine &vmline)
             Action::Demon::Status(args[0]);
             break;
         case AOBJAN:
-            objannounce(args[0], (const char *) GetConcreteValue(args[1]));
+            objannounce(args[0], reinterpret_cast<const char*>(GetConcreteValue(args[1])));
             break;
         case AOBJACT:
-            objaction(args[0], (const char *) GetConcreteValue(args[1]));
+            objaction(args[0], reinterpret_cast<const char*>(GetConcreteValue(args[1])));
             break;
         case ACONTENTS:
             Print(showin(args[0], true));
             break;
         case AFORCE:
-            aforce(args[0], (const char *) GetConcreteValue(args[1]));
+            aforce(args[0], reinterpret_cast<const char*>(GetConcreteValue(args[1])));
             break;
         case AHELP:
             t_avatar->helping = args[0];
@@ -3605,7 +3628,7 @@ executeAction(const VMLine &vmline)
             Action::CancelHelp();
             break;
         case AFIX:
-            afix((StatID) args[0], args[1]);
+            afix(static_cast<StatID>(args[0]), args[1]);
             break;
         case AOBJINVIS:
             GetObject(args[0]).flags = GetObject(args[0]).flags | OF_INVIS;
@@ -3623,23 +3646,23 @@ executeAction(const VMLine &vmline)
             show_tasks(t_slotId);
             break;
         case ASETPRE:
-            iocopy(GetAvatar(args[0]).pre, (const char *) GetConcreteValue(args[1]), 79);
+            iocopy(GetAvatar(args[0]).pre, reinterpret_cast<const char*>(GetConcreteValue(args[1])), 79);
             break;
         case ASETPOST:
-            iocopy(GetAvatar(args[0]).post, (const char *) GetConcreteValue(args[1]), 79);
+            iocopy(GetAvatar(args[0]).post, reinterpret_cast<const char*>(GetConcreteValue(args[1])), 79);
             break;
         case ASETARR:
-            qcopy(GetAvatar(args[0]).arr, (const char *) GetConcreteValue(args[1]), 79);
+            qcopy(GetAvatar(args[0]).arr, reinterpret_cast<const char*>(GetConcreteValue(args[1])), 79);
             strcat(GetAvatar(args[0]).arr, "\n");
             break;
         case ASETDEP:
-            qcopy(GetAvatar(args[0]).dep, (const char *) GetConcreteValue(args[1]), 79);
+            qcopy(GetAvatar(args[0]).dep, reinterpret_cast<const char*>(GetConcreteValue(args[1])), 79);
             strcat(GetAvatar(args[0]).dep, "\n");
             break;
 
         case AAUTOEXITS:
             /// TODO: PARSER_CODE: Make this a character setting
-            autoexits = (char) args[0];
+            autoexits = static_cast<char>(args[0]);
             break;
 
         case ABURN:
@@ -3819,7 +3842,7 @@ cond(const VMLine &line, bool lastResult)
             break;
         case CINFL:
         case CINFLICTED:
-            result = isInflicted(CA1, (SpellID) CA2);
+            result = isInflicted(CA1, static_cast<SpellID>(CA2));
             break;
         case CSAMEROOM:
             result = GetAvatar(CA1).room == t_avatar->room;
@@ -3867,7 +3890,7 @@ cond(const VMLine &line, bool lastResult)
             result = t_avatar->helping > 0;
             break;
         case CSTAT:
-            result = testStat(CA2, (StatID) CA1, CA3);
+            result = testStat(CA2, static_cast<StatID>(CA1), CA3);
             break;
         case COBJINV:
             result = isOINVIS(CA1);
@@ -3962,13 +3985,13 @@ GetConcreteValue(amulid_t srcValue)
         x = GetConcreteValue(srcValue & ~(OBVAL + OBDAM + OBWHT));
         switch (srcValue & (OBVAL + OBDAM + OBWHT)) {
             case OBVAL:
-                return (int) scaled(GetObject(x).State().value, GetObject(x).State().flags);
+                return static_cast<int>(scaled(GetObject(x).State().value, GetObject(x).State().flags));
             case OBWHT:
-                return (int) GetObject(x).State().weight;
+                return static_cast<int>(GetObject(x).State().weight);
             case OBDAM:
-                return (int) GetObject(x).State().strength;
+                return static_cast<int>(GetObject(x).State().strength);
             case OBLOC:
-                return (int) getLocationOf(x);
+                return static_cast<int>(getLocationOf(x));
         }
         return -1;
     }
@@ -3996,31 +4019,31 @@ GetConcreteValue(amulid_t srcValue)
             case LOCATE:
                 return -1;  // Not implemented
             case SELF:
-                return (int) t_slotId;
+                return static_cast<int>(t_slotId);
             case HERE:
-                return (int) t_avatar->room;
+                return static_cast<int>(t_avatar->room);
             case RANK:
-                return (int) t_character->rank;
+                return static_cast<int>(t_character->rank);
             case FRIEND:
-                return (int) t_avatar->helping;
+                return static_cast<int>(t_avatar->helping);
             case HELPER:
-                return (int) t_avatar->helped;
+                return static_cast<int>(t_avatar->helped);
             case ENEMY:
-                return (int) t_avatar->fighting;
+                return static_cast<int>(t_avatar->fighting);
             case WEAPON:
-                return (int) t_avatar->wield;
+                return static_cast<int>(t_avatar->wield);
             case SCORE:
-                return (int) t_character->score;
+                return static_cast<int>(t_character->score);
             case SCTG:
-                return (int) t_avatar->sessionScore;
+                return static_cast<int>(t_avatar->sessionScore);
             case STR:
-                return (int) t_avatar->strength;
+                return static_cast<int>(t_avatar->strength);
             case LASTROOM:
-                return (int) lroom;
+                return static_cast<int>(lroom);
             case LASTDIR:
-                return (int) ldir;
+                return static_cast<int>(ldir);
             case LASTVB:
-                return (int) lverb;
+                return static_cast<int>(lverb);
         }
         return -1;
     }

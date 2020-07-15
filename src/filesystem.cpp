@@ -87,3 +87,4 @@ GetFilesSize(string_view filepath, size_t *sizep, bool required)
     *sizep = sb.st_size;
     return 0;
 }
+

@@ -7,3 +7,4 @@
 void Delay(unsigned int ticks);
 
 #endif  // AMUL_AMIGASTUBS_H
+

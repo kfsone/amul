@@ -8,3 +8,4 @@ struct MsgExecDemon : public ParameterizedDispatch<Parser::Expression> {
     using ParameterizedDispatch::ParameterizedDispatch;
     void Dispatch() override;
 };
+

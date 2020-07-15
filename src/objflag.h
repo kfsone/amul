@@ -26,3 +26,4 @@ enum ObjectParameter { OP_NONE = -1, OP_ADJ, OP_START, OP_HOLDS, OP_PUT, OP_MOB 
 #define SF_ALIVE 64   // Mobile/Animated
 
 #endif  // AMUL_OBJFLAG_H
+

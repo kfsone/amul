@@ -42,7 +42,7 @@ class FileMappingImpl
     FileMappingImpl(const FileMappingImpl &) = delete;
     FileMappingImpl &operator=(const FileMappingImpl &) = delete;
 
-    ~FileMappingImpl() noexcept = default;
+    virtual ~FileMappingImpl() noexcept;
 
     error_t Open(string_view filepath) noexcept
     {

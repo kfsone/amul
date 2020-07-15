@@ -43,3 +43,4 @@ struct Token {
 }  // namespace Parser
 
 #endif  // AMUL_PARSER_TOKEN_H
+

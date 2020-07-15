@@ -71,3 +71,4 @@ extern thread_local Character *t_character;
 extern thread_local Avatar *t_avatar;
 
 #endif  // AMUL_CHARACTER_H
+

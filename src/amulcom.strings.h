@@ -20,3 +20,4 @@ error_t TextStringFromFile(const char *label, FILE *fp, stringid_t *idp, bool to
 error_t LookupTextString(string_view label, stringid_t *idp = nullptr);
 
 #endif
+

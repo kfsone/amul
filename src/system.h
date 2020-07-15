@@ -19,6 +19,12 @@ AllocateMem(size_t bytes)
     return calloc(bytes, 1);
 }
 
+template<typename T>
+T* AllocateInstances(size_t numInstances)
+{
+	return static_cast<T*>(calloc(sizeof(T), numInstances));
+}
+
 static inline void
 ReleaseMem(void **ptr)
 {
@@ -32,7 +38,7 @@ template<typename T>
 void
 ReleaseMem(T **ptr)
 {
-    ReleaseMem((void **) ptr);
+    ReleaseMem(reinterpret_cast<void**>(ptr));
 }
 
 #endif

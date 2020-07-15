@@ -55,7 +55,7 @@ TokenStream::Atomize()
             case A_PUNCT:
                 if (*start == ';' && !comment)
                     comment = atoms.size();
-                /*FALLTHROUGH*/
+				[[fallthrough]];
             default:
                 size_t len = buffer.it() - start;
                 atoms.push_back(Atom{ at, start, len });

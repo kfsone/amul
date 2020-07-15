@@ -30,6 +30,8 @@ INCLUDE(src/Sanitizers.cmake)
 INCLUDE(src/UnitTests.cmake)
 INCLUDE(src/Ctags.cmake)
 
+SET(CMAKE_CXX_FLAGS "${AMUL_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
+
 ADD_SUBDIRECTORY(src)
 
 # all:

@@ -5,16 +5,15 @@
 
 #include "typedefs.h"
 
-#ifndef FRIEND_TEST
-#define FRIEND_TEST(...)
-#endif
-
 class SpinLock final
 {
     std::atomic_bool m_lock{ false };
+
+#if defined(FRIEND_TEST)
     FRIEND_TEST(SpinLockTest, Lock);
     FRIEND_TEST(SpinLockTest, Unlock);
     FRIEND_TEST(SpinLockTest, SpinLock);
+#endif
 
   public:
     SpinLock() {}

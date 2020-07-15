@@ -10,3 +10,4 @@ enum WorkerType {
 constexpr auto NUM_WORKER_TYPES = int(am_MOBS + 1);
 
 #endif  // AMUL_WORKERTYPE_H
+

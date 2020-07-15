@@ -19,3 +19,4 @@
 #define PFSINVIS 0x04000    // Player is Super Invis
 
 #endif  // AMUL_PLAYERFLAG_H
+

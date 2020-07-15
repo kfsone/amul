@@ -36,3 +36,4 @@ constexpr auto JoinStrings =
         };
 
 #endif  // AMUL_AMUL_STRINGMANIP_H
+

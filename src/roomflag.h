@@ -20,3 +20,4 @@
 #define NOGORM 16834   // Can't random go to this room!
 
 #endif  // AMUL_ROOMFLAG_H
+

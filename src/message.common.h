@@ -91,3 +91,4 @@ struct MsgUnlockUser final : public ParameterizedReplyable<slotid_t> {
 };
 
 #endif  // AMUL_CLIENTMESSAGES_H
+

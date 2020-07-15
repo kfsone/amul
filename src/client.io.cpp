@@ -26,6 +26,7 @@ thread_local std::string TextLine::tl_line;
 void
 Printc(char c)
 {
+    t_needCR = c != '\n';
     switch (t_iosup) {
         case LOGFILE:
             return;
@@ -33,7 +34,6 @@ Printc(char c)
             putchar(c);
             return;
     }
-    t_needCR = c != '\n';
 }
 
 void
@@ -203,10 +203,10 @@ GetInput(char *s, size_t maxLength)
             continue;
         if (p >= s + maxLength - 1)
             continue;
-        *(p++) = (char) c;
+        *(p++) = static_cast<char>(c);
         *p = 0;
         if (t_clientDoesntEcho)
-	        Printc((char) c);
+	        Printc(static_cast<char>(c));
         t_needCR = true;
     } while (c != '\n');
     if (isspace(*(s + strlen(s) - 1)))

@@ -22,7 +22,7 @@
 
 extern thread_local char t_inputBuffer[1024];
 
-SpinLock s_characterListLock;
+static SpinLock s_characterListLock;
 
 error_t
 LoadPlayers(string_view filepath)
@@ -128,7 +128,7 @@ ChooseAnsiMode()
     for (;;) {
         Print(ASK4ANSI);
         GetInput(t_inputBuffer, 2);
-        char c = toupper(t_inputBuffer[0]);
+        char c = static_cast<char>(toupper(t_inputBuffer[0]));
         switch (c) {
             case 'Y':
                 t_character->flags |= ufANSI;
@@ -416,7 +416,7 @@ PlayerLogin()
         lang_proc(i, 0);
 #endif
     action(GetString(COMMENCED), AOTHERS);
-    look(t_avatar->room, (RoomDescMode) t_character->rdmode);
+    look(t_avatar->room, t_character->rdmode);
 }
 
 void

@@ -20,7 +20,7 @@ struct Message {
         : m_sender(sender), m_replyPort(replyPort)
     {
     }
-    virtual ~Message() = default;
+    virtual ~Message() noexcept;
 
     // ReplyPort is only valid in an original message. Do not copy it.
     constexpr Message(const Message &msg) noexcept : m_sender(msg.m_sender), m_replyPort(nullptr) {}

@@ -477,11 +477,11 @@ chknum(const char *s)
         return -1000001;
     }
     if (*s == '-')
-        return (long) -n;
+        return static_cast<long>(-n);
     if (*s == '>')
-        return (long) (n | LESS);
+        return static_cast<long>(n | LESS);
     if (*s == '<')
-        return (long) (n | MORE);
+        return static_cast<long>(n | MORE);
     return n;
 }
 
@@ -574,6 +574,7 @@ parseSpellName(string_view spellName) noexcept
 int
 is_stat(string_view statName) noexcept
 {
+	using namespace std::literals::string_view_literals;
     static const std::map<std::string_view, int> statNameToId{
         { "sctg"sv, STSCTG },      { "score"sv, STSCORE },  { "points"sv, STSCORE },
         { "str"sv, STSTR },        { "strength"sv, STSTR }, { "sta"sv, STSTAM },
@@ -1940,7 +1941,7 @@ chae_proc(const Verb &verb, const char *f, char *t)
             chae_err(verb, Word);
             return -1;
         }
-        *(t++) = (char) n;
+        *(t++) = static_cast<char>(n);
     }
 
     for (n = 1; n < 5; n++) {
@@ -1998,7 +1999,7 @@ registerTravelVerbs(char *p)
         if (extant != -1) {
             std::cout << "found " << Word << " it's " << extant << " with "
                       << g_game.m_verbs[extant].flags << "\n";
-            if (g_game.m_verbs[extant].flags | VB_TRAVEL) {
+            if ((g_game.m_verbs[extant].flags & VB_TRAVEL)) {
                 LogError("Redefinition of travel verb: ", Word);
                 continue;
             }
@@ -2556,6 +2557,7 @@ constexpr auto getNpcStatValue = [](SourceFile &src,
 bool
 consumeNpcStatsLine(SourceFile &src, NPCClass &npc)
 {
+	using namespace std::literals::string_view_literals;
     if (!src.GetLineTerms()) {
         return NpcError(src, npc, "Unexpected end of NPC");
     }

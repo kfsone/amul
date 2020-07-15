@@ -27,6 +27,7 @@ error_t PathJoin(std::string &into, const string_view lhs, const string_view rhs
 #define gamedir_joiner(filename) PathJoin(filepath, gameDir, filename)
 #define safe_gamedir_joiner(filename)                                                              \
     if (gamedir_joiner(filename) != 0)                                                             \
-        LogFatal("Unable to form filename for '", gameDir, "' / '", filename, "'");
+        LogFatal("Unable to form filename for '", gameDir, "' / '", filename, "'")
 
 #endif
+

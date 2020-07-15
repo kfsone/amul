@@ -37,6 +37,8 @@ static const int MMAP_FLAGS = MAP_PRIVATE | MAP_FILE |
     if (!(condition))                                                                              \
     return EINVAL
 
+FileMappingImpl::~FileMappingImpl() noexcept {}
+
 error_t
 NewFileMapping(string_view filepath, void **datap, size_t *sizep) noexcept
 {
