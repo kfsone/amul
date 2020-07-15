@@ -63,9 +63,9 @@ constexpr string_view compilerVersion{ AMULCOM_VSTRING };
 
 /* Compiler specific variables... */
 
-char Word[64]; /* For internal use only <grin>	*/
-int proc;      /* What we are processing	*/
-long wizstr;   /* Wizards strength		*/
+char Word[64]; /* For internal use only <grin>  */
+int proc;      /* What we are processing    */
+long wizstr;   /* Wizards strength      */
 
 char scratch[4096];  // scratch pad
 
@@ -83,6 +83,8 @@ std::map<std::string, roomid_t> s_roomIdx;
 std::map<std::string, adjid_t> s_adjectiveIdx;
 
 Room *c_room;
+
+using OptionalSourceFile = std::optional<SourceFile>;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -664,7 +666,7 @@ So, if the syntaxes line is 'verb text player' the command 'tell noun2 text'
 will call isactual with *s=noun2, n=WPLAYER.... is you read the 'actual'
 structure definition, 'noun2' is type 'WNOUN'. WNOUN != WPLAYER, HOWEVER
 the slot for noun2 (vbslot.wtype[4]) is WPLAYER, and this is REALLY what the
-user is referring too.							     */
+user is referring too.                               */
 
 /* Get actual value! */
 amulid_t
@@ -761,7 +763,7 @@ badParameter(string_view srcId,
              const char *category,
              const char *issue,
              string_view token,
-             SourceFile *src = nullptr)
+             OptionalSourceFile src = OptionalSourceFile{})
 {
     char msg[256];
     if (!token.empty()) {
@@ -803,7 +805,7 @@ checkParameter(string_view srcId,
                VMOper *oper,
                size_t paramNo,
                const char *category,
-               SourceFile *src = nullptr)
+               OptionalSourceFile src = OptionalSourceFile{})
 {
     amulid_t value = WNONE;
     const int8_t parameterType = op->parameters[paramNo];
@@ -911,7 +913,7 @@ selectToken(string_view srcId, const VMOP *op, size_t paramNo, const char *categ
 {
     p = skipOptionalPrefixes(p);
     if (!p || *p == '\0') {
-        badParameter(srcId, op, paramNo, category, "Unexpected end of arguments", nullptr);
+        badParameter(srcId, op, paramNo, category, "Unexpected end of arguments", "");
         return "";
     }
 
@@ -929,7 +931,7 @@ selectToken(string_view srcId, const VMOP *op, size_t paramNo, const char *categ
                          paramNo,
                          category,
                          "Unexpected end of string (missing close quote?)",
-                         nullptr);
+                         std::string_view{begin, size_t(p - begin)});
         end = strstop(p, quote);
         if (*end == quote)
             p = end + 1;
@@ -1873,13 +1875,13 @@ processTravelRoom(SourceFile &src, std::string roomName)
 //    verb=south
 //        if got umbrella in state 1 then error "Can't get the umbrella thru the
 //        door."
-//		  goto southroom
+//        goto southroom
 //
 //    room=southroom
 //    verbs=north out
 //        if got umbrella in state 1 then error "Can't get the umbrella thru the
 //        door."
-//		  goto northroom
+//        goto northroom
 
 void
 trav_proc(const std::string &filepath)

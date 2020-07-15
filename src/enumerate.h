@@ -8,10 +8,11 @@
 
 // Find the index of an element in a sequence container that matches a predicate.
 static constexpr auto Enumerate = [](const auto &sequence, auto predicate) {
+	using return_t = decltype(std::distance(std::cbegin(sequence), std::cend(sequence)));
     auto cbegin = std::cbegin(sequence), cend = std::cend(sequence);
     if (auto it = std::find_if(cbegin, cend, predicate); it != cend)
-        return optional<size_t>(std::distance(cbegin, it));
-    return optional<size_t>{};
+        return optional<return_t>(std::distance(cbegin, it));
+    return optional<return_t>{};
 };
 
 #endif  // AMUL_ENUMERATE_H
