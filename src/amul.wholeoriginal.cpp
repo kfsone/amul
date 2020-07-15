@@ -1163,11 +1163,14 @@ describe_room(roomid_t roomNo, RoomDescMode mode) noexcept
     if (t_character->rank == g_game.MaxRank())
         Printf(" (%s)", room.id);
     Printc('\n');
-    if (room.longDesc != -1 && (mode == RDVB || !g_game.m_visited[t_slotId][roomNo])) {
-        Print(GetString(room.longDesc));
-        Printc(' ');
-        if (mode != RDVB)
-            g_game.m_visited[t_slotId][roomNo] = true;
+    if (room.longDesc != -1) {
+		const bool showLong = mode == RDVB || (mode == RDRC && !g_game.m_visited[t_slotId][roomNo]);
+		if (showLong) {
+        	Print(GetString(room.longDesc));
+        	Printc(' ');
+        	if (mode != RDVB)
+            	g_game.m_visited[t_slotId][roomNo] = true;
+		}
     }
 }
 
@@ -2252,11 +2255,11 @@ exits()
         return;
     }
 
-#ifdef PARSER_CODE
+//#ifdef PARSER_CODE
     /// TODO: make a list of travel verbs, duh.
     for (auto verbIt = g_game.m_verbs.cbegin(); verbIt != g_game.m_verbs.cend(); ++verbIt) {
         // Only look at verbs flagged for travel
-        if (verbIt->flags & VB_TRAVEL)
+        if ((verbIt->flags & VB_TRAVEL) != VB_TRAVEL)
             continue;
 
         bool lastResult = true;  // track return value of conditions
@@ -2274,17 +2277,19 @@ exits()
                 continue;
             vmopid_t action = ttent->action.m_op;
             switch (action) {
-                case AGOTO_ROOM:
+                case AGOTO_ROOM: {
                     const auto roomId = ttent->action.m_args[0];
                     const auto &destination = GetRoom(roomId);
-                    Printf("%s ", verbIt->id);
-                    if (destination.flags & DEATH)
+                    Printf("%s: ", verbIt->id);
+                    if ((destination.flags & DEATH) == DEATH)
                         Print(CERTDEATH);
                     else
                         describe_room(roomId, RDBF);
                     break;
+				}
                 case AKILLME:
                     Printf("%s: It's difficult to tell...\n", verbIt->id);
+					[[fallthrough]];
                 case AENDPARSE:
                 case AFAILPARSE:
                 case AABORTPARSE:
@@ -2298,7 +2303,7 @@ exits()
                 break;
         }
     }
-#endif
+//#endif
 }
 
 #ifdef MESSAGE_CODE
