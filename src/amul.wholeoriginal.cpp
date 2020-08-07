@@ -1858,7 +1858,6 @@ announce(const char *s, int towho)
             (GetRoom(GetAvatar(i).room).flags & SILENT))
             continue;
 		bool skipPlayer = false;
-        int x = 0;
         switch (towho) {
             case AALL:
             case AEVERY1:
