@@ -16,8 +16,8 @@ class SpinLock final
 #endif
 
   public:
-    SpinLock() {}
-    ~SpinLock() { m_lock = true; }
+    constexpr SpinLock() noexcept {}
+    ~SpinLock() noexcept { m_lock = true; }
 
     SpinLock(const SpinLock &) = delete;
     SpinLock(SpinLock &&) = delete;

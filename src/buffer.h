@@ -26,7 +26,7 @@ struct Buffer {
     {
         m_start = start;
         m_cur = start;
-        m_end = m_start + length;
+        m_end = start + length;
     }
 
     constexpr const char *begin() const noexcept { return m_start; }

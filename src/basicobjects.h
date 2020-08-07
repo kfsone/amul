@@ -1,4 +1,5 @@
 #include <cstdint>
+#include "amul.typedefs.h"
 
 /// TODO: enumize
 #define boZONKED 0x0001   /* its out-of-play	*/

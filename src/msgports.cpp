@@ -3,6 +3,7 @@
 #include <string>
 
 //#include "amigastubs.h"
+#include "amul.typedefs.h"
 #include "message.base.h"
 #include "message.execfn.h"
 #include "msgports.h"
@@ -27,7 +28,7 @@ MsgExecuteFn::~MsgExecuteFn() noexcept {}
 CriticalSection::CriticalSection() noexcept : SpinGuard(s_criticalSection) {}
 
 MsgPortPtr
-FindPort(std::string portName) noexcept
+FindPort(const std::string &portName) noexcept
 {
     SpinGuard guard(s_tablesLock);
     auto it = s_portTable.find(portName);
@@ -41,7 +42,7 @@ FindPort(slotid_t slotId) noexcept
 }
 
 MsgPortPtr
-CreatePort(std::string portName)
+CreatePort(const std::string &portName)
 {
     SpinGuard guard(s_tablesLock);
 
@@ -66,7 +67,7 @@ void
 MsgPort::Close() noexcept
 {
     {
-        SpinGuard guard{ m_spinLock };
+        SpinGuard guard{ this->m_spinLock };
         if (!m_open.exchange(false))
             return;
     }
@@ -105,7 +106,7 @@ MsgPort::Put(MessagePtr &&msg)
 {
     SpinGuard guard{ m_spinLock };
     if (m_open)
-        m_msgList.emplace_back(move(msg));
+        m_msgList.emplace_back(std::move(msg));
 }
 
 MessagePtr
@@ -141,7 +142,7 @@ void
 ReplyMsg(MessagePtr &&msg)
 {
     if (msg->m_replyPort)
-        msg->m_replyPort->Put(move(msg));
+        msg->m_replyPort->Put(std::move(msg));
 }
 
 void

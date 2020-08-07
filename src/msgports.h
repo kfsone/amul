@@ -62,8 +62,8 @@ struct MsgPort {
     void Close() noexcept;
 };
 
-MsgPortPtr CreatePort(std::string portName = "");
-MsgPortPtr FindPort(std::string portName) noexcept;
+MsgPortPtr CreatePort(const std::string &portName = "");
+MsgPortPtr FindPort(const std::string &portName) noexcept;
 MsgPortPtr FindPort(slotid_t slotId) noexcept;
 
 void ReplyMsg(MessagePtr &&msg);
