@@ -6,7 +6,6 @@
 #include "message.base.h"
 #include "message.execfn.h"
 #include "msgports.h"
-#include "spinlock.h"
 #include "system.h"
 
 SpinLock s_tablesLock{};

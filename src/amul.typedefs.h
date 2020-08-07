@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 
 #if defined(HAVE_CONFIG_H)

@@ -1,3 +1,5 @@
+#include <cstdint>
+
 /// TODO: enumize
 #define boZONKED 0x0001   /* its out-of-play	*/
 #define boCREATURE 0x0002 /* its a creature	*/
