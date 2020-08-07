@@ -10,32 +10,34 @@ extern thread_local MsgPortPtr t_replyPort;
 
 // Message types
 
-struct DispatchMessage : public Message {
-    DispatchMessage(MsgPortPtr replyPort=nullptr) noexcept : Message(t_slotId, replyPort){}
-	virtual ~DispatchMessage() noexcept;
+struct DispatchedMessage : public Message {
+    DispatchedMessage(MsgPortPtr replyPort=nullptr) noexcept : Message(t_slotId, replyPort){}
+	virtual ~DispatchedMessage() noexcept;
 };
 
 template<typename ParamType>
-struct ParameterizedDispatch : public DispatchMessage {
+struct ParameterizedDispatch : public DispatchedMessage {
     ParamType m_param{};
+    ParameterizedDispatch() = default;
     ParameterizedDispatch(const ParamType &param, MsgPortPtr replyPort = nullptr) noexcept
-        : DispatchMessage(replyPort), m_param{ param }
+        : DispatchedMessage(replyPort), m_param{ param }
     {
     }
     ParameterizedDispatch(ParamType &&param, MsgPortPtr replyPort = nullptr) noexcept
-        : DispatchMessage(replyPort), m_param{ forward<ParamType>(param) }
+        : DispatchedMessage(replyPort), m_param{ forward<ParamType>(param) }
     {
     }
 	virtual ~ParameterizedDispatch() {}
 };
-struct ReplyableMessage : public DispatchMessage {
-    ReplyableMessage(MsgPortPtr port = t_replyPort) noexcept : DispatchMessage(port) {}
+struct ReplyableMessage : public DispatchedMessage {
+    ReplyableMessage(MsgPortPtr port = t_replyPort) noexcept : DispatchedMessage(port) {}
 	virtual ~ReplyableMessage() noexcept;
 };
 
 template<typename ParamType>
 struct ParameterizedReplyable : public ReplyableMessage {
     ParamType m_param{};
+    ParameterizedReplyable() = default;
     ParameterizedReplyable(ParamType &&param) noexcept
         : ReplyableMessage(), m_param{ forward<ParamType>(param) }
     {

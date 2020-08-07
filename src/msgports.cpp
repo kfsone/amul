@@ -20,7 +20,7 @@ PortMap s_portMap;
 
 // Out-of-line dtor for Message.
 Message::~Message() noexcept {}
-DispatchMessage::~DispatchMessage() noexcept {}
+DispatchedMessage::~DispatchedMessage() noexcept {}
 ReplyableMessage::~ReplyableMessage() noexcept {}
 MsgExecuteFn::~MsgExecuteFn() noexcept {}
 

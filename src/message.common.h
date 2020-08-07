@@ -15,7 +15,7 @@ struct MsgConnectClient final : public ReplyableMessage {
     void Dispatch() override;
 };
 
-struct MsgDie : public DispatchMessage {
+struct MsgDie : public DispatchedMessage {
     void Dispatch() { akillme(); }
 };
 
@@ -62,7 +62,7 @@ struct MsgPrintText : public ParameterizedDispatch<std::string> {
     void Dispatch() override;
 };
 
-struct MsgResetting final : public DispatchMessage {
+struct MsgResetting final : public DispatchedMessage {
     void Dispatch() override;
 };
 
