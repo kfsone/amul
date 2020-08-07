@@ -3,7 +3,7 @@
 #include "logging.h"
 #include "modules.h"
 
-extern int amul_main();
+extern void amul_main();
 
 extern error_t InitServer();
 extern error_t InitClient();
