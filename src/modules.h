@@ -2,7 +2,7 @@
 #define AMUL_MODULES_H
 
 #include "amul.list.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 struct Module;
 using moduleinit_fn = error_t (*)(struct Module *);

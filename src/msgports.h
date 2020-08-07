@@ -6,9 +6,9 @@
 #include <memory>
 #include <string>
 
+#include "amul.typedefs.h"
 #include "amigastubs.h"
 #include "spinlock.h"
-#include "typedefs.h"
 
 struct MsgPort;
 

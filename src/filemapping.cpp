@@ -3,7 +3,7 @@
 #include "amulconfig.h"
 
 #include "amul.file.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "filemapping.h"
 #include "filesystem.h"
 #include "logging.h"

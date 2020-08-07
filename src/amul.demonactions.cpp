@@ -1,9 +1,9 @@
 #include "amul.actions.h"
 #include "amul.demonactions.h"
+#include "amul.typedefs.h"
 #include "amulinc.h"
 #include "message.execdemon.h"
 #include "parser.context.h"
-#include "typedefs.h"
 
 // Daemon processing bizness!
 

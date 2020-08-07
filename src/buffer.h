@@ -4,7 +4,7 @@
 
 #include <cstring>
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 struct Buffer {
     const char *m_start{ nullptr };

@@ -2,10 +2,10 @@
 #ifndef AMUL_PARSER_CONTEXT_H
 #define AMUL_PARSER_CONTEXT_H
 
+#include "amul.typedefs.h"
 #include "parser.expression.h"
 #include "parser.token.h"
 #include "parser.wtype.h"
-#include "typedefs.h"
 
 namespace Parser
 {

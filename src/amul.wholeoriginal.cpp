@@ -23,6 +23,7 @@
 #include "amul.msgs.h"
 #include "amul.stct.h"
 #include "amul.stringmanip.h"
+#include "amul.typedefs.h"
 #include "amul.vars.h"     // all INTERNAL variables
 #include "amul.version.h"  // Version info etc.
 #include "amulinc.h"       // Main Include file
@@ -44,7 +45,6 @@
 #include "statid.h"
 #include "stringmanip.h"
 #include "system.h"
-#include "typedefs.h"
 #include "users.h"
 
 extern thread_local std::atomic_bool t_terminate;

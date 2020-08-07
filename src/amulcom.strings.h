@@ -3,7 +3,7 @@
 #define AMULCOM_STRINGS_H 1
 
 #include "amul.strs.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 error_t InitStrings() noexcept;
 

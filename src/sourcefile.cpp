@@ -3,7 +3,7 @@
 
 #include "sourcefile.h"
 #include "amul.defs.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "buffer.h"
 #include "filemapping.h"
 #include "filesystem.h"

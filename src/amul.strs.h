@@ -8,7 +8,7 @@
 // rooms.txt file, whereas others are named such as object
 // descriptions from the "obdescs.txt" file.
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 // Copy strings as-is
 char *StrCopy(char *into, size_t intoSize, const char *start, const char *end);

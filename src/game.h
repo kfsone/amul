@@ -10,7 +10,7 @@
 
 #include "amul.stct.h"
 #include "character.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 enum { GAME_NAME_LENGTH = 64 };
 

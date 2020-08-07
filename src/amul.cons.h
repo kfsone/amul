@@ -3,7 +3,7 @@
 // Common constants.
 
 #include "amul.defs.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 // Room flag names
 extern const char *rflag[NRFLAGS];

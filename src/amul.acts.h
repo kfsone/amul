@@ -11,7 +11,7 @@
 #include <string_view>
 
 #include "amul.defs.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 // Actual flags
 #define IWORD 0x00100000  // one of users words

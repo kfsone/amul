@@ -5,9 +5,9 @@
 
 #include "amul.cons.h"
 #include "amul.stct.h"
+#include "amul.typedefs.h"
 #include "amullib.h"
 #include "game.h"
-#include "typedefs.h"
 
 static auto &
 getRandomEngine() noexcept

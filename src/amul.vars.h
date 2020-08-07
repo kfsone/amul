@@ -3,7 +3,7 @@
 #define AMUL_VARS_H
 
 #include <atomic>
-#include <typedefs.h>
+#include "amul.typedefs.h"
 
 extern thread_local std::atomic_bool t_terminate;
 

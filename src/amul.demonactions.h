@@ -1,6 +1,6 @@
 #pragma once
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 namespace Action::Demon
 {

@@ -1,7 +1,7 @@
 #ifndef AMUL_DEMON_H
 #define AMUL_DEMON_H
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "parser.expression.h"
 #include "parser.wtype.h"
 

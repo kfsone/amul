@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "amul.enum.h"
+#include "amul.typedefs.h"
 #include "buffer.h"
 #include "logging.h"
-#include "typedefs.h"
 
 struct SourceFile {
     std::string filepath{};

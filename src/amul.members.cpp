@@ -4,7 +4,7 @@
 #include "game.h"
 #include "objflag.h"
 #include "playerflag.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 constexpr roomid_t OwnerOffset = -5;
 constexpr roomid_t MaxOwnerOffset = OwnerOffset - MAXU;

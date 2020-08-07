@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 enum LogLevel {
     LMORE,  // ultra debug

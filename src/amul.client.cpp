@@ -40,7 +40,7 @@ and the plan is to gradually migrate it back into this file.
 #include "modules.h"
 #include "msgports.h"
 #include "system.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "workertype.h"
 
 using WorkerFn = void (*)(void *);

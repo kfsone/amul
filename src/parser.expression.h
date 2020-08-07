@@ -3,7 +3,7 @@
 #define AMUL_PARSER_EXPRESSION_H
 
 #include "parser.token.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 namespace Parser
 {

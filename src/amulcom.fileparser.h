@@ -3,7 +3,8 @@
 #define AMULCOM_FILEPARSER_H
 
 #include "sourcefile.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
+#include <type_traits>
 
 // FileParser is the base class for AmulCom file parsing. It expects the
 // implementer to provide 'idPrefix()', 'consumeFirstLine(id)', and

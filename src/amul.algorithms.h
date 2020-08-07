@@ -1,6 +1,6 @@
 #pragma once
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "game.h"
 
 constexpr auto ForEachPlayer = [](auto function) {

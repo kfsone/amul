@@ -9,7 +9,7 @@
 #include "amul.stringmanip.h"
 #include "game.h"
 #include "logging.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "workertype.h"
 
 using CommandMap = std::map<string_view, pair<void (*)(string_view), const char *>>;

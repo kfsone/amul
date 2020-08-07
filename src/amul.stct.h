@@ -2,8 +2,8 @@
 #define AMUL_STCT_H 1
 
 #include "amul.defs.h"
+#include "amul.typedefs.h"
 #include "amul.vmop.h"  ///TODO: Move language structs to that file.
-#include "typedefs.h"
 
 // Room represents a room, or location, in the game world.
 struct Room {

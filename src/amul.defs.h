@@ -6,7 +6,7 @@
  */
 
 #include "parser.wtype.h"  ///TODO: Remove.
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 enum {
     NRFLAGS = 16,

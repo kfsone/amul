@@ -4,8 +4,8 @@
 
 #include <cstdio>  // For snprintf
 
+#include "amul.typedefs.h"
 #include "game.h"
-#include "typedefs.h"
 #include "textline.h"
 
 extern thread_local IoType t_iosup;  // Whether we're using console/network/logging output

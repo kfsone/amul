@@ -5,7 +5,7 @@
 
 #include "amigastubs.h"
 #include "amul.test.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "logging.h"
 #include "modules.h"
 #include "system.h"

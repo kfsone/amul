@@ -2,7 +2,7 @@
 #ifndef AMUL_ENUMERATE_H
 #define AMUL_ENUMERATE_H
 
-#include "typedefs.h"  // for size_t
+#include "amul.typedefs.h"
 
 #include <algorithm>
 

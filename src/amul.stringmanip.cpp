@@ -3,7 +3,7 @@
 
 #include "game.h"
 #include "amul.stringmanip.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "client.io.h"
 #include "parser.context.h"
 

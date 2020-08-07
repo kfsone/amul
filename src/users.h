@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 error_t LoadPlayers(string_view playerDataFile);
 void PlayerLogin();

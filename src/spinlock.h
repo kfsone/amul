@@ -3,7 +3,7 @@
 
 #include <atomic>
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 class SpinLock final
 {

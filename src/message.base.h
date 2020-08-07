@@ -2,8 +2,8 @@
 
 // Defines the base classes for Message implementations.
 
+#include "amul.typedefs.h"
 #include "msgports.h"
-#include "typedefs.h"
 
 extern thread_local slotid_t t_slotId;
 extern thread_local MsgPortPtr t_replyPort;

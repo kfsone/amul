@@ -6,7 +6,7 @@
 
 #include "amul.argp.h"
 #include "amul.defs.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "amul.vars.h"
 #include "filesystem.h"
 #include "logging.h"

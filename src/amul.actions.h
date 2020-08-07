@@ -1,7 +1,7 @@
 #pragma once
 
-#include "typedefs.h"
 #include "amul.defs.h"
+#include "amul.typedefs.h"
 
 // Prototypes for action operations
 

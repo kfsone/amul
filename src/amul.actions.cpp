@@ -12,7 +12,7 @@
 #include "parser.context.h"
 #include "playerflag.h"
 #include "spinlock.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "users.h"
 
 using namespace std::string_literals;

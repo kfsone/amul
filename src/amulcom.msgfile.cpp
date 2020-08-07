@@ -3,7 +3,7 @@
 
 #include "amul.defs.h"
 #include "amul.enum.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "amul.xtra.h"
 #include "amulcom.fileprocessing.h"
 #include "amulcom.strings.h"

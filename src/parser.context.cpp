@@ -7,7 +7,7 @@
 #include <unordered_set>
 
 #include "game.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "amul.xtra.h"
 #include "amulinc.h"
 #include "amullib.h"

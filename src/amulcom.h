@@ -1,7 +1,7 @@
 #ifndef AMULCOM_H
 #define AMULCOM_H
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 // Close any open output files.
 void CloseOutFiles();

@@ -5,7 +5,7 @@
 #include "game.h"
 #include "amul.msgs.h"
 #include "amul.stringmanip.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "amulinc.h"
 #include "client.io.h"
 #include "textline.h"

@@ -4,7 +4,7 @@
 
 #include <cstdlib>
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "platforms.h"
 
 #if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)

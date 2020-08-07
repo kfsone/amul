@@ -5,7 +5,7 @@
 
 using std::string;
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 
 void

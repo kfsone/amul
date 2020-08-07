@@ -5,7 +5,7 @@
 #include <string>
 
 #include "amul.defs.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 extern thread_local slotid_t t_slotId;
 

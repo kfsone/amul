@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 // Creates a memory mapping of the named (complete) filepath.
 // *datap will be populated with the address of the mapping in memory and,

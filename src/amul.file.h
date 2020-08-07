@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <utility>
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>

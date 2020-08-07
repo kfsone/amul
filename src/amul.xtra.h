@@ -3,7 +3,7 @@
 
 #include <cctype>
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 const char *extractLine(const char *from, char *to);
 char *getword(char *from);

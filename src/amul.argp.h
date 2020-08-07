@@ -1,7 +1,7 @@
 #ifndef AMUL_ARGP_H
 #define AMUL_ARGP_H
 
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 // Argument parsing.
 struct CommandLine {

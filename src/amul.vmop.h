@@ -8,7 +8,7 @@
 // whether one or more actions will be executed.
 
 #include "amul.defs.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 
 enum { MAX_VMOP_PARAMS = 3 };
 

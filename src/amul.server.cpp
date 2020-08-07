@@ -30,6 +30,7 @@
 #include "amul.file.h"
 #include "amul.h"
 #include "amul.stringmanip.h"
+#include "amul.typedefs.h"
 #include "amul.vars.h"
 #include "amul.version.h"
 #include "amul.vmop.h"
@@ -44,7 +45,6 @@
 #include "msgports.h"
 #include "roomflag.h"
 #include "system.h"
-#include "typedefs.h"
 #include "users.h"
 
 extern thread_local FILE *ifp;

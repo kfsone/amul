@@ -5,7 +5,7 @@
 #include <string_view>
 
 #include "amul.enum.h"
-#include "typedefs.h"
+#include "amul.typedefs.h"
 #include "platforms.h"
 
 extern std::string gameDir;

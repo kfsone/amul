@@ -5,8 +5,8 @@
 #include <string>
 #include <string_view>
 
+#include "amul.typedefs.h"
 #include "game.h"
-#include "typedefs.h"
 
 std::string MakeTitle(slotid_t slotId);
 void PutARankInto(char *into, slotid_t slot) noexcept;
