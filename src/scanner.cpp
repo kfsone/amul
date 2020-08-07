@@ -156,7 +156,7 @@ struct TokenizerState {
     LexCursor m_cursor;
     std::vector<Token> m_tokens;
 
-    TokenizerStae() : m_lexemes{}, m_cursor{ m_lexemes.begin() }, m_tokens{} {}
+    TokenizerState() : m_lexemes{}, m_cursor{ m_lexemes.begin() }, m_tokens{} {}
 
     bool empty() const { return m_cursor == m_lexemes.end(); }
     Lexeme Current() const { return *m_cursor; }

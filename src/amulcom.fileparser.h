@@ -2,8 +2,8 @@
 #ifndef AMULCOM_FILEPARSER_H
 #define AMULCOM_FILEPARSER_H
 
-#include "typedefs.h"
 #include "sourcefile.h"
+#include "typedefs.h"
 
 // FileParser is the base class for AmulCom file parsing. It expects the
 // implementer to provide 'idPrefix()', 'consumeFirstLine(id)', and
@@ -14,7 +14,7 @@ class FileParser
     SourceFile src;
     std::string id;  // current id
 
-	virtual void startBlock() {}  // tear-up any state at the start of a block
+    virtual void startBlock() {}  // tear-up any state at the start of a block
     virtual string_view idPrefix() const noexcept = 0;
     virtual bool processFlags() = 0;
     virtual bool consumeLines();	// default implementation: consumeLine() on remaining lines
@@ -23,10 +23,11 @@ class FileParser
 
   public:
     FileParser(const std::string &filepath) : src(filepath) {}
-	virtual ~FileParser() {}
+    virtual ~FileParser() {}
 
     template<typename... Args>
-    auto Error(Args &&... args) {
+    auto Error(Args &&... args)
+    {
         LogError(src.filepath, ":", src.lineNo, ":", id, ": ", std::forward<Args>(args)...);
     }
 
