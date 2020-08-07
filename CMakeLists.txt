@@ -1,7 +1,7 @@
 # CMakeList.txt : CMake project for AMUL, include source and define
 # project specific logic here.
 #
-CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 
 PROJECT(AMUL CXX C)
 
